@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OmniBizAI.Application/OmniBizAI.Application.csproj" />
+    <Project Path="src/OmniBizAI.Domain/OmniBizAI.Domain.csproj" />
+    <Project Path="src/OmniBizAI.Infrastructure/OmniBizAI.Infrastructure.csproj" />
+    <Project Path="src/OmniBizAI.WebAPI/OmniBizAI.WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OmniBizAI.UnitTests/OmniBizAI.UnitTests.csproj" />
+  </Folder>
+</Solution>

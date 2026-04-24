@@ -1,0 +1,6 @@
+@OmniBizAI.WebAPI_HostAddress = http://localhost:5283
+
+GET {{OmniBizAI.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

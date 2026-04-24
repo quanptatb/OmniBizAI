@@ -1,0 +1,17 @@
+bin/
+obj/
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+.env
+
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+frontend/.env.local
+
+uploads/
+logs/
+backups/
