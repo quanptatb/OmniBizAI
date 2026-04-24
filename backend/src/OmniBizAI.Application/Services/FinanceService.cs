@@ -321,4 +321,142 @@ public sealed class FinanceService : IFinanceService
     {
         return new TransactionDto(transaction.Id, transaction.TransactionNumber, transaction.Type, transaction.Amount, transaction.WalletId, transaction.DepartmentId, transaction.CategoryId, transaction.BudgetId, transaction.TransactionDate, transaction.Status);
     }
+
+    public async Task<BudgetDto> GetBudgetAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Budget>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new BudgetDto(e.Id, e.Name, e.DepartmentId, e.CategoryId, e.FiscalPeriodId, e.AllocatedAmount, e.SpentAmount, e.CommittedAmount, e.RemainingAmount, e.UtilizationPercent, e.WarningLevel, e.Status);
+    }
+    public async Task<BudgetDto> UpdateBudgetAsync(Guid id, UpdateBudgetRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Budget>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.Name = request.Name; e.AllocatedAmount = request.AllocatedAmount; e.Notes = request.Notes;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return await GetBudgetAsync(id, cancellationToken);
+    }
+    public async Task DeleteBudgetAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Budget>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        _unitOfWork.Repository<Budget>().Remove(e); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<PagedResult<BudgetCategoryDto>> GetCategoriesAsync(PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<BudgetCategory>().Query();
+        return Task.FromResult(PagedResult<BudgetCategoryDto>.Create(q.Select(x => new BudgetCategoryDto(x.Id, x.Name, x.Code, x.Type, x.ParentId, x.IsActive)), request));
+    }
+    public async Task<BudgetCategoryDto> GetCategoryAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var x = await _unitOfWork.Repository<BudgetCategory>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new BudgetCategoryDto(x.Id, x.Name, x.Code, x.Type, x.ParentId, x.IsActive);
+    }
+    public async Task<BudgetCategoryDto> UpdateCategoryAsync(Guid id, UpdateBudgetCategoryRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<BudgetCategory>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.Name = request.Name; e.Code = request.Code; e.Type = request.Type; e.ParentId = request.ParentId; e.Color = request.Color; e.IsActive = request.IsActive;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return await GetCategoryAsync(id, cancellationToken);
+    }
+    public async Task DeleteCategoryAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<BudgetCategory>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        _unitOfWork.Repository<BudgetCategory>().Remove(e); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<PagedResult<VendorDto>> GetVendorsAsync(PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<Vendor>().Query();
+        return Task.FromResult(PagedResult<VendorDto>.Create(q.Select(x => new VendorDto(x.Id, x.Name, x.TaxCode, x.Email, x.Phone, x.Rating, x.Status)), request));
+    }
+    public async Task<VendorDto> GetVendorAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var x = await _unitOfWork.Repository<Vendor>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new VendorDto(x.Id, x.Name, x.TaxCode, x.Email, x.Phone, x.Rating, x.Status);
+    }
+    public async Task<VendorDto> UpdateVendorAsync(Guid id, UpdateVendorRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Vendor>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.Name = request.Name; e.TaxCode = request.TaxCode; e.Email = request.Email; e.Phone = request.Phone; e.Address = request.Address; e.BankAccount = request.BankAccount; e.Status = request.Status;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return await GetVendorAsync(id, cancellationToken);
+    }
+    public async Task DeleteVendorAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Vendor>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        _unitOfWork.Repository<Vendor>().Remove(e); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<PagedResult<WalletDto>> GetWalletsAsync(PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<Wallet>().Query();
+        return Task.FromResult(PagedResult<WalletDto>.Create(q.Select(x => new WalletDto(x.Id, x.Name, x.Type, x.Balance, x.Currency, x.IsActive)), request));
+    }
+    public async Task<WalletDto> GetWalletAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var x = await _unitOfWork.Repository<Wallet>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new WalletDto(x.Id, x.Name, x.Type, x.Balance, x.Currency, x.IsActive);
+    }
+    public async Task<WalletDto> UpdateWalletAsync(Guid id, UpdateWalletRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Wallet>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.Name = request.Name; e.Type = request.Type; e.IsActive = request.IsActive;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return await GetWalletAsync(id, cancellationToken);
+    }
+    public async Task DeleteWalletAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Wallet>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        _unitOfWork.Repository<Wallet>().Remove(e); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<PagedResult<PaymentRequestDto>> GetPaymentRequestsAsync(PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<PaymentRequest>().Query();
+        return Task.FromResult(PagedResult<PaymentRequestDto>.Create(q.Select(x => new PaymentRequestDto(x.Id, x.RequestNumber, x.Title, x.DepartmentId, x.RequesterId, x.VendorId, x.BudgetId, x.CategoryId, x.TotalAmount, x.Currency, x.Status, x.AiRiskScore, new List<PaymentRequestItemDto>())), request));
+    }
+    public async Task<PaymentRequestDto> GetPaymentRequestAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var x = await _unitOfWork.Repository<PaymentRequest>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new PaymentRequestDto(x.Id, x.RequestNumber, x.Title, x.DepartmentId, x.RequesterId, x.VendorId, x.BudgetId, x.CategoryId, x.TotalAmount, x.Currency, x.Status, x.AiRiskScore, new List<PaymentRequestItemDto>());
+    }
+    public async Task<PaymentRequestDto> UpdatePaymentRequestAsync(Guid id, UpdatePaymentRequestRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<PaymentRequest>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        if(e.Status != PaymentRequestStatus.Draft) throw new BusinessRuleException("Can only update draft requests.");
+        e.Title = request.Title; e.Description = request.Description; e.DepartmentId = request.DepartmentId; e.VendorId = request.VendorId; e.BudgetId = request.BudgetId; e.CategoryId = request.CategoryId;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return await GetPaymentRequestAsync(id, cancellationToken);
+    }
+    public async Task DeletePaymentRequestAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<PaymentRequest>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        if(e.Status != PaymentRequestStatus.Draft) throw new BusinessRuleException("Can only delete draft requests.");
+        _unitOfWork.Repository<PaymentRequest>().Remove(e); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<AttachmentDto> AddAttachmentAsync(Guid paymentRequestId, UploadAttachmentRequest request, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new AttachmentDto(Guid.NewGuid(), request.FileName, request.FileUrl));
+    }
+    public Task DeleteAttachmentAsync(Guid paymentRequestId, Guid attachmentId, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task<PagedResult<TransactionDto>> GetTransactionsAsync(PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<Transaction>().Query();
+        return Task.FromResult(PagedResult<TransactionDto>.Create(q.Select(x => new TransactionDto(x.Id, x.TransactionNumber, x.Type, x.Amount, x.WalletId, x.DepartmentId, x.CategoryId, x.BudgetId, x.TransactionDate, x.Status)), request));
+    }
+    public async Task<TransactionDto> GetTransactionAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var x = await _unitOfWork.Repository<Transaction>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new TransactionDto(x.Id, x.TransactionNumber, x.Type, x.Amount, x.WalletId, x.DepartmentId, x.CategoryId, x.BudgetId, x.TransactionDate, x.Status);
+    }
+    public async Task<TransactionDto> UpdateTransactionAsync(Guid id, CreateTransactionRequest request, CancellationToken cancellationToken = default)
+    {
+        var x = await _unitOfWork.Repository<Transaction>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return await GetTransactionAsync(id, cancellationToken);
+    }
+    public async Task DeleteTransactionAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Transaction>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        _unitOfWork.Repository<Transaction>().Remove(e); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
 }

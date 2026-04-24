@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Plus, Search, Filter } from "lucide-react";
+import Link from "next/link";
 
 export default function PaymentRequestsPage() {
   const [activeTab, setActiveTab] = useState("all");
@@ -21,10 +22,10 @@ export default function PaymentRequestsPage() {
         title="Payment Requests" 
         description="Manage and track payment requests across the organization."
       >
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+        <Link href="/finance/payment-requests/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
           <Plus size={16} />
           New Request
-        </button>
+        </Link>
       </PageHeader>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

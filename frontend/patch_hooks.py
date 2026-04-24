@@ -1,40 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "./client";
-import type { DashboardOverview, Budget, ApprovalQueueItem, PagedResult, PaymentRequestPayload } from "@/types/api";
+import os
 
-export const useDashboardOverview = () => {
-  return useQuery({
-    queryKey: ["dashboard", "overview"],
-    queryFn: () => apiClient.get<any, DashboardOverview>("/dashboard/overview"),
-  });
-};
-
-export const useBudgets = (page = 1, pageSize = 20) => {
-  return useQuery({
-    queryKey: ["budgets", { page, pageSize }],
-    queryFn: () => apiClient.get<any, PagedResult<Budget>>(`/budgets?page=${page}&pageSize=${pageSize}`),
-  });
-};
-
-export const useApprovalQueue = (page = 1, pageSize = 20) => {
-  return useQuery({
-    queryKey: ["approval-queue", { page, pageSize }],
-    queryFn: () => apiClient.get<any, PagedResult<ApprovalQueueItem>>(`/approval-queue?page=${page}&pageSize=${pageSize}`),
-  });
-};
-
-export const useCreatePaymentRequest = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: PaymentRequestPayload) => apiClient.post("/payment-requests", payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["approval-queue"] });
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    },
-  });
-};
-
+def patch_hooks():
+    hooks_path = r"c:\Users\Cua\Desktop\OmniBizAI\frontend\src\lib\api\hooks.ts"
+    
+    with open(hooks_path, 'a', encoding='utf-8') as f:
+        f.write("""
 // Organization
 export const useDepartments = (page = 1, pageSize = 20) => useQuery({ queryKey: ["departments", { page, pageSize }], queryFn: () => api.getDepartments({ page, pageSize }) });
 export const useDepartment = (id: string) => useQuery({ queryKey: ["departments", id], queryFn: () => api.getDepartment(id), enabled: !!id });
@@ -55,3 +25,7 @@ export const useObjectives = (page = 1, pageSize = 20) => useQuery({ queryKey: [
 export const useKeyResults = (objectiveId?: string, page = 1, pageSize = 20) => useQuery({ queryKey: ["key-results", { objectiveId, page, pageSize }], queryFn: () => api.getKeyResults({ objectiveId, page, pageSize }) });
 export const useKpis = (page = 1, pageSize = 20) => useQuery({ queryKey: ["kpis", { page, pageSize }], queryFn: () => api.getKpis({ page, pageSize }) });
 export const useCheckIns = (kpiId?: string, page = 1, pageSize = 20) => useQuery({ queryKey: ["check-ins", { kpiId, page, pageSize }], queryFn: () => api.getCheckIns({ kpiId, page, pageSize }) });
+""")
+
+if __name__ == "__main__":
+    patch_hooks()

@@ -119,4 +119,83 @@ public sealed class OrganizationService : IOrganizationService
     {
         return new EmployeeDto(employee.Id, employee.UserId, employee.EmployeeCode, employee.FullName, employee.Email, employee.DepartmentId, employee.PositionId, employee.ManagerId, employee.Status);
     }
+
+    public async Task<DepartmentDto> GetDepartmentAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Department>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Department not found");
+        return MapDepartment(e);
+    }
+    public async Task<DepartmentDto> UpdateDepartmentAsync(Guid id, UpdateDepartmentRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Department>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Department not found");
+        e.Name = request.Name; e.Code = request.Code; e.ParentDepartmentId = request.ParentDepartmentId; e.ManagerId = request.ManagerId; e.BudgetLimit = request.BudgetLimit;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return MapDepartment(e);
+    }
+    public async Task DeleteDepartmentAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Department>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Department not found");
+        var hasEmps = _unitOfWork.Repository<Employee>().Query().Any(x => x.DepartmentId == id && !x.IsDeleted);
+        if(hasEmps) throw new BusinessRuleException("Cannot delete department with active employees.");
+        e.IsDeleted = true; e.IsActive = false; await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+    public Task<IReadOnlyCollection<DepartmentDto>> GetDepartmentTreeAsync(CancellationToken cancellationToken = default)
+    {
+        var all = _unitOfWork.Repository<Department>().Query().Where(x => !x.IsDeleted).ToList();
+        return Task.FromResult<IReadOnlyCollection<DepartmentDto>>(all.Select(MapDepartment).ToList());
+    }
+    public Task<PagedResult<EmployeeDto>> GetDepartmentEmployeesAsync(Guid departmentId, PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<Employee>().Query().Where(x => !x.IsDeleted && x.DepartmentId == departmentId);
+        return Task.FromResult(PagedResult<EmployeeDto>.Create(q.Select(MapEmployee), request));
+    }
+    public async Task<EmployeeDto> GetEmployeeAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Employee>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return MapEmployee(e);
+    }
+    public async Task<EmployeeDto> UpdateEmployeeAsync(Guid id, UpdateEmployeeRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Employee>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.FullName = request.FullName; e.Phone = request.Phone; e.DepartmentId = request.DepartmentId; e.PositionId = request.PositionId; e.ManagerId = request.ManagerId;
+        await _unitOfWork.SaveChangesAsync(cancellationToken); return MapEmployee(e);
+    }
+    public async Task DeleteEmployeeAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Employee>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.IsDeleted = true; e.Status = "Terminated"; await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+    public async Task<EmployeeDto> UpdateEmployeeStatusAsync(Guid id, UpdateEmployeeStatusRequest request, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Employee>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        e.Status = request.Status; await _unitOfWork.SaveChangesAsync(cancellationToken); return MapEmployee(e);
+    }
+    public Task<PagedResult<PositionDto>> GetPositionsAsync(PagedRequest request, CancellationToken cancellationToken = default)
+    {
+        var q = _unitOfWork.Repository<Position>().Query();
+        return Task.FromResult(PagedResult<PositionDto>.Create(q.Select(x => new PositionDto(x.Id, x.Name, x.Level, x.DepartmentId, x.Description, x.IsActive)), request));
+    }
+    public async Task<PositionDto> GetPositionAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var e = await _unitOfWork.Repository<Position>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        return new PositionDto(e.Id, e.Name, e.Level, e.DepartmentId, e.Description, e.IsActive);
+    }
+    public async Task<PositionDto> CreatePositionAsync(CreatePositionRequest request, CancellationToken cancellationToken = default)
+    {
+        var p = new Position { CompanyId = GetCompanyId(), Name = request.Name, Level = request.Level, DepartmentId = request.DepartmentId, Description = request.Description };
+        await _unitOfWork.Repository<Position>().AddAsync(p, cancellationToken); await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return new PositionDto(p.Id, p.Name, p.Level, p.DepartmentId, p.Description, p.IsActive);
+    }
+    public async Task<PositionDto> UpdatePositionAsync(Guid id, UpdatePositionRequest request, CancellationToken cancellationToken = default)
+    {
+        var p = await _unitOfWork.Repository<Position>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        p.Name = request.Name; p.Level = request.Level; p.DepartmentId = request.DepartmentId; p.Description = request.Description; p.IsActive = request.IsActive;
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return new PositionDto(p.Id, p.Name, p.Level, p.DepartmentId, p.Description, p.IsActive);
+    }
+    public async Task DeletePositionAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var p = await _unitOfWork.Repository<Position>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
+        _unitOfWork.Repository<Position>().Remove(p); await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
 }

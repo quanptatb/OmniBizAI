@@ -1,28 +1,32 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Menu } from "lucide-react";
 
 export function Header() {
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
-      <div className="flex items-center gap-4 flex-1">
-        <div className="relative w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+    <header className="h-[68px] bg-white border-b border-border flex items-center justify-between px-8 shrink-0 z-10 sticky top-0 shadow-[0_2px_8px_rgba(26,115,232,0.04)]">
+      <div className="flex items-center gap-5 flex-1">
+        <button className="w-10 h-10 border-none bg-primary-light rounded-md flex items-center justify-center text-primary cursor-pointer transition-all hover:bg-primary hover:text-white hover:shadow-[0_4px_12px_rgba(26,115,232,0.25)] lg:hidden">
+          <Menu size={20} />
+        </button>
+        <div className="relative w-full max-w-[320px]">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <input 
             type="text" 
-            placeholder="Search..." 
-            className="w-full h-9 pl-9 pr-4 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 transition-all"
+            placeholder="Tìm kiếm nhanh..." 
+            className="w-full h-[42px] pl-11 pr-4 rounded-xl border-[1.5px] border-border text-[0.85rem] text-text-primary bg-[#f8fafe] transition-all outline-none focus:border-primary focus:bg-white focus:shadow-[0_0_0_3px_rgba(26,115,232,0.12)]"
           />
         </div>
       </div>
       
-      <div className="flex items-center gap-4">
-        <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center font-semibold text-sm shadow-sm ring-2 ring-white cursor-pointer">
-          A
+      <div className="flex items-center gap-3 ml-auto">
+        <div className="relative">
+          <button className="w-[42px] h-[42px] border-none bg-primary-light rounded-md flex items-center justify-center text-primary cursor-pointer transition-all hover:bg-primary hover:text-white hover:shadow-[0_4px_12px_rgba(26,115,232,0.25)]">
+            <Bell size={20} />
+          </button>
+          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-danger to-[#ea4335] text-white text-[10px] font-extrabold leading-[14px] text-center border-2 border-white shadow-[0_2px_6px_rgba(217,48,37,0.35)]">
+            3
+          </span>
         </div>
       </div>
     </header>

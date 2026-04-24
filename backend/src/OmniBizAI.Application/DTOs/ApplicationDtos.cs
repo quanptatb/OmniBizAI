@@ -11,6 +11,12 @@ public sealed record DepartmentDto(Guid Id, string Name, string Code, Guid? Pare
 public sealed record CreateDepartmentRequest(string Name, string Code, Guid? ParentDepartmentId, Guid? ManagerId, decimal BudgetLimit);
 public sealed record EmployeeDto(Guid Id, Guid? UserId, string EmployeeCode, string FullName, string Email, Guid? DepartmentId, Guid? PositionId, Guid? ManagerId, string Status);
 public sealed record CreateEmployeeRequest(string FullName, string Email, string? Phone, Guid? DepartmentId, Guid? PositionId, Guid? ManagerId, DateOnly JoinDate);
+public sealed record UpdateDepartmentRequest(string Name, string Code, Guid? ParentDepartmentId, Guid? ManagerId, decimal BudgetLimit);
+public sealed record UpdateEmployeeRequest(string FullName, string? Phone, Guid? DepartmentId, Guid? PositionId, Guid? ManagerId);
+public sealed record UpdateEmployeeStatusRequest(string Status);
+public sealed record PositionDto(Guid Id, string Name, int Level, Guid? DepartmentId, string? Description, bool IsActive);
+public sealed record CreatePositionRequest(string Name, int Level, Guid? DepartmentId, string? Description);
+public sealed record UpdatePositionRequest(string Name, int Level, Guid? DepartmentId, string? Description, bool IsActive);
 
 public sealed record BudgetDto(Guid Id, string Name, Guid DepartmentId, Guid CategoryId, Guid FiscalPeriodId, decimal AllocatedAmount, decimal SpentAmount, decimal CommittedAmount, decimal RemainingAmount, decimal UtilizationPercent, string WarningLevel, BudgetStatus Status);
 public sealed record CreateBudgetRequest(string Name, Guid DepartmentId, Guid CategoryId, Guid FiscalPeriodId, decimal AllocatedAmount, string? Notes);
@@ -25,6 +31,13 @@ public sealed record PaymentRequestDto(Guid Id, string RequestNumber, string Tit
 public sealed record CreatePaymentRequestRequest(string Title, string? Description, Guid DepartmentId, Guid RequesterId, Guid? VendorId, Guid? BudgetId, Guid CategoryId, string Currency, string? PaymentMethod, DateOnly? PaymentDueDate, string Priority, IReadOnlyCollection<PaymentRequestItemDto> Items);
 public sealed record TransactionDto(Guid Id, string TransactionNumber, TransactionType Type, decimal Amount, Guid WalletId, Guid DepartmentId, Guid CategoryId, Guid? BudgetId, DateOnly TransactionDate, string Status);
 public sealed record CreateTransactionRequest(TransactionType Type, decimal Amount, Guid WalletId, Guid DepartmentId, Guid CategoryId, Guid? BudgetId, Guid? PaymentRequestId, Guid? VendorId, DateOnly TransactionDate, string? ReferenceNumber, string? Description);
+public sealed record UpdateBudgetRequest(string Name, decimal AllocatedAmount, string? Notes);
+public sealed record UpdateBudgetCategoryRequest(string Name, string Code, TransactionType Type, Guid? ParentId, string? Color, bool IsActive);
+public sealed record UpdateVendorRequest(string Name, string? TaxCode, string? Email, string? Phone, string? Address, string? BankAccount, string Status);
+public sealed record UpdateWalletRequest(string Name, string Type, bool IsActive);
+public sealed record UpdatePaymentRequestRequest(string Title, string? Description, Guid DepartmentId, Guid? VendorId, Guid? BudgetId, Guid CategoryId, string Currency, string? PaymentMethod, DateOnly? PaymentDueDate, string Priority, IReadOnlyCollection<PaymentRequestItemDto> Items);
+public sealed record UploadAttachmentRequest(string FileName, string FileUrl);
+public sealed record AttachmentDto(Guid Id, string FileName, string FileUrl);
 
 public sealed record EvaluationPeriodDto(Guid Id, string Name, string Type, DateOnly StartDate, DateOnly EndDate, string Status);
 public sealed record CreateEvaluationPeriodRequest(string Name, string Type, DateOnly StartDate, DateOnly EndDate);
@@ -37,6 +50,11 @@ public sealed record CreateKpiRequest(string Name, string? Description, Guid Per
 public sealed record KpiCheckInDto(Guid Id, Guid KpiId, DateOnly CheckInDate, decimal? PreviousValue, decimal NewValue, decimal? Progress, string Note, CheckInStatus Status, string? ReviewComment);
 public sealed record CreateKpiCheckInRequest(Guid KpiId, DateOnly CheckInDate, decimal NewValue, string Note);
 public sealed record ReviewCheckInRequest(string? Comment);
+public sealed record UpdateEvaluationPeriodRequest(string Name, string Type, DateOnly StartDate, DateOnly EndDate, string Status);
+public sealed record UpdateObjectiveRequest(string Title, string? Description, Guid? ParentId, OwnerType OwnerType, Guid? DepartmentId, Guid? OwnerId, DateOnly? DueDate, string Status);
+public sealed record UpdateKeyResultRequest(string Title, MetricType MetricType, string? Unit, decimal TargetValue, decimal Weight, ProgressDirection Direction, Guid? AssigneeId);
+public sealed record UpdateKpiRequest(string Name, string? Description, Guid? DepartmentId, Guid? AssigneeId, MetricType MetricType, string? Unit, decimal TargetValue, decimal Weight, string Frequency, ProgressDirection Direction, string Status);
+public sealed record KpiScorecardDto(Guid EmployeeId, string EmployeeName, decimal OverallScore, IReadOnlyCollection<ObjectiveDto> Objectives, IReadOnlyCollection<KpiDto> Kpis);
 
 public sealed record WorkflowTemplateDto(Guid Id, string Name, string EntityType, bool IsActive, bool IsDefault, int StepCount);
 public sealed record ApprovalQueueItemDto(Guid InstanceId, string EntityType, Guid EntityId, int CurrentStepOrder, string Status, DateTime InitiatedAt);
