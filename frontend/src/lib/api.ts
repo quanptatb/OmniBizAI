@@ -1,4 +1,4 @@
-import type { ApiResponse, DashboardOverview, LoginResponse, PaymentRequestPayload } from "@/types/api";
+import type { ApiResponse, ApprovalQueueItem, Budget, DashboardOverview, LoginResponse, PagedResult, PaymentRequestPayload } from "@/types/api";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
 
@@ -27,6 +27,14 @@ export function login(email: string, password: string): Promise<LoginResponse> {
 
 export function getDashboard(token: string): Promise<DashboardOverview> {
   return apiRequest<DashboardOverview>("/dashboard/overview", {}, token);
+}
+
+export function getBudgets(token: string): Promise<PagedResult<Budget>> {
+  return apiRequest<PagedResult<Budget>>("/budgets?page=1&pageSize=20", {}, token);
+}
+
+export function getApprovalQueue(token: string): Promise<PagedResult<ApprovalQueueItem>> {
+  return apiRequest<PagedResult<ApprovalQueueItem>>("/approval-queue?page=1&pageSize=20", {}, token);
 }
 
 export function createPaymentRequest(token: string, payload: PaymentRequestPayload) {

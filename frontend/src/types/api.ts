@@ -28,6 +28,38 @@ export type DashboardOverview = {
   riskAlerts: string[];
 };
 
+export type PagedResult<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+
+export type Budget = {
+  id: string;
+  name: string;
+  departmentId: string;
+  categoryId: string;
+  fiscalPeriodId: string;
+  allocatedAmount: number;
+  spentAmount: number;
+  committedAmount: number;
+  remainingAmount: number;
+  utilizationPercent: number;
+  warningLevel: string;
+  status: string;
+};
+
+export type ApprovalQueueItem = {
+  instanceId: string;
+  entityType: string;
+  entityId: string;
+  currentStepOrder: number;
+  status: string;
+  initiatedAt: string;
+};
+
 export type PaymentRequestItem = {
   description: string;
   quantity: number;

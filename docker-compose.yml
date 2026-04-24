@@ -2,6 +2,8 @@ services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: omnibiz-sqlserver
+    profiles:
+      - local-db
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${DB_PASSWORD}
@@ -34,16 +36,13 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=OmniBizDB;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;
+      ConnectionStrings__DefaultConnection: ${ConnectionStrings__DefaultConnection}
       Jwt__Secret: ${Jwt__Secret}
       Jwt__Issuer: ${Jwt__Issuer:-OmniBizAI}
       Jwt__Audience: ${Jwt__Audience:-OmniBizAI}
       AllowedOrigins: ${AllowedOrigins:-http://localhost:3000}
     ports:
       - "5000:8080"
-    depends_on:
-      sqlserver:
-        condition: service_healthy
     restart: unless-stopped
 
   frontend:

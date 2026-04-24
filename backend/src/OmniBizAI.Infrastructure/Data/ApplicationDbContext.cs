@@ -89,6 +89,7 @@ public sealed class ApplicationDbContext : DbContext
         ConfigurePerformance(modelBuilder);
         ConfigureWorkflow(modelBuilder);
         ConfigureAiAndSystem(modelBuilder);
+        ConfigureSqlServerDefaults(modelBuilder);
     }
 
     private static void ConfigureIdentity(ModelBuilder modelBuilder)
@@ -306,5 +307,29 @@ public sealed class ApplicationDbContext : DbContext
             b.ToTable("FileUploads");
             b.HasQueryFilter(x => !x.IsDeleted);
         });
+    }
+
+    private static void ConfigureSqlServerDefaults(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var foreignKey in entityType.GetForeignKeys())
+            {
+                if (!foreignKey.IsOwnership && foreignKey.DeleteBehavior == DeleteBehavior.Cascade)
+                {
+                    foreignKey.DeleteBehavior = DeleteBehavior.NoAction;
+                }
+            }
+
+            foreach (var property in entityType.GetProperties())
+            {
+                var propertyType = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+                if (propertyType == typeof(decimal) && property.GetColumnType() is null && property.GetPrecision() is null)
+                {
+                    property.SetPrecision(18);
+                    property.SetScale(2);
+                }
+            }
+        }
     }
 }

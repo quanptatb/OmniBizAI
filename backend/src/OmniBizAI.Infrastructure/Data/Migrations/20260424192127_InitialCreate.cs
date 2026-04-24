@@ -318,8 +318,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_AiMessages_AiChatSessions_SessionId",
                         column: x => x.SessionId,
                         principalTable: "AiChatSessions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -350,8 +349,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_BudgetCategories_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -365,8 +363,8 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     StartDate = table.Column<DateOnly>(type: "date", nullable: false),
                     EndDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OkrWeight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    KpiWeight = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OkrWeight = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    KpiWeight = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CheckInFrequency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -380,8 +378,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_EvaluationPeriods_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -404,8 +401,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_FiscalPeriods_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -438,8 +434,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Vendors_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -467,8 +462,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Wallets_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -485,14 +479,12 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_RolePermissions_Permissions_PermissionId",
                         column: x => x.PermissionId,
                         principalTable: "Permissions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_RolePermissions_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -515,8 +507,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_RefreshTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -535,14 +526,12 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_UserRoles_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_UserRoles_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -564,8 +553,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_UserSessions_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -589,8 +577,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_WorkflowConditions_WorkflowTemplates_TemplateId",
                         column: x => x.TemplateId,
                         principalTable: "WorkflowTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -616,8 +603,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_WorkflowInstances_WorkflowTemplates_TemplateId",
                         column: x => x.TemplateId,
                         principalTable: "WorkflowTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -642,8 +628,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_WorkflowSteps_WorkflowTemplates_TemplateId",
                         column: x => x.TemplateId,
                         principalTable: "WorkflowTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -667,8 +652,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_WorkflowInstanceSteps_WorkflowInstances_InstanceId",
                         column: x => x.InstanceId,
                         principalTable: "WorkflowInstances",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -691,8 +675,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_ApprovalActions_WorkflowInstanceSteps_InstanceStepId",
                         column: x => x.InstanceStepId,
                         principalTable: "WorkflowInstanceSteps",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -702,9 +685,9 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BudgetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AdjustmentType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PreviousAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    NewAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    PreviousAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    NewAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -744,20 +727,17 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Budgets_BudgetCategories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "BudgetCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Budgets_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Budgets_FiscalPeriods_FiscalPeriodId",
                         column: x => x.FiscalPeriodId,
                         principalTable: "FiscalPeriods",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -771,7 +751,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     Code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ManagerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    BudgetLimit = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    BudgetLimit = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Level = table.Column<int>(type: "int", nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
@@ -789,8 +769,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Departments_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Departments_Departments_ParentDepartmentId",
                         column: x => x.ParentDepartmentId,
@@ -819,8 +798,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Positions_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Positions_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -863,8 +841,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Employees_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Employees_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -909,8 +886,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_EmployeeHistory_Employees_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -926,7 +902,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     AssigneeId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     MetricType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Unit = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    StartValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    StartValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TargetValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CurrentValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Weight = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
@@ -935,7 +911,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     Formula = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Direction = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Score = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Score = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     Rating = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastCheckInAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -952,8 +928,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Kpis_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Kpis_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -968,8 +943,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Kpis_EvaluationPeriods_PeriodId",
                         column: x => x.PeriodId,
                         principalTable: "EvaluationPeriods",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1004,8 +978,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Objectives_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Objectives_Departments_DepartmentId",
                         column: x => x.DepartmentId,
@@ -1020,8 +993,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Objectives_EvaluationPeriods_PeriodId",
                         column: x => x.PeriodId,
                         principalTable: "EvaluationPeriods",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Objectives_Objectives_ParentId",
                         column: x => x.ParentId,
@@ -1071,8 +1043,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_PaymentRequests_BudgetCategories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "BudgetCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_PaymentRequests_Budgets_BudgetId",
                         column: x => x.BudgetId,
@@ -1082,20 +1053,17 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_PaymentRequests_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_PaymentRequests_Departments_DepartmentId",
                         column: x => x.DepartmentId,
                         principalTable: "Departments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_PaymentRequests_Employees_RequesterId",
                         column: x => x.RequesterId,
                         principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_PaymentRequests_Vendors_VendorId",
                         column: x => x.VendorId,
@@ -1112,9 +1080,9 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     PeriodId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     EmployeeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DepartmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    OkrScore = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    KpiScore = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    TotalScore = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    OkrScore = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    KpiScore = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    TotalScore = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     Rating = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ManagerComment = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -1130,8 +1098,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_PerformanceEvaluations_Employees_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1141,9 +1108,9 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     KpiId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CheckInDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    PreviousValue = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    NewValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Progress = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    PreviousValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    NewValue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Progress = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EvidenceUrlsJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
@@ -1160,8 +1127,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_KpiCheckIns_Kpis_KpiId",
                         column: x => x.KpiId,
                         principalTable: "Kpis",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1199,8 +1165,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_KeyResults_Objectives_ObjectiveId",
                         column: x => x.ObjectiveId,
                         principalTable: "Objectives",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1223,8 +1188,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_PaymentRequestAttachments_PaymentRequests_PaymentRequestId",
                         column: x => x.PaymentRequestId,
                         principalTable: "PaymentRequests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1249,8 +1213,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_PaymentRequestItems_PaymentRequests_PaymentRequestId",
                         column: x => x.PaymentRequestId,
                         principalTable: "PaymentRequests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1289,8 +1252,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Transactions_BudgetCategories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "BudgetCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_Budgets_BudgetId",
                         column: x => x.BudgetId,
@@ -1300,14 +1262,12 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Transactions_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_Departments_DepartmentId",
                         column: x => x.DepartmentId,
                         principalTable: "Departments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_PaymentRequests_PaymentRequestId",
                         column: x => x.PaymentRequestId,
@@ -1322,8 +1282,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         name: "FK_Transactions_Wallets_WalletId",
                         column: x => x.WalletId,
                         principalTable: "Wallets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -1712,16 +1671,14 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                 table: "BudgetAdjustments",
                 column: "BudgetId",
                 principalTable: "Budgets",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Budgets_Departments_DepartmentId",
                 table: "Budgets",
                 column: "DepartmentId",
                 principalTable: "Departments",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Departments_Employees_ManagerId",

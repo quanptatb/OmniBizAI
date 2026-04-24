@@ -12,7 +12,7 @@ using OmniBizAI.Infrastructure.Data;
 namespace OmniBizAI.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260424181902_InitialCreate")]
+    [Migration("20260424192127_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -298,6 +298,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("BudgetId")
@@ -307,9 +308,11 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("NewAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PreviousAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Reason")
@@ -1256,6 +1259,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("BudgetLimit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Code")
@@ -1519,6 +1523,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("date");
 
                     b.Property<decimal>("KpiWeight")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Name")
@@ -1526,6 +1531,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("OkrWeight")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateOnly>("StartDate")
@@ -1691,9 +1697,11 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("Score")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("StartValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Status")
@@ -1748,6 +1756,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("NewValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Note")
@@ -1755,9 +1764,11 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("PreviousValue")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("Progress")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ReviewComment")
@@ -1889,12 +1900,14 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("KpiScore")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ManagerComment")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("OkrScore")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("PeriodId")
@@ -1908,6 +1921,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("TotalScore")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -2303,7 +2317,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.AI.AiChatSession", "Session")
                         .WithMany("Messages")
                         .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Session");
@@ -2314,25 +2328,25 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.BudgetCategory", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.FiscalPeriod", "FiscalPeriod")
                         .WithMany()
                         .HasForeignKey("FiscalPeriodId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -2349,7 +2363,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.Budget", "Budget")
                         .WithMany()
                         .HasForeignKey("BudgetId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Budget");
@@ -2360,7 +2374,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.BudgetCategory", "Parent")
@@ -2378,7 +2392,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -2393,25 +2407,25 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.BudgetCategory", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Employee", "Requester")
                         .WithMany()
                         .HasForeignKey("RequesterId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.Vendor", "Vendor")
@@ -2436,7 +2450,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.PaymentRequest", "PaymentRequest")
                         .WithMany()
                         .HasForeignKey("PaymentRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("PaymentRequest");
@@ -2447,7 +2461,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.PaymentRequest", "PaymentRequest")
                         .WithMany("Items")
                         .HasForeignKey("PaymentRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("PaymentRequest");
@@ -2462,19 +2476,19 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.BudgetCategory", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.PaymentRequest", "PaymentRequest")
@@ -2488,7 +2502,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Finance.Wallet", "Wallet")
                         .WithMany()
                         .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Budget");
@@ -2511,7 +2525,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -2522,7 +2536,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -2533,7 +2547,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Identity.User", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -2544,13 +2558,13 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Identity.Permission", "Permission")
                         .WithMany("RolePermissions")
                         .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Identity.Role", "Role")
                         .WithMany("RolePermissions")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Permission");
@@ -2563,13 +2577,13 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Identity.Role", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Identity.User", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Role");
@@ -2582,7 +2596,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Identity.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -2593,7 +2607,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany("Departments")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Employee", "Manager")
@@ -2618,7 +2632,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
@@ -2654,7 +2668,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Employee");
@@ -2665,7 +2679,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
@@ -2682,7 +2696,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -2697,7 +2711,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Performance.Objective", "Objective")
                         .WithMany("KeyResults")
                         .HasForeignKey("ObjectiveId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Assignee");
@@ -2714,7 +2728,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
@@ -2724,7 +2738,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Performance.EvaluationPeriod", "Period")
                         .WithMany()
                         .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Assignee");
@@ -2741,7 +2755,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Performance.Kpi", "Kpi")
                         .WithMany("CheckIns")
                         .HasForeignKey("KpiId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Kpi");
@@ -2752,7 +2766,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Department", "Department")
@@ -2771,7 +2785,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Performance.EvaluationPeriod", "Period")
                         .WithMany()
                         .HasForeignKey("PeriodId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -2790,7 +2804,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Organization.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Employee");
@@ -2801,7 +2815,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Workflow.WorkflowInstanceStep", "InstanceStep")
                         .WithMany("Actions")
                         .HasForeignKey("InstanceStepId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("InstanceStep");
@@ -2812,7 +2826,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Workflow.WorkflowTemplate", "Template")
                         .WithMany("Conditions")
                         .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Template");
@@ -2823,7 +2837,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Workflow.WorkflowTemplate", "Template")
                         .WithMany()
                         .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Template");
@@ -2834,7 +2848,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Workflow.WorkflowInstance", "Instance")
                         .WithMany("Steps")
                         .HasForeignKey("InstanceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Instance");
@@ -2845,7 +2859,7 @@ namespace OmniBizAI.Infrastructure.Data.Migrations
                     b.HasOne("OmniBizAI.Domain.Entities.Workflow.WorkflowTemplate", "Template")
                         .WithMany("Steps")
                         .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Template");

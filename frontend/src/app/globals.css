@@ -35,6 +35,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 input, textarea {
   width: 100%;
   border: 1px solid var(--border);
@@ -74,16 +79,45 @@ textarea {
   gap: 8px;
 }
 
-.sidebar a {
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid transparent;
   border-radius: 6px;
   padding: 10px 12px;
   color: #c7d7e8;
+  background: transparent;
   text-decoration: none;
+  text-align: left;
 }
 
-.sidebar a:first-child {
+.nav-item:hover:not(:disabled),
+.nav-item.active {
   color: #fff;
   background: #10243d;
+}
+
+.nav-item.active {
+  border-color: #264d76;
+}
+
+.sidebar-footer {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  border-top: 1px solid #18314f;
+  padding-top: 16px;
+}
+
+.sidebar-footer span {
+  font-weight: 700;
+}
+
+.sidebar-footer small {
+  color: #9bb2c9;
 }
 
 .workspace {
@@ -128,11 +162,35 @@ h2 {
   white-space: nowrap;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.secondary-button,
+.ghost-button {
+  color: var(--text-primary);
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.ghost-button {
+  min-height: 36px;
+  color: #eaf4ff;
+  background: transparent;
+  border-color: #294866;
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 18px;
+}
+
+.metrics.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .metric, .panel {
@@ -188,6 +246,43 @@ h2 {
   padding-left: 18px;
 }
 
+.table-list {
+  display: grid;
+  gap: 10px;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--bg-secondary);
+}
+
+.list-row div {
+  display: grid;
+  gap: 4px;
+}
+
+.list-row span,
+.helper-text,
+.empty-state {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.row-value {
+  min-width: 150px;
+  text-align: right;
+}
+
+.ai-panel {
+  max-width: 760px;
+}
+
 pre {
   overflow: auto;
   white-space: pre-wrap;
@@ -207,12 +302,23 @@ pre {
     position: static;
   }
 
-  .metrics, .grid {
+  .metrics, .metrics.compact, .grid {
     grid-template-columns: 1fr;
   }
 
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .topbar-actions,
+  .list-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .row-value {
+    min-width: 0;
+    text-align: left;
   }
 }

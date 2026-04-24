@@ -38,7 +38,7 @@ Copy-Item .env.example .env
 Required variables:
 
 - `ConnectionStrings__DefaultConnection`
-- `DB_PASSWORD`
+- `DB_PASSWORD` only when running the local SQL Server Docker profile
 - `Jwt__Secret` minimum 32 characters
 - `AllowedOrigins`
 - `NEXT_PUBLIC_API_URL`
@@ -67,11 +67,24 @@ Open `http://localhost:3000`.
 
 ## Docker
 
-Docker was not available on the current machine, but the compose file is ready for environments with Docker:
+For a remote SQL Server, configure `.env` with the remote connection string first:
+
+```env
+ConnectionStrings__DefaultConnection=Server=s103-d186.interdata.vn,1433;Database=OmniBizDB;User Id=biz;Password=<password>;TrustServerCertificate=True;
+```
+
+Then run backend and frontend:
 
 ```powershell
-Copy-Item .env.example .env
-docker compose up -d --build
+docker compose up -d --build backend frontend
+docker compose exec backend dotnet OmniBizAI.WebAPI.dll --seed
+```
+
+To use the local SQL Server container instead, set a strong `DB_PASSWORD` and enable the `local-db` profile:
+
+```powershell
+docker compose --profile local-db up -d --build sqlserver
+docker compose --profile local-db up -d --build backend frontend
 docker compose exec backend dotnet OmniBizAI.WebAPI.dll --seed
 ```
 
