@@ -1,4 +1,4 @@
-# 📋 OmniBiz AI — Product Requirements Document (PRD)
+﻿# 📋 OmniBiz AI — Product Requirements Document (PRD)
 
 > **Version**: 1.0  
 > **Last Updated**: 2026-04-24  
@@ -113,7 +113,7 @@
 - **Team size**: 7 người
 - **Timeline**: 12 tuần (MVP)
 - **Budget**: Miễn phí / tier miễn phí của các dịch vụ cloud
-- **Tech stack**: ASP.NET Core (Backend), Next.js + React (Frontend), PostgreSQL/SQL Server, Redis
+- **Tech stack**: ASP.NET Core (Backend), Next.js + React (Frontend), SQL Server/SQL Server, Redis
 - **AI Provider**: LLM API (Groq/OpenAI/Claude) — sử dụng free/low-cost tier
 
 ---
@@ -241,7 +241,7 @@
 | Dependency | Type | Risk | Mitigation |
 |-----------|------|------|-----------|
 | LLM API availability | External | Medium | Fallback to multiple providers |
-| PostgreSQL hosting | Infrastructure | Low | Docker local + cloud backup |
+| SQL Server hosting | Infrastructure | Low | Docker local + cloud backup |
 | Domain expertise (Finance, HR) | Knowledge | Medium | Research + advisor consultation |
 | .NET SDK compatibility | Technical | Low | Lock version in Dockerfile |
 

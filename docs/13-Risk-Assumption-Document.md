@@ -1,4 +1,4 @@
-# OmniBiz AI — Risk & Assumption Document
+﻿# OmniBiz AI — Risk & Assumption Document
 
 > **Version**: 1.0 | **Updated**: 2026-04-24
 
@@ -17,7 +17,7 @@
 | TR-05 | **Complex workflow engine bugs**        | High        | High   | 🔴 Critical | Start with simple 2-step workflow, add complexity gradually, extensive unit tests | Fallback to hardcoded approval flows                         |
 | TR-06 | **SignalR WebSocket issues**            | Low         | Low    | 🟢 Medium   | Use SignalR with fallback to long-polling                                         | Polling-based notification refresh                           |
 | TR-07 | **Docker image build failures**         | Low         | Medium | 🟢 Medium   | Multi-stage builds, lock dependency versions, CI validates build                  | Build locally, deploy manually                               |
-| TR-08 | **pgvector performance for RAG**        | Medium      | Medium | 🟡 High     | Use HNSW index, limit vector dimensions, batch embedding                          | Reduce RAG scope, use keyword search fallback                |
+| TR-08 | **vector search (SQL Server) performance for RAG**        | Medium      | Medium | 🟡 High     | Use HNSW index, limit vector dimensions, batch embedding                          | Reduce RAG scope, use keyword search fallback                |
 | TR-09 | **Cross-browser compatibility**         | Low         | Low    | 🟢 Medium   | Test on Chrome, Firefox, Safari. Use modern CSS features with fallbacks           | Focus on Chrome for demo                                     |
 | TR-10 | **API security vulnerabilities**        | Medium      | High   | 🔴 Critical | Follow OWASP guidelines, input validation, RBAC enforcement, code review          | Security scan before demo, fix critical issues               |
 
@@ -81,7 +81,7 @@ Low Prob    │   ⚪ Minimal │   🟢 Medium   │   🟡 High     │   🟡
 | ----- | ---------------------------------------------------- | ----------------------------- | ------------------------------------------ |
 | TA-01 | Team members có kỹ năng .NET Core cơ bản        | Self-assessment survey Week 1 | Cần training sessions, delay M2           |
 | TA-02 | Team members có kỹ năng React/Next.js cơ bản    | Self-assessment survey Week 1 | Assign more backend-focused tasks          |
-| TA-03 | PostgreSQL 16 + pgvector đủ performance cho MVP    | Load test Week 10             | Switch to dedicated vector DB              |
+| TA-03 | SQL Server 2022 đủ performance cho MVP    | Load test Week 10             | Switch to dedicated vector DB              |
 | TA-04 | Groq free tier đủ cho development + demo           | Monitor usage daily           | Switch to OpenAI paid, budget $20          |
 | TA-05 | Docker Desktop available trên tất cả dev machines | Verify Week 1                 | Cài đặt hỗ trợ, hoặc dùng cloud dev |
 | TA-06 | .NET 10 SDK stable cho production                    | Test early Week 1             | Downgrade to .NET 8 LTS                    |
@@ -120,7 +120,7 @@ Low Prob    │   ⚪ Minimal │   🟢 Medium   │   🟡 High     │   🟡
 | Dependency           | Type                | Risk Level | Alternative                    |
 | -------------------- | ------------------- | ---------- | ------------------------------ |
 | Groq API             | AI inference        | Medium     | OpenAI / Claude / Ollama local |
-| PostgreSQL           | Database            | Low        | SQL Server (team familiar)     |
+| SQL Server           | Database            | Low        | SQL Server (team familiar)     |
 | Redis                | Cache               | Low        | In-memory cache                |
 | GitHub               | Source control + CI | Low        | GitLab / Bitbucket             |
 | npm registry         | Frontend packages   | Low        | Yarn berry offline cache       |

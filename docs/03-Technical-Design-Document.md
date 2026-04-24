@@ -37,7 +37,7 @@
 │                        INFRASTRUCTURE LAYER                             │
 │  ┌────────────┐ ┌──────────┐ ┌─────────┐ ┌──────────┐ ┌────────────┐  │
 │  │ EF Core    │ │ Redis    │ │ LLM API │ │ File     │ │ Email      │  │
-│  │ PostgreSQL │ │ Cache    │ │ (Groq)  │ │ Storage  │ │ Service    │  │
+│  │ SQL Server │ │ Cache    │ │ (Groq)  │ │ Storage  │ │ Service    │  │
 │  └────────────┘ └──────────┘ └─────────┘ └──────────┘ └────────────┘  │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -51,11 +51,11 @@
 | **Charts** | Recharts / ECharts | Latest | Rich visualization |
 | **Backend** | ASP.NET Core Web API | .NET 10 | Enterprise-grade, team expertise |
 | **ORM** | Entity Framework Core | 10.x | Code-first, migrations |
-| **Database** | PostgreSQL | 16.x | Free, robust, JSON support |
+| **Database** | SQL Server 2022 | 2022 | Enterprise-grade, EF Core native support, JSON support |
 | **Cache** | Redis | 7.x | Session, caching, rate limiting |
 | **Realtime** | SignalR | Built-in | WebSocket notifications |
 | **AI** | Groq / OpenAI API | Latest | LLM inference |
-| **Vector DB** | pgvector (PostgreSQL extension) | Latest | RAG embeddings |
+| **Vector DB** | Custom vector table (SQL Server) | - | RAG embeddings via cosine similarity |
 | **File Storage** | Local Disk → Azure Blob | - | Simple → scalable |
 | **Auth** | JWT + ASP.NET Identity | Built-in | Standard, secure |
 | **Containerization** | Docker + Docker Compose | Latest | Dev parity, deployment |
@@ -236,16 +236,17 @@ frontend/
 
 ## 4. Database Design Overview
 
-### 4.1 Database: PostgreSQL 16 + pgvector extension
+### 4.1 Database: SQL Server 2022 extension
 - **Encoding**: UTF-8
 - **Timezone**: UTC (convert to local on frontend)
 - **Naming Convention**: snake_case cho tables/columns
 
 ### 4.2 Key Design Decisions
-- Soft Delete: `is_deleted` flag + `deleted_at` timestamp trên tất cả main entities
-- Auditable: `created_at`, `updated_at`, `created_by`, `updated_by` trên tất cả entities
-- Multi-currency: Lưu `currency` field, default VND
-- JSON columns: Dùng cho flexible metadata (AI responses, workflow conditions)
+- Soft Delete: `IsDeleted` flag + `DeletedAt` timestamp trên tất cả main entities
+- Auditable: `CreatedAt`, `UpdatedAt`, `CreatedBy`, `UpdatedBy` trên tất cả entities
+- Multi-currency: Lưu `Currency` field, default VND
+- JSON columns: Dùng `nvarchar(max)` với `OPENJSON` / `JSON_VALUE` cho flexible metadata
+- Collation: `Vietnamese_CI_AS` cho hỗ trợ tiếng Việt
 
 ---
 
@@ -274,13 +275,13 @@ User Query → Intent Detection → Data Retrieval (RAG) → Prompt Building →
                                       │
                                       ▼
                               ┌──────────────┐
-                              │ pgvector DB  │
+                              │ vector search (SQL Server) DB  │
                               │ (Embeddings) │
                               └──────────────┘
 ```
 
 ### 6.2 RAG Pipeline
-1. **Indexing**: Nightly job embed business data (budgets, KPIs, transactions) vào pgvector
+1. **Indexing**: Nightly job embed business data (budgets, KPIs, transactions) vào vector search (SQL Server)
 2. **Retrieval**: Khi user hỏi → embed query → similarity search → top-K relevant documents
 3. **Augmentation**: Combine retrieved data + user context + system prompt
 4. **Generation**: LLM API call với augmented prompt
@@ -309,7 +310,7 @@ public interface IAIProvider
 | Dashboard aggregations | Redis | 5 min | On new transaction |
 | Department list | Redis | 30 min | On CRUD |
 | Budget remaining | Redis | 1 min | On transaction |
-| AI embeddings | pgvector | Nightly rebuild | Scheduled job |
+| AI embeddings | vector search (SQL Server) | Nightly rebuild | Scheduled job |
 
 ---
 

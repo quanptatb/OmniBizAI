@@ -125,7 +125,7 @@ Admin (Level 1)
 | Password hashing | bcrypt (cost 12) | User passwords |
 | Data at rest | AES-256-GCM | Bank accounts, sensitive fields |
 | Data in transit | TLS 1.3 | All HTTP traffic (HTTPS) |
-| Database | PostgreSQL native encryption | pg_crypto extension |
+| Database | SQL Server TDE + Always Encrypted | Column-level encryption |
 | Backup | GPG encryption | Database backup files |
 
 ### 3.3 Data Masking

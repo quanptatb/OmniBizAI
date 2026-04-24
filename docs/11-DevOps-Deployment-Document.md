@@ -10,7 +10,7 @@
 
 | Environment | Purpose | URL | Database | Deployment |
 |------------|---------|-----|----------|-----------|
-| **Local Dev** | Individual development | localhost:3000 / :5000 | Docker PostgreSQL | Docker Compose |
+| **Local Dev** | Individual development | localhost:3000 / :5000 | Docker SQL Server | Docker Compose |
 | **Staging** | Team testing, demo prep | staging.omnibiz.ai | Staging DB | Auto-deploy on `develop` |
 | **Production** | Live demo, evaluation | omnibiz.ai | Production DB | Manual deploy on `main` |
 
@@ -36,23 +36,22 @@ version: '3.8'
 
 services:
   # ========== DATABASE ==========
-  postgres:
-    image: pgvector/pgvector:pg16
-    container_name: omnibiz-postgres
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: omnibiz-sqlserver
     ports:
-      - "5432:5432"
+      - "1433:1433"
     environment:
-      POSTGRES_DB: omnibiz_db
-      POSTGRES_USER: omnibiz_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-OmniBiz@2026}
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_PASSWORD:-OmniBiz@2026!}
+      MSSQL_PID: Developer
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U omnibiz_user -d omnibiz_db"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${DB_PASSWORD:-OmniBiz@2026!}' -Q 'SELECT 1' -C -No"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     restart: unless-stopped
 
   # ========== CACHE ==========
@@ -81,7 +80,7 @@ services:
       - "5000:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: ${ENVIRONMENT:-Development}
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=omnibiz_db;Username=omnibiz_user;Password=${DB_PASSWORD:-OmniBiz@2026}"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=OmniBizDB;User Id=sa;Password=${DB_PASSWORD:-OmniBiz@2026!};TrustServerCertificate=True;"
       Redis__ConnectionString: "redis:6379,password=${REDIS_PASSWORD:-OmniBizRedis@2026}"
       Jwt__Secret: ${JWT_SECRET:-your-256-bit-secret-key-change-in-production}
       Jwt__Issuer: ${JWT_ISSUER:-OmniBizAI}
@@ -91,7 +90,7 @@ services:
       AI__Model: ${AI_MODEL:-llama-3.3-70b-versatile}
       AllowedOrigins: ${ALLOWED_ORIGINS:-http://localhost:3000}
     depends_on:
-      postgres:
+      sqlserver:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -114,22 +113,12 @@ services:
       - backend
     restart: unless-stopped
 
-  # ========== DB ADMIN ==========
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: omnibiz-pgadmin
-    ports:
-      - "8080:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@omnibiz.ai
-      PGADMIN_DEFAULT_PASSWORD: admin
-    depends_on:
-      - postgres
-    profiles:
-      - dev
+  # ========== DB ADMIN (Azure Data Studio web — optional) ==========
+  # Note: Use Azure Data Studio or SSMS installed locally to manage SQL Server
+  # Connect to localhost,1433 with sa / ${DB_PASSWORD}
 
 volumes:
-  postgres_data:
+  sqlserver_data:
   redis_data:
 ```
 
@@ -215,18 +204,18 @@ jobs:
   backend-build-test:
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: pgvector/pgvector:pg16
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
         env:
-          POSTGRES_DB: omnibiz_test
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports: ['5432:5432']
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'Test@Pass123!'
+          MSSQL_PID: Developer
+        ports: ['1433:1433']
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Test@Pass123!' -Q 'SELECT 1' -C -No"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -239,7 +228,7 @@ jobs:
       - run: dotnet test --no-build --collect:"XPlat Code Coverage"
         working-directory: backend
         env:
-          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=omnibiz_test;Username=test_user;Password=test_pass"
+          ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=OmniBizTest;User Id=sa;Password=Test@Pass123!;TrustServerCertificate=True;"
 
   frontend-build-test:
     runs-on: ubuntu-latest
@@ -304,7 +293,7 @@ jobs:
 
 | Secret | Description | Example |
 |--------|-------------|---------|
-| `DB_PASSWORD` | PostgreSQL password | `Str0ngP@ssw0rd!` |
+| `DB_PASSWORD` | SQL Server password | `Str0ngP@ssw0rd!` |
 | `REDIS_PASSWORD` | Redis password | `R3d1sP@ss!` |
 | `JWT_SECRET` | JWT signing key (min 256-bit) | `base64-encoded-key` |
 | `AI_API_KEY` | Groq/OpenAI API key | `gsk_xxx...` |
@@ -362,16 +351,18 @@ dotnet ef database update <PreviousMigrationName> --startup-project ../OmniBizAI
 ### 5.2 Backup & Restore
 
 ```bash
-# Backup
-docker exec omnibiz-postgres pg_dump -U omnibiz_user -d omnibiz_db -F c -f /tmp/backup.dump
-docker cp omnibiz-postgres:/tmp/backup.dump ./backups/backup_$(date +%Y%m%d).dump
+# Backup (SQL Server .bak)
+docker exec omnibiz-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'OmniBiz@2026!' -C -No \
+  -Q "BACKUP DATABASE [OmniBizDB] TO DISK='/var/opt/mssql/backup/OmniBizDB_$(date +%Y%m%d).bak'"
+docker cp omnibiz-sqlserver:/var/opt/mssql/backup/ ./backups/
 
 # Restore
-docker cp ./backups/backup_20260501.dump omnibiz-postgres:/tmp/
-docker exec omnibiz-postgres pg_restore -U omnibiz_user -d omnibiz_db -c /tmp/backup_20260501.dump
+docker cp ./backups/OmniBizDB_20260501.bak omnibiz-sqlserver:/var/opt/mssql/backup/
+docker exec omnibiz-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'OmniBiz@2026!' -C -No \
+  -Q "RESTORE DATABASE [OmniBizDB] FROM DISK='/var/opt/mssql/backup/OmniBizDB_20260501.bak' WITH REPLACE"
 
 # Automated daily backup (cron)
-0 2 * * * /opt/omnibiz/scripts/backup.sh >> /var/log/omnibiz-backup.log 2>&1
+0 2 * * * /opt/omnibiz/scripts/backup-sqlserver.sh >> /var/log/omnibiz-backup.log 2>&1
 ```
 
 ### 5.3 Seed Data
@@ -404,7 +395,7 @@ curl -X POST http://localhost:5000/api/v1/admin/seed-data \
 | Backend | Serilog | Console + File (/var/log/omnibiz/) |
 | Frontend | Next.js built-in | Console + File |
 | Nginx | Access + Error logs | /var/log/nginx/ |
-| PostgreSQL | Built-in | Docker logs |
+| SQL Server | Built-in | Docker logs |
 
 ### 6.3 Monitoring Dashboard (Optional)
 
@@ -481,7 +472,7 @@ docker compose exec backend dotnet OmniBizAI.WebAPI.dll --seed
 # 7. Access the application
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:5000/api/v1
-# PgAdmin: http://localhost:8080 (dev profile)
+# SQL Server: localhost,1433 (use SSMS or Azure Data Studio)
 
 # 8. Login with default admin
 # Email: admin@omnibiz.ai
@@ -492,7 +483,7 @@ docker compose exec backend dotnet OmniBizAI.WebAPI.dll --seed
 
 ```bash
 # Start services
-docker compose up -d postgres redis
+docker compose up -d sqlserver redis
 
 # Run backend (hot reload)
 cd backend/src/OmniBizAI.WebAPI

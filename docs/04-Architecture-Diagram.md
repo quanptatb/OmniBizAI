@@ -1,4 +1,4 @@
-# 🗺️ OmniBiz AI — Architecture Diagram
+﻿# 🗺️ OmniBiz AI — Architecture Diagram
 
 > **Version**: 1.0 | **Updated**: 2026-04-24
 
@@ -31,8 +31,8 @@
 │         ┌────────────────────┼───────────────────────┘                              │
 │         ▼                    ▼                                                      │
 │  ┌─────────────┐      ┌──────────────┐      ┌──────────────┐                       │
-│  │  Redis      │      │ PostgreSQL   │      │  File        │                       │
-│  │  Cache      │      │ + pgvector   │      │  Storage     │                       │
+│  │  Redis      │      │ SQL Server   │      │  File        │                       │
+│  │  Cache      │      │ + SQL Server   │      │  Storage     │                       │
 │  └─────────────┘      └──────────────┘      └──────────────┘                       │
 │                              │                                                      │
 │                              ▼                                                      │
@@ -165,9 +165,9 @@ User                     Frontend              Backend API            AI Service
 Developer Machine (Docker Compose)
 ├── frontend-dev     (Next.js dev server, port 3000)
 ├── backend-dev      (ASP.NET Core, port 5000)
-├── postgres-dev     (PostgreSQL 16 + pgvector, port 5432)
+├── sqlserver-dev      (SQL Server 2022, port 1433)
 ├── redis-dev        (Redis 7, port 6379)
-└── pgadmin          (Database management, port 8080)
+└── ssms          (Database management, port 8080)
 ```
 
 ### 4.2 Production Environment (VPS / Azure)
@@ -183,8 +183,8 @@ Developer Machine (Docker Compose)
 │  │  │  :80/443 │  │  :3000   │  │  :5000   │      │ │
 │  │  └──────────┘  └──────────┘  └──────────┘      │ │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │
-│  │  │PostgreSQL│  │  Redis   │  │  Volumes │      │ │
-│  │  │  :5432   │  │  :6379   │  │ (files)  │      │ │
+│  │  │SQL Server│  │  Redis   │  │  Volumes │      │ │
+│  │  │  :1433   │  │  :6379   │  │ (files)  │      │ │
 │  │  └──────────┘  └──────────┘  └──────────┘      │ │
 │  └─────────────────────────────────────────────────┘ │
 │                                                      │

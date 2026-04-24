@@ -1,4 +1,4 @@
-# 🔌 OmniBiz AI — API Specification
+﻿# 🔌 OmniBiz AI — API Specification
 
 > **Version**: 1.0 | **Updated**: 2026-04-24  
 > **Base URL**: `https://api.omnibiz.ai/api/v1`  

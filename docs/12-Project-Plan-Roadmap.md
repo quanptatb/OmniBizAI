@@ -1,4 +1,4 @@
-# 📅 OmniBiz AI — Project Plan / Roadmap
+﻿# 📅 OmniBiz AI — Project Plan / Roadmap
 
 > **Version**: 1.0 | **Updated**: 2026-04-24  
 > **Team Size**: 7 người | **Duration**: 12 tuần
@@ -139,7 +139,7 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | AI Chat Q&A | Member 4 | W9 | All data |
 | AI Report Writer | Member 4 | W9 | All data |
 | **RAG Pipeline** | | | |
-| pgvector setup + embeddings | Member 4 | W8 | PostgreSQL |
+| vector search (SQL Server) setup + embeddings | Member 4 | W8 | SQL Server |
 | Embedding sync job | Member 4 | W8-9 | Data seeded |
 | RAG retrieval + citation | Member 4 | W9 | Embeddings |
 | **AI Frontend** | | | |
