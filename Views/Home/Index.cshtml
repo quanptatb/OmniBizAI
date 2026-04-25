@@ -1,8 +1,151 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Dashboard điều hành";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-activity"></i> Director cockpit</span>
+        <h1>Dashboard điều hành OmniBizAI</h1>
+        <p>Theo dõi tài chính, ngân sách, KPI/OKR, workflow phê duyệt và cảnh báo AI trên cùng một màn hình vận hành.</p>
+    </div>
+    <div class="toolbar">
+        <select class="form-select" aria-label="Chọn kỳ">
+            <option>Tháng 04/2026</option>
+            <option>Quý 2/2026</option>
+            <option>Năm 2026</option>
+        </select>
+        <a class="btn-app" asp-controller="Ai" asp-action="Copilot"><i class="bi bi-stars"></i> Hỏi AI</a>
+    </div>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-graph-up-arrow"></i></span>
+        <div class="metric-label">Tổng thu</div>
+        <div class="metric-value">1.24 tỷ</div>
+        <div class="metric-note text-success">+12.4% so với tháng trước</div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-credit-card-2-front"></i></span>
+        <div class="metric-label">Tổng chi</div>
+        <div class="metric-value">812 triệu</div>
+        <div class="metric-note text-warning">68% kế hoạch tháng</div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-bullseye"></i></span>
+        <div class="metric-label">KPI trung bình</div>
+        <div class="metric-value">72%</div>
+        <div class="metric-note text-success">+5 điểm tiến độ</div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-hourglass-split"></i></span>
+        <div class="metric-label">Chờ duyệt</div>
+        <div class="metric-value">18</div>
+        <div class="metric-note text-danger">5 hồ sơ rủi ro cao</div>
+    </article>
+</section>
+
+<section class="dashboard-grid">
+    <div class="stack-list">
+        <article class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="bi bi-bar-chart-line"></i> Thu chi & ngân sách</h2>
+                <span class="chip">Real-time</span>
+            </div>
+            <div class="panel-body chart-box">
+                <canvas id="financeChart"></canvas>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="bi bi-diagram-3"></i> Sức khỏe các module</h2>
+                <a class="btn-primary-soft" asp-controller="Reports" asp-action="Index"><i class="bi bi-file-earmark-text"></i> Báo cáo</a>
+            </div>
+            <div class="panel-body module-grid">
+                <a class="module-card" asp-controller="Finance" asp-action="Budgets">
+                    <i class="bi bi-wallet2"></i>
+                    <h3>Finance</h3>
+                    <p>Budget utilization 68%, 2 phòng ban cần kiểm soát chi.</p>
+                </a>
+                <a class="module-card" asp-controller="Performance" asp-action="Objectives">
+                    <i class="bi bi-bullseye"></i>
+                    <h3>KPI/OKR</h3>
+                    <p>7 mục tiêu on-track, 3 mục tiêu có nguy cơ trễ.</p>
+                </a>
+                <a class="module-card" asp-controller="Workflow" asp-action="Approvals">
+                    <i class="bi bi-patch-check"></i>
+                    <h3>Workflow</h3>
+                    <p>18 hồ sơ đang chờ duyệt, SLA trung bình 14 giờ.</p>
+                </a>
+                <a class="module-card" asp-controller="Ai" asp-action="Copilot">
+                    <i class="bi bi-robot"></i>
+                    <h3>AI Copilot</h3>
+                    <p>5 cảnh báo rủi ro và 3 khuyến nghị hành động.</p>
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <aside class="stack-list">
+        <article class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="bi bi-exclamation-triangle"></i> Top rủi ro AI</h2>
+            </div>
+            <div class="panel-body stack-list">
+                <div class="list-item">
+                    <div><strong>Marketing vượt budget 21%</strong><small>Digital Ads chiếm 45% ngân sách tháng</small></div>
+                    <span class="status-badge danger">High</span>
+                </div>
+                <div class="list-item">
+                    <div><strong>KPI Sales tụt 15%</strong><small>Pipeline mới thấp hơn target pace</small></div>
+                    <span class="status-badge warning">Medium</span>
+                </div>
+                <div class="list-item">
+                    <div><strong>Cash runway 45 ngày</strong><small>Cần khóa các khoản chi chưa cấp thiết</small></div>
+                    <span class="status-badge warning">Watch</span>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="bi bi-inboxes"></i> Cần xử lý</h2>
+            </div>
+            <div class="panel-body stack-list">
+                <a class="list-item" asp-controller="Finance" asp-action="PaymentRequests">
+                    <div><strong>PR-2026-0418</strong><small>Google Ads Campaign - 80 triệu</small></div>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a class="list-item" asp-controller="Performance" asp-action="CheckIns">
+                    <div><strong>3 check-in KPI</strong><small>Đang chờ Manager xác nhận</small></div>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a class="list-item" asp-controller="Workflow" asp-action="Templates">
+                    <div><strong>Luồng duyệt 3 cấp</strong><small>Cần cập nhật SLA cho khoản chi lớn</small></div>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </article>
+    </aside>
+</section>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('financeChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'],
+                    datasets: [
+                        { label: 'Thu', data: [260, 320, 280, 380], borderColor: '#0f9d58', backgroundColor: 'rgba(15,157,88,.08)', tension: .35, fill: true },
+                        { label: 'Chi', data: [160, 210, 250, 192], borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,.08)', tension: .35, fill: true },
+                        { label: 'Ngân sách sử dụng', data: [180, 310, 470, 650], borderColor: '#f29900', backgroundColor: 'rgba(242,153,0,.08)', tension: .35, fill: true }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+    </script>
+}

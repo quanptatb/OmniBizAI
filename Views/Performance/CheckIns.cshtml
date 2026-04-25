@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Check-in KPI";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-check2-square"></i> Progress update</span><h1>Check-in KPI</h1><p>Nhân viên cập nhật giá trị mới, note, evidence; Manager duyệt để cập nhật current value.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Tạo check-in</button>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-pencil"></i> Form check-in</h2><span class="status-badge info">Submitted</span></div>
+        <div class="panel-body">
+            <div class="form-grid">
+                <label>KPI<select class="form-select"><option>Qualified pipeline</option><option>Lead conversion</option></select></label>
+                <label>Ngày check-in<input class="form-control" type="date" value="2026-04-25" /></label>
+                <label>Giá trị cũ<input class="form-control" value="720,000,000" /></label>
+                <label>Giá trị mới<input class="form-control" value="820,000,000" /></label>
+            </div>
+            <div class="mt-3"><label class="fw-bold mb-2">Ghi chú</label><textarea class="form-control" rows="4">Pipeline tăng nhờ 3 deal enterprise mới, nhưng conversion demo còn thấp.</textarea></div>
+            <div class="mt-3"><button class="btn-app" data-demo-toast><i class="bi bi-send"></i> Submit check-in</button></div>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-patch-check"></i> Review queue</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>Qualified pipeline</strong><small>Nguyễn Minh Anh • 68% progress</small></div><button class="btn-primary-soft" data-demo-toast>Duyệt</button></div>
+            <div class="list-item"><div><strong>Customer NPS</strong><small>Trần Quốc Huy • cần evidence</small></div><button class="btn-danger-soft" data-demo-toast>Từ chối</button></div>
+        </div>
+    </aside>
+</section>

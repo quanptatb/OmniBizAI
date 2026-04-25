@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Quản lý KPI";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-speedometer2"></i> KPI scorecard</span><h1>KPI cá nhân & phòng ban</h1><p>Giao KPI, theo dõi target/current/progress, công thức, frequency và rating tự động.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Giao KPI</button>
+</section>
+
+<article class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title"><i class="bi bi-table"></i> Scorecard tháng 04/2026</h2>
+        <div class="toolbar"><select class="form-select"><option>Tất cả phòng ban</option><option>Sales</option><option>Marketing</option></select><select class="form-select"><option>Active</option><option>At risk</option></select></div>
+    </div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>KPI</th><th>Owner</th><th>Target</th><th>Current</th><th>Progress</th><th>Weight</th><th>Rating</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td>Qualified pipeline</td><td>Sales</td><td>1.2 tỷ</td><td>820 triệu</td><td><div class="progress"><div class="progress-bar bg-warning" style="width:68%"></div></div></td><td>30%</td><td>B</td><td><span class="status-badge warning">At risk</span></td></tr>
+                <tr><td>Lead conversion</td><td>Marketing</td><td>18%</td><td>21%</td><td><div class="progress"><div class="progress-bar bg-success" style="width:100%"></div></div></td><td>25%</td><td>A</td><td><span class="status-badge success">Completed</span></td></tr>
+                <tr><td>System uptime</td><td>IT</td><td>99%</td><td>99.4%</td><td><div class="progress"><div class="progress-bar bg-success" style="width:100%"></div></div></td><td>20%</td><td>A</td><td><span class="status-badge success">On track</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>
+
+<section class="three-col-grid mt-3">
+    <article class="module-card"><i class="bi bi-calculator"></i><h3>Auto scoring</h3><p>Progress và điểm KPI tính theo direction, target, weight và formula.</p></article>
+    <article class="module-card"><i class="bi bi-person-check"></i><h3>Assignment</h3><p>Giao KPI theo phòng ban, nhân viên hoặc vị trí công việc.</p></article>
+    <article class="module-card"><i class="bi bi-bell"></i><h3>Deadline alert</h3><p>Nhắc check-in theo Daily/Weekly/BiWeekly/Monthly.</p></article>
+</section>

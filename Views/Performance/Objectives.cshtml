@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Mục tiêu OKR";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-bullseye"></i> OKR alignment</span><h1>Mục tiêu OKR</h1><p>Quản lý cascade Company -> Department -> Individual, key results, trọng số và confidence level.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Tạo Objective</button>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-flag"></i></span><div class="metric-label">Objectives</div><div class="metric-value">24</div><div class="metric-note">Q2/2026</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-check-circle"></i></span><div class="metric-label">On track</div><div class="metric-value">14</div><div class="metric-note text-success">58%</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-exclamation-circle"></i></span><div class="metric-label">At risk</div><div class="metric-value">7</div><div class="metric-note text-warning">Cần can thiệp</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-x-octagon"></i></span><div class="metric-label">Off track</div><div class="metric-value">3</div><div class="metric-note text-danger">Có cảnh báo AI</div></article>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-diagram-2"></i> Cây mục tiêu chiến lược</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>Tăng trưởng doanh thu SME 30%</strong><small>Company OKR • Progress 74%</small><div class="progress mt-2"><div class="progress-bar bg-success" style="width:74%"></div></div></div><span class="status-badge success">On track</span></div>
+            <div class="list-item"><div><strong>Marketing: tăng MQL chất lượng 40%</strong><small>Contributing • Progress 61%</small><div class="progress mt-2"><div class="progress-bar bg-warning" style="width:61%"></div></div></div><span class="status-badge warning">At risk</span></div>
+            <div class="list-item"><div><strong>Product: hoàn tất AI Spend Guardrail</strong><small>Supporting • Progress 86%</small><div class="progress mt-2"><div class="progress-bar bg-success" style="width:86%"></div></div></div><span class="status-badge success">On track</span></div>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-stars"></i> AI insight</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>KR lead quality đang lệch pace</strong><small>Cần tăng conversion từ demo sang SQL thêm 9%.</small></div><span class="status-badge warning">Suggestion</span></div>
+            <div class="list-item"><div><strong>Product OKR có xác suất đạt 82%</strong><small>Velocity ổn định qua 3 tuần liên tiếp.</small></div><span class="status-badge success">Forecast</span></div>
+        </div>
+    </aside>
+</section>

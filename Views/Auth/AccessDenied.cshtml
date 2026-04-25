@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Không có quyền";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-ban"></i> Access denied</span><h1>Không có quyền truy cập</h1><p>Màn hình chặn quyền khi user không có permission hoặc nằm ngoài data scope.</p></div>
+    <a class="btn-app" asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Về Dashboard</a>
+</section>
+
+<article class="panel">
+    <div class="panel-body">
+        <div class="list-item">
+            <div><strong>Yêu cầu quyền bổ sung</strong><small>Liên hệ Admin để được cấp permission module:action:resource phù hợp.</small></div>
+            <span class="status-badge danger">403</span>
+        </div>
+    </div>
+</article>

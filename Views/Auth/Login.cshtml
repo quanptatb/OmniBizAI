@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-shield-lock"></i> Identity</span>
+        <h1>Đăng nhập hệ thống</h1>
+        <p>Giao diện authentication cho Admin, Director, Manager, Accountant, HR và Staff với cookie session và RBAC.</p>
+    </div>
+    <a class="btn-primary-soft" asp-controller="Auth" asp-action="Register"><i class="bi bi-person-plus"></i> Tạo tài khoản</a>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-box-arrow-in-right"></i> Sign in</h2></div>
+        <div class="panel-body">
+            <div class="form-grid">
+                <label>Email<input class="form-control" value="director@omnibiz.ai" /></label>
+                <label>Mật khẩu<input class="form-control" type="password" value="Demo@12345" /></label>
+            </div>
+            <div class="mt-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <label class="d-flex align-items-center gap-2"><input type="checkbox" checked /> Ghi nhớ 7 ngày</label>
+                <a class="text-primary" href="#">Quên mật khẩu?</a>
+            </div>
+            <div class="mt-3"><button class="btn-app" data-demo-toast><i class="bi bi-shield-check"></i> Đăng nhập</button></div>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-fingerprint"></i> Security policy</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>Password policy</strong><small>8+ ký tự, uppercase, number, special char</small></div><span class="status-badge success">On</span></div>
+            <div class="list-item"><div><strong>Lockout</strong><small>Khóa sau 5 lần sai, mở sau 15 phút</small></div><span class="status-badge warning">Guard</span></div>
+            <div class="list-item"><div><strong>Session</strong><small>Idle timeout 60 phút, remember-me 7 ngày</small></div><span class="status-badge info">Cookie</span></div>
+        </div>
+    </aside>
+</section>

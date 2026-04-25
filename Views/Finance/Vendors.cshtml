@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Nhà cung cấp";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-building-check"></i> Vendor master</span><h1>Nhà cung cấp</h1><p>Quản lý hồ sơ, tài khoản ngân hàng, lịch sử giao dịch và tín hiệu rủi ro theo nhà cung cấp.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Thêm NCC</button>
+</section>
+
+<section class="three-col-grid">
+    <article class="module-card"><i class="bi bi-google"></i><h3>Google Vietnam</h3><p>Rating 4.8, tổng chi 580 triệu, 2 PR đang mở.</p></article>
+    <article class="module-card"><i class="bi bi-meta"></i><h3>Meta Platforms</h3><p>Rating 4.6, tổng chi 340 triệu, không có cảnh báo.</p></article>
+    <article class="module-card"><i class="bi bi-microsoft"></i><h3>Microsoft</h3><p>Rating 4.9, license renew Q2 cần duyệt.</p></article>
+</section>
+
+<article class="panel mt-3">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-table"></i> Vendor directory</h2></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Tên</th><th>Mã thuế</th><th>Liên hệ</th><th>Email</th><th>Tổng chi</th><th>Rating</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+                <tr><td>Google Vietnam</td><td>0312345678</td><td>Lan Phạm</td><td>billing@google.vn</td><td>580,000,000</td><td>4.8</td><td><span class="status-badge warning">Theo dõi</span></td></tr>
+                <tr><td>Meta Platforms</td><td>0108877665</td><td>Minh Trần</td><td>apac@meta.com</td><td>340,000,000</td><td>4.6</td><td><span class="status-badge success">Active</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

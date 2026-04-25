@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Tạo tài khoản";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-person-plus"></i> User provisioning</span><h1>Tạo tài khoản người dùng</h1><p>Liên kết user với employee, gán role và quyền theo phạm vi dữ liệu.</p></div>
+    <a class="btn-ghost" asp-controller="Organization" asp-action="Roles"><i class="bi bi-shield-lock"></i> Permission matrix</a>
+</section>
+
+<article class="panel">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-lines-fill"></i> User form</h2></div>
+    <div class="panel-body form-grid">
+        <label>Họ tên<input class="form-control" value="Lê Hoàng Nam" /></label>
+        <label>Email<input class="form-control" value="nam.le@omnibiz.ai" /></label>
+        <label>Nhân viên liên kết<select class="form-select"><option>EMP-008 - Lê Hoàng Nam</option><option>EMP-001 - Nguyễn Minh Anh</option></select></label>
+        <label>Role<select class="form-select"><option>Staff</option><option>Manager</option><option>Accountant</option><option>HR</option></select></label>
+        <label>Data scope<select class="form-select"><option>Own data</option><option>Department</option><option>Company</option></select></label>
+        <label>Trạng thái<select class="form-select"><option>Active</option><option>Locked</option><option>Inactive</option></select></label>
+    </div>
+    <div class="panel-body border-top"><button class="btn-app" data-demo-toast><i class="bi bi-save"></i> Lưu user</button></div>
+</article>

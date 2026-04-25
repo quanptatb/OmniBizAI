@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Đề nghị chi";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-receipt-cutoff"></i> Spend workflow</span>
+        <h1>Đề nghị thanh toán</h1>
+        <p>Tạo, kiểm tra rủi ro bằng AI, gửi duyệt đa cấp và liên kết giao dịch khi được phê duyệt.</p>
+    </div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-send-plus"></i> Tạo đề nghị</button>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-pencil-square"></i> Mẫu tạo đề nghị</h2><span class="status-badge warning">AI Risk: 65/100</span></div>
+        <div class="panel-body">
+            <div class="form-grid">
+                <label>Tiêu đề<input class="form-control" value="Google Ads Campaign tháng 04" /></label>
+                <label>Phòng ban<select class="form-select"><option>Marketing</option><option>Sales</option></select></label>
+                <label>Danh mục<select class="form-select"><option>Digital Ads</option><option>Software</option></select></label>
+                <label>Nhà cung cấp<select class="form-select"><option>Google Vietnam</option><option>Meta Platforms</option></select></label>
+                <label>Số tiền<input class="form-control" value="80,000,000" /></label>
+                <label>Hạn thanh toán<input class="form-control" type="date" value="2026-05-15" /></label>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold mb-2">Mô tả</label>
+                <textarea class="form-control" rows="4">Chi phí chạy chiến dịch lead generation cho Q2/2026.</textarea>
+            </div>
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                <button class="btn-ghost"><i class="bi bi-save"></i> Lưu nháp</button>
+                <button class="btn-app" data-demo-toast><i class="bi bi-send"></i> Gửi duyệt</button>
+            </div>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-shield-exclamation"></i> AI Spend Guardrail</h2></div>
+        <div class="panel-body stack-list">
+            <div class="risk-meter"></div>
+            <div class="list-item"><div><strong>Chiếm 45% ngân sách Marketing</strong><small>Ngưỡng cảnh báo được cấu hình là 40%</small></div><span class="status-badge warning">+25</span></div>
+            <div class="list-item"><div><strong>NCC có PR trong 7 ngày</strong><small>PR-2026-0412: 32 triệu</small></div><span class="status-badge warning">+20</span></div>
+            <div class="list-item"><div><strong>Khuyến nghị</strong><small>Cân nhắc chia ngân sách theo 2 đợt giải ngân.</small></div><span class="status-badge info">Action</span></div>
+        </div>
+    </aside>
+</section>
+
+<article class="panel mt-3">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-check"></i> Hàng đợi đề nghị chi</h2></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã</th><th>Người tạo</th><th>Phòng ban</th><th>Số tiền</th><th>Risk</th><th>Trạng thái</th><th>Bước hiện tại</th></tr></thead>
+            <tbody>
+                <tr><td>PR-2026-0418</td><td>Nguyễn Minh Anh</td><td>Marketing</td><td>80,000,000</td><td><span class="status-badge warning">65</span></td><td><span class="status-badge info">Pending</span></td><td>Manager review</td></tr>
+                <tr><td>PR-2026-0417</td><td>Trần Quốc Huy</td><td>IT</td><td>25,000,000</td><td><span class="status-badge success">22</span></td><td><span class="status-badge success">Approved</span></td><td>Completed</td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

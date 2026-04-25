@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Đánh giá hiệu suất";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-award"></i> Performance review</span><h1>Đánh giá hiệu suất</h1><p>Tổng hợp điểm OKR/KPI, xếp loại A/B/C/D/E, nhận xét quản lý và mục tiêu kỳ sau.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-cpu"></i> Sinh nhận xét AI</button>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-trophy"></i></span><div class="metric-label">Điểm trung bình</div><div class="metric-value">78.4</div><div class="metric-note">Rating B</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-people"></i></span><div class="metric-label">Đã hoàn tất</div><div class="metric-value">46/72</div><div class="metric-note">64% nhân viên</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-up"></i></span><div class="metric-label">Rating A</div><div class="metric-value">12</div><div class="metric-note text-success">Top performer</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-exclamation"></i></span><div class="metric-label">Cần coaching</div><div class="metric-value">8</div><div class="metric-note text-warning">Rating C/D</div></article>
+</section>
+
+<article class="panel">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-card-checklist"></i> Bảng đánh giá</h2></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Nhân viên</th><th>Phòng ban</th><th>OKR</th><th>KPI</th><th>Tổng</th><th>Rating</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+                <tr><td>Nguyễn Minh Anh</td><td>Marketing</td><td>74</td><td>82</td><td>78</td><td>B</td><td><span class="status-badge info">Manager review</span></td></tr>
+                <tr><td>Trần Quốc Huy</td><td>IT</td><td>88</td><td>92</td><td>90</td><td>A</td><td><span class="status-badge success">Completed</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

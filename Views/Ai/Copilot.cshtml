@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "AI Copilot";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-robot"></i> AI Copilot</span><h1>Trợ lý phân tích dữ liệu doanh nghiệp</h1><p>Hỏi đáp tiếng Việt dựa trên dữ liệu tài chính, KPI/OKR, workflow, audit và nguồn trích dẫn được phân quyền.</p></div>
+    <button class="btn-primary-soft" data-demo-toast><i class="bi bi-arrow-clockwise"></i> Làm mới context</button>
+</section>
+
+<section class="ai-layout">
+    <article class="panel chat-window">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-chat-dots"></i> Chat Q&A</h2><span class="status-badge violet">RAG + Citation</span></div>
+        <div class="chat-messages">
+            <div class="message user">Tháng này phòng nào vượt ngân sách?</div>
+            <div class="message ai">
+                <strong>Dựa trên dữ liệu tháng 04/2026:</strong>
+                <div class="mt-2">Marketing đang vượt ngân sách Digital Ads 21% với 424 triệu đã chi trên 350 triệu phân bổ. IT đã dùng 80% software budget và cần theo dõi trước khi duyệt license mới.</div>
+                <div class="mt-2"><span class="chip">Source: Budgets</span> <span class="chip">Source: PaymentRequests</span></div>
+            </div>
+            <div class="message user">Gợi ý hành động ưu tiên?</div>
+            <div class="message ai">Tạm khóa PR quảng cáo mới, chia đợt giải ngân Google Ads, và yêu cầu Marketing cập nhật KPI conversion trước khi mở thêm ngân sách.</div>
+        </div>
+        <div class="chat-composer">
+            <input class="form-control" placeholder="Nhập câu hỏi về ngân sách, KPI, workflow..." />
+            <button class="btn-app" data-demo-toast><i class="bi bi-send"></i> Gửi</button>
+        </div>
+    </article>
+
+    <aside class="stack-list">
+        <article class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-lightning-charge"></i> Prompt nhanh</h2></div>
+            <div class="panel-body stack-list">
+                <button class="btn-ghost text-start">Tóm tắt tài chính tháng này</button>
+                <button class="btn-ghost text-start">KPI nào có nguy cơ fail?</button>
+                <button class="btn-ghost text-start">Khoản chi nào bất thường?</button>
+                <button class="btn-ghost text-start">Viết báo cáo Q2 cho Director</button>
+            </div>
+        </article>
+        <article class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-database-check"></i> Data context</h2></div>
+            <div class="panel-body stack-list">
+                <div class="list-item"><div><strong>Finance</strong><small>Budgets, PR, Transactions, Vendors</small></div><span class="status-badge success">Ready</span></div>
+                <div class="list-item"><div><strong>KPI/OKR</strong><small>Objectives, KPIs, Check-ins</small></div><span class="status-badge success">Ready</span></div>
+                <div class="list-item"><div><strong>Workflow</strong><small>Instances, actions, SLA</small></div><span class="status-badge info">Scoped</span></div>
+            </div>
+        </article>
+    </aside>
+</section>

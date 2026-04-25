@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Thông báo";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-bell"></i> Notification center</span><h1>Trung tâm thông báo</h1><p>Thông báo realtime cho approval request, approval result, KPI deadline, budget warning, AI alert và system events.</p></div>
+    <div class="toolbar">
+        <button class="btn-primary-soft" data-demo-toast><i class="bi bi-check2-all"></i> Đánh dấu đã đọc</button>
+        <button class="btn-ghost" data-demo-toast><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+    </div>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-bell-fill"></i></span><div class="metric-label">Unread</div><div class="metric-value">12</div><div class="metric-note">Trong 24 giờ</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-patch-check"></i></span><div class="metric-label">Approval</div><div class="metric-value">6</div><div class="metric-note text-warning">Cần xử lý</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-robot"></i></span><div class="metric-label">AI alerts</div><div class="metric-value">4</div><div class="metric-note text-danger">2 high risk</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-calendar-event"></i></span><div class="metric-label">KPI deadlines</div><div class="metric-value">2</div><div class="metric-note">Tuần này</div></article>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-inbox"></i> Notification feed</h2><span class="status-badge info">SignalR-ready UI</span></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>PR-2026-0418 cần Director duyệt</strong><small>PaymentRequest • Marketing • 80,000,000 VND</small></div><span class="status-badge warning">Approval</span></div>
+            <div class="list-item"><div><strong>AI phát hiện Marketing vượt budget</strong><small>BudgetWarning • Digital Ads vượt 21%</small></div><span class="status-badge danger">AI Alert</span></div>
+            <div class="list-item"><div><strong>KPI check-in sắp đến hạn</strong><small>Qualified pipeline • hạn cuối 26/04/2026</small></div><span class="status-badge info">Deadline</span></div>
+            <div class="list-item"><div><strong>Check-in KPI đã được duyệt</strong><small>KPI_Result • cập nhật current value thành công</small></div><span class="status-badge success">Result</span></div>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-toggles"></i> Preferences</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>In-app approval</strong><small>Hiển thị ngay trên bell center</small></div><span class="status-badge success">On</span></div>
+            <div class="list-item"><div><strong>Email digest</strong><small>Gửi tổng hợp mỗi ngày lúc 17:30</small></div><span class="status-badge info">Daily</span></div>
+            <div class="list-item"><div><strong>AI high-risk push</strong><small>Thông báo tức thì khi risk > 70</small></div><span class="status-badge success">On</span></div>
+        </div>
+    </aside>
+</section>

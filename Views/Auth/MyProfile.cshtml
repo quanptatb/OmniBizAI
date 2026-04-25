@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-person-circle"></i> Profile</span><h1>Hồ sơ cá nhân</h1><p>Thông tin tài khoản, vai trò, phòng ban, phiên đăng nhập và tùy chọn thông báo.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-save"></i> Cập nhật</button>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-vcard"></i> Thông tin</h2></div>
+        <div class="panel-body form-grid">
+            <label>Họ tên<input class="form-control" value="Admin Demo" /></label>
+            <label>Email<input class="form-control" value="director@omnibiz.ai" /></label>
+            <label>Role<input class="form-control" value="Director" /></label>
+            <label>Department<input class="form-control" value="Executive Office" /></label>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i> Phiên hoạt động</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>Windows Chrome</strong><small>IP 127.0.0.1 • Active now</small></div><span class="status-badge success">Current</span></div>
+            <div class="list-item"><div><strong>Last login</strong><small>25/04/2026 10:12</small></div><span class="status-badge info">Audit</span></div>
+        </div>
+    </aside>
+</section>

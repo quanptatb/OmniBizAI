@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Vai trò & quyền";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-shield-lock"></i> RBAC</span><h1>Vai trò & phân quyền</h1><p>Quản lý role Admin, Director, Manager, Accountant, HR, Staff và permission module:action:resource.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Tạo role</button>
+</section>
+
+<section class="module-grid">
+    <article class="module-card"><i class="bi bi-person-gear"></i><h3>Admin</h3><p>Toàn quyền hệ thống, seed data, audit, settings.</p></article>
+    <article class="module-card"><i class="bi bi-person-vcard"></i><h3>Director</h3><p>Dashboard toàn công ty, duyệt cấp cao, AI insight.</p></article>
+    <article class="module-card"><i class="bi bi-person-check"></i><h3>Manager</h3><p>Dữ liệu phòng ban, duyệt PR và KPI check-in.</p></article>
+    <article class="module-card"><i class="bi bi-calculator"></i><h3>Accountant</h3><p>Budget, transaction, vendor và financial report.</p></article>
+</section>
+
+<article class="panel mt-3">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-key"></i> Permission matrix</h2></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Module</th><th>Resource</th><th>Admin</th><th>Director</th><th>Manager</th><th>Staff</th></tr></thead>
+            <tbody>
+                <tr><td>Finance</td><td>PaymentRequest</td><td>CRUD</td><td>Read/Approve</td><td>Create/Approve</td><td>Create/Read Own</td></tr>
+                <tr><td>KPI</td><td>CheckIn</td><td>CRUD</td><td>Read</td><td>Review</td><td>Create Own</td></tr>
+                <tr><td>Audit</td><td>AuditLog</td><td>Read</td><td>Read</td><td>-</td><td>-</td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

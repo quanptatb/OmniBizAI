@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Luồng phê duyệt";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-diagram-3"></i> Workflow engine</span><h1>Thiết lập luồng phê duyệt</h1><p>Cấu hình template, step, điều kiện amount/budget_percentage/department và escalation action.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Tạo template</button>
+</section>
+
+<section class="two-col-grid">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-diagram-2"></i> Payment request > 50 triệu</h2><span class="status-badge success">Active</span></div>
+        <div class="panel-body timeline">
+            <div class="timeline-step"><span>1</span><div><strong>Direct Manager</strong><div class="text-muted">Timeout 24h, can delegate</div></div></div>
+            <div class="timeline-step"><span>2</span><div><strong>Accountant Review</strong><div class="text-muted">Kiểm tra chứng từ và category</div></div></div>
+            <div class="timeline-step"><span>3</span><div><strong>Director Approval</strong><div class="text-muted">Bắt buộc nếu amount > 50,000,000</div></div></div>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-funnel"></i> Conditions</h2></div>
+        <div class="panel-body stack-list">
+            <div class="list-item"><div><strong>amount gte 50,000,000</strong><small>Then AddStep Director</small></div><span class="status-badge info">Rule</span></div>
+            <div class="list-item"><div><strong>budget_percentage gt 80</strong><small>Then AddStep Accountant</small></div><span class="status-badge warning">Guard</span></div>
+        </div>
+    </aside>
+</section>

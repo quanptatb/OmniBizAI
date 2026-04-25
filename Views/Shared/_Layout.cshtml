@@ -1,49 +1,116 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - OmniBizAI</title>
-    <script type="importmap"></script>
+    <meta name="description" content="OmniBizAI - hệ thống vận hành doanh nghiệp thông minh cho tài chính, KPI/OKR, workflow và AI Copilot." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/OmniBizAI.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">OmniBizAI</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    @{
+        string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
+        string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+        string IsActive(string c, string? a = null) => controller.Equals(c, StringComparison.OrdinalIgnoreCase) && (a == null || action.Equals(a, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+    }
+
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar">
+            <a class="brand-lockup" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark"><i class="bi bi-stars"></i></span>
+                <span>
+                    <strong>OmniBizAI</strong>
+                    <small>Business Operating System</small>
+                </span>
+            </a>
+
+            <nav class="sidebar-scroll" aria-label="Điều hướng chính">
+                <div class="nav-section">
+                    <span>Tổng quan</span>
+                    <a class="nav-row @IsActive("Home")" asp-controller="Home" asp-action="Index"><i class="bi bi-grid-1x2-fill"></i><b>Dashboard điều hành</b></a>
                 </div>
+                <div class="nav-section">
+                    <span>Finance</span>
+                    <a class="nav-row @IsActive("Finance", "Budgets")" asp-controller="Finance" asp-action="Budgets"><i class="bi bi-wallet2"></i><b>Ngân sách</b></a>
+                    <a class="nav-row @IsActive("Finance", "PaymentRequests")" asp-controller="Finance" asp-action="PaymentRequests"><i class="bi bi-receipt-cutoff"></i><b>Đề nghị chi</b></a>
+                    <a class="nav-row @IsActive("Finance", "Transactions")" asp-controller="Finance" asp-action="Transactions"><i class="bi bi-arrow-left-right"></i><b>Giao dịch</b></a>
+                    <a class="nav-row @IsActive("Finance", "Vendors")" asp-controller="Finance" asp-action="Vendors"><i class="bi bi-building-check"></i><b>Nhà cung cấp</b></a>
+                </div>
+                <div class="nav-section">
+                    <span>KPI / OKR</span>
+                    <a class="nav-row @IsActive("Performance", "Objectives")" asp-controller="Performance" asp-action="Objectives"><i class="bi bi-bullseye"></i><b>Mục tiêu OKR</b></a>
+                    <a class="nav-row @IsActive("Performance", "Kpis")" asp-controller="Performance" asp-action="Kpis"><i class="bi bi-speedometer2"></i><b>KPI</b></a>
+                    <a class="nav-row @IsActive("Performance", "CheckIns")" asp-controller="Performance" asp-action="CheckIns"><i class="bi bi-check2-square"></i><b>Check-in</b></a>
+                    <a class="nav-row @IsActive("Performance", "Evaluations")" asp-controller="Performance" asp-action="Evaluations"><i class="bi bi-award"></i><b>Đánh giá hiệu suất</b></a>
+                </div>
+                <div class="nav-section">
+                    <span>Workflow</span>
+                    <a class="nav-row @IsActive("Workflow", "Approvals")" asp-controller="Workflow" asp-action="Approvals"><i class="bi bi-patch-check"></i><b>Hàng chờ duyệt</b></a>
+                    <a class="nav-row @IsActive("Workflow", "Templates")" asp-controller="Workflow" asp-action="Templates"><i class="bi bi-diagram-3"></i><b>Luồng phê duyệt</b></a>
+                    <a class="nav-row @IsActive("Workflow", "Audit")" asp-controller="Workflow" asp-action="Audit"><i class="bi bi-journal-text"></i><b>Audit log</b></a>
+                </div>
+                <div class="nav-section">
+                    <span>Tổ chức</span>
+                    <a class="nav-row @IsActive("Organization", "Employees")" asp-controller="Organization" asp-action="Employees"><i class="bi bi-people"></i><b>Nhân viên</b></a>
+                    <a class="nav-row @IsActive("Organization", "Departments")" asp-controller="Organization" asp-action="Departments"><i class="bi bi-houses"></i><b>Phòng ban</b></a>
+                    <a class="nav-row @IsActive("Organization", "Roles")" asp-controller="Organization" asp-action="Roles"><i class="bi bi-shield-lock"></i><b>Vai trò & quyền</b></a>
+                </div>
+                <div class="nav-section">
+                    <span>AI & Báo cáo</span>
+                    <a class="nav-row @IsActive("Ai", "Copilot")" asp-controller="Ai" asp-action="Copilot"><i class="bi bi-robot"></i><b>AI Copilot</b></a>
+                    <a class="nav-row @IsActive("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><b>Thông báo</b></a>
+                    <a class="nav-row @IsActive("Reports")" asp-controller="Reports" asp-action="Index"><i class="bi bi-file-earmark-bar-graph"></i><b>Báo cáo AI</b></a>
+                    <a class="nav-row @IsActive("Settings")" asp-controller="Settings" asp-action="Index"><i class="bi bi-sliders"></i><b>Cài đặt</b></a>
+                </div>
+            </nav>
+
+            <div class="sidebar-user">
+                <span class="avatar">AD</span>
+                <span>
+                    <strong>Admin Demo</strong>
+                    <small>Director Workspace</small>
+                </span>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        </aside>
+
+        <div class="mobile-scrim" id="mobileScrim"></div>
+
+        <section class="app-main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-button" id="sidebarToggle" type="button" aria-label="Mở menu"><i class="bi bi-list"></i></button>
+                    <div class="global-search">
+                        <i class="bi bi-search"></i>
+                        <input type="search" placeholder="Tìm ngân sách, KPI, nhân viên, đề nghị chi..." />
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="icon-button" type="button" title="AI quick ask"><i class="bi bi-magic"></i></button>
+                    <a class="icon-button has-dot" asp-controller="Notifications" asp-action="Index" title="Thông báo"><i class="bi bi-bell"></i></a>
+                    <a class="profile-chip" asp-controller="Auth" asp-action="MyProfile"><span class="avatar">AD</span><span>Admin Demo</span></a>
+                </div>
+            </header>
+
+            <main role="main" class="page-content">
+                @RenderBody()
+            </main>
+
+            <footer class="app-footer">
+                <span>&copy; 2026 OmniBizAI</span>
+                <span>Finance • KPI/OKR • Workflow • AI Copilot</span>
+            </footer>
+        </section>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - OmniBizAI - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

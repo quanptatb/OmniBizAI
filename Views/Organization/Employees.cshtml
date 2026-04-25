@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Nhân viên";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-people"></i> HR basic</span><h1>Hồ sơ nhân viên</h1><p>Quản lý employee code, phòng ban, vị trí, quản lý trực tiếp, user liên kết và trạng thái làm việc.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-person-plus"></i> Thêm nhân viên</button>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-people-fill"></i></span><div class="metric-label">Nhân viên active</div><div class="metric-value">72</div><div class="metric-note">6 phòng ban</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-badge"></i></span><div class="metric-label">Manager</div><div class="metric-value">11</div><div class="metric-note">Có quyền duyệt</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-check"></i></span><div class="metric-label">Có user login</div><div class="metric-value">68</div><div class="metric-note text-success">94%</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-person-dash"></i></span><div class="metric-label">Inactive</div><div class="metric-value">4</div><div class="metric-note">Giữ lịch sử</div></article>
+</section>
+
+<article class="panel">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-table"></i> Employee directory</h2></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã NV</th><th>Họ tên</th><th>Email</th><th>Phòng ban</th><th>Vị trí</th><th>Manager</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr><td>EMP-001</td><td>Nguyễn Minh Anh</td><td>anh.nguyen@omnibiz.ai</td><td>Marketing</td><td>Marketing Lead</td><td>Director</td><td><span class="status-badge success">Active</span></td></tr>
+                <tr><td>EMP-002</td><td>Trần Quốc Huy</td><td>huy.tran@omnibiz.ai</td><td>IT</td><td>Backend Engineer</td><td>IT Manager</td><td><span class="status-badge success">Active</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

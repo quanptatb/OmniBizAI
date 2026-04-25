@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Audit log";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-journal-text"></i> Immutable audit</span><h1>Audit log</h1><p>Truy vết đăng nhập, CRUD, duyệt/từ chối, export và AI queries theo user, entity và thời gian.</p></div>
+    <button class="btn-ghost"><i class="bi bi-download"></i> Export log</button>
+</section>
+
+<article class="panel">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i> Nhật ký hệ thống</h2></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Thời gian</th><th>User</th><th>Action</th><th>Entity</th><th>IP</th><th>Summary</th></tr></thead>
+            <tbody>
+                <tr><td>25/04/2026 10:45</td><td>director@omnibiz.ai</td><td>Approve</td><td>PaymentRequest PR-2026-0418</td><td>127.0.0.1</td><td>Duyệt bước Director approval</td></tr>
+                <tr><td>25/04/2026 10:21</td><td>staff@omnibiz.ai</td><td>AIQuery</td><td>Dashboard</td><td>127.0.0.1</td><td>Hỏi phòng nào vượt ngân sách tháng này</td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

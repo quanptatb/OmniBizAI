@@ -148,9 +148,7 @@ C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\scopedcss\bundle\OmniBizAI.styles.css
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\scopedcss\projectbundle\OmniBizAI.bundle.scp.css
-C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\lhby38vocg-{0}-b9sayid5wm-b9sayid5wm.gz
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\ay0o8fpmjs-{0}-61n19gt1b8-61n19gt1b8.gz
-C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\xb8xh16tom-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\cgd9ykcks9-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\iyqadpnk42-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\djrgg8gepy-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -223,3 +221,5 @@ C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\refint\OmniBizAI.dll
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\OmniBizAI.pdb
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\OmniBizAI.genruntimeconfig.cache
 C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\ref\OmniBizAI.dll
+C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\lhby38vocg-{0}-gklv4p9zld-gklv4p9zld.gz
+C:\Users\Cua\Desktop\OmniBizAI\obj\Debug\net10.0\compressed\xb8xh16tom-{0}-s2gxmaimol-s2gxmaimol.gz

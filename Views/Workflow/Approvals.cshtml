@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Hàng chờ duyệt";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-patch-check"></i> Workflow inbox</span><h1>Hàng chờ phê duyệt</h1><p>Duyệt đề nghị chi, điều chỉnh ngân sách, check-in KPI và đánh giá hiệu suất theo SLA.</p></div>
+    <div class="toolbar"><button class="btn-primary-soft" data-demo-toast><i class="bi bi-check2-all"></i> Duyệt hàng loạt</button></div>
+</section>
+
+<article class="panel">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-inboxes"></i> Approval inbox</h2><span class="status-badge danger">5 quá hạn</span></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Hồ sơ</th><th>Loại</th><th>Người gửi</th><th>Bước</th><th>SLA</th><th>Risk</th><th>Hành động</th></tr></thead>
+            <tbody>
+                <tr><td>PR-2026-0418</td><td>PaymentRequest</td><td>Nguyễn Minh Anh</td><td>Director approval</td><td><span class="status-badge warning">6h left</span></td><td>65</td><td><div class="inline-actions"><button class="btn-primary-soft" data-demo-toast>Duyệt</button><button class="btn-danger-soft" data-demo-toast>Từ chối</button></div></td></tr>
+                <tr><td>KCI-00092</td><td>KPI Check-in</td><td>Trần Quốc Huy</td><td>Manager review</td><td><span class="status-badge success">22h left</span></td><td>12</td><td><div class="inline-actions"><button class="btn-primary-soft" data-demo-toast>Duyệt</button><button class="btn-danger-soft" data-demo-toast>Từ chối</button></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Giao dịch";
+}
+
+<section class="page-header">
+    <div><span class="eyebrow"><i class="bi bi-arrow-left-right"></i> Ledger</span><h1>Giao dịch & dòng tiền</h1><p>Ghi nhận thu chi thực tế, liên kết payment request, ví/tài khoản và tác động ngân sách.</p></div>
+    <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Ghi giao dịch</button>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-cash"></i></span><div class="metric-label">Số dư ví</div><div class="metric-value">3.6 tỷ</div><div class="metric-note">Cash + Bank</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-arrow-down-circle"></i></span><div class="metric-label">Income tháng</div><div class="metric-value">1.24 tỷ</div><div class="metric-note text-success">Đã đối soát</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-arrow-up-circle"></i></span><div class="metric-label">Expense tháng</div><div class="metric-value">812 tr</div><div class="metric-note text-warning">12 giao dịch</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-calendar-range"></i></span><div class="metric-label">Runway</div><div class="metric-value">45 ngày</div><div class="metric-note text-danger">Cần theo dõi</div></article>
+</section>
+
+<article class="panel">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i> Sổ giao dịch</h2><div class="toolbar"><select class="form-select"><option>Tất cả loại</option><option>Income</option><option>Expense</option></select></div></div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã GD</th><th>Ngày</th><th>Loại</th><th>Danh mục</th><th>Phòng ban</th><th>Số tiền</th><th>Liên kết</th></tr></thead>
+            <tbody>
+                <tr><td>TRX-00081</td><td>25/04/2026</td><td><span class="status-badge danger">Expense</span></td><td>Digital Ads</td><td>Marketing</td><td>80,000,000</td><td>PR-2026-0418</td></tr>
+                <tr><td>TRX-00080</td><td>23/04/2026</td><td><span class="status-badge success">Income</span></td><td>Service Revenue</td><td>Company</td><td>420,000,000</td><td>INV-2026-0409</td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>

@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Quản lý ngân sách";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-wallet2"></i> Finance</span>
+        <h1>Quản lý ngân sách</h1>
+        <p>Thiết lập ngân sách theo kỳ, phòng ban, danh mục; theo dõi committed, spent và cảnh báo vượt ngưỡng.</p>
+    </div>
+    <div class="toolbar">
+        <button class="btn-ghost"><i class="bi bi-download"></i> Xuất Excel</button>
+        <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Tạo ngân sách</button>
+    </div>
+</section>
+
+<section class="metric-grid">
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-bank"></i></span><div class="metric-label">Tổng phân bổ</div><div class="metric-value">2.8 tỷ</div><div class="metric-note">Q2/2026</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-cash-stack"></i></span><div class="metric-label">Đã chi</div><div class="metric-value">1.9 tỷ</div><div class="metric-note text-warning">68% utilization</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-lock"></i></span><div class="metric-label">Đã cam kết</div><div class="metric-value">380 tr</div><div class="metric-note">Từ payment requests</div></article>
+    <article class="metric-card"><span class="metric-icon"><i class="bi bi-shield-exclamation"></i></span><div class="metric-label">Cảnh báo</div><div class="metric-value">4</div><div class="metric-note text-danger">2 vượt 100%</div></article>
+</section>
+
+<article class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title"><i class="bi bi-table"></i> Danh sách ngân sách</h2>
+        <div class="toolbar">
+            <select class="form-select"><option>Tất cả phòng ban</option><option>Marketing</option><option>IT</option></select>
+            <select class="form-select"><option>Tháng 04/2026</option><option>Quý 2/2026</option></select>
+        </div>
+    </div>
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Mã</th><th>Phòng ban</th><th>Danh mục</th><th>Phân bổ</th><th>Đã chi</th><th>Tiến độ</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+                <tr><td>BUD-MKT-04</td><td>Marketing</td><td>Digital Ads</td><td>350,000,000</td><td>424,000,000</td><td><div class="progress"><div class="progress-bar bg-danger" style="width:100%"></div></div></td><td><span class="status-badge danger">Vượt ngân sách</span></td><td><button class="btn-primary-soft">Chi tiết</button></td></tr>
+                <tr><td>BUD-IT-04</td><td>IT</td><td>Software</td><td>220,000,000</td><td>176,000,000</td><td><div class="progress"><div class="progress-bar bg-warning" style="width:80%"></div></div></td><td><span class="status-badge warning">Chạm ngưỡng</span></td><td><button class="btn-primary-soft">Chi tiết</button></td></tr>
+                <tr><td>BUD-HR-Q2</td><td>HR</td><td>Training</td><td>180,000,000</td><td>62,000,000</td><td><div class="progress"><div class="progress-bar bg-success" style="width:34%"></div></div></td><td><span class="status-badge success">An toàn</span></td><td><button class="btn-primary-soft">Chi tiết</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+</article>
