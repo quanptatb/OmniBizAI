@@ -1,0 +1,109 @@
+@{
+    ViewData["Title"] = "Chức vụ";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-person-badge"></i> Organization</span>
+        <h1>Danh mục Chức vụ</h1>
+        <p>Quản lý các chức danh, cấp bậc (Level) để áp dụng vào luồng phê duyệt và phân quyền dữ liệu.</p>
+    </div>
+    <button class="btn-app" data-bs-toggle="modal" data-bs-target="#positionModal"><i class="bi bi-plus-circle"></i> Thêm chức vụ</button>
+</section>
+
+<div class="data-table-container">
+    <div class="table-actions">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Tìm theo tên chức vụ..." class="form-control form-control-sm" />
+        </div>
+        <select class="form-select form-select-sm" style="width: 200px;">
+            <option value="">Tất cả phòng ban</option>
+            <option value="1">Board of Directors</option>
+            <option value="2">Kế toán & Tài chính</option>
+            <option value="3">Nhân sự & Admin</option>
+        </select>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Tên chức vụ</th>
+                <th>Phòng ban</th>
+                <th>Level</th>
+                <th>Mô tả</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Giám đốc (Director)</strong></td>
+                <td>Board of Directors</td>
+                <td><span class="badge bg-danger">Level 5</span></td>
+                <td>Quyền duyệt cao nhất, quản trị toàn bộ công ty.</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Trưởng phòng (Manager)</strong></td>
+                <td>Tất cả</td>
+                <td><span class="badge bg-warning text-dark">Level 4</span></td>
+                <td>Quản lý phòng ban, duyệt cấp 1 các chi phí.</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Nhân viên (Staff)</strong></td>
+                <td>Tất cả</td>
+                <td><span class="badge bg-info text-dark">Level 1</span></td>
+                <td>Nhân viên thực thi, thực hiện đánh giá cá nhân.</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="positionModal" tabindex="-1" aria-labelledby="positionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="positionModalLabel">Thêm mới chức vụ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body form-grid">
+                <label>
+                    Tên chức vụ
+                    <input type="text" class="form-control" placeholder="Ví dụ: Trưởng nhóm Marketing" />
+                </label>
+                <label>
+                    Phòng ban
+                    <select class="form-select">
+                        <option value="">Áp dụng toàn công ty</option>
+                        <option value="1">Board of Directors</option>
+                        <option value="2">Kế toán & Tài chính</option>
+                        <option value="3">Nhân sự & Admin</option>
+                    </select>
+                </label>
+                <label>
+                    Level duyệt
+                    <input type="number" class="form-control" placeholder="1-5 (Level cao có quyền duyệt lớn)" />
+                </label>
+                <label>
+                    Mô tả
+                    <textarea class="form-control" rows="2" placeholder="Mô tả quyền hạn chức vụ..."></textarea>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-demo-toast>Lưu chức vụ</button>
+            </div>
+        </div>
+    </div>
+</div>

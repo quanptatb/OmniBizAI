@@ -1,0 +1,132 @@
+@{
+    ViewData["Title"] = "Ví / Tài khoản";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-wallet"></i> Finance</span>
+        <h1>Ví / Tài khoản</h1>
+        <p>Quản lý số dư tiền mặt, tài khoản ngân hàng và ví điện tử theo thời gian thực.</p>
+    </div>
+    <button class="btn-app" data-bs-toggle="modal" data-bs-target="#walletModal"><i class="bi bi-plus-circle"></i> Thêm tài khoản</button>
+</section>
+
+<section class="metric-grid mb-4">
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-bank"></i></span>
+        <div class="metric-label">Tổng số dư</div>
+        <div class="metric-value">2,450,000,000 ₫</div>
+        <div class="metric-note text-success">+ 15% so với tháng trước</div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-cash-stack"></i></span>
+        <div class="metric-label">Tiền mặt quỹ</div>
+        <div class="metric-value">50,000,000 ₫</div>
+        <div class="metric-note">Chi tiêu lặt vặt</div>
+    </article>
+    <article class="metric-card">
+        <span class="metric-icon"><i class="bi bi-credit-card"></i></span>
+        <div class="metric-label">Số tài khoản</div>
+        <div class="metric-value">3</div>
+        <div class="metric-note">Đang hoạt động</div>
+    </article>
+</section>
+
+<div class="data-table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Tên tài khoản / Ví</th>
+                <th>Loại</th>
+                <th>Ngân hàng</th>
+                <th>Số tài khoản</th>
+                <th class="text-end">Số dư hiện tại</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Tài khoản chính công ty</strong></td>
+                <td><span class="badge bg-primary">Bank</span></td>
+                <td>Vietcombank</td>
+                <td>0123456789</td>
+                <td class="text-end font-monospace"><strong>2,100,000,000 ₫</strong></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Tài khoản thanh toán lương</strong></td>
+                <td><span class="badge bg-primary">Bank</span></td>
+                <td>Techcombank</td>
+                <td>1903456789011</td>
+                <td class="text-end font-monospace"><strong>300,000,000 ₫</strong></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Quỹ tiền mặt VP HCM</strong></td>
+                <td><span class="badge bg-success">Cash</span></td>
+                <td>-</td>
+                <td>-</td>
+                <td class="text-end font-monospace"><strong>50,000,000 ₫</strong></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="walletModal" tabindex="-1" aria-labelledby="walletModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="walletModalLabel">Thêm tài khoản / Ví</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body form-grid">
+                <label>
+                    Tên tài khoản / Ví
+                    <input type="text" class="form-control" placeholder="Ví dụ: Quỹ tiền mặt HN" />
+                </label>
+                <label>
+                    Loại (Type)
+                    <select class="form-select">
+                        <option value="Bank">Ngân hàng (Bank)</option>
+                        <option value="Cash">Tiền mặt (Cash)</option>
+                        <option value="EWallet">Ví điện tử (EWallet)</option>
+                    </select>
+                </label>
+                <label>
+                    Ngân hàng (Tùy chọn)
+                    <input type="text" class="form-control" placeholder="Ví dụ: Vietcombank" />
+                </label>
+                <label>
+                    Số tài khoản (Tùy chọn)
+                    <input type="text" class="form-control" placeholder="Ví dụ: 0123456789" />
+                </label>
+                <label>
+                    Số dư ban đầu (Balance)
+                    <input type="number" class="form-control" value="0" />
+                </label>
+                <label>
+                    Đơn vị tiền tệ
+                    <select class="form-select">
+                        <option value="VND">VND</option>
+                        <option value="USD">USD</option>
+                    </select>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-demo-toast>Lưu tài khoản</button>
+            </div>
+        </div>
+    </div>
+</div>

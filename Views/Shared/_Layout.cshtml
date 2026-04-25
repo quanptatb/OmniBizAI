@@ -40,10 +40,13 @@
                     <a class="nav-row @IsActive("Finance", "Budgets")" asp-controller="Finance" asp-action="Budgets"><i class="bi bi-wallet2"></i><b>Ngân sách</b></a>
                     <a class="nav-row @IsActive("Finance", "PaymentRequests")" asp-controller="Finance" asp-action="PaymentRequests"><i class="bi bi-receipt-cutoff"></i><b>Đề nghị chi</b></a>
                     <a class="nav-row @IsActive("Finance", "Transactions")" asp-controller="Finance" asp-action="Transactions"><i class="bi bi-arrow-left-right"></i><b>Giao dịch</b></a>
+                    <a class="nav-row @IsActive("Finance", "Categories")" asp-controller="Finance" asp-action="Categories"><i class="bi bi-tags"></i><b>Danh mục chi phí</b></a>
+                    <a class="nav-row @IsActive("Finance", "Wallets")" asp-controller="Finance" asp-action="Wallets"><i class="bi bi-wallet"></i><b>Ví / Tài khoản</b></a>
                     <a class="nav-row @IsActive("Finance", "Vendors")" asp-controller="Finance" asp-action="Vendors"><i class="bi bi-building-check"></i><b>Nhà cung cấp</b></a>
                 </div>
                 <div class="nav-section">
                     <span>KPI / OKR</span>
+                    <a class="nav-row @IsActive("Performance", "Periods")" asp-controller="Performance" asp-action="Periods"><i class="bi bi-calendar3"></i><b>Kỳ đánh giá</b></a>
                     <a class="nav-row @IsActive("Performance", "Objectives")" asp-controller="Performance" asp-action="Objectives"><i class="bi bi-bullseye"></i><b>Mục tiêu OKR</b></a>
                     <a class="nav-row @IsActive("Performance", "Kpis")" asp-controller="Performance" asp-action="Kpis"><i class="bi bi-speedometer2"></i><b>KPI</b></a>
                     <a class="nav-row @IsActive("Performance", "CheckIns")" asp-controller="Performance" asp-action="CheckIns"><i class="bi bi-check2-square"></i><b>Check-in</b></a>
@@ -59,11 +62,13 @@
                     <span>Tổ chức</span>
                     <a class="nav-row @IsActive("Organization", "Employees")" asp-controller="Organization" asp-action="Employees"><i class="bi bi-people"></i><b>Nhân viên</b></a>
                     <a class="nav-row @IsActive("Organization", "Departments")" asp-controller="Organization" asp-action="Departments"><i class="bi bi-houses"></i><b>Phòng ban</b></a>
+                    <a class="nav-row @IsActive("Organization", "Positions")" asp-controller="Organization" asp-action="Positions"><i class="bi bi-person-badge"></i><b>Chức vụ</b></a>
                     <a class="nav-row @IsActive("Organization", "Roles")" asp-controller="Organization" asp-action="Roles"><i class="bi bi-shield-lock"></i><b>Vai trò & quyền</b></a>
                 </div>
                 <div class="nav-section">
                     <span>AI & Báo cáo</span>
                     <a class="nav-row @IsActive("Ai", "Copilot")" asp-controller="Ai" asp-action="Copilot"><i class="bi bi-robot"></i><b>AI Copilot</b></a>
+                    <a class="nav-row @IsActive("Ai", "History")" asp-controller="Ai" asp-action="History"><i class="bi bi-clock-history"></i><b>Lịch sử AI</b></a>
                     <a class="nav-row @IsActive("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><b>Thông báo</b></a>
                     <a class="nav-row @IsActive("Reports")" asp-controller="Reports" asp-action="Index"><i class="bi bi-file-earmark-bar-graph"></i><b>Báo cáo AI</b></a>
                     <a class="nav-row @IsActive("Integrations")" asp-controller="Integrations" asp-action="Index"><i class="bi bi-plug"></i><b>Tích hợp & API</b></a>

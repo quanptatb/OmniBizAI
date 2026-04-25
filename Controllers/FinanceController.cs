@@ -11,4 +11,8 @@ public class FinanceController : Controller
     public IActionResult Transactions() => View();
 
     public IActionResult Vendors() => View();
+
+    public IActionResult Categories() => View();
+
+    public IActionResult Wallets() => View();
 }

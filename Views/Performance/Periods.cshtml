@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Kỳ đánh giá (Periods)";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-calendar3"></i> KPI/OKR</span>
+        <h1>Kỳ đánh giá</h1>
+        <p>Quản lý các chu kỳ đánh giá mục tiêu, hiệu suất (Tháng, Quý, Năm).</p>
+    </div>
+    <button class="btn-app" data-bs-toggle="modal" data-bs-target="#periodModal"><i class="bi bi-plus-circle"></i> Tạo kỳ đánh giá</button>
+</section>
+
+<div class="data-table-container">
+    <div class="table-actions">
+        <select class="form-select form-select-sm" style="width: 150px;">
+            <option value="">Tất cả loại hình</option>
+            <option value="Monthly">Hàng tháng</option>
+            <option value="Quarterly">Hàng quý</option>
+            <option value="Yearly">Hàng năm</option>
+        </select>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Tên kỳ đánh giá</th>
+                <th>Phân loại</th>
+                <th>Ngày bắt đầu</th>
+                <th>Ngày kết thúc</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Năm 2026 (Yearly)</strong></td>
+                <td><span class="badge bg-secondary">Yearly</span></td>
+                <td>01/01/2026</td>
+                <td>31/12/2026</td>
+                <td><span class="status-badge success">Active</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Quý 1/2026</strong></td>
+                <td><span class="badge bg-info text-dark">Quarterly</span></td>
+                <td>01/01/2026</td>
+                <td>31/03/2026</td>
+                <td><span class="status-badge">Closed</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Quý 2/2026</strong></td>
+                <td><span class="badge bg-info text-dark">Quarterly</span></td>
+                <td>01/04/2026</td>
+                <td>30/06/2026</td>
+                <td><span class="status-badge success">Active</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Tháng 4/2026</strong></td>
+                <td><span class="badge bg-primary">Monthly</span></td>
+                <td>01/04/2026</td>
+                <td>30/04/2026</td>
+                <td><span class="status-badge warning">Planning</span></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-light text-danger" data-demo-toast><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="periodModal" tabindex="-1" aria-labelledby="periodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="periodModalLabel">Tạo kỳ đánh giá mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body form-grid">
+                <label>
+                    Tên kỳ đánh giá
+                    <input type="text" class="form-control" placeholder="Ví dụ: Quý 3/2026" />
+                </label>
+                <label>
+                    Phân loại (Type)
+                    <select class="form-select">
+                        <option value="Monthly">Hàng tháng (Monthly)</option>
+                        <option value="Quarterly">Hàng quý (Quarterly)</option>
+                        <option value="Yearly">Hàng năm (Yearly)</option>
+                    </select>
+                </label>
+                <label>
+                    Ngày bắt đầu (Start Date)
+                    <input type="date" class="form-control" />
+                </label>
+                <label>
+                    Ngày kết thúc (End Date)
+                    <input type="date" class="form-control" />
+                </label>
+                <label>
+                    Trạng thái
+                    <select class="form-select">
+                        <option value="Planning">Planning</option>
+                        <option value="Active">Active</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-demo-toast>Lưu kỳ đánh giá</button>
+            </div>
+        </div>
+    </div>
+</div>

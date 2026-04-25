@@ -4,6 +4,8 @@ namespace OmniBizAI.Controllers;
 
 public class PerformanceController : Controller
 {
+    public IActionResult Periods() => View();
+
     public IActionResult Objectives() => View();
 
     public IActionResult Kpis() => View();

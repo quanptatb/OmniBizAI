@@ -1,0 +1,81 @@
+@{
+    ViewData["Title"] = "Lịch sử AI (Generation History)";
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-clock-history"></i> AI Copilot</span>
+        <h1>Lịch sử AI (Generation History)</h1>
+        <p>Theo dõi lịch sử các câu hỏi, báo cáo và dữ liệu đã được AI tạo ra.</p>
+    </div>
+    <button class="btn-app text-danger" data-demo-toast><i class="bi bi-trash"></i> Xóa lịch sử cũ</button>
+</section>
+
+<div class="data-table-container">
+    <div class="table-actions">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Tìm theo prompt hoặc module..." class="form-control form-control-sm" />
+        </div>
+        <select class="form-select form-select-sm" style="width: 150px;">
+            <option value="">Tất cả module</option>
+            <option value="Finance">Finance</option>
+            <option value="KPI">KPI/OKR</option>
+            <option value="Workflow">Workflow</option>
+        </select>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Thời gian</th>
+                <th>Người dùng</th>
+                <th>Module / Loại Prompt</th>
+                <th>Dữ liệu đầu vào (Prompt)</th>
+                <th>Đánh giá</th>
+                <th class="text-end">Chi tiết</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><small class="text-muted">25/04/2026 14:05</small></td>
+                <td><span class="avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">AD</span> Admin</td>
+                <td><span class="badge bg-secondary">Finance</span> Spend Guardrail</td>
+                <td><small>Check PaymentRequest #PR-2026-045</small></td>
+                <td><i class="bi bi-hand-thumbs-up-fill text-success"></i></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast>Xem kết quả</button>
+                </td>
+            </tr>
+            <tr>
+                <td><small class="text-muted">25/04/2026 10:30</small></td>
+                <td><span class="avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">AD</span> Admin</td>
+                <td><span class="badge bg-secondary">KPI</span> Insight Generation</td>
+                <td><small>Analyze Sales Dept Q1 Objectives</small></td>
+                <td>-</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast>Xem kết quả</button>
+                </td>
+            </tr>
+            <tr>
+                <td><small class="text-muted">24/04/2026 16:20</small></td>
+                <td><span class="avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">NV</span> Nhân viên</td>
+                <td><span class="badge bg-secondary">Report</span> Monthly Report</td>
+                <td><small>Generate March 2026 Summary</small></td>
+                <td><i class="bi bi-hand-thumbs-up-fill text-success"></i></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast>Xem kết quả</button>
+                </td>
+            </tr>
+            <tr>
+                <td><small class="text-muted">24/04/2026 09:15</small></td>
+                <td><span class="avatar" style="width: 24px; height: 24px; font-size: 0.7rem;">AD</span> Admin</td>
+                <td><span class="badge bg-secondary">Chat</span> Q&A</td>
+                <td><small>Tại sao chi phí Marketing tháng này tăng đột biến?</small></td>
+                <td><i class="bi bi-hand-thumbs-down-fill text-danger"></i></td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-light" data-demo-toast>Xem kết quả</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

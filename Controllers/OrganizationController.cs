@@ -9,4 +9,6 @@ public class OrganizationController : Controller
     public IActionResult Departments() => View();
 
     public IActionResult Roles() => View();
+
+    public IActionResult Positions() => View();
 }
