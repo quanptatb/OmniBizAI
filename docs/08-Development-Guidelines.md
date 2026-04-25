@@ -6,7 +6,7 @@
 
 ## 1. Coding Convention
 
-### 1.1 C# / .NET Backend
+### 1.1 C# / ASP.NET Core MVC 10
 
 | Item | Convention | Example |
 |------|-----------|---------|
@@ -21,18 +21,20 @@
 | Async method | suffix `Async` | `GetBudgetByIdAsync()` |
 | Controller route | kebab-case | `[Route("payment-requests")]` |
 
-### 1.2 TypeScript / React Frontend
+### 1.2 Razor / MVC UI
 
 | Item | Convention | Example |
 |------|-----------|---------|
-| Component | PascalCase | `PaymentRequestForm.tsx` |
-| Hook | camelCase, prefix `use` | `usePaymentRequests.ts` |
-| Utility | camelCase | `formatCurrency.ts` |
-| Type/Interface | PascalCase | `PaymentRequest` |
+| Razor View | Match action name | `Views/Finance/PaymentRequests.cshtml` |
+| Partial View | `_` prefix | `_PaymentRequestForm.cshtml` |
+| ViewModel | PascalCase + `ViewModel` suffix | `PaymentRequestFormViewModel` |
+| ViewComponent | PascalCase + `ViewComponent` suffix | `BudgetSummaryViewComponent` |
+| Tag Helper | PascalCase class, kebab-case tag | `<status-badge>` |
+| JavaScript module | camelCase | `paymentRequestForm.js` |
 | Constant | UPPER_SNAKE_CASE | `MAX_FILE_SIZE` |
 | CSS class | kebab-case | `payment-request-form` |
 | Event handler | prefix `handle/on` | `handleSubmit`, `onClick` |
-| Boolean prop | prefix `is/has/can` | `isLoading`, `hasError` |
+| Boolean property | prefix `Is/Has/Can` | `IsLoading`, `HasError` |
 
 ### 1.3 Database
 
@@ -175,7 +177,7 @@ Author creates PR → Self-review → Request reviewer (1 required)
 
 ## 5. Folder Structure
 
-### 5.1 Backend (.NET)
+### 5.1 Full-stack ASP.NET Core MVC 10
 
 ```
 src/
@@ -204,42 +206,40 @@ src/
 │   ├── Services/                # External service implementations
 │   └── Repositories/            # Repository implementations
 │
-└── OmniBizAI.WebAPI/            # Depends on: All layers
-    ├── Controllers/             # API controllers
+└── OmniBizAI.Web/               # Depends on: All layers
+    ├── Controllers/             # MVC controllers + JSON endpoints
+    ├── Areas/                   # Admin and module areas
+    ├── Views/                   # Razor views
+    ├── ViewModels/              # Page-specific view models
+    ├── ViewComponents/          # Reusable server-rendered widgets
+    ├── TagHelpers/              # Reusable Razor helpers
+    ├── wwwroot/                 # CSS, JS, static assets
     ├── Hubs/                    # SignalR hubs
     ├── Middleware/               # Custom middleware
     ├── Filters/                 # Action filters
     └── Extensions/              # Service registration extensions
 ```
 
-### 5.2 Frontend (Next.js)
+### 5.2 MVC UI Assets
 
 ```
-src/
-├── app/                         # Next.js App Router (pages)
-│   ├── (auth)/                  # Auth layout group
-│   ├── (dashboard)/             # Main layout group
-│   │   ├── finance/
-│   │   ├── performance/
-│   │   ├── workflow/
-│   │   ├── organization/
-│   │   └── ai/
-│   └── api/                     # BFF routes (optional)
-├── components/
-│   ├── ui/                      # Primitive UI components
-│   ├── charts/                  # Chart wrappers
-│   ├── forms/                   # Form components
-│   ├── layout/                  # Sidebar, Header, etc.
-│   └── features/                # Feature-specific components
-│       ├── finance/
-│       ├── kpi/
-│       ├── workflow/
-│       └── ai/
-├── hooks/                       # Custom React hooks
-├── lib/                         # Utilities, API client, constants
-├── stores/                      # Zustand stores
-├── types/                       # TypeScript type definitions
-└── styles/                      # Global CSS, Tailwind config
+src/OmniBizAI.Web/
+├── Views/
+│   ├── Shared/                  # _Layout, partials, validation scripts
+│   ├── Account/
+│   ├── Dashboard/
+│   ├── Finance/
+│   ├── Performance/
+│   ├── Workflow/
+│   ├── Organization/
+│   └── AI/
+├── ViewModels/                  # Strongly typed page models
+├── ViewComponents/              # Dashboard cards, nav, notification widgets
+├── TagHelpers/                  # Status badges, money/date display helpers
+└── wwwroot/
+    ├── css/                     # Site styles and UI framework overrides
+    ├── js/                      # Lightweight page scripts
+    └── lib/                     # Vendored browser libraries
 ```
 
 ---
@@ -262,13 +262,13 @@ public class ForbiddenException : Exception { }
 // Unhandled → 500 (log full stack, return generic message)
 ```
 
-### 6.2 Frontend Error Strategy
+### 6.2 MVC UI Error Strategy
 
-- **API errors**: React Query `onError` → Toast notification
-- **Form validation**: Zod schema → Inline error messages
+- **Controller errors**: Return typed error view or JSON problem details based on request type
+- **Form validation**: DataAnnotations/FluentValidation → `ModelState` inline messages
 - **Network errors**: Global interceptor → "Connection lost" banner
-- **404 pages**: Custom not-found page
-- **Error boundaries**: Catch React render errors → Fallback UI
+- **404 pages**: MVC `NotFound` view
+- **Unhandled UI errors**: Exception middleware → generic error view with correlation ID
 
 ---
 
@@ -310,4 +310,4 @@ _logger.LogInformation(
 | `AI__Provider` | Groq | Groq | Groq |
 | `AI__ApiKey` | *** | *** | *** |
 | `Logging__Level` | Debug | Information | Warning |
-| `AllowedOrigins` | localhost:3000 | staging.omnibiz.ai | omnibiz.ai |
+| `AllowedHosts` | localhost | staging.omnibiz.ai | omnibiz.ai |

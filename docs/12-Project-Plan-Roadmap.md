@@ -73,12 +73,12 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | KPI CRUD + assignment | Member 3 | W4-5 | Period, Employee |
 | Check-in CRUD + approval | Member 3 | W5 | KPI, Key Result |
 | Performance Evaluation | Member 3 | W5 | KPI, OKR |
-| **Frontend Setup** | | | |
-| Next.js project + Tailwind | Member 5 | W3 | - |
-| Design system (components) | Member 5 | W3-4 | Next.js setup |
+| **ASP.NET Core MVC UI Setup** | | | |
+| MVC project + Razor layout + UI framework | Member 5 | W3 | - |
+| Design system (partials/ViewComponents) | Member 5 | W3-4 | MVC setup |
 | Layout (Sidebar, Header) | Member 5 | W4 | Design system |
-| Auth pages (Login) | Member 6 | W3-4 | Next.js setup |
-| API client + React Query setup | Member 6 | W3 | Next.js setup |
+| Auth pages (Login) | Member 6 | W3-4 | MVC setup |
+| MVC forms + validation setup | Member 6 | W3 | MVC setup |
 | Department/Employee pages | Member 6 | W5 | HR API done |
 | Budget list/create pages | Member 6 | W5 | Finance API done |
 | **Testing & DevOps** | | | |
@@ -86,7 +86,7 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | CI pipeline (GitHub Actions) | Member 7 | W3-4 | - |
 | Seed data service | Member 7 | W4-5 | All entities |
 
-**Exit Criteria**: Auth works, CRUD cho tất cả entities, frontend layout ready, CI running.
+**Exit Criteria**: Auth works, CRUD cho tất cả entities, MVC layout ready, CI running.
 
 ---
 
@@ -107,7 +107,7 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | **Dashboard** | | | |
 | Director dashboard API | Member 2 | W6 | Finance data |
 | KPI dashboard API | Member 3 | W6 | KPI data |
-| Dashboard frontend (charts) | Member 5 | W6-7 | Dashboard APIs |
+| Dashboard MVC views (charts) | Member 5 | W6-7 | Dashboard data endpoints |
 | Role-based dashboard views | Member 5 | W7 | Data scoping |
 | **Business UI** | | | |
 | Payment Request form + flow | Member 6 | W6 | PR API |
@@ -142,7 +142,7 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | vector search (SQL Server) setup + embeddings | Member 4 | W8 | SQL Server |
 | Embedding sync job | Member 4 | W8-9 | Data seeded |
 | RAG retrieval + citation | Member 4 | W9 | Embeddings |
-| **AI Frontend** | | | |
+| **AI MVC UI** | | | |
 | AI Copilot panel (chat UI) | Member 5 | W8-9 | AI Chat API |
 | AI risk display in PR form | Member 6 | W8 | Guardrail API |
 | AI insight cards on dashboard | Member 5 | W9 | Insight API |
@@ -240,7 +240,7 @@ graph TD
     
     G --> I["Notifications<br/>Week 6-7"]
     
-    C --> J["Frontend Layout<br/>Week 3-4"]
+    C --> J["MVC Layout<br/>Week 3-4"]
     J --> K["Business Pages<br/>Week 5-7"]
     H --> L["Dashboard UI<br/>Week 6-7"]
     

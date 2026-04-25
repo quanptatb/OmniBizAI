@@ -10,7 +10,7 @@
 
 | Environment | Purpose | URL | Database | Deployment |
 |------------|---------|-----|----------|-----------|
-| **Local Dev** | Individual development | localhost:3000 / :5000 | Docker SQL Server | Docker Compose |
+| **Local Dev** | Individual development | localhost:5000 | Docker SQL Server | Docker Compose |
 | **Staging** | Team testing, demo prep | staging.omnibiz.ai | Staging DB | Auto-deploy on `develop` |
 | **Production** | Live demo, evaluation | omnibiz.ai | Production DB | Manual deploy on `main` |
 
@@ -20,8 +20,7 @@
 |------|---------|---------|
 | Docker Desktop | 24.x+ | Container runtime |
 | Docker Compose | v2.x+ | Multi-container orchestration |
-| .NET SDK | 10.0 | Backend build |
-| Node.js | 20.x LTS | Frontend build |
+| .NET SDK | 10.0 | ASP.NET Core MVC build |
 | Git | 2.40+ | Version control |
 | VS Code / Rider | Latest | IDE |
 
@@ -70,12 +69,12 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # ========== BACKEND ==========
-  backend:
+  # ========== WEB APP ==========
+  web:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: omnibiz-backend
+    container_name: omnibiz-web
     ports:
       - "5000:8080"
     environment:
@@ -88,29 +87,12 @@ services:
       AI__Provider: ${AI_PROVIDER:-Groq}
       AI__ApiKey: ${AI_API_KEY}
       AI__Model: ${AI_MODEL:-llama-3.3-70b-versatile}
-      AllowedOrigins: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      AllowedHosts: ${ALLOWED_HOSTS:-localhost}
     depends_on:
       sqlserver:
         condition: service_healthy
       redis:
         condition: service_healthy
-    restart: unless-stopped
-
-  # ========== FRONTEND ==========
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:5000/api/v1}
-        NEXT_PUBLIC_WS_URL: ${WS_URL:-http://localhost:5000/hubs}
-    container_name: omnibiz-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:5000/api/v1}
-    depends_on:
-      - backend
     restart: unless-stopped
 
   # ========== DB ADMIN (Azure Data Studio web — optional) ==========
@@ -122,7 +104,7 @@ volumes:
   redis_data:
 ```
 
-### 2.2 Backend Dockerfile
+### 2.2 ASP.NET Core MVC Dockerfile
 
 ```dockerfile
 # Stage 1: Build
@@ -133,11 +115,11 @@ COPY *.sln ./
 COPY src/OmniBizAI.Domain/*.csproj src/OmniBizAI.Domain/
 COPY src/OmniBizAI.Application/*.csproj src/OmniBizAI.Application/
 COPY src/OmniBizAI.Infrastructure/*.csproj src/OmniBizAI.Infrastructure/
-COPY src/OmniBizAI.WebAPI/*.csproj src/OmniBizAI.WebAPI/
+COPY src/OmniBizAI.Web/*.csproj src/OmniBizAI.Web/
 RUN dotnet restore
 
 COPY src/ src/
-WORKDIR /src/src/OmniBizAI.WebAPI
+WORKDIR /src/src/OmniBizAI.Web
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Stage 2: Runtime
@@ -151,41 +133,8 @@ COPY --from=build /app/publish .
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-ENTRYPOINT ["dotnet", "OmniBizAI.WebAPI.dll"]
+ENTRYPOINT ["dotnet", "OmniBizAI.Web.dll"]
 ```
-
-### 2.3 Frontend Dockerfile
-
-```dockerfile
-# Stage 1: Build
-FROM node:20-alpine AS build
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-RUN npm run build
-
-# Stage 2: Runtime
-FROM node:20-alpine AS runtime
-WORKDIR /app
-
-RUN adduser -D appuser
-USER appuser
-
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
-
-EXPOSE 3000
-ENV PORT=3000 HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
-```
-
----
 
 ## 3. CI/CD Pipeline (GitHub Actions)
 
@@ -201,7 +150,7 @@ on:
     branches: [develop, main]
 
 jobs:
-  backend-build-test:
+  web-build-test:
     runs-on: ubuntu-latest
     services:
       sqlserver:
@@ -230,23 +179,6 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=OmniBizTest;User Id=sa;Password=Test@Pass123!;TrustServerCertificate=True;"
 
-  frontend-build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-        working-directory: frontend
-      - run: npm run lint
-        working-directory: frontend
-      - run: npm run test
-        working-directory: frontend
-      - run: npm run build
-        working-directory: frontend
 ```
 
 ### 3.2 CD Pipeline (.github/workflows/deploy.yml)
@@ -261,14 +193,12 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    needs: [backend-build-test, frontend-build-test]
     steps:
       - uses: actions/checkout@v4
 
       - name: Build and push Docker images
         run: |
-          docker build -t omnibiz-backend ./backend
-          docker build -t omnibiz-frontend ./frontend
+          docker build -t omnibiz-web ./backend
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
@@ -281,7 +211,7 @@ jobs:
             git pull origin main
             docker compose pull
             docker compose up -d --build
-            docker compose exec backend dotnet ef database update
+            docker compose exec web dotnet ef database update
             echo "Deployment completed at $(date)"
 ```
 
@@ -319,9 +249,8 @@ AI_API_KEY=gsk_your_api_key_here
 AI_MODEL=llama-3.3-70b-versatile
 
 # URLs
-API_URL=http://localhost:5000/api/v1
 WS_URL=http://localhost:5000/hubs
-ALLOWED_ORIGINS=http://localhost:3000
+ALLOWED_HOSTS=localhost
 
 # Environment
 ENVIRONMENT=Development
@@ -336,16 +265,16 @@ ENVIRONMENT=Development
 ```bash
 # Create migration
 cd backend/src/OmniBizAI.Infrastructure
-dotnet ef migrations add <MigrationName> --startup-project ../OmniBizAI.WebAPI
+dotnet ef migrations add <MigrationName> --startup-project ../OmniBizAI.Web
 
 # Apply migration
-dotnet ef database update --startup-project ../OmniBizAI.WebAPI
+dotnet ef database update --startup-project ../OmniBizAI.Web
 
 # Generate SQL script (for staging/prod)
-dotnet ef migrations script --idempotent -o migration.sql --startup-project ../OmniBizAI.WebAPI
+dotnet ef migrations script --idempotent -o migration.sql --startup-project ../OmniBizAI.Web
 
 # Rollback
-dotnet ef database update <PreviousMigrationName> --startup-project ../OmniBizAI.WebAPI
+dotnet ef database update <PreviousMigrationName> --startup-project ../OmniBizAI.Web
 ```
 
 ### 5.2 Backup & Restore
@@ -369,7 +298,7 @@ docker exec omnibiz-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -
 
 ```bash
 # Seed demo data (idempotent - safe to run multiple times)
-docker exec omnibiz-backend dotnet OmniBizAI.WebAPI.dll --seed
+docker exec omnibiz-web dotnet OmniBizAI.Web.dll --seed
 
 # Or via API (Admin only)
 curl -X POST http://localhost:5000/api/v1/admin/seed-data \
@@ -392,8 +321,7 @@ curl -X POST http://localhost:5000/api/v1/admin/seed-data \
 
 | Component | Tool | Output |
 |-----------|------|--------|
-| Backend | Serilog | Console + File (/var/log/omnibiz/) |
-| Frontend | Next.js built-in | Console + File |
+| ASP.NET Core MVC app | Serilog | Console + File (/var/log/omnibiz/) |
 | Nginx | Access + Error logs | /var/log/nginx/ |
 | SQL Server | Built-in | Docker logs |
 
@@ -433,8 +361,7 @@ services:
 
 ```bash
 # Tag releases
-docker tag omnibiz-backend:latest omnibiz-backend:v1.0.0
-docker tag omnibiz-frontend:latest omnibiz-frontend:v1.0.0
+docker tag omnibiz-web:latest omnibiz-web:v1.0.0
 
 # Rollback to specific version
 docker compose down
@@ -464,14 +391,14 @@ docker compose up -d
 docker compose ps
 
 # 5. Run database migrations
-docker compose exec backend dotnet ef database update
+docker compose exec web dotnet ef database update
 
 # 6. Seed demo data
-docker compose exec backend dotnet OmniBizAI.WebAPI.dll --seed
+docker compose exec web dotnet OmniBizAI.Web.dll --seed
 
 # 7. Access the application
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:5000/api/v1
+# Web app: http://localhost:5000
+# JSON endpoints: http://localhost:5000/api/v1
 # SQL Server: localhost,1433 (use SSMS or Azure Data Studio)
 
 # 8. Login with default admin
@@ -485,11 +412,7 @@ docker compose exec backend dotnet OmniBizAI.WebAPI.dll --seed
 # Start services
 docker compose up -d sqlserver redis
 
-# Run backend (hot reload)
-cd backend/src/OmniBizAI.WebAPI
+# Run ASP.NET Core MVC app (hot reload)
+cd backend/src/OmniBizAI.Web
 dotnet watch run
-
-# Run frontend (hot reload)  
-cd frontend
-npm run dev
 ```

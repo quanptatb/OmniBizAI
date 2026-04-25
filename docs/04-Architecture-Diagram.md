@@ -23,9 +23,9 @@
 │         ┌───────────────────────┼───────────────────────┐                           │
 │         ▼                       ▼                       ▼                           │
 │  ┌─────────────┐      ┌──────────────┐       ┌──────────────┐                      │
-│  │  Next.js    │      │  ASP.NET     │       │  SignalR     │                      │
-│  │  Frontend   │◄────►│  Core API    │       │  WebSocket   │                      │
-│  │  (SSR/CSR)  │      │  (REST)      │       │  Hub         │                      │
+│  │ ASP.NET    │      │ Razor Views  │       │  SignalR     │                      │
+│  │ Core MVC 10│◄────►│ + Controllers│       │  WebSocket   │                      │
+│  │ Full Stack │      │ HTML + JSON  │       │  Hub         │                      │
 │  └─────────────┘      └──────┬───────┘       └──────┬───────┘                      │
 │                              │                       │                              │
 │         ┌────────────────────┼───────────────────────┘                              │
@@ -55,31 +55,31 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         FRONTEND CONTAINER                              │
+│                         WEB APPLICATION CONTAINER                       │
 │                                                                         │
 │  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                      Next.js App Router                           │  │
+│  │                    ASP.NET Core MVC 10                            │  │
 │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │  │
 │  │  │Dashboard│ │Finance  │ │  KPI/   │ │Workflow │ │   AI    │   │  │
-│  │  │  Pages  │ │ Pages   │ │  OKR    │ │ Pages   │ │ Copilot │   │  │
+│  │  │ Views   │ │ Views   │ │  OKR    │ │ Views   │ │ Copilot │   │  │
 │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘   │  │
 │  │  ┌─────────────────────────────────────────────────────────────┐ │  │
 │  │  │              Shared Components Layer                        │ │  │
 │  │  │  Charts │ Forms │ Tables │ Modals │ Sidebar │ Notifications│ │  │
 │  │  └─────────────────────────────────────────────────────────────┘ │  │
 │  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐             │  │
-│  │  │ React Query  │ │   Zustand    │ │  React Hook  │             │  │
-│  │  │ (API State)  │ │ (UI State)   │ │  Form + Zod  │             │  │
+│  │  │ ViewModels   │ │ Tag Helpers  │ │ Model Binding│             │  │
+│  │  │ Razor State  │ │ Components   │ │ Validation   │             │  │
 │  │  └──────────────┘ └──────────────┘ └──────────────┘             │  │
 │  └───────────────────────────────────────────────────────────────────┘  │
 └────────────────────────────────┬────────────────────────────────────────┘
-                                 │ REST API + SignalR
+                                 │ MVC Actions + JSON endpoints + SignalR
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         BACKEND CONTAINER                               │
+│                         APPLICATION LAYERS                              │
 │                                                                         │
 │  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                    ASP.NET Core Web API                            │  │
+│  │                 ASP.NET Core MVC Controllers                       │  │
 │  │  ┌───────────────────────────────────────────────────────────┐    │  │
 │  │  │ Middleware: Auth → RateLimit → Logging → Exception       │    │  │
 │  │  └───────────────────────────────────────────────────────────┘    │  │
@@ -137,7 +137,7 @@ Staff                    System                  Manager              Director  
 ### 3.2 AI Copilot Q&A Flow
 
 ```
-User                     Frontend              Backend API            AI Service           Database
+User                     MVC Web App           AI Service             Database
   │                        │                       │                    │                   │
   │──Ask Question────────►│                       │                    │                   │
   │  "Phòng nào vượt      │──POST /ai/chat──────►│                    │                   │
@@ -163,8 +163,7 @@ User                     Frontend              Backend API            AI Service
 
 ```
 Developer Machine (Docker Compose)
-├── frontend-dev     (Next.js dev server, port 3000)
-├── backend-dev      (ASP.NET Core, port 5000)
+├── web-dev          (ASP.NET Core MVC 10, port 5000)
 ├── sqlserver-dev      (SQL Server 2022, port 1433)
 ├── redis-dev        (Redis 7, port 6379)
 └── ssms          (Database management, port 8080)
@@ -178,8 +177,8 @@ Developer Machine (Docker Compose)
 │  ┌─────────────────────────────────────────────────┐ │
 │  │              Docker Compose                      │ │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │
-│  │  │  Nginx   │  │ Frontend │  │ Backend  │      │ │
-│  │  │  Proxy   │─►│ Next.js  │  │ .NET API │      │ │
+│  │  │  Nginx   │  │ ASP.NET  │  │ MVC App  │      │ │
+│  │  │  Proxy   │─►│ ASP.NET  │  │ MVC App  │      │ │
 │  │  │  :80/443 │  │  :3000   │  │  :5000   │      │ │
 │  │  └──────────┘  └──────────┘  └──────────┘      │ │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐      │ │

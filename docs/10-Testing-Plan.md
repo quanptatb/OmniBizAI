@@ -8,7 +8,7 @@
 
 | Level | Tool | Target Coverage | Responsibility |
 |-------|------|----------------|---------------|
-| **Unit Test** | xUnit + Moq (.NET), Jest (React) | > 70% | All developers |
+| **Unit Test** | xUnit + Moq (.NET 10), Razor/MVC view-model tests | > 70% | All developers |
 | **Integration Test** | xUnit + TestContainers | > 50% | Backend devs |
 | **E2E Test** | Playwright | Critical flows | QA / DevOps |
 | **API Test** | REST Client / Postman | All endpoints | Backend devs |
@@ -70,20 +70,20 @@
 | AUTH-UT-006 | Permission check | Staff tries budget:delete | 403 Forbidden |
 | AUTH-UT-007 | Data scope check | Manager queries other dept | Empty result / 403 |
 
-### 2.2 Frontend Unit Tests
+### 2.2 MVC UI Unit/View Tests
 
 | Test Case ID | Component | Description |
 |-------------|-----------|-------------|
-| UI-UT-001 | BudgetCard | Renders correct amount formatting (VND) |
-| UI-UT-002 | BudgetCard | Shows warning color at 80%+ utilization |
-| UI-UT-003 | PaymentRequestForm | Validates required fields |
-| UI-UT-004 | PaymentRequestForm | Calculates total from line items |
-| UI-UT-005 | KPIProgressBar | Shows correct % and color |
-| UI-UT-006 | ApprovalButton | Disabled when user has no permission |
-| UI-UT-007 | DashboardMetric | Formats large numbers (e.g., 1.2 tỷ) |
-| UI-UT-008 | DateRangePicker | Validates end date > start date |
-| UI-UT-009 | FileUpload | Rejects files > 10MB |
-| UI-UT-010 | RoleGuard | Hides component for unauthorized role |
+| UI-UT-001 | BudgetSummaryViewComponent | Renders correct amount formatting (VND) |
+| UI-UT-002 | BudgetSummaryViewComponent | Shows warning color at 80%+ utilization |
+| UI-UT-003 | PaymentRequestViewModel | Validates required fields |
+| UI-UT-004 | PaymentRequestController | Calculates total from line items before rendering confirmation |
+| UI-UT-005 | KpiProgressViewComponent | Shows correct % and color |
+| UI-UT-006 | Approval action helpers | Hides or disables actions when user has no permission |
+| UI-UT-007 | DashboardMetricViewComponent | Formats large numbers (e.g., 1.2 tỷ) |
+| UI-UT-008 | Date range ViewModel | Validates end date > start date |
+| UI-UT-009 | File upload action | Rejects files > 10MB |
+| UI-UT-010 | Role-based navigation | Hides menu items for unauthorized role |
 
 ---
 
@@ -136,7 +136,7 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:5000',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',

@@ -50,7 +50,7 @@
 | IR-02 | **LLM API cost overrun**                | Medium      | Medium   | 🟡 High     | Rate limiting, token budget, use free-tier models    | Switch to cheaper model, reduce AI features        |
 | IR-03 | **SSL certificate issues**              | Low         | Medium   | 🟢 Medium   | Let's Encrypt auto-renewal, test before demo         | HTTP fallback for demo (not ideal)                 |
 | IR-04 | **Internet connectivity at demo venue** | Medium      | High     | 🔴 Critical | Test venue connectivity, prepare mobile hotspot      | Local demo environment, pre-recorded video         |
-| IR-05 | **GitHub/npm/NuGet outage**             | Low         | Medium   | 🟢 Medium   | Local cache of dependencies, Docker images pre-built | Use cached dependencies                            |
+| IR-05 | **GitHub/NuGet outage**                 | Low         | Medium   | 🟢 Medium   | Local NuGet cache and Docker images pre-built        | Use cached dependencies                            |
 
 ---
 
@@ -80,7 +80,7 @@ Low Prob    │   ⚪ Minimal │   🟢 Medium   │   🟡 High     │   🟡
 | ID    | Assumption                                           | Validation Method             | Impact if Wrong                            |
 | ----- | ---------------------------------------------------- | ----------------------------- | ------------------------------------------ |
 | TA-01 | Team members có kỹ năng .NET Core cơ bản        | Self-assessment survey Week 1 | Cần training sessions, delay M2           |
-| TA-02 | Team members có kỹ năng React/Next.js cơ bản    | Self-assessment survey Week 1 | Assign more backend-focused tasks          |
+| TA-02 | Team members có kỹ năng ASP.NET Core MVC/Razor cơ bản | Self-assessment survey Week 1 | Pair programming + MVC/Razor workshop      |
 | TA-03 | SQL Server 2022 đủ performance cho MVP    | Load test Week 10             | Switch to dedicated vector DB              |
 | TA-04 | Groq free tier đủ cho development + demo           | Monitor usage daily           | Switch to OpenAI paid, budget $20          |
 | TA-05 | Docker Desktop available trên tất cả dev machines | Verify Week 1                 | Cài đặt hỗ trợ, hoặc dùng cloud dev |
@@ -123,7 +123,7 @@ Low Prob    │   ⚪ Minimal │   🟢 Medium   │   🟡 High     │   🟡
 | SQL Server           | Database            | Low        | SQL Server (team familiar)     |
 | Redis                | Cache               | Low        | In-memory cache                |
 | GitHub               | Source control + CI | Low        | GitLab / Bitbucket             |
-| npm registry         | Frontend packages   | Low        | Yarn berry offline cache       |
+| NuGet.org            | .NET packages       | Medium     | Local package cache / mirrored feed |
 | NuGet                | Backend packages    | Low        | Local package cache            |
 | Docker Hub           | Container images    | Low        | Pre-pull images                |
 | Google Fonts (Inter) | Typography          | Low        | System fonts fallback          |
