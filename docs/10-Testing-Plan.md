@@ -1,6 +1,6 @@
 # 🧪 OmniBiz AI — Testing Plan
 
-> **Version**: 1.0 | **Updated**: 2026-04-24
+> **Version**: 1.0 | **Updated**: 2026-04-25
 
 ---
 
@@ -8,11 +8,11 @@
 
 | Level | Tool | Target Coverage | Responsibility |
 |-------|------|----------------|---------------|
-| **Unit Test** | xUnit + Moq (.NET), Jest (React) | > 70% | All developers |
-| **Integration Test** | xUnit + TestContainers | > 50% | Backend devs |
+| **Unit Test** | xUnit + Moq (.NET 10), bUnit/Razor view checks where useful | > 70% | All developers |
+| **Integration Test** | xUnit + TestContainers + WebApplicationFactory | > 50% | Full-stack devs |
 | **E2E Test** | Playwright | Critical flows | QA / DevOps |
-| **API Test** | REST Client / Postman | All endpoints | Backend devs |
-| **Performance Test** | k6 / Artillery | Key endpoints | DevOps |
+| **API Test** | REST Client / Postman | JSON endpoints + MVC form posts | Full-stack devs |
+| **Performance Test** | k6 / Artillery | Key pages/endpoints | DevOps |
 | **Security Test** | OWASP ZAP (basic) | OWASP Top 10 | DevOps |
 
 ---
@@ -62,38 +62,38 @@
 #### Auth Module
 | Test Case ID | Description | Input | Expected Output |
 |-------------|-------------|-------|-----------------|
-| AUTH-UT-001 | Valid login | Correct email/password | JWT token returned |
+| AUTH-UT-001 | Valid login | Correct email/password | ASP.NET Identity cookie issued |
 | AUTH-UT-002 | Invalid password | Wrong password | 401 Unauthorized |
 | AUTH-UT-003 | Account locked | 5th failed attempt | Account locked, 401 with lock message |
-| AUTH-UT-004 | Token refresh | Valid refresh token | New access token |
-| AUTH-UT-005 | Expired refresh token | Expired token | 401, redirect to login |
+| AUTH-UT-004 | External API token refresh | Valid refresh token | New access token |
+| AUTH-UT-005 | Expired session/token | Expired cookie/token | Redirect to login or 401 for API |
 | AUTH-UT-006 | Permission check | Staff tries budget:delete | 403 Forbidden |
 | AUTH-UT-007 | Data scope check | Manager queries other dept | Empty result / 403 |
 
-### 2.2 Frontend Unit Tests
+### 2.2 MVC UI Unit/View Tests
 
 | Test Case ID | Component | Description |
 |-------------|-----------|-------------|
-| UI-UT-001 | BudgetCard | Renders correct amount formatting (VND) |
-| UI-UT-002 | BudgetCard | Shows warning color at 80%+ utilization |
-| UI-UT-003 | PaymentRequestForm | Validates required fields |
-| UI-UT-004 | PaymentRequestForm | Calculates total from line items |
-| UI-UT-005 | KPIProgressBar | Shows correct % and color |
-| UI-UT-006 | ApprovalButton | Disabled when user has no permission |
-| UI-UT-007 | DashboardMetric | Formats large numbers (e.g., 1.2 tỷ) |
-| UI-UT-008 | DateRangePicker | Validates end date > start date |
-| UI-UT-009 | FileUpload | Rejects files > 10MB |
-| UI-UT-010 | RoleGuard | Hides component for unauthorized role |
+| UI-UT-001 | Budget partial view | Renders correct amount formatting (VND) |
+| UI-UT-002 | Budget partial view | Shows warning color at 80%+ utilization |
+| UI-UT-003 | PaymentRequestFormViewModel | Validates required fields |
+| UI-UT-004 | Payment request page script | Calculates total from line items |
+| UI-UT-005 | KPI progress partial | Shows correct % and color |
+| UI-UT-006 | Approval action partial | Disabled when user has no permission |
+| UI-UT-007 | Dashboard metric partial | Formats large numbers (e.g., 1.2 tỷ) |
+| UI-UT-008 | Date range ViewModel | Validates end date > start date |
+| UI-UT-009 | File upload validation | Rejects files > 10MB |
+| UI-UT-010 | Role-based navigation | Hides links/actions for unauthorized role |
 
 ---
 
 ## 3. Integration Tests
 
-### 3.1 API Integration Tests
+### 3.1 MVC/API Integration Tests
 
 | Test Case ID | Endpoint | Description | Preconditions |
 |-------------|----------|-------------|--------------|
-| INT-001 | POST /auth/login | Full login flow with DB | Seeded user exists |
+| INT-001 | POST /auth/login | MVC login flow with DB and auth cookie | Seeded user exists |
 | INT-002 | POST /payment-requests | Create PR and verify in DB | Authenticated, budget exists |
 | INT-003 | POST /payment-requests/{id}/submit | Submit triggers workflow creation | PR in Draft status |
 | INT-004 | POST /workflow-instances/{id}/approve | Approve updates PR status | Pending approval exists |
@@ -136,7 +136,7 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:5000',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
@@ -202,11 +202,11 @@ export default defineConfig({
 
 | Criteria | Target |
 |---------|--------|
-| API response (P95) | < 500ms |
+| MVC/API response (P95) | < 500ms |
 | Page load | < 3s |
 | Concurrent users | Handle 50 simultaneous |
 | Zero critical bugs at demo | 0 P0 bugs |
-| Test coverage | > 70% backend |
+| Test coverage | > 70% .NET application/core logic |
 
 ---
 
@@ -215,7 +215,7 @@ export default defineConfig({
 | Phase | Week | Focus | Owner |
 |-------|------|-------|-------|
 | Unit tests | Week 3-9 (continuous) | Write alongside feature code | Each developer |
-| Integration tests | Week 6-9 | API + DB integration | Backend devs |
+| Integration tests | Week 6-9 | MVC/API + DB integration | Full-stack devs |
 | E2E tests | Week 10-11 | Critical user flows | QA (Member 7) |
 | Performance test | Week 10 | Dashboard + API load | DevOps |
 | Security scan | Week 11 | OWASP ZAP basic scan | DevOps |

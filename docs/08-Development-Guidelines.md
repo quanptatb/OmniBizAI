@@ -1,12 +1,12 @@
 # 📏 OmniBiz AI — Development Guidelines
 
-> **Version**: 1.0 | **Updated**: 2026-04-24
+> **Version**: 1.0 | **Updated**: 2026-04-25
 
 ---
 
 ## 1. Coding Convention
 
-### 1.1 C# / .NET Backend
+### 1.1 C# / ASP.NET Core MVC (.NET 10)
 
 | Item | Convention | Example |
 |------|-----------|---------|
@@ -19,20 +19,14 @@
 | Constant | PascalCase | `MaxFileSize` |
 | Enum | PascalCase | `PaymentStatus.Approved` |
 | Async method | suffix `Async` | `GetBudgetByIdAsync()` |
-| Controller route | kebab-case | `[Route("payment-requests")]` |
-
-### 1.2 TypeScript / React Frontend
-
-| Item | Convention | Example |
-|------|-----------|---------|
-| Component | PascalCase | `PaymentRequestForm.tsx` |
-| Hook | camelCase, prefix `use` | `usePaymentRequests.ts` |
-| Utility | camelCase | `formatCurrency.ts` |
-| Type/Interface | PascalCase | `PaymentRequest` |
-| Constant | UPPER_SNAKE_CASE | `MAX_FILE_SIZE` |
+| MVC controller | PascalCase + `Controller` | `PaymentRequestsController` |
+| API controller | PascalCase + `ApiController` | `PaymentRequestsApiController` |
+| MVC route | kebab-case | `/payment-requests/create` |
+| Razor view | PascalCase by action | `Views/PaymentRequests/Create.cshtml` |
+| ViewModel | PascalCase + `ViewModel` | `PaymentRequestFormViewModel` |
+| Tag Helper / partial | PascalCase or `_PartialName` | `_ValidationSummary.cshtml` |
 | CSS class | kebab-case | `payment-request-form` |
-| Event handler | prefix `handle/on` | `handleSubmit`, `onClick` |
-| Boolean prop | prefix `is/has/can` | `isLoading`, `hasError` |
+| JavaScript module | camelCase | `paymentRequestForm.js` |
 
 ### 1.3 Database
 
@@ -99,7 +93,7 @@ main ─────────────────────────
 
 | Type | Usage | Example |
 |------|-------|---------|
-| `feat` | New feature | `feat(finance): add budget CRUD API` |
+| `feat` | New feature | `feat(finance): add budget CRUD pages` |
 | `fix` | Bug fix | `fix(auth): correct JWT expiry calculation` |
 | `docs` | Documentation | `docs(api): update payment request spec` |
 | `style` | Code style (no logic change) | `style(ui): fix button alignment` |
@@ -118,7 +112,7 @@ main ─────────────────────────
 ```
 feat(finance): implement payment request creation with line items
 
-- Add PaymentRequestController with POST endpoint
+- Add PaymentRequestsController with create/submit actions
 - Add CreatePaymentRequestCommand with FluentValidation
 - Add PaymentRequestItem entity and mapping
 - Auto-generate request number (PR-YYYY-XXXX)
@@ -175,7 +169,7 @@ Author creates PR → Self-review → Request reviewer (1 required)
 
 ## 5. Folder Structure
 
-### 5.1 Backend (.NET)
+### 5.1 Full-stack ASP.NET Core MVC (.NET 10)
 
 ```
 src/
@@ -204,49 +198,23 @@ src/
 │   ├── Services/                # External service implementations
 │   └── Repositories/            # Repository implementations
 │
-└── OmniBizAI.WebAPI/            # Depends on: All layers
-    ├── Controllers/             # API controllers
+└── OmniBizAI.Web/               # ASP.NET Core MVC .NET 10 entry point
+    ├── Controllers/             # MVC controllers returning Razor views
+    ├── ApiControllers/          # JSON APIs for AJAX/charts/external clients
+    ├── Views/                   # Razor views grouped by controller
+    ├── ViewModels/              # Page-specific view models
     ├── Hubs/                    # SignalR hubs
-    ├── Middleware/               # Custom middleware
+    ├── wwwroot/                 # CSS, JS, images, vendor assets
+    ├── Middleware/              # Custom middleware
     ├── Filters/                 # Action filters
     └── Extensions/              # Service registration extensions
-```
-
-### 5.2 Frontend (Next.js)
-
-```
-src/
-├── app/                         # Next.js App Router (pages)
-│   ├── (auth)/                  # Auth layout group
-│   ├── (dashboard)/             # Main layout group
-│   │   ├── finance/
-│   │   ├── performance/
-│   │   ├── workflow/
-│   │   ├── organization/
-│   │   └── ai/
-│   └── api/                     # BFF routes (optional)
-├── components/
-│   ├── ui/                      # Primitive UI components
-│   ├── charts/                  # Chart wrappers
-│   ├── forms/                   # Form components
-│   ├── layout/                  # Sidebar, Header, etc.
-│   └── features/                # Feature-specific components
-│       ├── finance/
-│       ├── kpi/
-│       ├── workflow/
-│       └── ai/
-├── hooks/                       # Custom React hooks
-├── lib/                         # Utilities, API client, constants
-├── stores/                      # Zustand stores
-├── types/                       # TypeScript type definitions
-└── styles/                      # Global CSS, Tailwind config
 ```
 
 ---
 
 ## 6. Error Handling
 
-### 6.1 Backend Error Strategy
+### 6.1 Server-side Error Strategy
 
 ```csharp
 // Domain exceptions (throw from domain/application layer)
@@ -262,13 +230,13 @@ public class ForbiddenException : Exception { }
 // Unhandled → 500 (log full stack, return generic message)
 ```
 
-### 6.2 Frontend Error Strategy
+### 6.2 MVC UI Error Strategy
 
-- **API errors**: React Query `onError` → Toast notification
-- **Form validation**: Zod schema → Inline error messages
+- **Controller errors**: MVC filters/middleware map exceptions to Razor error pages or JSON errors
+- **Form validation**: DataAnnotations/FluentValidation + ModelState → Inline validation messages
 - **Network errors**: Global interceptor → "Connection lost" banner
-- **404 pages**: Custom not-found page
-- **Error boundaries**: Catch React render errors → Fallback UI
+- **404 pages**: Custom MVC not-found view
+- **AJAX errors**: Lightweight JavaScript handler → Toast notification
 
 ---
 
@@ -306,8 +274,8 @@ _logger.LogInformation(
 | `ASPNETCORE_ENVIRONMENT` | Development | Staging | Production |
 | `ConnectionStrings__Default` | localhost | staging-db | prod-db |
 | `Redis__Connection` | localhost:6379 | staging-redis | prod-redis |
-| `Jwt__Secret` | dev-secret | *** | *** |
+| `Jwt__Secret` | dev-secret (external API only) | *** | *** |
 | `AI__Provider` | Groq | Groq | Groq |
 | `AI__ApiKey` | *** | *** | *** |
 | `Logging__Level` | Debug | Information | Warning |
-| `AllowedOrigins` | localhost:3000 | staging.omnibiz.ai | omnibiz.ai |
+| `AllowedOrigins` | localhost:5000 | staging.omnibiz.ai | omnibiz.ai |

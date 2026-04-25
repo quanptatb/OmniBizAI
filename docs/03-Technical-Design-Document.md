@@ -1,6 +1,6 @@
 # 🏗️ OmniBiz AI — Technical Design Document / System Design
 
-> **Version**: 1.0 | **Updated**: 2026-04-24
+> **Version**: 1.0 | **Updated**: 2026-04-25
 
 ---
 
@@ -11,16 +11,16 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        PRESENTATION LAYER                               │
-│  ┌──────────────────────────┐  ┌──────────────────────────────────┐     │
-│  │   Next.js Frontend       │  │   ASP.NET Core MVC (Server-Side)│     │
-│  │   React + Tailwind CSS   │  │   Razor Views (Admin pages)     │     │
-│  │   Recharts / ECharts     │  │   SignalR Hub                   │     │
-│  └──────────┬───────────────┘  └──────────────┬──────────────────┘     │
-│             │ REST API / SignalR                │                        │
-├─────────────┴──────────────────────────────────┴────────────────────────┤
+│  ┌────────────────────────────────────────────────────────────────┐     │
+│  │  ASP.NET Core MVC (.NET 10)                                    │     │
+│  │  Razor Views + Layouts + Partial Views + ViewComponents        │     │
+│  │  Tag Helpers + Bootstrap/custom CSS + Chart.js/ECharts         │     │
+│  │  SignalR Hub + JSON endpoints for AJAX/mobile integrations     │     │
+│  └──────────────────────────────┬─────────────────────────────────┘     │
+├─────────────────────────────────┴───────────────────────────────────────┤
 │                        APPLICATION LAYER                                │
 │  ┌────────────────────────────────────────────────────────────────┐     │
-│  │  ASP.NET Core Web API                                          │     │
+│  │  Application Services / CQRS Handlers                          │     │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐   │     │
 │  │  │ Finance  │ │ KPI/OKR  │ │ Workflow │ │ AI Copilot     │   │     │
 │  │  │ Service  │ │ Service  │ │ Service  │ │ Service        │   │     │
@@ -46,10 +46,10 @@
 
 | Layer | Technology | Version | Lý do chọn |
 |-------|-----------|---------|-----------|
-| **Frontend** | Next.js + React | 14.x | SSR, routing, performance |
-| **UI Library** | Tailwind CSS | 3.x | Rapid UI development |
-| **Charts** | Recharts / ECharts | Latest | Rich visualization |
-| **Backend** | ASP.NET Core Web API | .NET 10 | Enterprise-grade, team expertise |
+| **Web App** | ASP.NET Core MVC + Razor Views | .NET 10 | Full-stack C#, server-side rendering, triển khai đơn giản |
+| **UI Library** | Bootstrap 5 + custom CSS + Tag Helpers | 5.x | UI nhất quán, dễ tích hợp Razor |
+| **Charts** | Chart.js / ECharts | Latest | Rich visualization không phụ thuộc SPA framework |
+| **Backend** | ASP.NET Core MVC Controllers + API Controllers | .NET 10 | Enterprise-grade, team expertise |
 | **ORM** | Entity Framework Core | 10.x | Code-first, migrations |
 | **Database** | SQL Server 2022 | 2022 | Enterprise-grade, EF Core native support, JSON support |
 | **Cache** | Redis | 7.x | Session, caching, rate limiting |
@@ -57,13 +57,13 @@
 | **AI** | Groq / OpenAI API | Latest | LLM inference |
 | **Vector DB** | Custom vector table (SQL Server) | - | RAG embeddings via cosine similarity |
 | **File Storage** | Local Disk → Azure Blob | - | Simple → scalable |
-| **Auth** | JWT + ASP.NET Identity | Built-in | Standard, secure |
+| **Auth** | ASP.NET Identity + Cookie Auth, optional JWT for external API clients | Built-in | Secure MVC sessions, extensible API access |
 | **Containerization** | Docker + Docker Compose | Latest | Dev parity, deployment |
 | **CI/CD** | GitHub Actions | - | Free for public repos |
 
 ---
 
-## 2. Backend Architecture Detail
+## 2. Web Application Architecture Detail
 
 ### 2.1 Project Structure (Clean Architecture)
 
@@ -106,7 +106,7 @@ OmniBizAI/
 │   │   │   ├── Configurations/       # EF Fluent API configs per entity
 │   │   │   ├── Migrations/
 │   │   │   └── Seeders/             # SeedDataService
-│   │   ├── Identity/                 # JWT, Identity config
+│   │   ├── Identity/                 # ASP.NET Identity, cookie/JWT config
 │   │   ├── Services/
 │   │   │   ├── AIService.cs          # LLM API integration
 │   │   │   ├── FileStorageService.cs
@@ -115,9 +115,9 @@ OmniBizAI/
 │   │   │   └── NotificationService.cs
 │   │   └── Repositories/            # Generic + specific repos
 │   │
-│   └── OmniBizAI.WebAPI/            # Entry point
+│   └── OmniBizAI.Web/               # ASP.NET Core MVC entry point
 │       ├── Controllers/
-│       │   ├── AuthController.cs
+│       │   ├── AccountController.cs
 │       │   ├── DashboardController.cs
 │       │   ├── BudgetController.cs
 │       │   ├── PaymentRequestController.cs
@@ -131,8 +131,29 @@ OmniBizAI/
 │       │   ├── EmployeeController.cs
 │       │   ├── NotificationController.cs
 │       │   └── ReportController.cs
+│       ├── ApiControllers/          # JSON endpoints under /api/v1
+│       ├── Views/
+│       │   ├── Shared/              # _Layout, partial views, validation summary
+│       │   ├── Account/
+│       │   ├── Dashboard/
+│       │   ├── Finance/
+│       │   ├── Performance/
+│       │   ├── Workflow/
+│       │   ├── Organization/
+│       │   ├── AI/
+│       │   └── Settings/
+│       ├── ViewModels/              # Page-specific input/output models
+│       ├── ViewComponents/          # Sidebar, notifications, KPI cards
+│       ├── TagHelpers/              # Reusable Razor helpers
+│       ├── Areas/
+│       │   └── Admin/               # Admin screens
 │       ├── Hubs/
 │       │   └── NotificationHub.cs
+│       ├── wwwroot/
+│       │   ├── css/
+│       │   ├── js/
+│       │   ├── lib/
+│       │   └── uploads/
 │       ├── Middleware/
 │       │   ├── ExceptionHandlingMiddleware.cs
 │       │   ├── RequestLoggingMiddleware.cs
@@ -174,63 +195,50 @@ Request → RateLimiting → ExceptionHandling → RequestLogging → Authentica
 
 ---
 
-## 3. Frontend Architecture Detail
+## 3. MVC Presentation Architecture Detail
 
 ### 3.1 Project Structure
 
 ```
-frontend/
-├── src/
-│   ├── app/                          # Next.js App Router
-│   │   ├── (auth)/                   # Auth layout group
-│   │   │   ├── login/
-│   │   │   └── forgot-password/
-│   │   ├── (dashboard)/              # Main layout group
-│   │   │   ├── layout.tsx            # Sidebar + Header + Notification
-│   │   │   ├── page.tsx              # Dashboard home
-│   │   │   ├── finance/
-│   │   │   │   ├── budgets/
-│   │   │   │   ├── payment-requests/
-│   │   │   │   ├── transactions/
-│   │   │   │   └── vendors/
-│   │   │   ├── performance/
-│   │   │   │   ├── objectives/
-│   │   │   │   ├── kpis/
-│   │   │   │   ├── check-ins/
-│   │   │   │   └── evaluations/
-│   │   │   ├── workflow/
-│   │   │   │   ├── templates/
-│   │   │   │   ├── approvals/
-│   │   │   │   └── audit-log/
-│   │   │   ├── organization/
-│   │   │   │   ├── departments/
-│   │   │   │   ├── employees/
-│   │   │   │   └── positions/
-│   │   │   ├── ai/
-│   │   │   │   ├── copilot/
-│   │   │   │   └── reports/
-│   │   │   └── settings/
-│   │   └── api/                      # API routes (BFF)
-│   ├── components/
-│   │   ├── ui/                       # Design system components
-│   │   ├── charts/                   # Chart components
-│   │   ├── forms/                    # Form components
-│   │   ├── layout/                   # Sidebar, Header, etc.
-│   │   └── features/                # Feature-specific components
-│   ├── hooks/                        # Custom hooks
-│   ├── lib/                          # Utilities, API client
-│   ├── stores/                       # Zustand stores
-│   └── types/                        # TypeScript types
-├── public/
-├── tailwind.config.ts
-├── next.config.ts
-└── package.json
+src/OmniBizAI.Web/
+├── Controllers/
+│   ├── AccountController.cs
+│   ├── DashboardController.cs
+│   ├── Finance/
+│   ├── Performance/
+│   ├── Workflow/
+│   ├── Organization/
+│   └── AI/
+├── ApiControllers/                  # JSON APIs for AJAX, charts, external clients
+├── Views/
+│   ├── Shared/
+│   │   ├── _Layout.cshtml
+│   │   ├── _ValidationScriptsPartial.cshtml
+│   │   └── Components/
+│   ├── Account/
+│   ├── Dashboard/
+│   ├── Finance/
+│   ├── Performance/
+│   ├── Workflow/
+│   ├── Organization/
+│   └── AI/
+├── ViewModels/
+├── ViewComponents/
+├── TagHelpers/
+├── Hubs/
+└── wwwroot/
+    ├── css/
+    ├── js/
+    ├── lib/
+    └── uploads/
 ```
 
-### 3.2 State Management
-- **Server State**: React Query (TanStack Query) — API data caching, refetching
-- **Client State**: Zustand — UI state, user preferences, notification count
-- **Form State**: React Hook Form + Zod validation
+### 3.2 UI State Management
+- **Page State**: Strongly typed ViewModels returned from MVC controllers
+- **Form State**: Razor forms + ModelState + FluentValidation / DataAnnotations
+- **Interactive State**: Vanilla JavaScript modules for filters, modals, file upload, chart refresh
+- **Realtime State**: SignalR client updates notifications, dashboard alerts, approval queues
+- **Session State**: ASP.NET Identity cookie + Redis-backed distributed cache where needed
 
 ---
 
@@ -238,7 +246,7 @@ frontend/
 
 ### 4.1 Database: SQL Server 2022 extension
 - **Encoding**: UTF-8
-- **Timezone**: UTC (convert to local on frontend)
+- **Timezone**: UTC (convert to local in Razor views / JavaScript)
 - **Naming Convention**: snake_case cho tables/columns
 
 ### 4.2 Key Design Decisions
@@ -261,8 +269,8 @@ frontend/
 - Response format: `{ success, data, message, errors, pagination }`
 
 ### 5.2 Authentication
-- JWT Bearer Token in `Authorization` header
-- Refresh Token in HttpOnly cookie
+- MVC pages use ASP.NET Identity cookie authentication
+- JSON API endpoints use the same cookie for first-party AJAX and optional JWT Bearer tokens for external clients
 
 ---
 

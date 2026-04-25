@@ -1,8 +1,8 @@
 ﻿# 🔌 OmniBiz AI — API Specification
 
-> **Version**: 1.0 | **Updated**: 2026-04-24  
-> **Base URL**: `https://api.omnibiz.ai/api/v1`  
-> **Format**: REST JSON | **Auth**: JWT Bearer Token
+> **Version**: 1.0 | **Updated**: 2026-04-25  
+> **Base URL**: `https://omnibiz.ai/api/v1`  
+> **Format**: REST JSON endpoints inside ASP.NET Core MVC | **Auth**: ASP.NET Identity cookie for first-party UI, optional JWT Bearer for external API clients
 
 ---
 
@@ -43,7 +43,7 @@
 | 201 | Created (POST) |
 | 204 | No Content (DELETE) |
 | 400 | Bad Request / Validation Error |
-| 401 | Unauthorized (missing/invalid token) |
+| 401 | Unauthorized (missing/invalid session or token) |
 | 403 | Forbidden (insufficient permissions) |
 | 404 | Not Found |
 | 409 | Conflict (duplicate, state conflict) |
@@ -77,7 +77,7 @@ GET /api/v1/budgets?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc
 |--------|------|-------------|------|
 | POST | `/auth/login` | Login | No |
 | POST | `/auth/register` | Register (Admin only) | Admin |
-| POST | `/auth/refresh-token` | Refresh JWT | No (cookie) |
+| POST | `/auth/refresh-token` | Refresh optional external API JWT | No (refresh cookie) |
 | POST | `/auth/logout` | Logout | Yes |
 | POST | `/auth/forgot-password` | Request reset | No |
 | POST | `/auth/reset-password` | Reset password | No (token) |
@@ -94,8 +94,9 @@ GET /api/v1/budgets?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc
 {
   "success": true,
   "data": {
-    "accessToken": "eyJ...",
+    "authMode": "cookie",
     "expiresIn": 3600,
+    "accessToken": "eyJ... (optional, external API clients only)",
     "user": {
       "id": "uuid",
       "email": "director@omnibiz.ai",

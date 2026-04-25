@@ -1,7 +1,7 @@
 ﻿# 📋 OmniBiz AI — Product Requirements Document (PRD)
 
 > **Version**: 1.0  
-> **Last Updated**: 2026-04-24  
+> **Last Updated**: 2026-04-25  
 > **Owner**: Product Team  
 > **Status**: Approved for Development  
 
@@ -113,7 +113,7 @@
 - **Team size**: 7 người
 - **Timeline**: 12 tuần (MVP)
 - **Budget**: Miễn phí / tier miễn phí của các dịch vụ cloud
-- **Tech stack**: ASP.NET Core (Backend), Next.js + React (Frontend), SQL Server/SQL Server, Redis
+- **Tech stack**: Full-stack ASP.NET Core MVC trên .NET 10, Razor Views, SQL Server 2022, Redis
 - **AI Provider**: LLM API (Groq/OpenAI/Claude) — sử dụng free/low-cost tier
 
 ---
@@ -230,7 +230,7 @@
 
 ### 8.1 Assumptions
 
-1. Team 7 người có kỹ năng .NET Core và React/Next.js cơ bản
+1. Team 7 người có kỹ năng .NET 10, ASP.NET Core MVC/Razor, HTML/CSS/JavaScript cơ bản
 2. LLM API (Groq/OpenAI) available với free/low-cost tier
 3. Không cần tích hợp hệ thống bên ngoài thực tế (bank, tax, etc.)
 4. Demo data đủ realistic để thuyết phục hội đồng

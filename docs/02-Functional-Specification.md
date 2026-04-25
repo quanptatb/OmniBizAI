@@ -1,23 +1,34 @@
 # 📐 OmniBiz AI — Functional Specification
 
-> **Version**: 1.0 | **Updated**: 2026-04-24
+> **Version**: 1.0 | **Updated**: 2026-04-25
 
 ---
+
+## Technology Stack
+
+- **Full-stack**: ASP.NET Core MVC (Razor) targeting **.NET 10**
+- **Database**: Microsoft SQL Server (recommended: **SQL Server 2022**)
+- **ORM**: Entity Framework Core (SQL Server provider) with code-first migrations
+- **Auth**: ASP.NET Identity (cookie-based) for site; optional JWT Bearer for external API clients
+- **Realtime / Notifications**: SignalR
+- **Cache**: Redis
+- **Containerization / CI**: Docker, GitHub Actions
+
 
 ## 1. Module: Authentication & Authorization
 
 ### 1.1 Đăng nhập (Login)
 - **Input**: Email, Password
-- **Output**: JWT Access Token + Refresh Token
-- **Flow**: User nhập email/password → Validate → Tạo JWT (chứa userId, role, departmentId, permissions) → Trả token + redirect dashboard theo role
+- **Output**: ASP.NET Identity authentication cookie + optional refresh/session record
+- **Flow**: User nhập email/password → Validate → tạo secure auth cookie chứa claims tối thiểu (userId, role, departmentId, permissions version) → redirect dashboard theo role
 - **Rules**:
   - Password tối thiểu 8 ký tự, có uppercase, number, special char
   - Lock account sau 5 lần sai liên tiếp (unlock sau 15 phút)
-  - Access Token TTL: 60 phút, Refresh Token: 7 ngày
+  - Idle session timeout: 60 phút, remember-me tối đa 7 ngày nếu được bật
 - **Edge Cases**:
   - Email không tồn tại → "Email hoặc mật khẩu không đúng"
   - Account bị khóa → Hiển thị thời gian còn lại
-  - Token hết hạn → Auto refresh, nếu refresh token hết hạn → redirect login
+  - Session hết hạn → redirect login, giữ returnUrl để quay lại trang đang thao tác
 
 ### 1.2 Phân quyền RBAC
 - **Roles**: Admin, Director, Manager, Accountant, HR, Staff

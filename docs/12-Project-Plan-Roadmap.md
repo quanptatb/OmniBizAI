@@ -1,6 +1,6 @@
 ﻿# 📅 OmniBiz AI — Project Plan / Roadmap
 
-> **Version**: 1.0 | **Updated**: 2026-04-24  
+> **Version**: 1.0 | **Updated**: 2026-04-25  
 > **Team Size**: 7 người | **Duration**: 12 tuần
 
 ---
@@ -13,8 +13,8 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
        │ M1│   │    M2     │   │  M3   │   │  M4   │   │  M5   │   │M6 │
        │   │   │           │   │       │   │       │   │       │   │   │
        │ 📋│   │   ⚙️      │   │  🔄   │   │  🤖   │   │  🧪   │   │ 🎬│
-       │Plan│   │  Backend  │   │WorkFlow│   │  AI   │   │ Test  │   │Demo│
-       │    │   │  Core     │   │+ Dash  │   │ Layer │   │Harden │   │   │
+       │Plan│   │ Full-stack│   │WorkFlow│   │  AI   │   │ Test  │   │Demo│
+       │    │   │ MVC Core  │   │+ Dash  │   │ Layer │   │Harden │   │   │
        └───┘   └───────────┘   └───────┘   └───────┘   └───────┘   └───┘
 ```
 
@@ -29,7 +29,7 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | Chốt scope MVP, feature list | All | PRD document | Team review & approve |
 | Use case diagrams | Member 3 | Use case docs | Cover 5 modules |
 | ERD & database schema | Member 1 | Database design doc | 61 tables defined |
-| API specification draft | Member 1 | API spec doc | All endpoints listed |
+| MVC/API specification draft | Member 1 | Route + API spec doc | MVC actions and JSON endpoints listed |
 | Architecture design | Member 1 | Architecture doc | Stack decisions final |
 | Wireframe dashboard | Member 5 | Figma wireframes | 6 main screens |
 | Wireframe business screens | Member 6 | Figma wireframes | Forms + tables |
@@ -41,7 +41,7 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 
 ---
 
-### M2: Backend Core (Tuần 3–5)
+### M2: Full-stack MVC Core (Tuần 3–5)
 
 | Task | Owner | Week | Dependencies |
 |------|-------|------|-------------|
@@ -51,13 +51,14 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | Docker Compose (DB, Redis) | Member 7 | W3 | - |
 | **Auth & RBAC** | | | |
 | User entity + Identity setup | Member 1 | W3 | Project structure |
-| JWT auth (login/register/refresh) | Member 1 | W3 | User entity |
-| Role & Permission system | Member 1 | W3-4 | JWT auth |
+| ASP.NET Identity cookie auth (login/register/logout) | Member 1 | W3 | User entity |
+| Optional JWT auth for external API clients | Member 1 | W3 | User entity |
+| Role & Permission system | Member 1 | W3-4 | Identity auth |
 | Data scoping middleware | Member 1 | W4 | RBAC |
 | **HR Module** | | | |
 | Company, Department CRUD | Member 1 | W4 | Auth done |
 | Position, Employee CRUD | Member 1 | W4 | Department |
-| Org chart API | Member 1 | W4 | Employee |
+| Org chart MVC page + JSON endpoint | Member 1 | W4 | Employee |
 | **Finance Module** | | | |
 | Budget Category (tree) CRUD | Member 2 | W3 | Project structure |
 | Budget CRUD + validation | Member 2 | W3-4 | Category |
@@ -73,20 +74,20 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | KPI CRUD + assignment | Member 3 | W4-5 | Period, Employee |
 | Check-in CRUD + approval | Member 3 | W5 | KPI, Key Result |
 | Performance Evaluation | Member 3 | W5 | KPI, OKR |
-| **Frontend Setup** | | | |
-| Next.js project + Tailwind | Member 5 | W3 | - |
-| Design system (components) | Member 5 | W3-4 | Next.js setup |
+| **MVC UI Setup** | | | |
+| ASP.NET Core MVC project + Razor layout | Member 5 | W3 | - |
+| Design system (Razor partials, CSS, components) | Member 5 | W3-4 | MVC setup |
 | Layout (Sidebar, Header) | Member 5 | W4 | Design system |
-| Auth pages (Login) | Member 6 | W3-4 | Next.js setup |
-| API client + React Query setup | Member 6 | W3 | Next.js setup |
-| Department/Employee pages | Member 6 | W5 | HR API done |
-| Budget list/create pages | Member 6 | W5 | Finance API done |
+| Auth pages (Login) | Member 6 | W3-4 | MVC setup |
+| AJAX helpers + validation scripts | Member 6 | W3 | MVC setup |
+| Department/Employee Razor pages | Member 6 | W5 | HR actions done |
+| Budget list/create Razor pages | Member 6 | W5 | Finance actions done |
 | **Testing & DevOps** | | | |
 | Unit test framework setup | Member 7 | W3 | Project structure |
 | CI pipeline (GitHub Actions) | Member 7 | W3-4 | - |
 | Seed data service | Member 7 | W4-5 | All entities |
 
-**Exit Criteria**: Auth works, CRUD cho tất cả entities, frontend layout ready, CI running.
+**Exit Criteria**: Auth works, CRUD cho tất cả entities, MVC layout ready, CI running.
 
 ---
 
@@ -101,25 +102,25 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | Approval flow (approve/reject) | Member 3 | W7 | Instance |
 | PR submit → auto workflow | Member 2 | W7 | Workflow engine |
 | **Notifications** | | | |
-| Notification entity + API | Member 1 | W6 | - |
+| Notification entity + MVC/API endpoints | Member 1 | W6 | - |
 | SignalR hub setup | Member 1 | W6 | - |
 | Notify on approval events | Member 1 | W6-7 | Workflow |
 | **Dashboard** | | | |
-| Director dashboard API | Member 2 | W6 | Finance data |
-| KPI dashboard API | Member 3 | W6 | KPI data |
-| Dashboard frontend (charts) | Member 5 | W6-7 | Dashboard APIs |
+| Director dashboard MVC/API endpoints | Member 2 | W6 | Finance data |
+| KPI dashboard MVC/API endpoints | Member 3 | W6 | KPI data |
+| Dashboard Razor views + charts | Member 5 | W6-7 | Dashboard endpoints |
 | Role-based dashboard views | Member 5 | W7 | Data scoping |
 | **Business UI** | | | |
-| Payment Request form + flow | Member 6 | W6 | PR API |
-| KPI/OKR management pages | Member 6 | W6-7 | KPI API |
-| Approval queue page | Member 6 | W7 | Workflow API |
-| Check-in form + review | Member 6 | W7 | Check-in API |
+| Payment Request form + flow | Member 6 | W6 | PR actions |
+| KPI/OKR management pages | Member 6 | W6-7 | KPI actions |
+| Approval queue page | Member 6 | W7 | Workflow actions |
+| Check-in form + review | Member 6 | W7 | Check-in actions |
 | **Audit** | | | |
 | Audit log middleware | Member 1 | W6 | - |
-| Audit log viewer (Admin) | Member 7 | W7 | Audit API |
+| Audit log viewer (Admin) | Member 7 | W7 | Audit actions |
 | **Testing** | | | |
 | Workflow unit tests | Member 7 | W7 | Workflow done |
-| Integration tests (API) | Member 7 | W7 | APIs done |
+| Integration tests (MVC/API) | Member 7 | W7 | MVC/API endpoints done |
 
 **Exit Criteria**: Workflow hoạt động E2E, dashboard hiển thị đúng data, approval flow complete.
 
@@ -143,13 +144,13 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 | Embedding sync job | Member 4 | W8-9 | Data seeded |
 | RAG retrieval + citation | Member 4 | W9 | Embeddings |
 | **AI Frontend** | | | |
-| AI Copilot panel (chat UI) | Member 5 | W8-9 | AI Chat API |
-| AI risk display in PR form | Member 6 | W8 | Guardrail API |
-| AI insight cards on dashboard | Member 5 | W9 | Insight API |
-| AI report generation page | Member 6 | W9 | Report API |
+| AI Copilot panel (chat UI) | Member 5 | W8-9 | AI Chat endpoint |
+| AI risk display in PR form | Member 6 | W8 | Guardrail endpoint |
+| AI insight cards on dashboard | Member 5 | W9 | Insight endpoint |
+| AI report generation page | Member 6 | W9 | Report endpoint |
 | **AI History** | | | |
 | Generation history storage | Member 4 | W9 | AI features |
-| History viewer + reuse UI | Member 6 | W9 | History API |
+| History viewer + reuse UI | Member 6 | W9 | History endpoint |
 | **Testing** | | | |
 | AI unit tests (mocked) | Member 7 | W9 | AI service |
 | AI integration tests | Member 4 | W9 | AI features |
@@ -206,8 +207,8 @@ Week:  1   2   3   4   5   6   7   8   9   10  11  12
 |------------|-----------|-------------|------------|---------|-------------|------------|--------------|
 | Architecture | **R** | C | C | C | I | I | C |
 | Auth/RBAC | **R** | I | I | I | I | C | I |
-| Finance API | C | **R** | I | I | I | C | I |
-| KPI/OKR API | C | I | **R** | I | I | C | I |
+| Finance MVC/API | C | **R** | I | I | I | C | I |
+| KPI/OKR MVC/API | C | I | **R** | I | I | C | I |
 | Workflow Engine | C | I | **R** | I | I | C | I |
 | AI Copilot | C | I | I | **R** | C | C | I |
 | Dashboard UI | I | C | C | I | **R** | C | I |

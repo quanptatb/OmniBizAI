@@ -1,6 +1,6 @@
 ﻿# OmniBiz AI — Risk & Assumption Document
 
-> **Version**: 1.0 | **Updated**: 2026-04-24
+> **Version**: 1.0 | **Updated**: 2026-04-25
 
 ---
 
@@ -38,7 +38,7 @@
 | ----- | ----------------------------------------------- | ----------- | ------ | -------- | ----------------------------------------------------------- | --------------------------------------------------- |
 | PM-01 | **Team member absent / unavailable**      | Medium      | High   | 🟡 High  | Cross-training, documented tasks, pair programming          | Reassign tasks, reduce scope                        |
 | PM-02 | **Skill gap (unfamiliar tech)**           | Medium      | Medium | 🟡 High  | Training sessions Week 1-2, code review, documentation      | Choose simpler alternatives                         |
-| PM-03 | **Integration conflicts between modules** | High        | Medium | 🟡 High  | Clear API contracts, integration tests, daily standups      | Dedicated integration sprint W10                    |
+| PM-03 | **Integration conflicts between modules** | High        | Medium | 🟡 High  | Clear MVC/API route contracts, integration tests, daily standups      | Dedicated integration sprint W10                    |
 | PM-04 | **Deadline pressure causes tech debt**    | High        | Low    | 🟡 High  | Code review, enforce conventions, refactor time in schedule | Accept some tech debt for MVP, document for Phase 2 |
 | PM-05 | **Communication gaps**                    | Medium      | Medium | 🟡 High  | Daily standup, shared Notion/Jira, PR reviews               | Weekly sync meetings                                |
 
@@ -50,7 +50,7 @@
 | IR-02 | **LLM API cost overrun**                | Medium      | Medium   | 🟡 High     | Rate limiting, token budget, use free-tier models    | Switch to cheaper model, reduce AI features        |
 | IR-03 | **SSL certificate issues**              | Low         | Medium   | 🟢 Medium   | Let's Encrypt auto-renewal, test before demo         | HTTP fallback for demo (not ideal)                 |
 | IR-04 | **Internet connectivity at demo venue** | Medium      | High     | 🔴 Critical | Test venue connectivity, prepare mobile hotspot      | Local demo environment, pre-recorded video         |
-| IR-05 | **GitHub/npm/NuGet outage**             | Low         | Medium   | 🟢 Medium   | Local cache of dependencies, Docker images pre-built | Use cached dependencies                            |
+| IR-05 | **GitHub/NuGet/client package outage**             | Low         | Medium   | 🟢 Medium   | Local cache of dependencies, Docker images pre-built | Use cached dependencies                            |
 
 ---
 
@@ -80,7 +80,7 @@ Low Prob    │   ⚪ Minimal │   🟢 Medium   │   🟡 High     │   🟡
 | ID    | Assumption                                           | Validation Method             | Impact if Wrong                            |
 | ----- | ---------------------------------------------------- | ----------------------------- | ------------------------------------------ |
 | TA-01 | Team members có kỹ năng .NET Core cơ bản        | Self-assessment survey Week 1 | Cần training sessions, delay M2           |
-| TA-02 | Team members có kỹ năng React/Next.js cơ bản    | Self-assessment survey Week 1 | Assign more backend-focused tasks          |
+| TA-02 | Team members có kỹ năng ASP.NET Core MVC/Razor, HTML/CSS/JavaScript cơ bản | Self-assessment survey Week 1 | Training on Razor Views, Tag Helpers, and client-side validation |
 | TA-03 | SQL Server 2022 đủ performance cho MVP    | Load test Week 10             | Switch to dedicated vector DB              |
 | TA-04 | Groq free tier đủ cho development + demo           | Monitor usage daily           | Switch to OpenAI paid, budget $20          |
 | TA-05 | Docker Desktop available trên tất cả dev machines | Verify Week 1                 | Cài đặt hỗ trợ, hoặc dùng cloud dev |
@@ -123,8 +123,8 @@ Low Prob    │   ⚪ Minimal │   🟢 Medium   │   🟡 High     │   🟡
 | SQL Server           | Database            | Low        | SQL Server (team familiar)     |
 | Redis                | Cache               | Low        | In-memory cache                |
 | GitHub               | Source control + CI | Low        | GitLab / Bitbucket             |
-| npm registry         | Frontend packages   | Low        | Yarn berry offline cache       |
-| NuGet                | Backend packages    | Low        | Local package cache            |
+| Client-side library CDN/package source | Optional static assets | Low        | Vendor static assets in `wwwroot`       |
+| NuGet                | .NET packages       | Low        | Local package cache            |
 | Docker Hub           | Container images    | Low        | Pre-pull images                |
 | Google Fonts (Inter) | Typography          | Low        | System fonts fallback          |
 | Let's Encrypt        | SSL cert            | Low        | Self-signed for demo           |

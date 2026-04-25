@@ -1,20 +1,21 @@
 # 🔒 OmniBiz AI — Security Requirements
 
-> **Version**: 1.0 | **Updated**: 2026-04-24
+> **Version**: 1.0 | **Updated**: 2026-04-25
 
 ---
 
 ## 1. Authentication
 
-### 1.1 Primary Authentication: JWT
+### 1.1 Primary Authentication: ASP.NET Identity Cookie
 
 | Item | Specification |
 |------|--------------|
-| Algorithm | RS256 (RSA asymmetric) |
-| Access Token TTL | 60 minutes |
-| Refresh Token TTL | 7 days |
-| Token Storage | Access: Memory/localStorage, Refresh: HttpOnly cookie |
-| Token Payload | userId, email, roles[], departmentId, permissions[], exp, iat |
+| Scheme | ASP.NET Identity application cookie |
+| Cookie Flags | HttpOnly, Secure, SameSite=Lax/Strict where possible |
+| Idle Timeout | 60 minutes |
+| Remember Me TTL | Up to 7 days |
+| Claims | userId, email, roles[], departmentId, permissionsVersion |
+| External API Auth | Optional JWT Bearer token for third-party/mobile clients only |
 
 ### 1.2 Password Policy
 
@@ -22,7 +23,7 @@
 |------|------------|
 | Min length | 8 characters |
 | Complexity | At least 1 uppercase, 1 lowercase, 1 digit, 1 special char |
-| Hashing | bcrypt with cost factor 12 |
+| Hashing | ASP.NET Identity PasswordHasher (PBKDF2) with current framework defaults |
 | History | Cannot reuse last 5 passwords |
 | Expiry | No forced expiry (NIST recommendation) |
 | Account lockout | Lock after 5 consecutive failed attempts for 15 minutes |
@@ -193,7 +194,7 @@ Tax Code: *******89
 | A05 | Security Misconfiguration | Hardened Docker images, no default credentials, CORS whitelist |
 | A06 | Vulnerable Components | Dependabot alerts, regular dependency updates, SCA scanning |
 | A07 | Authentication Failures | Account lockout, rate limiting, secure password policy, MFA option |
-| A08 | Data Integrity Failures | CSRF tokens, signed JWTs, integrity checks on file uploads |
+| A08 | Data Integrity Failures | Antiforgery tokens, signed auth cookies, integrity checks on file uploads |
 | A09 | Logging & Monitoring | Structured logging (Serilog), audit log, health checks, alerting |
 | A10 | Server-Side Request Forgery | Input validation, URL whitelist for external calls, no user-controlled URLs |
 
