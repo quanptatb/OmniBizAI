@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
+using OmniBizAI.Services.Integrations;
+using OmniBizAI.Services.Options;
 
 LoadDotEnv();
 
@@ -9,19 +11,42 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
+builder.Services.Configure<AiOptions>(builder.Configuration.GetSection("AI"));
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+builder.Services.Configure<RedisOptions>(builder.Configuration.GetSection("Redis"));
+builder.Services.AddSingleton<IConfigurationStatusService, ConfigurationStatusService>();
+builder.Services.AddHttpClient<IAiProviderClient, AiProviderClient>();
+
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?
+    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ConfiguredOrigins", policy =>
+    {
+        if (allowedOrigins is { Length: > 0 })
+        {
+            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+        }
+        else
+        {
+            policy.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(_ => true);
+        }
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var connectionString = ConnectionStringResolver.GetDefaultConnectionString(builder.Configuration);
 
-    if (string.IsNullOrWhiteSpace(connectionString))
+    options.UseSqlServer(connectionString, sql =>
     {
-        throw new InvalidOperationException("Missing connection string: ConnectionStrings:DefaultConnection");
-    }
-
-    options.UseSqlServer(connectionString);
+        sql.MigrationsHistoryTable("__EFMigrationsHistory", "biz");
+    });
 });
 
 var app = builder.Build();
@@ -36,6 +61,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors("ConfiguredOrigins");
 
 app.UseAuthorization();
 

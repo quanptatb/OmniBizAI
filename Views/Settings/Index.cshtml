@@ -22,10 +22,12 @@
     <aside class="panel">
         <div class="panel-header"><h2 class="panel-title"><i class="bi bi-cpu"></i> AI configuration</h2></div>
         <div class="panel-body stack-list">
-            <label class="fw-bold">Provider<select class="form-select mt-2"><option>Groq</option><option>OpenAI</option><option>Claude</option></select></label>
+            <label class="fw-bold">Provider<select class="form-select mt-2"><option>Mock</option><option>Groq</option><option>OpenAI</option><option>Claude</option></select></label>
             <label class="fw-bold">Model<input class="form-control mt-2" value="llama-3.3-70b-versatile" /></label>
+            <label class="fw-bold">Base URL<input class="form-control mt-2" value="/api/v1/ai/chat" /></label>
             <div class="list-item"><div><strong>Spend Guardrail</strong><small>Chạy khi submit PaymentRequest</small></div><span class="status-badge success">On</span></div>
             <div class="list-item"><div><strong>KPI Insight</strong><small>Quét mỗi ngày lúc 08:00</small></div><span class="status-badge success">On</span></div>
+            <a class="btn-primary-soft" asp-controller="Integrations" asp-action="Index"><i class="bi bi-plug"></i> Kiểm tra tích hợp</a>
         </div>
     </aside>
 </section>

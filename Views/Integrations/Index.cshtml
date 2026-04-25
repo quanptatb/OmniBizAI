@@ -1,0 +1,65 @@
+@model OmniBizAI.Services.Integrations.Models.IntegrationStatusSnapshot
+@{
+    ViewData["Title"] = "Tích hợp & API";
+    var items = new[] { Model.Database, Model.Jwt, Model.Cors, Model.Ai, Model.Smtp, Model.Redis };
+}
+
+<section class="page-header">
+    <div>
+        <span class="eyebrow"><i class="bi bi-plug"></i> Connectors</span>
+        <h1>Tích hợp & API</h1>
+        <p>Kiểm tra cấu hình từ `.env`, trạng thái các connector và danh sách API nội bộ cho 8 module của OmniBizAI.</p>
+    </div>
+    <div class="toolbar">
+        <a class="btn-primary-soft" href="/api/v1/system/configuration"><i class="bi bi-braces"></i> Config JSON</a>
+        <a class="btn-app" href="/api/v1/system/health"><i class="bi bi-heart-pulse"></i> Health API</a>
+    </div>
+</section>
+
+<section class="module-grid">
+    @foreach (var item in items)
+    {
+        <article class="module-card">
+            <i class="bi @(item.Configured ? "bi-check-circle" : "bi-exclamation-triangle")"></i>
+            <h3>@item.Name</h3>
+            <p>@item.Status</p>
+            <div class="mt-2"><span class="status-badge @(item.Configured ? "success" : "warning")">@(item.Configured ? "Configured" : "Missing")</span></div>
+        </article>
+    }
+</section>
+
+<section class="two-col-grid mt-3">
+    <article class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-diagram-3"></i> API module map</h2></div>
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead><tr><th>Module</th><th>Endpoint</th><th>Chức năng</th><th>UI</th></tr></thead>
+                <tbody>
+                    <tr><td>Dashboard</td><td>/api/v1/dashboard/summary</td><td>Tổng quan tài chính, KPI, workflow</td><td>/</td></tr>
+                    <tr><td>Identity</td><td>/api/v1/identity/users</td><td>User, role, data scope</td><td>/Auth/Login</td></tr>
+                    <tr><td>Organization</td><td>/api/v1/organization/employees</td><td>Nhân viên, phòng ban, vai trò</td><td>/Organization/Employees</td></tr>
+                    <tr><td>Finance</td><td>/api/v1/finance/payment-requests</td><td>Budget, PR, transaction, vendor</td><td>/Finance/PaymentRequests</td></tr>
+                    <tr><td>KPI/OKR</td><td>/api/v1/performance/kpis</td><td>Objectives, KPI, check-in, evaluation</td><td>/Performance/Kpis</td></tr>
+                    <tr><td>Workflow</td><td>/api/v1/workflow/approvals</td><td>Inbox, template, action, audit</td><td>/Workflow/Approvals</td></tr>
+                    <tr><td>AI</td><td>/api/v1/ai/chat</td><td>LLM provider từ `.env`</td><td>/Ai/Copilot</td></tr>
+                    <tr><td>Notification</td><td>/api/v1/notifications</td><td>Bell center, read/unread</td><td>/Notifications</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+    <aside class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-shield-check"></i> Secret safety</h2></div>
+        <div class="panel-body stack-list">
+            @foreach (var item in items)
+            {
+                <div class="list-item">
+                    <div>
+                        <strong>@item.Name</strong>
+                        <small>@item.Detail</small>
+                    </div>
+                    <span class="status-badge @(item.Configured ? "success" : "warning")">@item.Status</span>
+                </div>
+            }
+        </div>
+    </aside>
+</section>

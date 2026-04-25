@@ -719,6 +719,21 @@ public partial class ApplicationDbContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
+        ApplyCodeFirstConventions(modelBuilder);
+    }
+
+    private static void ApplyCodeFirstConventions(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (entityType.FindProperty("Id")?.ClrType == typeof(Guid))
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasDefaultValueSql("NEWID()");
+            }
+        }
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

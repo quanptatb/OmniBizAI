@@ -10,9 +10,59 @@
     </div>
     <div class="toolbar">
         <button class="btn-ghost"><i class="bi bi-download"></i> Xuất Excel</button>
-        <button class="btn-app" data-demo-toast><i class="bi bi-plus-circle"></i> Tạo ngân sách</button>
+        <button class="btn-app" data-modal-target="addBudgetModal"><i class="bi bi-plus-circle"></i> Tạo ngân sách</button>
     </div>
 </section>
+
+<div class="modal-overlay" id="addBudgetModal">
+    <div class="crud-modal">
+        <div class="modal-header">
+            <h3><i class="bi bi-wallet2"></i> Tạo ngân sách mới</h3>
+            <button class="btn-close" data-modal-close>&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Phòng ban *</label>
+                    <select class="form-select">
+                        <option>Marketing</option>
+                        <option>IT</option>
+                        <option>HR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Danh mục</label>
+                    <select class="form-select">
+                        <option>Digital Ads</option>
+                        <option>Software</option>
+                        <option>Training</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Thời kỳ</label>
+                    <select class="form-select">
+                        <option>Tháng 04/2026</option>
+                        <option>Quý 2/2026</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mức phân bổ (VND) *</label>
+                    <input type="text" class="form-control" placeholder="100,000,000" />
+                </div>
+            </div>
+            <div class="form-group mt-2">
+                <label>Ghi chú</label>
+                <input type="text" class="form-control" placeholder="Nhập lý do phân bổ..." />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ghost" data-modal-close>Hủy</button>
+            <button class="btn-app" data-demo-toast><i class="bi bi-save"></i> Lưu ngân sách</button>
+        </div>
+    </div>
+</div>
 
 <section class="metric-grid">
     <article class="metric-card"><span class="metric-icon"><i class="bi bi-bank"></i></span><div class="metric-label">Tổng phân bổ</div><div class="metric-value">2.8 tỷ</div><div class="metric-note">Q2/2026</div></article>
