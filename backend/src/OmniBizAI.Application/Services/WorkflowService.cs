@@ -3,6 +3,7 @@ using OmniBizAI.Application.DTOs;
 using OmniBizAI.Application.Interfaces;
 using OmniBizAI.Domain.Entities.Finance;
 using OmniBizAI.Domain.Entities.Identity;
+using OmniBizAI.Domain.Entities.Organization;
 using OmniBizAI.Domain.Entities.Workflow;
 using OmniBizAI.Domain.Enums;
 using OmniBizAI.Domain.Interfaces;
@@ -13,11 +14,19 @@ public sealed class WorkflowService : IWorkflowService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
+    private readonly IPaymentRequestAccountingService _paymentRequestAccountingService;
 
-    public WorkflowService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+    public WorkflowService(
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService,
+        IPaymentRequestAccountingService paymentRequestAccountingService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
+        _paymentRequestAccountingService = paymentRequestAccountingService;
     }
 
     public async Task<WorkflowTemplateDto> EnsureDefaultPaymentWorkflowAsync(Guid companyId, CancellationToken cancellationToken = default)
@@ -172,12 +181,37 @@ public sealed class WorkflowService : IWorkflowService
         if (status == PaymentRequestStatus.Approved)
         {
             paymentRequest.ApprovedAt = DateTime.UtcNow;
+            await _paymentRequestAccountingService.CreateApprovedTransactionAsync(paymentRequest.Id, _currentUserService.UserId, cancellationToken);
+            await NotifyRequesterAsync(
+                paymentRequest,
+                "Đề nghị thanh toán đã được duyệt",
+                $"{paymentRequest.RequestNumber} đã được phê duyệt.",
+                cancellationToken);
         }
         else if (status == PaymentRequestStatus.Rejected)
         {
             paymentRequest.RejectedAt = DateTime.UtcNow;
             paymentRequest.RejectionReason = rejectionReason;
+            await NotifyRequesterAsync(
+                paymentRequest,
+                "Đề nghị thanh toán bị từ chối",
+                $"{paymentRequest.RequestNumber} bị từ chối: {rejectionReason ?? "Không có ghi chú"}.",
+                cancellationToken);
         }
+    }
+
+    private async Task NotifyRequesterAsync(PaymentRequest paymentRequest, string title, string message, CancellationToken cancellationToken)
+    {
+        var requester = await _unitOfWork.Repository<Employee>().GetByIdAsync(paymentRequest.RequesterId, cancellationToken);
+        if (requester?.UserId is null)
+        {
+            return;
+        }
+
+        await _notificationService.NotifyUserAsync(
+            requester.UserId.Value,
+            new CreateNotificationRequest(title, message, "ApprovalResult", "High", "PaymentRequest", paymentRequest.Id, "/finance/payment-requests"),
+            cancellationToken);
     }
 
     private static WorkflowTemplateDto MapTemplate(WorkflowTemplate template)

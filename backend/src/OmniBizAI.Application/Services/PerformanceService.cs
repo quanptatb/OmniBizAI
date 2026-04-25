@@ -262,7 +262,9 @@ public sealed class PerformanceService : IPerformanceService
     {
         var x = await _unitOfWork.Repository<KeyResult>().GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Not found");
         x.Title = request.Title; x.MetricType = request.MetricType; x.Unit = request.Unit; x.TargetValue = request.TargetValue; x.Weight = request.Weight; x.Direction = request.Direction; x.AssigneeId = request.AssigneeId;
+        x.RecalculateProgress();
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await RecalculateObjectiveAsync(x.ObjectiveId, cancellationToken);
         return new KeyResultDto(x.Id, x.ObjectiveId, x.Title, x.MetricType, x.StartValue, x.TargetValue, x.CurrentValue, x.Progress, x.Weight);
     }
     public async Task DeleteKeyResultAsync(Guid id, CancellationToken cancellationToken = default)
@@ -296,11 +298,34 @@ public sealed class PerformanceService : IPerformanceService
     public Task<PagedResult<KpiCheckInDto>> GetCheckInsAsync(Guid? kpiId, string? status, PagedRequest request, CancellationToken cancellationToken = default)
     {
         var q = _unitOfWork.Repository<KpiCheckIn>().Query();
+        if (kpiId.HasValue)
+        {
+            q = q.Where(x => x.KpiId == kpiId.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CheckInStatus>(status, true, out var parsedStatus))
+        {
+            q = q.Where(x => x.Status == parsedStatus);
+        }
         return Task.FromResult(PagedResult<KpiCheckInDto>.Create(q.Select(x => new KpiCheckInDto(x.Id, x.KpiId, x.CheckInDate, x.PreviousValue, x.NewValue, x.Progress, x.Note, x.Status, x.ReviewComment)), request));
     }
     public Task<KpiScorecardDto> GetScorecardAsync(Guid employeeId, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new KpiScorecardDto(employeeId, "Employee", 85.0m, new List<ObjectiveDto>(), new List<KpiDto>()));
+        var employee = _unitOfWork.Repository<Employee>().Query().FirstOrDefault(x => x.Id == employeeId)
+            ?? throw new NotFoundException("Employee not found.");
+        var objectives = _unitOfWork.Repository<Objective>().Query()
+            .Where(x => x.OwnerId == employeeId || x.DepartmentId == employee.DepartmentId)
+            .Select(x => new ObjectiveDto(x.Id, x.Title, x.PeriodId, x.OwnerType, x.DepartmentId, x.OwnerId, x.Progress, x.Status))
+            .ToList();
+        var kpis = _unitOfWork.Repository<Kpi>().Query()
+            .Where(x => x.AssigneeId == employeeId || x.DepartmentId == employee.DepartmentId)
+            .Select(x => new KpiDto(x.Id, x.Name, x.PeriodId, x.DepartmentId, x.AssigneeId, x.MetricType, x.TargetValue, x.CurrentValue, x.Progress, x.Weight, x.Rating, x.Status))
+            .ToList();
+        var weighted = kpis.Count == 0
+            ? objectives.Select(x => (Score: x.Progress, Weight: 1m)).ToList()
+            : kpis.Select(x => (Score: x.Progress, Weight: x.Weight <= 0 ? 1 : x.Weight)).ToList();
+        var totalWeight = weighted.Sum(x => x.Weight);
+        var score = totalWeight <= 0 ? 0 : Math.Round(weighted.Sum(x => x.Score * x.Weight) / totalWeight, 2);
+        return Task.FromResult(new KpiScorecardDto(employeeId, employee.FullName, score, objectives, kpis));
     }
 
 }

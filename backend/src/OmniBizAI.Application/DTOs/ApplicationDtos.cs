@@ -60,6 +60,9 @@ public sealed record WorkflowTemplateDto(Guid Id, string Name, string EntityType
 public sealed record ApprovalQueueItemDto(Guid InstanceId, string EntityType, Guid EntityId, int CurrentStepOrder, string Status, DateTime InitiatedAt);
 public sealed record ApprovalActionRequest(string? Comment);
 
+public sealed record NotificationDto(Guid Id, string Title, string Message, string Type, string Priority, string? EntityType, Guid? EntityId, string? ActionUrl, bool IsRead, DateTime CreatedAt);
+public sealed record CreateNotificationRequest(string Title, string Message, string Type, string Priority, string? EntityType, Guid? EntityId, string? ActionUrl);
+
 public sealed record AiChatRequest(Guid? SessionId, string Message, string? ContextType);
 public sealed record AiChatResponse(Guid SessionId, string Content, IReadOnlyCollection<object> Citations);
 public sealed record RiskAnalysisRequest(string EntityType, Guid EntityId);

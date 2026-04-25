@@ -19,6 +19,8 @@ builder.Services.AddScoped<IPerformanceService, PerformanceService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IAiCopilotService, AiCopilotService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IPaymentRequestAccountingService, PaymentRequestAccountingService>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();

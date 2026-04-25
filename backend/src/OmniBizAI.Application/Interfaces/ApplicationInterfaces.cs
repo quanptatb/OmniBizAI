@@ -124,6 +124,21 @@ public interface IWorkflowService
     Task RejectAsync(Guid instanceId, ApprovalActionRequest request, CancellationToken cancellationToken = default);
 }
 
+public interface INotificationService
+{
+    Task<PagedResult<NotificationDto>> GetNotificationsAsync(PagedRequest request, CancellationToken cancellationToken = default);
+    Task<int> GetUnreadCountAsync(CancellationToken cancellationToken = default);
+    Task MarkAsReadAsync(Guid id, CancellationToken cancellationToken = default);
+    Task MarkAllAsReadAsync(CancellationToken cancellationToken = default);
+    Task NotifyUserAsync(Guid userId, CreateNotificationRequest request, CancellationToken cancellationToken = default);
+    Task NotifyRolesAsync(IReadOnlyCollection<string> roleNames, CreateNotificationRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface IPaymentRequestAccountingService
+{
+    Task CreateApprovedTransactionAsync(Guid paymentRequestId, Guid? recordedBy, CancellationToken cancellationToken = default);
+}
+
 public interface IAiCopilotService
 {
     Task<AiChatResponse> ChatAsync(AiChatRequest request, CancellationToken cancellationToken = default);

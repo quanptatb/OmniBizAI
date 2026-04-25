@@ -1,8 +1,12 @@
 "use client";
 
 import { Bell, Search, Menu } from "lucide-react";
+import { useUnreadNotifications } from "@/lib/api/hooks";
 
 export function Header() {
+  const { data } = useUnreadNotifications();
+  const unreadCount = data?.count ?? 0;
+
   return (
     <header className="h-[68px] bg-white border-b border-border flex items-center justify-between px-8 shrink-0 z-10 sticky top-0 shadow-[0_2px_8px_rgba(26,115,232,0.04)]">
       <div className="flex items-center gap-5 flex-1">
@@ -24,9 +28,11 @@ export function Header() {
           <button className="w-[42px] h-[42px] border-none bg-primary-light rounded-md flex items-center justify-center text-primary cursor-pointer transition-all hover:bg-primary hover:text-white hover:shadow-[0_4px_12px_rgba(26,115,232,0.25)]">
             <Bell size={20} />
           </button>
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-danger to-[#ea4335] text-white text-[10px] font-extrabold leading-[14px] text-center border-2 border-white shadow-[0_2px_6px_rgba(217,48,37,0.35)]">
-            3
-          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-br from-danger to-[#ea4335] text-white text-[10px] font-extrabold leading-[14px] text-center border-2 border-white shadow-[0_2px_6px_rgba(217,48,37,0.35)]">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
         </div>
       </div>
     </header>

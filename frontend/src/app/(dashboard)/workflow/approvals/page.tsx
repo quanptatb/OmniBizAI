@@ -1,18 +1,29 @@
 "use client";
 
-import { useApprovalQueue } from "@/lib/api/hooks";
+import { useState } from "react";
+import { useApprovalQueue, useWorkflowDecision } from "@/lib/api/hooks";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Search, Filter, CheckCircle, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ApprovalQueuePage() {
-  const { data, isLoading } = useApprovalQueue(1, 20);
+  const [search, setSearch] = useState("");
+  const { data, isLoading } = useApprovalQueue(1, 20, search);
+  const approveMutation = useWorkflowDecision("approve");
+  const rejectMutation = useWorkflowDecision("reject");
+
+  const decide = (id: string, action: "approve" | "reject") => {
+    const comment = window.prompt(action === "approve" ? "Ghi chú duyệt (không bắt buộc)" : "Lý do từ chối");
+    if (comment === null) return;
+    const mutation = action === "approve" ? approveMutation : rejectMutation;
+    mutation.mutate({ id, comment });
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Approval Queue" 
-        description="Review and manage pending workflows requiring your attention."
+        title="Hàng đợi phê duyệt"
+        description="Duyệt hoặc từ chối các workflow đang chờ xử lý."
       />
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -21,7 +32,9 @@ export default function ApprovalQueuePage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search workflows..." 
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Tìm workflow"
               className="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
@@ -69,10 +82,10 @@ export default function ApprovalQueuePage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <button className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Approve">
+                        <button onClick={() => decide(item.instanceId, "approve")} disabled={approveMutation.isPending || rejectMutation.isPending} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-40" title="Approve">
                           <CheckCircle size={18} />
                         </button>
-                        <button className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Reject">
+                        <button onClick={() => decide(item.instanceId, "reject")} disabled={approveMutation.isPending || rejectMutation.isPending} className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-40" title="Reject">
                           <XCircle size={18} />
                         </button>
                       </div>
