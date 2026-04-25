@@ -4,25 +4,24 @@
 
 <section class="page-header">
     <div><span class="eyebrow"><i class="bi bi-robot"></i> AI Copilot</span><h1>Trợ lý phân tích dữ liệu doanh nghiệp</h1><p>Hỏi đáp tiếng Việt dựa trên dữ liệu tài chính, KPI/OKR, workflow, audit và nguồn trích dẫn được phân quyền.</p></div>
-    <button class="btn-primary-soft" data-demo-toast><i class="bi bi-arrow-clockwise"></i> Làm mới context</button>
+    <button class="btn-primary-soft" id="refreshAiStatus" type="button"><i class="bi bi-arrow-clockwise"></i> Làm mới context</button>
 </section>
 
 <section class="ai-layout">
     <article class="panel chat-window">
-        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-chat-dots"></i> Chat Q&A</h2><span class="status-badge violet">RAG + Citation</span></div>
-        <div class="chat-messages">
-            <div class="message user">Tháng này phòng nào vượt ngân sách?</div>
-            <div class="message ai">
-                <strong>Dựa trên dữ liệu tháng 04/2026:</strong>
-                <div class="mt-2">Marketing đang vượt ngân sách Digital Ads 21% với 424 triệu đã chi trên 350 triệu phân bổ. IT đã dùng 80% software budget và cần theo dõi trước khi duyệt license mới.</div>
-                <div class="mt-2"><span class="chip">Source: Budgets</span> <span class="chip">Source: PaymentRequests</span></div>
-            </div>
-            <div class="message user">Gợi ý hành động ưu tiên?</div>
-            <div class="message ai">Tạm khóa PR quảng cáo mới, chia đợt giải ngân Google Ads, và yêu cầu Marketing cập nhật KPI conversion trước khi mở thêm ngân sách.</div>
+        <div class="panel-header">
+            <h2 class="panel-title"><i class="bi bi-chat-dots"></i> Chat Q&A</h2>
+            <span class="status-badge violet" id="aiProviderBadge">Đang kiểm tra</span>
         </div>
-        <div class="chat-composer">
-            <input class="form-control" placeholder="Nhập câu hỏi về ngân sách, KPI, workflow..." />
-            <button class="btn-app" data-demo-toast><i class="bi bi-send"></i> Gửi</button>
+        <div class="chat-messages" id="aiChatMessages" aria-live="polite">
+            <div class="message ai">
+                <strong>Xin chào, mình là OmniBizAI Copilot.</strong>
+                <div class="mt-2">Bạn có thể hỏi về ngân sách, KPI/OKR, workflow hoặc nhấn một prompt nhanh bên phải để bắt đầu.</div>
+            </div>
+        </div>
+        <div class="chat-composer" id="aiChatForm">
+            <input class="form-control" id="aiPromptInput" placeholder="Nhập câu hỏi về ngân sách, KPI, workflow..." autocomplete="off" />
+            <button class="btn-app" id="sendAiPrompt" type="button"><i class="bi bi-send"></i> Gửi</button>
         </div>
     </article>
 
@@ -30,15 +29,15 @@
         <article class="panel">
             <div class="panel-header"><h2 class="panel-title"><i class="bi bi-lightning-charge"></i> Prompt nhanh</h2></div>
             <div class="panel-body stack-list">
-                <button class="btn-ghost text-start">Tóm tắt tài chính tháng này</button>
-                <button class="btn-ghost text-start">KPI nào có nguy cơ fail?</button>
-                <button class="btn-ghost text-start">Khoản chi nào bất thường?</button>
-                <button class="btn-ghost text-start">Viết báo cáo Q2 cho Director</button>
+                <button class="btn-ghost text-start quick-prompt" type="button" data-module="Finance">Tóm tắt tài chính tháng này</button>
+                <button class="btn-ghost text-start quick-prompt" type="button" data-module="KPI/OKR">KPI nào có nguy cơ fail?</button>
+                <button class="btn-ghost text-start quick-prompt" type="button" data-module="Finance">Khoản chi nào bất thường?</button>
+                <button class="btn-ghost text-start quick-prompt" type="button" data-module="Report">Viết báo cáo Q2 cho Director</button>
             </div>
         </article>
         <article class="panel">
             <div class="panel-header"><h2 class="panel-title"><i class="bi bi-database-check"></i> Data context</h2></div>
-            <div class="panel-body stack-list">
+            <div class="panel-body stack-list" id="aiContextPanel">
                 <div class="list-item"><div><strong>Finance</strong><small>Budgets, PR, Transactions, Vendors</small></div><span class="status-badge success">Ready</span></div>
                 <div class="list-item"><div><strong>KPI/OKR</strong><small>Objectives, KPIs, Check-ins</small></div><span class="status-badge success">Ready</span></div>
                 <div class="list-item"><div><strong>Workflow</strong><small>Instances, actions, SLA</small></div><span class="status-badge info">Scoped</span></div>
@@ -46,3 +45,130 @@
         </article>
     </aside>
 </section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const messages = document.getElementById('aiChatMessages');
+            const input = document.getElementById('aiPromptInput');
+            const sendButton = document.getElementById('sendAiPrompt');
+            const statusButton = document.getElementById('refreshAiStatus');
+            const providerBadge = document.getElementById('aiProviderBadge');
+            let activeModule = 'General';
+
+            const appendMessage = (role, content, meta) => {
+                const item = document.createElement('div');
+                item.className = `message ${role}`;
+
+                const body = document.createElement('div');
+                body.textContent = content;
+                item.appendChild(body);
+
+                if (meta) {
+                    const metaLine = document.createElement('div');
+                    metaLine.className = 'message-meta';
+                    metaLine.textContent = meta;
+                    item.appendChild(metaLine);
+                }
+
+                messages.appendChild(item);
+                messages.scrollTop = messages.scrollHeight;
+                return item;
+            };
+
+            const setBusy = (busy) => {
+                sendButton.disabled = busy;
+                input.disabled = busy;
+                sendButton.innerHTML = busy
+                    ? '<i class="bi bi-hourglass-split"></i> Đang hỏi'
+                    : '<i class="bi bi-send"></i> Gửi';
+            };
+
+            const loadStatus = async () => {
+                providerBadge.textContent = 'Đang kiểm tra';
+                providerBadge.className = 'status-badge warning';
+
+                try {
+                    const response = await fetch('/api/v1/ai/status');
+                    if (!response.ok) throw new Error('Không đọc được trạng thái AI');
+
+                    const status = await response.json();
+                    providerBadge.textContent = status.configured ? status.status : 'Chưa cấu hình';
+                    providerBadge.className = `status-badge ${status.configured ? 'success' : 'warning'}`;
+                } catch {
+                    providerBadge.textContent = 'Không kết nối';
+                    providerBadge.className = 'status-badge danger';
+                }
+            };
+
+            const sendPrompt = async () => {
+                const prompt = input.value.trim();
+                if (!prompt) return;
+
+                appendMessage('user', prompt);
+                input.value = '';
+                setBusy(true);
+                const pending = appendMessage('ai', 'Đang phân tích dữ liệu và gọi AI...');
+
+                try {
+                    const response = await fetch('/api/v1/ai/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            module: activeModule,
+                            promptType: 'Chat',
+                            message: prompt,
+                            context: 'Người dùng đang thao tác trên trang AI Copilot của OmniBizAI.'
+                        })
+                    });
+
+                    if (response.status === 401) {
+                        window.location.href = `/Auth/Login?returnUrl=${encodeURIComponent(window.location.pathname)}`;
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        const error = await response.text();
+                        throw new Error(error || 'AI request failed');
+                    }
+
+                    const data = await response.json();
+                    pending.textContent = data.content || 'AI chưa trả về nội dung.';
+
+                    const meta = document.createElement('div');
+                    meta.className = 'message-meta';
+                    meta.textContent = `${data.provider} / ${data.model} - ${data.latencyMs}ms${data.isMock ? ' - Demo mode' : ''}`;
+                    pending.appendChild(meta);
+                } catch (error) {
+                    pending.textContent = 'Không gửi được yêu cầu AI. Vui lòng kiểm tra cấu hình provider hoặc thử lại.';
+                    const meta = document.createElement('div');
+                    meta.className = 'message-meta text-danger';
+                    meta.textContent = error.message;
+                    pending.appendChild(meta);
+                } finally {
+                    setBusy(false);
+                    input.focus();
+                }
+            };
+
+            document.querySelectorAll('.quick-prompt').forEach((button) => {
+                button.addEventListener('click', () => {
+                    activeModule = button.dataset.module || 'General';
+                    input.value = button.textContent.trim();
+                    input.focus();
+                });
+            });
+
+            sendButton.addEventListener('click', sendPrompt);
+            statusButton.addEventListener('click', loadStatus);
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendPrompt();
+                }
+            });
+
+            loadStatus();
+        })();
+    </script>
+}

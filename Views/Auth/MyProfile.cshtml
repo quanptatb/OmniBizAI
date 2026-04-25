@@ -1,27 +1,105 @@
+@model OmniBizAI.Models.ViewModels.ProfileViewModel
 @{
     ViewData["Title"] = "Hồ sơ cá nhân";
 }
 
 <section class="page-header">
-    <div><span class="eyebrow"><i class="bi bi-person-circle"></i> Profile</span><h1>Hồ sơ cá nhân</h1><p>Thông tin tài khoản, vai trò, phòng ban, phiên đăng nhập và tùy chọn thông báo.</p></div>
-    <button class="btn-app" data-demo-toast><i class="bi bi-save"></i> Cập nhật</button>
+    <div>
+        <span class="eyebrow"><i class="bi bi-person-circle"></i> Profile</span>
+        <h1>Hồ sơ cá nhân</h1>
+        <p>Cập nhật thông tin cá nhân và xem các phiên đăng nhập hiện tại.</p>
+    </div>
 </section>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" style="padding: 1rem; border-radius: 8px; background: rgba(34, 197, 94, 0.1); color: var(--success); margin-bottom: 1.5rem;">
+        <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+    </div>
+}
 
 <section class="two-col-grid">
     <article class="panel">
-        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-vcard"></i> Thông tin</h2></div>
-        <div class="panel-body form-grid">
-            <label>Họ tên<input class="form-control" value="Admin Demo" /></label>
-            <label>Email<input class="form-control" value="director@omnibiz.ai" /></label>
-            <label>Role<input class="form-control" value="Director" /></label>
-            <label>Department<input class="form-control" value="Executive Office" /></label>
-        </div>
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-vcard"></i> Thông tin cá nhân</h2></div>
+        <form asp-action="MyProfile" method="post">
+            <div class="panel-body form-grid">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="grid-column: 1 / -1; color: var(--danger); font-size: 0.875rem;"></div>
+                
+                <label style="grid-column: 1 / -1;">
+                    Họ tên
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;"></span>
+                </label>
+                
+                <label>
+                    Email
+                    <input class="form-control" value="@User.Identity?.Name" disabled />
+                    <small style="color: var(--gray-500); font-size: 0.75rem; margin-top: 0.25rem; display: block;">Email không thể thay đổi</small>
+                </label>
+                
+                <label>
+                    Số điện thoại
+                    <input asp-for="Phone" class="form-control" placeholder="Số điện thoại" />
+                    <span asp-validation-for="Phone" class="text-danger" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;"></span>
+                </label>
+                <label>
+                    Role
+                    <input class="form-control" value="@Model.RoleName" disabled />
+                </label>
+                
+                <label>
+                    Department
+                    <input class="form-control" value="@Model.DepartmentName" disabled />
+                </label>
+            </div>
+            <div class="panel-body border-top">
+                <button type="submit" class="btn-app"><i class="bi bi-save"></i> Cập nhật thông tin</button>
+            </div>
+        </form>
     </article>
+    
     <aside class="panel">
-        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i> Phiên hoạt động</h2></div>
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i> Lịch sử đăng nhập</h2></div>
         <div class="panel-body stack-list">
-            <div class="list-item"><div><strong>Windows Chrome</strong><small>IP 127.0.0.1 • Active now</small></div><span class="status-badge success">Current</span></div>
-            <div class="list-item"><div><strong>Last login</strong><small>25/04/2026 10:12</small></div><span class="status-badge info">Audit</span></div>
+            @if (Model.Sessions.Any())
+            {
+                foreach (var session in Model.Sessions)
+                {
+                    <div class="list-item">
+                        <div>
+                            <strong>@(string.IsNullOrEmpty(session.UserAgent) ? "Unknown" : session.UserAgent.Split(' ').FirstOrDefault())</strong>
+                            <small>IP @session.IpAddress • @(session.IsActive ? "Active now" : "Ended")</small>
+                            <small class="text-muted" style="display: block; font-size: 0.7rem;">@session.StartedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                        </div>
+                        @if (session.IsCurrent)
+                        {
+                            <span class="status-badge success">Current</span>
+                        }
+                        else if (session.IsActive)
+                        {
+                            <span class="status-badge info">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge secondary">Audit</span>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="list-item">
+                    <p class="text-muted mb-0">Chưa có lịch sử đăng nhập nào được ghi nhận.</p>
+                </div>
+            }
+        </div>
+        
+        <div class="panel-body border-top">
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                <button type="submit" class="btn-ghost text-danger w-100 justify-content-center" style="color: var(--danger);">
+                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                </button>
+            </form>
         </div>
     </aside>
 </section>

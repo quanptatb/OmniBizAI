@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace OmniBizAI.Controllers;
 
+[Authorize]
 public class PerformanceController : Controller
 {
     public IActionResult Periods() => View();

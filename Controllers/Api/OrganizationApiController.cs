@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using OmniBizAI.Data;
 
 namespace OmniBizAI.Controllers.Api;
 
+[Authorize(Roles = "Admin,Director,Manager,HR")]
 [ApiController]
 [Route("api/v1/organization")]
 public class OrganizationApiController : ControllerBase
@@ -65,6 +67,7 @@ public class OrganizationApiController : ControllerBase
         return Ok(data);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("roles")]
     public async Task<IActionResult> Roles(CancellationToken cancellationToken)
     {

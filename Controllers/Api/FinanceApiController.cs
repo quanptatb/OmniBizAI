@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using OmniBizAI.Data;
 
 namespace OmniBizAI.Controllers.Api;
 
+[Authorize(Roles = "Admin,Director,Manager,Accountant")]
 [ApiController]
 [Route("api/v1/finance")]
 public class FinanceApiController : ControllerBase

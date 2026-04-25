@@ -1,21 +1,49 @@
+@model OmniBizAI.Models.ViewModels.RegisterViewModel
 @{
-    ViewData["Title"] = "Tạo tài khoản";
+    ViewData["Title"] = "Đăng ký tài khoản";
 }
 
 <section class="page-header">
-    <div><span class="eyebrow"><i class="bi bi-person-plus"></i> User provisioning</span><h1>Tạo tài khoản người dùng</h1><p>Liên kết user với employee, gán role và quyền theo phạm vi dữ liệu.</p></div>
-    <a class="btn-ghost" asp-controller="Organization" asp-action="Roles"><i class="bi bi-shield-lock"></i> Permission matrix</a>
+    <div>
+        <span class="eyebrow"><i class="bi bi-person-plus"></i> Register</span>
+        <h1>Đăng ký tài khoản</h1>
+        <p>Tạo tài khoản mới để truy cập hệ thống quản trị OmniBiz AI.</p>
+    </div>
+    <a class="btn-ghost" asp-controller="Auth" asp-action="Login"><i class="bi bi-box-arrow-in-right"></i> Đã có tài khoản?</a>
 </section>
 
-<article class="panel">
-    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-lines-fill"></i> User form</h2></div>
-    <div class="panel-body form-grid">
-        <label>Họ tên<input class="form-control" value="Lê Hoàng Nam" /></label>
-        <label>Email<input class="form-control" value="nam.le@omnibiz.ai" /></label>
-        <label>Nhân viên liên kết<select class="form-select"><option>EMP-008 - Lê Hoàng Nam</option><option>EMP-001 - Nguyễn Minh Anh</option></select></label>
-        <label>Role<select class="form-select"><option>Staff</option><option>Manager</option><option>Accountant</option><option>HR</option></select></label>
-        <label>Data scope<select class="form-select"><option>Own data</option><option>Department</option><option>Company</option></select></label>
-        <label>Trạng thái<select class="form-select"><option>Active</option><option>Locked</option><option>Inactive</option></select></label>
-    </div>
-    <div class="panel-body border-top"><button class="btn-app" data-demo-toast><i class="bi bi-save"></i> Lưu user</button></div>
+<article class="panel" style="max-width: 600px; margin: 0 auto;">
+    <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-lines-fill"></i> Thông tin đăng ký</h2></div>
+    <form asp-action="Register" method="post">
+        <div class="panel-body form-grid">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="grid-column: 1 / -1; color: var(--danger); font-size: 0.875rem;"></div>
+            
+            <label style="grid-column: 1 / -1;">
+                Họ tên
+                <input asp-for="FullName" class="form-control" placeholder="Ví dụ: Lê Hoàng Nam" />
+                <span asp-validation-for="FullName" class="text-danger" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;"></span>
+            </label>
+            
+            <label style="grid-column: 1 / -1;">
+                Email
+                <input asp-for="Email" class="form-control" placeholder="nam.le@omnibiz.ai" />
+                <span asp-validation-for="Email" class="text-danger" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;"></span>
+            </label>
+            
+            <label>
+                Mật khẩu
+                <input asp-for="Password" class="form-control" type="password" placeholder="Mật khẩu (ít nhất 6 ký tự)" />
+                <span asp-validation-for="Password" class="text-danger" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;"></span>
+            </label>
+            
+            <label>
+                Xác nhận mật khẩu
+                <input asp-for="ConfirmPassword" class="form-control" type="password" placeholder="Nhập lại mật khẩu" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;"></span>
+            </label>
+        </div>
+        <div class="panel-body border-top">
+            <button type="submit" class="btn-app"><i class="bi bi-person-check"></i> Đăng ký ngay</button>
+        </div>
+    </form>
 </article>

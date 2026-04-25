@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using OmniBizAI.Data;
 using OmniBizAI.Services.Integrations;
 
 namespace OmniBizAI.Controllers.Api;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/v1/system")]
 public class SystemApiController : ControllerBase

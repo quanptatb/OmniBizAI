@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using OmniBizAI.Data;
 
 namespace OmniBizAI.Controllers.Api;
 
+[Authorize(Roles = "Admin,Director")]
 [ApiController]
 [Route("api/v1/workflow")]
 public class WorkflowApiController : ControllerBase

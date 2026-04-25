@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using OmniBizAI.Data;
 
 namespace OmniBizAI.Controllers.Api;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/performance")]
 public class PerformanceApiController : ControllerBase

@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OmniBizAI.Services.Integrations;
 using OmniBizAI.Services.Integrations.Models;
 
 namespace OmniBizAI.Controllers.Api;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/ai")]
 public class AiApiController : ControllerBase

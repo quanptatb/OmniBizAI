@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - OmniBizAI</title>
+    <meta name="description" content="Đăng nhập OmniBizAI để truy cập hệ thống vận hành doanh nghiệp." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/OmniBizAI.styles.css" asp-append-version="true" />
+</head>
+<body class="auth-body">
+    <main class="auth-page" role="main">
+        <section class="auth-hero" aria-label="OmniBizAI">
+            <a class="auth-brand" asp-controller="Auth" asp-action="Login">
+                <span class="brand-mark"><i class="bi bi-stars"></i></span>
+                <span>
+                    <strong>OmniBizAI</strong>
+                    <small>Secure Business Operating System</small>
+                </span>
+            </a>
+            <div class="auth-hero-copy">
+                <span class="eyebrow"><i class="bi bi-shield-lock"></i> Secure access</span>
+                <h1>Đăng nhập trước khi vào hệ thống</h1>
+                <p>Cookie session, RBAC theo vai trò và phân quyền module giúp dữ liệu nội bộ chỉ mở cho đúng người dùng.</p>
+            </div>
+            <div class="auth-security-list" aria-label="Chính sách bảo mật">
+                <div><i class="bi bi-person-check"></i><span>Xác thực tài khoản</span></div>
+                <div><i class="bi bi-diagram-3"></i><span>Phân quyền theo vai trò</span></div>
+                <div><i class="bi bi-clock-history"></i><span>Ghi nhận phiên đăng nhập</span></div>
+            </div>
+        </section>
+
+        <section class="auth-panel" aria-label="@ViewData["Title"]">
+            @RenderBody()
+        </section>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

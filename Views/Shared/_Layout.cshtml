@@ -18,6 +18,12 @@
         string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
         string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
         string IsActive(string c, string? a = null) => controller.Equals(c, StringComparison.OrdinalIgnoreCase) && (a == null || action.Equals(a, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+        var currentUserName = User.Identity?.Name ?? "Người dùng";
+        var currentUserRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
+        var nameParts = currentUserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var initials = nameParts.Length == 0
+            ? "U"
+            : string.Concat(nameParts.TakeLast(2).Select(part => part[0])).ToUpperInvariant();
     }
 
     <div class="app-shell">
@@ -77,10 +83,10 @@
             </nav>
 
             <div class="sidebar-user">
-                <span class="avatar">AD</span>
+                <span class="avatar">@initials</span>
                 <span>
-                    <strong>Admin Demo</strong>
-                    <small>Director Workspace</small>
+                    <strong>@currentUserName</strong>
+                    <small>@currentUserRole Workspace</small>
                 </span>
             </div>
         </aside>
@@ -99,7 +105,11 @@
                 <div class="topbar-right">
                     <button class="icon-button" type="button" title="AI quick ask"><i class="bi bi-magic"></i></button>
                     <a class="icon-button has-dot" asp-controller="Notifications" asp-action="Index" title="Thông báo"><i class="bi bi-bell"></i></a>
-                    <a class="profile-chip" asp-controller="Auth" asp-action="MyProfile"><span class="avatar">AD</span><span>Admin Demo</span></a>
+                    <a class="profile-chip" asp-controller="Auth" asp-action="MyProfile"><span class="avatar">@initials</span><span>@currentUserName</span></a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <button class="icon-button" type="submit" title="Đăng xuất"><i class="bi bi-box-arrow-right"></i></button>
+                    </form>
                 </div>
             </header>
 

@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using OmniBizAI.Data;
 using OmniBizAI.Services.Integrations;
 using OmniBizAI.Services.Options;
@@ -17,6 +20,27 @@ builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp")
 builder.Services.Configure<RedisOptions>(builder.Configuration.GetSection("Redis"));
 builder.Services.AddSingleton<IConfigurationStatusService, ConfigurationStatusService>();
 builder.Services.AddHttpClient<IAiProviderClient, AiProviderClient>();
+builder.Services.AddScoped<OmniBizAI.Services.IEmailService, OmniBizAI.Services.EmailService>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.SlidingExpiration = true;
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireDirector", policy => policy.RequireRole("Admin", "Director"));
+    options.AddPolicy("RequireManager", policy => policy.RequireRole("Admin", "Director", "Manager"));
+    options.AddPolicy("RequireAccountant", policy => policy.RequireRole("Admin", "Director", "Manager", "Accountant"));
+    options.AddPolicy("RequireHR", policy => policy.RequireRole("Admin", "Director", "Manager", "HR"));
+    options.AddPolicy("RequireStaff", policy => policy.RequireAuthenticatedUser());
+});
 
 var allowedOrigins = builder.Configuration["AllowedOrigins"]?
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -37,7 +61,13 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options => 
+{
+    var policy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -51,6 +81,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DemoIdentitySeeder.SeedAsync(db);
+}
+
+if (args.Contains("--seed", StringComparer.OrdinalIgnoreCase))
+{
+    return;
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -63,6 +104,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("ConfiguredOrigins");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
