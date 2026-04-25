@@ -18,6 +18,13 @@
         string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
         string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
         string IsActive(string c, string? a = null) => controller.Equals(c, StringComparison.OrdinalIgnoreCase) && (a == null || action.Equals(a, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+        bool HasAnyRole(params string[] roles) => roles.Any(User.IsInRole);
+        var canUseFinanceCore = HasAnyRole("Admin", "Director", "Manager", "Accountant");
+        var canUseWorkflowApprovals = HasAnyRole("Admin", "Director", "Manager");
+        var canUseWorkflowAdmin = HasAnyRole("Admin", "Director");
+        var canUseOrganization = HasAnyRole("Admin", "Director", "Manager", "HR");
+        var canUseReports = HasAnyRole("Admin", "Director", "Manager", "Accountant", "HR");
+        var canUseAdminTools = User.IsInRole("Admin");
         var currentUserName = User.Identity?.Name ?? "Người dùng";
         var currentUserRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
         var nameParts = currentUserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -43,12 +50,18 @@
                 </div>
                 <div class="nav-section">
                     <span>Finance</span>
-                    <a class="nav-row @IsActive("Finance", "Budgets")" asp-controller="Finance" asp-action="Budgets"><i class="bi bi-wallet2"></i><b>Ngân sách</b></a>
+                    @if (canUseFinanceCore)
+                    {
+                        <a class="nav-row @IsActive("Finance", "Budgets")" asp-controller="Finance" asp-action="Budgets"><i class="bi bi-wallet2"></i><b>Ngân sách</b></a>
+                    }
                     <a class="nav-row @IsActive("Finance", "PaymentRequests")" asp-controller="Finance" asp-action="PaymentRequests"><i class="bi bi-receipt-cutoff"></i><b>Đề nghị chi</b></a>
-                    <a class="nav-row @IsActive("Finance", "Transactions")" asp-controller="Finance" asp-action="Transactions"><i class="bi bi-arrow-left-right"></i><b>Giao dịch</b></a>
-                    <a class="nav-row @IsActive("Finance", "Categories")" asp-controller="Finance" asp-action="Categories"><i class="bi bi-tags"></i><b>Danh mục chi phí</b></a>
-                    <a class="nav-row @IsActive("Finance", "Wallets")" asp-controller="Finance" asp-action="Wallets"><i class="bi bi-wallet"></i><b>Ví / Tài khoản</b></a>
-                    <a class="nav-row @IsActive("Finance", "Vendors")" asp-controller="Finance" asp-action="Vendors"><i class="bi bi-building-check"></i><b>Nhà cung cấp</b></a>
+                    @if (canUseFinanceCore)
+                    {
+                        <a class="nav-row @IsActive("Finance", "Transactions")" asp-controller="Finance" asp-action="Transactions"><i class="bi bi-arrow-left-right"></i><b>Giao dịch</b></a>
+                        <a class="nav-row @IsActive("Finance", "Categories")" asp-controller="Finance" asp-action="Categories"><i class="bi bi-tags"></i><b>Danh mục chi phí</b></a>
+                        <a class="nav-row @IsActive("Finance", "Wallets")" asp-controller="Finance" asp-action="Wallets"><i class="bi bi-wallet"></i><b>Ví / Tài khoản</b></a>
+                        <a class="nav-row @IsActive("Finance", "Vendors")" asp-controller="Finance" asp-action="Vendors"><i class="bi bi-building-check"></i><b>Nhà cung cấp</b></a>
+                    }
                 </div>
                 <div class="nav-section">
                     <span>KPI / OKR</span>
@@ -58,27 +71,48 @@
                     <a class="nav-row @IsActive("Performance", "CheckIns")" asp-controller="Performance" asp-action="CheckIns"><i class="bi bi-check2-square"></i><b>Check-in</b></a>
                     <a class="nav-row @IsActive("Performance", "Evaluations")" asp-controller="Performance" asp-action="Evaluations"><i class="bi bi-award"></i><b>Đánh giá hiệu suất</b></a>
                 </div>
-                <div class="nav-section">
-                    <span>Workflow</span>
-                    <a class="nav-row @IsActive("Workflow", "Approvals")" asp-controller="Workflow" asp-action="Approvals"><i class="bi bi-patch-check"></i><b>Hàng chờ duyệt</b></a>
-                    <a class="nav-row @IsActive("Workflow", "Templates")" asp-controller="Workflow" asp-action="Templates"><i class="bi bi-diagram-3"></i><b>Luồng phê duyệt</b></a>
-                    <a class="nav-row @IsActive("Workflow", "Audit")" asp-controller="Workflow" asp-action="Audit"><i class="bi bi-journal-text"></i><b>Audit log</b></a>
-                </div>
-                <div class="nav-section">
-                    <span>Tổ chức</span>
-                    <a class="nav-row @IsActive("Organization", "Employees")" asp-controller="Organization" asp-action="Employees"><i class="bi bi-people"></i><b>Nhân viên</b></a>
-                    <a class="nav-row @IsActive("Organization", "Departments")" asp-controller="Organization" asp-action="Departments"><i class="bi bi-houses"></i><b>Phòng ban</b></a>
-                    <a class="nav-row @IsActive("Organization", "Positions")" asp-controller="Organization" asp-action="Positions"><i class="bi bi-person-badge"></i><b>Chức vụ</b></a>
-                    <a class="nav-row @IsActive("Organization", "Roles")" asp-controller="Organization" asp-action="Roles"><i class="bi bi-shield-lock"></i><b>Vai trò & quyền</b></a>
-                </div>
+                @if (canUseWorkflowApprovals || canUseWorkflowAdmin)
+                {
+                    <div class="nav-section">
+                        <span>Workflow</span>
+                        @if (canUseWorkflowApprovals)
+                        {
+                            <a class="nav-row @IsActive("Workflow", "Approvals")" asp-controller="Workflow" asp-action="Approvals"><i class="bi bi-patch-check"></i><b>Hàng chờ duyệt</b></a>
+                        }
+                        @if (canUseWorkflowAdmin)
+                        {
+                            <a class="nav-row @IsActive("Workflow", "Templates")" asp-controller="Workflow" asp-action="Templates"><i class="bi bi-diagram-3"></i><b>Luồng phê duyệt</b></a>
+                            <a class="nav-row @IsActive("Workflow", "Audit")" asp-controller="Workflow" asp-action="Audit"><i class="bi bi-journal-text"></i><b>Audit log</b></a>
+                        }
+                    </div>
+                }
+                @if (canUseOrganization)
+                {
+                    <div class="nav-section">
+                        <span>Tổ chức</span>
+                        <a class="nav-row @IsActive("Organization", "Employees")" asp-controller="Organization" asp-action="Employees"><i class="bi bi-people"></i><b>Nhân viên</b></a>
+                        <a class="nav-row @IsActive("Organization", "Departments")" asp-controller="Organization" asp-action="Departments"><i class="bi bi-houses"></i><b>Phòng ban</b></a>
+                        <a class="nav-row @IsActive("Organization", "Positions")" asp-controller="Organization" asp-action="Positions"><i class="bi bi-person-badge"></i><b>Chức vụ</b></a>
+                        @if (canUseAdminTools)
+                        {
+                            <a class="nav-row @IsActive("Organization", "Roles")" asp-controller="Organization" asp-action="Roles"><i class="bi bi-shield-lock"></i><b>Vai trò & quyền</b></a>
+                        }
+                    </div>
+                }
                 <div class="nav-section">
                     <span>AI & Báo cáo</span>
                     <a class="nav-row @IsActive("Ai", "Copilot")" asp-controller="Ai" asp-action="Copilot"><i class="bi bi-robot"></i><b>AI Copilot</b></a>
                     <a class="nav-row @IsActive("Ai", "History")" asp-controller="Ai" asp-action="History"><i class="bi bi-clock-history"></i><b>Lịch sử AI</b></a>
                     <a class="nav-row @IsActive("Notifications")" asp-controller="Notifications" asp-action="Index"><i class="bi bi-bell"></i><b>Thông báo</b></a>
-                    <a class="nav-row @IsActive("Reports")" asp-controller="Reports" asp-action="Index"><i class="bi bi-file-earmark-bar-graph"></i><b>Báo cáo AI</b></a>
-                    <a class="nav-row @IsActive("Integrations")" asp-controller="Integrations" asp-action="Index"><i class="bi bi-plug"></i><b>Tích hợp & API</b></a>
-                    <a class="nav-row @IsActive("Settings")" asp-controller="Settings" asp-action="Index"><i class="bi bi-sliders"></i><b>Cài đặt</b></a>
+                    @if (canUseReports)
+                    {
+                        <a class="nav-row @IsActive("Reports")" asp-controller="Reports" asp-action="Index"><i class="bi bi-file-earmark-bar-graph"></i><b>Báo cáo AI</b></a>
+                    }
+                    @if (canUseAdminTools)
+                    {
+                        <a class="nav-row @IsActive("Integrations")" asp-controller="Integrations" asp-action="Index"><i class="bi bi-plug"></i><b>Tích hợp & API</b></a>
+                        <a class="nav-row @IsActive("Settings")" asp-controller="Settings" asp-action="Index"><i class="bi bi-sliders"></i><b>Cài đặt</b></a>
+                    }
                 </div>
             </nav>
 

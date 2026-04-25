@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -56,7 +57,7 @@ public sealed class AiProviderClient : IAiProviderClient
 
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.EnsureSuccessStatusCode();
+        EnsureProviderSuccess(response, body);
 
         using var doc = JsonDocument.Parse(body);
         var content = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? string.Empty;
@@ -82,7 +83,7 @@ public sealed class AiProviderClient : IAiProviderClient
 
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.EnsureSuccessStatusCode();
+        EnsureProviderSuccess(response, body);
 
         using var doc = JsonDocument.Parse(body);
         var content = doc.RootElement.GetProperty("content")[0].GetProperty("text").GetString() ?? string.Empty;
@@ -93,6 +94,7 @@ public sealed class AiProviderClient : IAiProviderClient
     private async Task<AiProviderResponse> CompleteGeminiAsync(string url, AiProviderRequest request, Stopwatch stopwatch, CancellationToken cancellationToken)
     {
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Headers.Add("x-goog-api-key", _options.ApiKey);
         httpRequest.Content = JsonContent(new
         {
             systemInstruction = new
@@ -116,7 +118,7 @@ public sealed class AiProviderClient : IAiProviderClient
 
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.EnsureSuccessStatusCode();
+        EnsureProviderSuccess(response, body);
 
         using var doc = JsonDocument.Parse(body);
         var content = ReadGeminiContent(doc.RootElement);
@@ -137,7 +139,9 @@ public sealed class AiProviderClient : IAiProviderClient
         var baseUrl = BuildBaseUrl(fallback);
         var separator = baseUrl.Contains('?') ? "&" : "?";
 
-        return $"{baseUrl}{separator}key={Uri.EscapeDataString(_options.ApiKey ?? string.Empty)}";
+        return baseUrl.Contains("key=", StringComparison.OrdinalIgnoreCase)
+            ? baseUrl
+            : $"{baseUrl}{separator}key={Uri.EscapeDataString(_options.ApiKey ?? string.Empty)}";
     }
 
     private static string BuildSystemPrompt(string module, string? context)
@@ -180,4 +184,48 @@ public sealed class AiProviderClient : IAiProviderClient
 
     private static StringContent JsonContent<T>(T payload)
         => new(JsonSerializer.Serialize(payload, JsonOptions), Encoding.UTF8, "application/json");
+
+    private static void EnsureProviderSuccess(HttpResponseMessage response, string body)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var message = response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized => "AI provider rejected the API key or credentials.",
+            HttpStatusCode.Forbidden => "AI provider denied access for this API key, model, or project.",
+            HttpStatusCode.NotFound => "AI provider endpoint or model was not found.",
+            HttpStatusCode.TooManyRequests => "AI provider rate limit was reached.",
+            _ => "AI provider request failed."
+        };
+
+        throw new AiProviderException(response.StatusCode, message, TrimProviderBody(body));
+    }
+
+    private static string? TrimProviderBody(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return null;
+        }
+
+        const int maxLength = 600;
+        return body.Length <= maxLength ? body : body[..maxLength];
+    }
+}
+
+public sealed class AiProviderException : Exception
+{
+    public AiProviderException(HttpStatusCode statusCode, string message, string? providerBody)
+        : base(message)
+    {
+        StatusCode = statusCode;
+        ProviderBody = providerBody;
+    }
+
+    public HttpStatusCode StatusCode { get; }
+
+    public string? ProviderBody { get; }
 }

@@ -33,8 +33,7 @@ public class AiApiController : ControllerBase
             return BadRequest(new { error = "Message is required" });
         }
 
-        var response = await _aiProvider.CompleteAsync(request, cancellationToken);
-        return Ok(response);
+        return await CompleteSafelyAsync(request, cancellationToken);
     }
 
     [HttpPost("risk-analysis")]
@@ -46,8 +45,7 @@ public class AiApiController : ControllerBase
             PromptType = "RiskAnalysis"
         };
 
-        var response = await _aiProvider.CompleteAsync(enriched, cancellationToken);
-        return Ok(response);
+        return await CompleteSafelyAsync(enriched, cancellationToken);
     }
 
     [HttpPost("report-summary")]
@@ -59,7 +57,42 @@ public class AiApiController : ControllerBase
             PromptType = "ReportSummary"
         };
 
-        var response = await _aiProvider.CompleteAsync(enriched, cancellationToken);
-        return Ok(response);
+        return await CompleteSafelyAsync(enriched, cancellationToken);
+    }
+
+    private async Task<IActionResult> CompleteSafelyAsync(AiProviderRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _aiProvider.CompleteAsync(request, cancellationToken);
+            return Ok(response);
+        }
+        catch (AiProviderException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new
+            {
+                error = ex.Message,
+                providerStatus = (int)ex.StatusCode,
+                detail = BuildProviderErrorDetail(ex)
+            });
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new
+            {
+                error = "Cannot connect to the configured AI provider.",
+                detail = "Check network access, AI__Provider, AI__BaseUrl, AI__ApiKey, and AI__Model."
+            });
+        }
+    }
+
+    private static string BuildProviderErrorDetail(AiProviderException ex)
+    {
+        if ((int)ex.StatusCode == StatusCodes.Status401Unauthorized)
+        {
+            return "Provider returned 401. For Google Gemini, use a valid Gemini API key, usually from Google AI Studio, and verify AI__Model.";
+        }
+
+        return "Check AI provider configuration and selected model.";
     }
 }

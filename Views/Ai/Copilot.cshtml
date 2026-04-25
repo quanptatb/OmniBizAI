@@ -128,8 +128,14 @@
                     }
 
                     if (!response.ok) {
-                        const error = await response.text();
-                        throw new Error(error || 'AI request failed');
+                        let errorMessage = 'AI request failed';
+                        try {
+                            const error = await response.json();
+                            errorMessage = [error.error, error.detail].filter(Boolean).join(' ');
+                        } catch {
+                            errorMessage = await response.text();
+                        }
+                        throw new Error(errorMessage || 'AI request failed');
                     }
 
                     const data = await response.json();
