@@ -21,8 +21,15 @@
 - Dành cho: người dùng cuối và người demo.
 - Nội dung: đăng nhập, thao tác theo vai trò, demo script, quy trình nghiệp vụ chính, AI cho người không chuyên, trạng thái lỗi và FAQ.
 
+## 4. Kế Hoạch Phân Công 7 Thành Viên
+
+- File: [04-Project-Work-Plan-7-Members.md](04-Project-Work-Plan-7-Members.md)
+- Dành cho: PM, dev, tester và nhóm triển khai sprint 1 tuần.
+- Nội dung: Trello workflow, deadline 2026-04-26 đến 2026-05-03, phân công đều cho 7 thành viên, task code/test/docs/evidence, acceptance criteria và checklist gửi giảng viên hướng dẫn.
+
 ## Ghi Chú Bảo Trì
 
 - Khi cập nhật nghiệp vụ/kỹ thuật, sửa file kỹ thuật trước.
 - Khi chuẩn bị nộp báo cáo, lấy nội dung học thuật từ file báo cáo.
 - Khi viết tài liệu demo hoặc onboarding người dùng, lấy nội dung từ file hướng dẫn sử dụng.
+- Khi triển khai sprint hoặc tạo Trello board, lấy nội dung từ file phân công 7 thành viên.
