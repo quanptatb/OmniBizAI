@@ -2,16 +2,28 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
 
-LoadDotEnv(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
+// Load .env file before building the host so environment variables
+// are available to the Configuration system via AddEnvironmentVariables().
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    DotNetEnv.Env.Load(envPath);
+}
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Ensure environment variables (including those from .env) are in the config pipeline.
+// The double-underscore (__) convention maps to config hierarchy (:).
+// e.g. ConnectionStrings__DefaultConnection → ConnectionStrings:DefaultConnection
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found. Check your .env file.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -52,40 +64,3 @@ app.MapRazorPages()
 
 app.Run();
 
-static void LoadDotEnv(string path)
-{
-    if (!File.Exists(path))
-    {
-        return;
-    }
-
-    foreach (var rawLine in File.ReadAllLines(path))
-    {
-        var line = rawLine.Trim();
-
-        if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
-        {
-            continue;
-        }
-
-        var separatorIndex = line.IndexOf('=');
-        if (separatorIndex <= 0)
-        {
-            continue;
-        }
-
-        var key = line[..separatorIndex].Trim();
-        var value = line[(separatorIndex + 1)..].Trim();
-
-        if ((value.StartsWith('"') && value.EndsWith('"')) ||
-            (value.StartsWith('\'') && value.EndsWith('\'')))
-        {
-            value = value[1..^1];
-        }
-
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
-        {
-            Environment.SetEnvironmentVariable(key, value);
-        }
-    }
-}
