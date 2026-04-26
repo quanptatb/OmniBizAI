@@ -243,6 +243,25 @@ Ghi chú bảo mật:
 ### 13.4 Quy trình nghiệp vụ chính
 
 
+#### Kịch bản demo nhanh 5-7 phút
+
+
+Kịch bản này dùng khi bảo vệ hoặc giới thiệu hệ thống. Nên chạy bằng dữ liệu seed đã chuẩn bị để tránh AI thiếu evidence.
+
+
+| Bước | Vai trò | Việc cần làm |
+|---|---|---|
+| 1 | Staff | Đăng nhập, tạo PR quảng cáo 85 triệu và xem AI Risk Analysis |
+| 2 | Manager | Mở hàng chờ duyệt, đọc AI risk/budget warning và duyệt bước đầu |
+| 3 | Accountant/Director | Duyệt bước tiếp theo/cuối, kiểm tra transaction và budget cập nhật |
+| 4 | Staff/Manager | Check-in KPI Marketing đang trễ và xem progress |
+| 5 | Director | Hỏi AI về rủi ro ngân sách/KPI, kiểm tra citation/fallback |
+| 6 | Director/Accountant | Xuất báo cáo và xem audit log |
+
+
+Thông điệp cần nói khi demo: workflow quyết định bằng rule ổn định; AI chỉ hỗ trợ phân tích/quyết định, không tự duyệt và không dự báo chắc chắn; dữ liệu hiển thị phụ thuộc quyền người đang đăng nhập.
+
+
 #### Tạo đề nghị thanh toán
 
 
@@ -265,7 +284,7 @@ Ghi chú bảo mật:
 9. Bấm "Gửi duyệt" khi đã kiểm tra xong.
 
 
-Kết quả mong đợi: De nghị vào workflow duyệt và người duyệt nhận thông báo.
+Kết quả mong đợi: Đề nghị vào workflow duyệt và người duyệt nhận thông báo.
 
 
 [Ảnh minh họa: Màn hình tạo đề nghị thanh toán]
@@ -285,7 +304,7 @@ Kết quả mong đợi: De nghị vào workflow duyệt và người duyệt nh
 5. Nếu rủi ro cao, bổ sung giải trình hoặc chỉnh sửa trước khi gửi.
 
 
-Ghi nhớ: AI chỉ cảnh báo và đề xuất, không tự chặn hoặc tự duyệt.
+Ghi nhớ: AI chỉ cảnh báo và đề xuất, không tự chặn hoặc tự duyệt. Kết quả AI phụ thuộc dữ liệu hiện có trong phạm vi truy vấn của người dùng. Khi demo, nên dùng các scenario seed đã chuẩn bị sẵn như PR 85 triệu, ngân sách Marketing vượt 80% hoặc vendor tăng chi phí để AI có đủ bằng chứng trả lời tốt.
 
 
 [Ảnh minh họa: Khu vực AI Risk Analysis trong form đề nghị thanh toán]
@@ -305,6 +324,15 @@ Ghi nhớ: AI chỉ cảnh báo và đề xuất, không tự chặn hoặc tự
 5. Bấm "Từ chối" nếu không đồng ý và nhập lý do.
 
 6. Bấm "Yêu cầu chỉnh sửa" nếu cần người tạo bổ sung.
+
+
+Trường hợp đặc biệt:
+
+- Nếu người duyệt đã nghỉ việc hoặc tài khoản không active, hệ thống chuyển tìm quản lý cấp trên hoặc báo Admin xử lý.
+
+- Nếu người duyệt chưa thao tác quá hạn, hệ thống hiển thị trạng thái quá hạn và gửi nhắc việc; MVP không tự duyệt thay người dùng.
+
+- Nếu bước duyệt đã được người khác xử lý trước, hệ thống báo "Bước duyệt hiện tại đã thay đổi" và yêu cầu tải lại màn hình.
 
 
 [Ảnh minh họa: Màn hình duyệt đề nghị thanh toán]
@@ -353,6 +381,19 @@ Ghi nhớ: AI chỉ cảnh báo và đề xuất, không tự chặn hoặc tự
 8. Gửi cho Manager duyệt.
 
 
+Cách hiểu tiến độ KPI:
+
+- KPI tăng càng tốt: tiến độ = `(giá trị hiện tại - giá trị bắt đầu) / (mục tiêu - giá trị bắt đầu)`.
+
+- KPI giảm càng tốt: hệ thống tính ngược lại, ví dụ giảm chi phí hoặc giảm thời gian xử lý.
+
+- Thanh progress trên UI dùng mức 0-100% để dễ đọc; nếu vượt mục tiêu, hệ thống vẫn lưu raw progress để báo cáo thành tích.
+
+- Đánh giá gợi ý: A từ 90%, B từ 70-89%, C từ 50-69%, D từ 30-49%, E dưới 30%.
+
+- Check-in bị từ chối không cập nhật giá trị hiện tại của KPI.
+
+
 [Ảnh minh họa: Màn hình tạo OKR và KPI]
 
 
@@ -370,6 +411,9 @@ Ghi nhớ: AI chỉ cảnh báo và đề xuất, không tự chặn hoặc tự
 5. Đọc summary, analysis, recommendation, confidence và citation.
 
 6. Kiểm chứng thông tin quan trọng trước khi hành động.
+
+
+Khi AI không đủ dữ liệu trong phạm vi truy vấn, hệ thống sẽ nói rõ hạn chế thay vì tự suy đoán. Nếu đang demo, hãy chọn câu hỏi bám vào dữ liệu seed đã chuẩn bị: ngân sách Marketing, PR quảng cáo 85 triệu, KPI Marketing chậm tiến độ, vendor cloud tăng chi phí hoặc market signal đã nhập.
 
 
 Ví dụ:
@@ -464,6 +508,9 @@ Ví dụ:
 ### 13.5 AI cho người không chuyên
 
 
+Trong OmniBizAI, AI không tự học hoặc tự huấn luyện từ dữ liệu công ty. Hệ thống lấy dữ liệu đã được lọc theo quyền, tính các chỉ số bằng rule ổn định, rồi dùng AI để tóm tắt, giải thích và gợi ý hành động. Vì vậy, AI là công cụ hỗ trợ quyết định, không phải người ra quyết định và không phải công cụ dự báo chắc chắn tương lai.
+
+
 AI có thể:
 
 
@@ -471,13 +518,15 @@ AI có thể:
 
 - Tóm tắt tình hình.
 
-- Phát hiện rủi ro.
+- Phát hiện rủi ro khi hệ thống có dữ liệu đủ liên quan.
 
 - Gợi ý hành động.
 
-- Viết bản nháp báo cáo.
+- Viết bản nháp báo cáo để người dùng kiểm tra và chỉnh sửa.
 
 - Kết hợp dữ liệu nội bộ và dữ liệu thị trường đã nhập.
+
+- Trả lời tốt nhất với các scenario có dữ liệu seed/predefined như PR vượt ngưỡng, KPI trễ hoặc vendor tăng chi phí.
 
 
 AI không thể:
@@ -492,6 +541,12 @@ AI không thể:
 - Đảm bảo mọi đề xuất đúng tuyệt đối.
 
 - Thay thế quyết định của con người.
+
+- Đảm bảo câu trả lời sâu nếu hệ thống chưa có đủ dữ liệu trong phạm vi truy vấn của bạn.
+
+- Tự học thêm từ dữ liệu doanh nghiệp hoặc thay đổi rule workflow/KPI.
+
+- Dự báo chính xác thị trường, doanh thu hoặc chi phí tương lai nếu hệ thống không có dữ liệu/evidence phù hợp.
 
 
 Cách hỏi tốt:
@@ -516,7 +571,22 @@ Ví dụ tốt:
 - "Đề xuất 3 cách giảm chi phí vendor trong tháng tới, dựa trên dữ liệu giao dịch hiện có."
 
 
-### 13.6 FAQ và lỗi thường gặp
+### 13.6 Trạng thái lỗi và cách hệ thống phản hồi
+
+
+| Tình huống | UI hiển thị | Người dùng nên làm |
+|---|---|---|
+| Form nhập thiếu hoặc sai | Message ngay dưới field lỗi | Sửa field được báo lỗi rồi gửi lại |
+| Không có quyền thao tác | Trang 403 hoặc ẩn nút thao tác | Kiểm tra vai trò hoặc liên hệ Admin/quản lý |
+| Workflow không khởi tạo được | Đề nghị vẫn ở Draft, hiện thông báo lỗi và mã trace | Không gửi lại nhiều lần; báo Admin/dev kiểm tra workflow template |
+| Người duyệt không còn active | Timeline báo cần xử lý bởi quản lý cấp trên/Admin | Chờ hệ thống chuyển người duyệt hoặc liên hệ Admin |
+| Bước duyệt đã bị xử lý | Toast conflict và yêu cầu tải lại | Reload màn hình để xem trạng thái mới |
+| AI timeout hoặc quá tải | AI panel hiển thị fallback/cached nếu có | Thử lại sau; không coi fallback là quyết định cuối cùng |
+| AI không đủ evidence | Message "Không đủ dữ liệu trong phạm vi truy vấn" | Thu hẹp/mở rộng bộ lọc hợp lệ hoặc bổ sung dữ liệu |
+| Báo cáo không có dữ liệu | Empty report, không coi là lỗi hệ thống | Chọn kỳ khác hoặc kiểm tra dữ liệu seed |
+
+
+### 13.7 FAQ và lỗi thường gặp
 
 
 | Tình huống | Nguyên nhân có thể | Cách xử lý |
@@ -537,7 +607,7 @@ Ví dụ tốt:
 
 | AI không trả lời | AI lỗi, hết rate limit hoặc câu hỏi ngoài phạm vi | Thử lại sau hoặc đặt câu hỏi rõ hơn |
 
-| AI nói thiếu dữ liệu | Chưa có đủ dữ liệu trong hệ thống | Chọn lại bộ lọc hoặc bổ sung dữ liệu |
+| AI báo không đủ dữ liệu trong phạm vi truy vấn | Chưa có đủ dữ liệu hợp lệ theo quyền và bộ lọc hiện tại | Chọn lại bộ lọc, bổ sung dữ liệu hoặc dùng scenario demo đã seed |
 
 | Dashboard chưa cập nhật | Cache/realtime chậm | Tải lại trang hoặc chờ vài phút |
 

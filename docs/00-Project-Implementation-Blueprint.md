@@ -7,19 +7,19 @@
 
 - File: [01-Technical-Implementation-Blueprint.md](01-Technical-Implementation-Blueprint.md)
 - Dành cho: dev, tester, PM.
-- Nội dung: scope MVP, kiến trúc, database, module contract, route map, seed data, test, DevOps, code contracts và checklist coding.
+- Nội dung: scope MVP, kiến trúc, database, module contract, route map, traceability, seed data, resilience, test, DevOps, code contracts và checklist coding.
 
 ## 2. Tài Liệu Báo Cáo Học Thuật
 
 - File: [02-Academic-Report.md](02-Academic-Report.md)
 - Dành cho: báo cáo thực tập/đồ án, hội đồng chấm.
-- Nội dung: phụ lục xuất DOCX, problem statement, mục tiêu nghiên cứu, cơ sở lý thuyết, phương pháp, so sánh giải pháp, evaluation framework, kết luận.
+- Nội dung: phụ lục xuất DOCX, glossary, problem statement, mục tiêu nghiên cứu, cơ sở lý thuyết, phương pháp, so sánh giải pháp, traceability matrix, demo/evidence plan, evaluation framework, kết luận.
 
 ## 3. Hướng Dẫn Sử Dụng
 
 - File: [03-User-Guide.md](03-User-Guide.md)
 - Dành cho: người dùng cuối và người demo.
-- Nội dung: đăng nhập, thao tác theo vai trò, quy trình nghiệp vụ chính, AI cho người không chuyên, FAQ.
+- Nội dung: đăng nhập, thao tác theo vai trò, demo script, quy trình nghiệp vụ chính, AI cho người không chuyên, trạng thái lỗi và FAQ.
 
 ## Ghi Chú Bảo Trì
 
