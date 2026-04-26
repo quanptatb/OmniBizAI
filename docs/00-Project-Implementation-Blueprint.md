@@ -23,6 +23,7 @@
 14. Đặc tả bổ sung để code không cần hỏi.
 15. Checklist đủ điều kiện coding 100%.
 16. Phụ lục xuất DOCX.
+17. Khung báo cáo học thuật bổ sung.
 
 ## 1. Tóm Tắt Quyết Định Chính
 
@@ -4142,3 +4143,363 @@ Các việc này là triển khai kỹ thuật, không phải quyết định ng
 - Mọi bảng mới phải cập nhật Database Blueprint.
 - Mọi tính năng AI mới phải cập nhật prompt rule, data scope và test case.
 - Mọi màn hình mới phải có hướng dẫn sử dụng nếu người dùng cuối thao tác trực tiếp.
+
+## 17. Khung Báo Cáo Học Thuật Bổ Sung
+
+Mục này dùng để chuyển tài liệu kỹ thuật thành nội dung báo cáo học thuật/đồ án. Khi xuất DOCX, có thể đặt chương này sau phần mở đầu và trước phần triển khai chi tiết; các mục kỹ thuật phía trên vẫn giữ vai trò phụ lục triển khai.
+
+### 17.1 Lý do chọn đề tài và vấn đề nghiên cứu
+
+#### 17.1.1 Lý do chọn đề tài
+
+Trong bối cảnh chuyển đổi số, nhiều doanh nghiệp vừa và nhỏ có nhu cầu quản trị tài chính, nhân sự, KPI và quy trình phê duyệt trên cùng một nền tảng. Tuy nhiên, thực tế vận hành thường phụ thuộc vào bảng tính, email, tin nhắn nội bộ hoặc các phần mềm rời rạc. Điều này làm dữ liệu bị phân tán, giảm khả năng kiểm soát ngân sách, kéo dài thời gian phê duyệt và gây khó khăn khi lãnh đạo cần ra quyết định nhanh dựa trên số liệu.
+
+Đề tài OmniBizAI được lựa chọn vì kết hợp được ba hướng có tính ứng dụng cao:
+
+- Quản trị nguồn lực doanh nghiệp ở quy mô SME thông qua các module tài chính, nhân sự, KPI và báo cáo.
+- Tự động hóa quy trình nghiệp vụ bằng workflow động, phân quyền theo vai trò và cơ chế audit.
+- Ứng dụng AI Assistant để hỗ trợ phân tích, cảnh báo rủi ro và đề xuất hành động dựa trên dữ liệu nội bộ có kiểm soát.
+
+Về mặt học thuật, đề tài có đủ không gian để áp dụng các kiến thức về phân tích yêu cầu, thiết kế hệ thống, cơ sở dữ liệu, kiến trúc phần mềm, kiểm thử, bảo mật và đánh giá phi chức năng. Về mặt thực tiễn, hệ thống hướng đến bài toán gần với hoạt động hằng ngày của doanh nghiệp: duyệt chi, kiểm soát ngân sách, theo dõi KPI, nhận cảnh báo và xuất báo cáo.
+
+#### 17.1.2 Vấn đề nghiên cứu
+
+Vấn đề nghiên cứu chính của đề tài là: **Làm thế nào để xây dựng một hệ thống quản trị vận hành cho doanh nghiệp vừa và nhỏ, có khả năng tích hợp dữ liệu tài chính, KPI, workflow và AI Assistant trong một kiến trúc dễ bảo trì, an toàn và có thể kiểm thử được?**
+
+Từ vấn đề chính, đề tài tập trung trả lời các câu hỏi nghiên cứu sau:
+
+| Mã | Câu hỏi nghiên cứu | Nội dung cần làm rõ |
+|---|---|---|
+| RQ1 | Làm thế nào để quản lý dữ liệu vận hành SME một cách tập trung? | Thiết kế database, module tài chính, KPI, nhân sự, dashboard |
+| RQ2 | Làm thế nào để quy trình phê duyệt minh bạch và dễ truy vết? | Workflow template, workflow instance, approval action, audit log |
+| RQ3 | Làm thế nào để phân quyền đúng vai trò và đúng phạm vi dữ liệu? | RBAC, data scope, policy-based authorization |
+| RQ4 | Làm thế nào để AI hỗ trợ ra quyết định nhưng không vượt quyền hoặc bịa số liệu? | AI context provider, citation, fallback, audit AI query |
+| RQ5 | Làm thế nào để hệ thống có thể bảo trì và mở rộng theo module? | Clean Architecture, modular monolith, dependency rule, test strategy |
+| RQ6 | Làm thế nào để đánh giá hệ thống bằng bằng chứng thực nghiệm? | Unit/integration/E2E test, k6 performance smoke test, screenshot UI thật |
+
+### 17.2 Mục tiêu nghiên cứu
+
+#### 17.2.1 Mục tiêu tổng quát
+
+Xây dựng hệ thống OmniBizAI hỗ trợ doanh nghiệp vừa và nhỏ quản trị tài chính, workflow phê duyệt, KPI/OKR, dashboard điều hành, báo cáo và AI Assistant theo vai trò; đồng thời đảm bảo hệ thống có kiến trúc rõ ràng, phân quyền an toàn, dữ liệu có thể truy vết và có bằng chứng kiểm thử/thực nghiệm.
+
+#### 17.2.2 Mục tiêu cụ thể
+
+| Mã | Mục tiêu cụ thể | Kết quả cần đạt |
+|---|---|---|
+| O1 | Phân tích nghiệp vụ SME | Xác định actor, use case, chức năng, dữ liệu và quy trình chính |
+| O2 | Thiết kế kiến trúc hệ thống | Áp dụng Clean Architecture + Modular Monolith, định nghĩa dependency rule |
+| O3 | Thiết kế cơ sở dữ liệu | Xây dựng ERD, schema theo module, migration order và seed data |
+| O4 | Xây dựng phân quyền | Thiết kế role, permission, data scope và policy cho từng nhóm chức năng |
+| O5 | Xây dựng workflow duyệt chi | Hỗ trợ tạo, submit, approve, reject, request change và audit action |
+| O6 | Xây dựng KPI/OKR | Cho phép tạo mục tiêu, key result, check-in, duyệt check-in và cảnh báo tiến độ |
+| O7 | Xây dựng AI Assistant | AI trả lời theo vai trò, dùng dữ liệu tổng hợp, có citation/fallback và audit |
+| O8 | Xây dựng dashboard/report | Hiển thị số liệu theo vai trò, biểu đồ, cảnh báo và xuất PDF/XLSX |
+| O9 | Kiểm thử và đo hiệu năng | Có unit test, integration test, E2E test, k6 smoke test và evidence |
+| O10 | Đánh giá kết quả | Nêu ưu điểm, hạn chế, hướng phát triển và kết luận đề tài |
+
+### 17.3 Cơ sở lý thuyết
+
+#### 17.3.1 ERP
+
+ERP (Enterprise Resource Planning) là hệ thống tích hợp các hoạt động quản trị cốt lõi của doanh nghiệp như tài chính, nhân sự, vận hành, mua hàng và báo cáo. Đối với OmniBizAI, khái niệm ERP được vận dụng ở mức phù hợp với SME: không xây dựng toàn bộ ERP enterprise, mà tập trung vào các phân hệ có giá trị demo và giá trị quản trị cao gồm Finance, Organization/HR Basic, KPI/OKR, Workflow, Dashboard và Report.
+
+Đặc điểm ERP được áp dụng trong đề tài:
+
+- Dữ liệu tập trung thay vì phân tán ở nhiều file hoặc công cụ.
+- Các module dùng chung danh mục phòng ban, nhân viên, vai trò và kỳ báo cáo.
+- Giao dịch nghiệp vụ có trạng thái, lịch sử và audit.
+- Báo cáo tổng hợp lấy dữ liệu từ nhiều phân hệ.
+
+#### 17.3.2 BI
+
+BI (Business Intelligence) là tập hợp phương pháp và công cụ giúp chuyển dữ liệu thô thành thông tin hỗ trợ ra quyết định. Trong OmniBizAI, BI được thể hiện qua dashboard theo vai trò, biểu đồ tài chính, chỉ số KPI, cảnh báo ngân sách, báo cáo PDF/XLSX và dữ liệu tổng hợp cung cấp cho AI Assistant.
+
+Các nguyên tắc BI áp dụng:
+
+- Dữ liệu báo cáo phải có nguồn gốc từ bảng nghiệp vụ rõ ràng.
+- Dashboard cần ưu tiên chỉ số hành động được, không chỉ hiển thị số liệu.
+- Bộ lọc thời gian, phòng ban và phạm vi quyền phải nhất quán.
+- Số liệu nhạy cảm phải tuân theo data scope của người dùng hiện tại.
+
+#### 17.3.3 Workflow
+
+Workflow là mô hình biểu diễn chuỗi bước xử lý nghiệp vụ, trong đó mỗi bước có người thực hiện, điều kiện chuyển trạng thái và kết quả hành động. Trong đề tài, workflow được dùng cho quy trình duyệt đề nghị thanh toán và có thể mở rộng cho KPI check-in hoặc các quy trình nội bộ khác.
+
+Các thành phần lý thuyết được ánh xạ vào hệ thống:
+
+| Khái niệm | Ánh xạ trong OmniBizAI |
+|---|---|
+| Workflow template | Mẫu quy trình duyệt theo loại nghiệp vụ |
+| Workflow step | Bước duyệt như Manager, Accountant, Director |
+| Workflow condition | Điều kiện theo số tiền, phòng ban, loại chi phí |
+| Workflow instance | Một lần chạy workflow cho một đề nghị cụ thể |
+| Approval action | Approve, Reject, RequestChange |
+| Escalation | Cảnh báo/quá hạn xử lý |
+
+#### 17.3.4 RBAC
+
+RBAC (Role-Based Access Control) là mô hình phân quyền dựa trên vai trò. Người dùng được gán một hoặc nhiều vai trò, mỗi vai trò có tập quyền tương ứng. OmniBizAI dùng RBAC để kiểm soát chức năng được phép truy cập và kết hợp data scope để kiểm soát dữ liệu được phép xem/sửa.
+
+Các vai trò chính gồm Admin, Director, Manager, Accountant, HR và Staff. Ngoài quyền chức năng, hệ thống cần kiểm soát phạm vi dữ liệu:
+
+- Staff chỉ thao tác dữ liệu của bản thân hoặc đề nghị do mình tạo.
+- Manager xem dữ liệu thuộc phòng ban phụ trách.
+- Director xem dữ liệu cấp toàn công ty.
+- Accountant thao tác dữ liệu tài chính theo quyền nghiệp vụ.
+- Admin quản trị hệ thống nhưng vẫn phải ghi audit với hành động nhạy cảm.
+
+#### 17.3.5 AI Assistant
+
+AI Assistant trong đề tài không được xem là chatbot tự do, mà là thành phần hỗ trợ phân tích nghiệp vụ theo vai trò. AI chỉ nhận dữ liệu đã được tổng hợp, lọc theo quyền người dùng và có citation đến nguồn dữ liệu liên quan.
+
+Nguyên tắc thiết kế AI Assistant:
+
+- Không gửi secret, password, token hoặc dữ liệu ngoài quyền vào prompt.
+- Không để AI tự quyết định duyệt/từ chối nghiệp vụ.
+- Câu trả lời về số liệu phải có citation hoặc fallback rõ ràng.
+- Mọi yêu cầu AI cần được ghi audit để phục vụ truy vết.
+- Khi provider lỗi hoặc timeout, hệ thống trả fallback có kiểm soát.
+
+#### 17.3.6 Clean Architecture
+
+Clean Architecture là hướng tổ chức phần mềm tách biệt domain, application logic, infrastructure và presentation. Mục tiêu là giảm phụ thuộc vào framework, giúp code dễ kiểm thử và dễ thay đổi.
+
+Áp dụng trong OmniBizAI:
+
+| Layer | Vai trò |
+|---|---|
+| Domain | Entity, enum, domain rule cốt lõi |
+| Application | Use case, service interface, DTO, validation, authorization logic |
+| Infrastructure | EF Core, SQL Server, Redis, Gemini provider, file storage, export |
+| Web | MVC controller, Razor View, ViewModel, middleware, SignalR hub |
+
+Quy tắc chính: Domain không phụ thuộc Application/Infrastructure/Web; Application không phụ thuộc Web; Infrastructure triển khai interface do Application định nghĩa; Web chỉ điều phối request/response, không chứa business rule phức tạp.
+
+### 17.4 Phân tích yêu cầu theo format học thuật
+
+#### 17.4.1 Tác nhân hệ thống
+
+| Actor | Mô tả | Nhu cầu chính |
+|---|---|---|
+| Admin | Quản trị hệ thống | Quản lý user, role, permission, audit, cấu hình |
+| Director | Ban giám đốc | Xem dashboard toàn công ty, duyệt khoản lớn, dùng AI phân tích |
+| Manager | Trưởng phòng | Theo dõi ngân sách/KPI phòng ban, duyệt đề nghị của nhân viên |
+| Accountant | Kế toán | Quản lý ngân sách, giao dịch, vendor, đối soát và báo cáo tài chính |
+| HR | Nhân sự | Quản lý nhân viên, phòng ban, chức vụ và hỗ trợ KPI |
+| Staff | Nhân viên | Tạo đề nghị thanh toán, check-in KPI, xem thông báo |
+
+#### 17.4.2 Yêu cầu chức năng
+
+| Mã | Tên yêu cầu | Mô tả học thuật | Actor chính | Mức ưu tiên | Tiêu chí chấp nhận |
+|---|---|---|---|---|---|
+| FR-01 | Xác thực người dùng | Hệ thống cho phép người dùng đăng nhập, đăng xuất, khóa tài khoản khi đăng nhập sai nhiều lần | Tất cả | Cao | Người dùng hợp lệ đăng nhập được; tài khoản sai bị từ chối; sự kiện đăng nhập được audit |
+| FR-02 | Phân quyền theo vai trò | Hệ thống kiểm soát quyền truy cập theo role và permission | Admin | Cao | Người dùng không có quyền gọi endpoint nhạy cảm nhận 403 |
+| FR-03 | Quản lý tổ chức | Hệ thống quản lý phòng ban, nhân viên, chức vụ và liên kết user-employee | HR/Admin | Cao | HR tạo/sửa nhân viên; lịch sử thay đổi được lưu |
+| FR-04 | Quản lý ngân sách | Hệ thống cho phép tạo ngân sách theo kỳ, phòng ban, danh mục và theo dõi tỷ lệ sử dụng | Accountant/Director | Cao | Khi chi vượt ngưỡng, dashboard hiển thị cảnh báo |
+| FR-05 | Tạo đề nghị thanh toán | Nhân viên tạo đề nghị thanh toán kèm danh mục, số tiền, mô tả và file đính kèm | Staff | Cao | PR ở trạng thái Draft/Submitted đúng state machine |
+| FR-06 | Duyệt đề nghị thanh toán | Hệ thống định tuyến PR qua các bước duyệt theo workflow động | Manager/Director/Accountant | Cao | Người duyệt hợp lệ approve/reject/request change; action được audit |
+| FR-07 | Ghi nhận giao dịch | Kế toán tạo giao dịch sau khi PR được duyệt đầy đủ | Accountant | Cao | Giao dịch làm tăng actual spend và cập nhật ngân sách |
+| FR-08 | Quản lý KPI/OKR | Hệ thống cho phép tạo objective, key result, KPI và kỳ đánh giá | Manager/HR/Director | Cao | KPI có owner, target, actual, progress và status |
+| FR-09 | Check-in KPI | Nhân viên cập nhật tiến độ KPI và gửi duyệt | Staff/Manager | Trung bình | Check-in được lưu, có trạng thái chờ duyệt và lịch sử |
+| FR-10 | Dashboard theo vai trò | Hệ thống hiển thị dashboard phù hợp với role và data scope | Tất cả | Cao | Director thấy toàn công ty; Manager chỉ thấy phòng ban; Staff thấy dữ liệu cá nhân |
+| FR-11 | AI Assistant | Hệ thống cho phép hỏi AI về rủi ro, KPI, ngân sách và gợi ý hành động | Director/Manager/Staff | Cao | Câu trả lời có citation/fallback; không lộ dữ liệu ngoài quyền |
+| FR-12 | Market Intelligence | Hệ thống quản lý tín hiệu thị trường curated phục vụ phân tích | Admin/Director | Trung bình | Market note có nguồn, thời gian, tag và liên kết phân tích |
+| FR-13 | Notification | Hệ thống gửi thông báo khi có approval, KPI, cảnh báo hoặc report | Tất cả | Trung bình | Người nhận thấy unread count và notification realtime nếu SignalR hoạt động |
+| FR-14 | Báo cáo và xuất file | Hệ thống xuất báo cáo tài chính/KPI/AI summary ra PDF/XLSX | Director/Accountant/Manager | Trung bình | File có header, filter, người tạo, thời gian tạo và audit export |
+| FR-15 | Audit log | Hệ thống ghi nhận hành động quan trọng để phục vụ truy vết | Admin | Cao | Audit có user, event, entity, thời gian, IP, dữ liệu đã mask |
+
+#### 17.4.3 Yêu cầu phi chức năng
+
+| Mã | Nhóm yêu cầu | Mô tả học thuật | Chỉ số đo | Phương pháp kiểm chứng |
+|---|---|---|---|---|
+| NFR-01 | Hiệu năng | Dashboard và API phổ biến phải phản hồi đủ nhanh với dữ liệu seed SME | API p95 < 500ms, page load < 3s | k6, Playwright performance test |
+| NFR-02 | Khả năng chịu tải | Hệ thống đáp ứng phiên demo với nhiều người dùng đồng thời | 50 concurrent users, fail rate < 1% | k6 constant-vus |
+| NFR-03 | Bảo mật | Endpoint mutation phải có authorization và kiểm tra data scope | 100% endpoint nhạy cảm có policy | Unit/integration authorization test |
+| NFR-04 | Bảo mật AI | AI không được nhận secret hoặc dữ liệu ngoài quyền | Prompt không chứa field nhạy cảm | Prompt inspection test, audit review |
+| NFR-05 | Tính tin cậy | Lỗi AI/SignalR/export không làm hỏng giao dịch nghiệp vụ chính | Có fallback/transaction boundary | Integration test và chaos case thủ công |
+| NFR-06 | Khả dụng | Người dùng vẫn thao tác nghiệp vụ cốt lõi khi AI provider không sẵn sàng | Core flow không phụ thuộc AI | E2E test với AI mock/fallback |
+| NFR-07 | Dễ bảo trì | Mã nguồn phải tách layer và module rõ ràng | Không vi phạm dependency rule | Architecture test/code review |
+| NFR-08 | Khả năng mở rộng SME | Có thể bổ sung module/report/workflow mới mà không phá module cũ | Module mới thêm theo interface | Review thiết kế và integration test |
+| NFR-09 | Truy vết | Hành động quan trọng phải có audit log | 100% event trong audit catalog được ghi | Integration test audit |
+| NFR-10 | Dễ sử dụng | Giao diện phải phù hợp người dùng không chuyên | Flow chính không quá nhiều bước, form có validation rõ | Manual UX checklist, screenshot evidence |
+
+#### 17.4.4 Ràng buộc và giả định
+
+| Loại | Nội dung |
+|---|---|
+| Ràng buộc công nghệ | ASP.NET Core MVC, SQL Server, EF Core, Bootstrap, ECharts, Gemini |
+| Ràng buộc dữ liệu | MVP dùng một công ty, 7 phòng ban, 45 nhân sự active và seed data có tình huống nghiệp vụ |
+| Ràng buộc bảo mật | Không đưa secret thật vào tài liệu, repository hoặc prompt AI |
+| Ràng buộc phạm vi | Không triển khai mobile native, payroll đầy đủ, banking integration hoặc multi-tenant phức tạp |
+| Giả định nghiệp vụ | SME có quy trình duyệt chi theo cấp quản lý và cần báo cáo tháng/quý |
+
+### 17.5 Thiết kế hệ thống
+
+Các sơ đồ thiết kế chi tiết đã được chuẩn hóa ở mục 3.2. Khi đưa vào báo cáo học thuật, nên trình bày theo thứ tự từ nghiệp vụ đến kỹ thuật để người đọc không bị nhảy tầng trừu tượng.
+
+| Loại thiết kế | Vị trí sơ đồ trong tài liệu | Nội dung trình bày trong báo cáo |
+|---|---|---|
+| Use case diagram | Mục 3.2.2 | Actor và chức năng chính của từng vai trò |
+| Activity diagram | Mục 3.2.3 | Luồng tạo, phân tích rủi ro và duyệt đề nghị thanh toán |
+| Sequence diagram - Payment Request | Mục 3.2.10 | Tương tác giữa user, MVC, application service, workflow, AI risk và database |
+| Flowchart - AI Assistant | Mục 3.2.12 | Luồng lấy context, gọi provider, kiểm tra citation và trả fallback |
+| Sequence diagram - KPI check-in | Mục 3.2.13 | Tương tác giữa Staff, Web, KPI service, Workflow, Manager, AI và database |
+| Class diagram | Mục 3.2.7 | Entity/service/interface cốt lõi của Finance, Workflow, KPI, AI và Audit |
+| ERD | Mục 3.2.9 | Quan hệ bảng theo module: Identity, Organization, Finance, Workflow, KPI, AI, Report, Audit |
+| Deployment diagram | Mục 3.2.14 | Thành phần chạy khi demo/triển khai MVP |
+
+#### 17.5.1 Use case
+
+Use case của hệ thống tập trung vào sáu actor: Admin, Director, Manager, Accountant, HR và Staff. Các chức năng có tính liên module như dashboard, notification, audit và AI Assistant được thiết kế theo vai trò để đảm bảo mỗi actor chỉ nhìn thấy dữ liệu cần thiết.
+
+Khi đưa vào báo cáo, phần mô tả use case nên gồm:
+
+- Tên use case.
+- Actor chính/phụ.
+- Tiền điều kiện.
+- Luồng chính.
+- Luồng thay thế/lỗi.
+- Hậu điều kiện.
+- Liên kết với yêu cầu chức năng.
+
+#### 17.5.2 Activity
+
+Activity diagram quan trọng nhất là luồng đề nghị thanh toán. Luồng này thể hiện rõ giá trị của đề tài vì kết hợp nhiều thành phần: nhập form, validate, AI risk scoring, chọn workflow, duyệt nhiều cấp, ghi transaction, cập nhật ngân sách, gửi notification và audit.
+
+#### 17.5.3 Sequence
+
+Sequence diagram dùng để chứng minh thiết kế runtime không đặt business rule ở View/Controller. Controller chỉ nhận request và gọi Application Service; Application Service điều phối Domain rule, Repository, Workflow Service, Notification Service, AI Service và Audit Service.
+
+#### 17.5.4 Class
+
+Class diagram thể hiện các entity và service cốt lõi. Khi bảo vệ đồ án, nên nhấn mạnh rằng entity nghiệp vụ không phụ thuộc trực tiếp vào UI hoặc provider bên ngoài; các tích hợp như Gemini, Redis, file storage, PDF export nằm ở Infrastructure thông qua interface.
+
+#### 17.5.5 ERD
+
+ERD được chia theo nhóm bảng để dễ đọc:
+
+- Identity/RBAC: user, role, permission, user_role.
+- Organization: department, position, employee.
+- Finance: budget, payment_request, transaction, vendor, wallet/category.
+- Workflow: workflow_template, workflow_step, workflow_instance, approval_action.
+- KPI/OKR: evaluation_period, objective, key_result, kpi, kpi_check_in.
+- AI/Market: ai_conversation, ai_message, ai_recommendation, market_insight.
+- Audit/Report/System: audit_log, notification, report_export, system_setting.
+
+### 17.6 Kết quả thực nghiệm và bằng chứng đánh giá
+
+Phần này chỉ được hoàn tất sau khi có ứng dụng chạy thật. Không sử dụng ảnh mockup hoặc số liệu ước lượng làm kết quả thực nghiệm. Nếu chưa có evidence, ghi rõ trạng thái "Chưa thực hiện" và kế hoạch thu thập.
+
+#### 17.6.1 Ảnh giao diện thật cần chèn
+
+| Mã ảnh | Màn hình | Mục đích minh chứng | Đường dẫn evidence đề xuất |
+|---|---|---|---|
+| UI-01 | Đăng nhập | Hệ thống có xác thực người dùng | `docs/test-evidence/screenshots/ui-01-login.png` |
+| UI-02 | Director dashboard | Dashboard điều hành, biểu đồ, cảnh báo tổng quan | `docs/test-evidence/screenshots/ui-02-director-dashboard.png` |
+| UI-03 | Manager dashboard | Data scope theo phòng ban | `docs/test-evidence/screenshots/ui-03-manager-dashboard.png` |
+| UI-04 | Tạo đề nghị thanh toán | Form nghiệp vụ, validation, file đính kèm | `docs/test-evidence/screenshots/ui-04-create-payment-request.png` |
+| UI-05 | AI Risk Analysis | AI hỗ trợ đánh giá rủi ro trước khi submit | `docs/test-evidence/screenshots/ui-05-ai-risk.png` |
+| UI-06 | Duyệt đề nghị thanh toán | Workflow approve/reject/request change | `docs/test-evidence/screenshots/ui-06-approval.png` |
+| UI-07 | Ngân sách | Budget utilization và cảnh báo vượt ngưỡng | `docs/test-evidence/screenshots/ui-07-budget.png` |
+| UI-08 | KPI/OKR | Objective, key result, KPI progress | `docs/test-evidence/screenshots/ui-08-kpi.png` |
+| UI-09 | AI Assistant | Câu trả lời có citation/fallback | `docs/test-evidence/screenshots/ui-09-ai-assistant.png` |
+| UI-10 | Báo cáo/export | Xuất PDF/XLSX và audit export | `docs/test-evidence/screenshots/ui-10-report-export.png` |
+
+Yêu cầu khi chụp ảnh:
+
+- Chụp từ ứng dụng chạy thật, có URL môi trường demo hoặc localhost.
+- Không hiển thị password, API key, connection string, token hoặc dữ liệu cá nhân nhạy cảm.
+- Ảnh phải thể hiện được dữ liệu seed có ý nghĩa: vượt ngân sách, KPI trễ, PR đang chờ duyệt, AI có citation.
+- Mỗi ảnh trong báo cáo cần có chú thích: tên màn hình, vai trò đăng nhập, tình huống minh chứng.
+
+#### 17.6.2 Kết quả kiểm thử chức năng
+
+| Nhóm test | Công cụ | Số lượng test | Passed | Failed | Evidence |
+|---|---|---:|---:|---:|---|
+| Unit test | xUnit + Moq | TBD | TBD | TBD | `docs/test-evidence/unit-test-results.trx` |
+| Integration test | xUnit + Testcontainers SQL Server | TBD | TBD | TBD | `docs/test-evidence/integration-test-results.trx` |
+| E2E test | Playwright | TBD | TBD | TBD | `docs/test-evidence/playwright-report/` |
+| Manual regression | Checklist QA | TBD | TBD | TBD | `docs/test-evidence/manual-regression.xlsx` |
+
+Các luồng bắt buộc có test evidence:
+
+- Đăng nhập và kiểm tra quyền theo role.
+- Staff tạo PR, submit, Manager/Director duyệt, Accountant ghi transaction.
+- Staff không được xem/sửa PR của người khác ngoài quyền.
+- Manager chỉ xem dữ liệu phòng ban của mình.
+- KPI check-in được submit và duyệt đúng trạng thái.
+- AI Assistant trả citation/fallback và không lộ dữ liệu ngoài quyền.
+- Export report tạo file và ghi audit.
+
+#### 17.6.3 Kết quả đo hiệu năng
+
+| Chỉ số | Công cụ | Mục tiêu | Kết quả đo | Trạng thái | Evidence |
+|---|---|---:|---:|---|---|
+| API p95 latency | k6 | < 500ms | TBD | TBD | `docs/test-evidence/k6-api-summary.json` |
+| API fail rate | k6 | < 1% | TBD | TBD | `docs/test-evidence/k6-api-summary.json` |
+| Concurrent users | k6 | 50 VUs/3 phút | TBD | TBD | `docs/test-evidence/k6-console.png` |
+| AI p95 latency | k6 | < 10s | TBD | TBD | `docs/test-evidence/k6-ai-summary.json` |
+| Dashboard page load | Playwright | < 3s | TBD | TBD | `docs/test-evidence/playwright-performance.json` |
+
+Command đo hiệu năng tham chiếu:
+
+```powershell
+k6 run --summary-export docs/test-evidence/k6-api-summary.json docs/perf/k6-nfr-smoke.js
+k6 run -e VUS=50 -e DURATION=3m --summary-export docs/test-evidence/k6-50vus-summary.json docs/perf/k6-nfr-smoke.js
+k6 run -e RUN_AI=true --summary-export docs/test-evidence/k6-ai-summary.json docs/perf/k6-nfr-smoke.js
+```
+
+Khi ghi vào báo cáo cuối cùng, không để `TBD`. Nếu test chưa đạt, ghi rõ nguyên nhân, ảnh hưởng và hướng khắc phục.
+
+#### 17.6.4 Mẫu nhận xét kết quả thực nghiệm
+
+Sau khi có số liệu thật, viết nhận xét theo cấu trúc:
+
+1. Môi trường thử nghiệm: máy chạy, database, seed data, số user, thời gian chạy.
+2. Kết quả chức năng: số test pass/fail và các luồng đã được xác nhận.
+3. Kết quả hiệu năng: p95 latency, fail rate, page load, AI latency.
+4. Phân tích: chỉ số nào đạt, chỉ số nào chưa đạt, nguyên nhân dự kiến.
+5. Kết luận thực nghiệm: hệ thống có đáp ứng mục tiêu MVP hay không.
+
+### 17.7 Đánh giá hệ thống
+
+#### 17.7.1 Ưu điểm
+
+- Hệ thống tích hợp nhiều phân hệ vận hành quan trọng của SME trong một kiến trúc thống nhất.
+- Clean Architecture giúp tách business rule khỏi UI và hạ tầng, thuận lợi cho kiểm thử.
+- Workflow động giúp mô phỏng quy trình duyệt thực tế, có thể mở rộng theo điều kiện nghiệp vụ.
+- RBAC kết hợp data scope giúp kiểm soát cả quyền chức năng và quyền dữ liệu.
+- AI Assistant được thiết kế có kiểm soát: theo vai trò, có citation, fallback và audit.
+- Dashboard/report hỗ trợ lãnh đạo theo dõi ngân sách, KPI và rủi ro nhanh hơn thao tác thủ công.
+- Có kế hoạch kiểm thử chức năng, bảo mật, hiệu năng và bằng chứng thực nghiệm rõ ràng.
+
+#### 17.7.2 Hạn chế
+
+- MVP chỉ hỗ trợ một công ty, chưa có multi-tenant SaaS đầy đủ.
+- Dữ liệu thị trường là curated/manual, chưa tích hợp nguồn dữ liệu thị trường realtime.
+- AI phụ thuộc provider bên ngoài nên cần fallback khi timeout, quota hoặc lỗi mạng.
+- Chưa có mobile app native; trải nghiệm di động dựa trên responsive web.
+- Payroll, inventory, CRM nâng cao và tích hợp ngân hàng thật nằm ngoài phạm vi.
+- Một số báo cáo nâng cao cần dữ liệu lịch sử dài hơn để đánh giá xu hướng chính xác.
+
+#### 17.7.3 Hướng phát triển
+
+| Hướng phát triển | Mô tả |
+|---|---|
+| Multi-tenant | Hỗ trợ nhiều công ty, phân vùng dữ liệu và cấu hình riêng theo tenant |
+| Workflow designer UI | Cho phép Admin thiết kế workflow bằng giao diện kéo thả hoặc form cấu hình |
+| AI recommendation lifecycle | Theo dõi đề xuất AI từ lúc tạo đến khi được xử lý, bỏ qua hoặc chuyển thành task |
+| RAG nâng cao | Dùng vector search cho tài liệu nội bộ, chính sách, quy định và tri thức doanh nghiệp |
+| Tích hợp ngân hàng/kế toán | Đồng bộ giao dịch, hóa đơn và đối soát tự động |
+| Mobile/PWA | Tối ưu duyệt đề nghị, check-in KPI và nhận thông báo trên thiết bị di động |
+| Advanced BI | Thêm drill-down, forecast, anomaly detection và dashboard tùy biến |
+| Security hardening | Bổ sung 2FA, secret rotation, rate limit, security headers và audit dashboard nâng cao |
+
+### 17.8 Kết luận
+
+Đề tài OmniBizAI đã xác định được bài toán quản trị vận hành phổ biến trong doanh nghiệp vừa và nhỏ: dữ liệu phân tán, quy trình phê duyệt thiếu minh bạch, khó kiểm soát ngân sách, KPI chưa được theo dõi liên tục và báo cáo còn thủ công. Trên cơ sở đó, đề tài đề xuất một hệ thống tích hợp các phân hệ Finance, Workflow, KPI/OKR, Dashboard, Report, RBAC và AI Assistant trong mô hình Clean Architecture.
+
+Về mặt thiết kế, hệ thống có đầy đủ actor, use case, activity, sequence, class diagram và ERD để mô tả từ góc nhìn nghiệp vụ đến kỹ thuật. Về mặt triển khai, tài liệu đã chốt công nghệ, kiến trúc, database blueprint, API map, seed data, phân quyền, test strategy và tiêu chí nghiệm thu phi chức năng. Về mặt đánh giá, đề tài yêu cầu bằng chứng thực nghiệm gồm ảnh giao diện thật, kết quả test và số liệu hiệu năng thay vì chỉ mô tả lý thuyết.
+
+Kết quả kỳ vọng của đề tài là một MVP có thể demo end-to-end: người dùng đăng nhập theo vai trò, tạo và duyệt đề nghị thanh toán, theo dõi ngân sách/KPI, nhận cảnh báo, hỏi AI có citation và xuất báo cáo. Dù còn các hạn chế về phạm vi như chưa có multi-tenant, chưa tích hợp dữ liệu thị trường realtime và chưa có mobile native, hệ thống vẫn đáp ứng mục tiêu nghiên cứu ban đầu và tạo nền tảng rõ ràng để mở rộng trong các giai đoạn tiếp theo.
