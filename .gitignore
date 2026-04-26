@@ -1,0 +1,20 @@
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+TestResults/
+coverage/
+playwright-report/
+docs/test-evidence/
+
+# Local secrets and machine-specific config
+.env
+.env.*
+appsettings.Local.json
+*.user
+
+# Build and package artifacts
+*.nupkg
+*.snupkg
+*.log
