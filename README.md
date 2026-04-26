@@ -151,7 +151,15 @@ dotnet restore
 
 Không đưa connection string thật, password thật hoặc API key thật vào repository.
 
-Khuyến nghị dùng user secrets:
+Khuyến nghị nhanh cho local: copy file mẫu `.env.example` thành `.env`, sau đó điền password/API key thật vào `.env`.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+File `.env` đã được ignore bởi git. Ứng dụng sẽ tự load `.env` khi chạy local.
+
+Có thể dùng user secrets nếu không muốn dùng `.env`:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\mssqllocaldb;Database=OmniBizDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
