@@ -1,0 +1,106 @@
+@model List<OmniBizAI.Models.PurchaseRequest>
+@using OmniBizAI.Models
+
+@{
+    ViewData["Title"] = "Hàng chờ duyệt";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/approval.css" asp-append-version="true" />
+}
+
+<div class="page-header mb-4">
+    <div class="page-header-left">
+        <div class="page-eyebrow"><div class="eyebrow-dot"></div>DUYỆT YÊU CẦU</div>
+        <h1 class="page-title">Hàng chờ <span>duyệt</span></h1>
+        <p class="page-sub">Danh sách các yêu cầu mua hàng đang chờ xử lý</p>
+    </div>
+    <div class="page-header-actions">
+        <span class="btn-primary">@Model.Count yêu cầu</span>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="custom-alert custom-alert-success">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+        @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="custom-alert custom-alert-error">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        @TempData["Error"]
+    </div>
+}
+
+<div class="chart-card">
+    <div class="chart-header">
+        <div>
+            <div class="chart-title">Danh sách yêu cầu mua hàng chờ duyệt</div>
+        </div>
+    </div>
+    
+    <table class="approval-table">
+        <thead>
+            <tr>
+                <th>Mã PR</th>
+                <th>Người tạo</th>
+                <th>Ngày tạo</th>
+                <th style="text-align: right">Tổng tiền</th>
+                <th style="text-align: center">AI Risk</th>
+                <th style="text-align: center">Trạng thái</th>
+                <th style="text-align: right">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pr in Model)
+            {
+                <tr>
+                    <td><strong style="color: var(--blue)">@pr.Code</strong></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="approval-avatar">@pr.CreatedBy.Substring(0, 1).ToUpper()</div>
+                            <span style="font-weight: 500">@pr.CreatedBy</span>
+                        </div>
+                    </td>
+                    <td style="color: var(--muted)">@pr.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td style="text-align: right; font-weight: 600">@pr.TotalAmount.ToString("N0") ₫</td>
+                    <td style="text-align: center">
+                        <span class="approval-risk-badge approval-risk-@pr.AiRisk.ToString().ToLower()">
+                            @pr.AiRisk.ToString().ToUpper()
+                        </span>
+                    </td>
+                    <td style="text-align: center">
+                        <span class="approval-status-badge approval-status-@pr.Status.ToString().ToLower()">
+                            @switch (pr.Status)
+                            {
+                                case PrStatus.Pending:      <text>Chờ duyệt</text>;       break;
+                                case PrStatus.Approved:     <text>Đã duyệt</text>;        break;
+                                case PrStatus.Rejected:     <text>Từ chối</text>;         break;
+                                case PrStatus.NeedRevision: <text>Cần chỉnh sửa</text>;  break;
+                            }
+                        </span>
+                    </td>
+                    <td style="text-align: right">
+                        <a asp-controller="ApprovalQueue" asp-action="Detail" asp-route-id="@pr.Id" class="btn-outline">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            Chi tiết
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+    @if (!Model.Any())
+    {
+        <div class="approval-empty-state">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+            <p>Không có yêu cầu nào đang chờ duyệt</p>
+        </div>
+    }
+</div>

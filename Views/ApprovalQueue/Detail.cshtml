@@ -1,0 +1,211 @@
+@model OmniBizAI.Models.PurchaseRequest
+@using OmniBizAI.Models
+
+@{
+    ViewData["Title"] = "Chi tiết duyệt – " + Model.Code;
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    bool isApprover = (bool)(ViewBag.IsApprover ?? false);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/approval.css" asp-append-version="true" />
+}
+
+<div class="page-header mb-4">
+    <div class="page-header-left">
+        <div class="page-eyebrow"><div class="eyebrow-dot"></div>CHI TIẾT YÊU CẦU</div>
+        <h1 class="page-title">@Model.Code</h1>
+        <p class="page-sub">Tạo bởi <strong>@Model.CreatedBy</strong> lúc @Model.CreatedAt.ToString("HH:mm dd/MM/yyyy")</p>
+    </div>
+    <div class="page-header-actions">
+        <a asp-controller="ApprovalQueue" asp-action="Index" class="btn-ghost">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Quay lại
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="custom-alert custom-alert-success">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+        @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="custom-alert custom-alert-error">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        @TempData["Error"]
+    </div>
+}
+
+<div class="grid-layout">
+    <div class="d-flex flex-column gap-4">
+        <div class="chart-card p-4 d-flex align-items-center justify-content-between">
+            <div>
+                <p style="color: var(--muted); font-size: 12px; margin-bottom: 4px;">Trạng thái hiện tại</p>
+                <div style="font-size: 18px; font-weight: 700; color: var(--text);">
+                    Yêu cầu mua hàng
+                </div>
+            </div>
+            <span class="approval-status-badge approval-status-@Model.Status.ToString().ToLower()" style="font-size: 13px; padding: 6px 14px;">
+                @switch (Model.Status)
+                {
+                    case PrStatus.Pending:      <text>Chờ duyệt</text>;       break;
+                    case PrStatus.Approved:     <text>Đã duyệt</text>;        break;
+                    case PrStatus.Rejected:     <text>Từ chối</text>;         break;
+                    case PrStatus.NeedRevision: <text>Cần chỉnh sửa</text>;  break;
+                }
+            </span>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Danh sách hàng hóa</div>
+            </div>
+            <table class="approval-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên hàng hóa / dịch vụ</th>
+                        <th style="text-align: center">Số lượng</th>
+                        <th style="text-align: right">Đơn giá</th>
+                        <th style="text-align: right">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        var item = Model.Items[i];
+                        <tr>
+                            <td style="color: var(--muted)">@(i + 1)</td>
+                            <td style="font-weight: 500">@item.Name</td>
+                            <td style="text-align: center">@item.Quantity</td>
+                            <td style="text-align: right; color: var(--muted)">@item.UnitPrice.ToString("N0") ₫</td>
+                            <td style="text-align: right; font-weight: 600; color: var(--green)">@item.Total.ToString("N0") ₫</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="text-align: right">Tổng cộng</td>
+                        <td style="text-align: right; color: var(--accent2); font-size: 15px;">@Model.TotalAmount.ToString("N0") ₫</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">Quy trình duyệt</div>
+            </div>
+            <div class="approval-timeline">
+                @for (int s = 0; s < Model.Workflow.Count; s++)
+                {
+                    var step = Model.Workflow[s];
+                    bool isLast = s == Model.Workflow.Count - 1;
+                    string stepClass = step.IsCompleted ? "completed" : "pending";
+                    
+                    <div class="approval-timeline-step @stepClass">
+                        <div class="approval-timeline-dot">
+                            @if (step.IsCompleted)
+                            {
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+                            }
+                            else
+                            {
+                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            }
+                        </div>
+                        @if (!isLast)
+                        {
+                            <div class="approval-timeline-line @(step.IsCompleted ? "line-done" : "")"></div>
+                        }
+                        <div class="approval-timeline-content">
+                            <div class="approval-timeline-title">@step.StepName</div>
+                            <div class="approval-timeline-desc">@step.Actor</div>
+                            @if (step.CompletedAt.HasValue)
+                            {
+                                <div class="approval-timeline-desc" style="margin-top: 2px">@step.CompletedAt.Value.ToString("HH:mm dd/MM/yyyy")</div>
+                            }
+                            else
+                            {
+                                <div class="approval-timeline-waiting">Đang chờ…</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column gap-4">
+        <div class="chart-card p-4">
+            <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text);">Đánh giá rủi ro AI</div>
+            <div class="approval-risk-gauge approval-risk-gauge-@Model.AiRisk.ToString().ToLower()">
+                @switch (Model.AiRisk)
+                {
+                    case RiskLevel.Low:
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <div class="approval-risk-label">LOW</div>
+                        <div style="font-size: 12px; color: var(--muted); text-align: center;">Rủi ro thấp – có thể duyệt bình thường</div>
+                        break;
+                    case RiskLevel.Medium:
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div class="approval-risk-label">MEDIUM</div>
+                        <div style="font-size: 12px; color: var(--muted); text-align: center;">Rủi ro trung bình – kiểm tra kỹ trước khi duyệt</div>
+                        break;
+                    case RiskLevel.High:
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="approval-risk-label">HIGH</div>
+                        <div style="font-size: 12px; color: var(--muted); text-align: center;">Rủi ro cao – cần xem xét cẩn thận</div>
+                        break;
+                }
+            </div>
+        </div>
+
+        @if (isApprover && Model.Status == PrStatus.Pending)
+        {
+            <div class="chart-card p-4">
+                <div style="font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text);">Thao tác phê duyệt</div>
+                
+                <form asp-action="Approve" method="post" class="mb-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn-action btn-success" onclick="return confirm('Xác nhận duyệt yêu cầu @Model.Code?')">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                        Duyệt Yêu Cầu
+                    </button>
+                </form>
+
+                <div class="mb-3">
+                    <form asp-action="Reject" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <label class="approval-form-label">Lý do từ chối <span>*</span></label>
+                        <textarea name="reason" class="approval-textarea" rows="2" placeholder="Nhập lý do từ chối…" required></textarea>
+                        <button type="submit" class="btn-action btn-danger">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                            Từ Chối
+                        </button>
+                    </form>
+                </div>
+
+                <div>
+                    <form asp-action="RequestRevision" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <label class="approval-form-label">Yêu cầu chỉnh sửa <span>*</span></label>
+                        <textarea name="note" class="approval-textarea" rows="2" placeholder="Mô tả nội dung cần chỉnh sửa…" required></textarea>
+                        <button type="submit" class="btn-action btn-warning">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            Gửi Yêu Cầu
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
