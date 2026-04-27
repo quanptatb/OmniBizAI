@@ -1,0 +1,955 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | OmniBizAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0c12;
+    --surface: #111420;
+    --surface2: #181c2e;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #e2e8f8;
+    --muted: #5a6280;
+    --muted2: #3a4060;
+    --accent: #6c63ff;
+    --accent2: #8b85ff;
+    --accent-glow: rgba(108,99,255,0.25);
+    --green: #2dd4bf;
+    --green-bg: rgba(45,212,191,0.08);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.08);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.08);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.08);
+    --pink: #f472b6;
+    --sidebar-w: 72px;
+    --sidebar-w-open: 260px;
+    --header-h: 70px;
+    --radius: 14px;
+    --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    width: var(--sidebar-w);
+    background: rgba(17, 20, 32, 0.65);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease, border-color 0.4s ease;
+    overflow: hidden;
+  }
+  .sidebar:hover {
+    width: var(--sidebar-w-open);
+    background: rgba(17, 20, 32, 0.95);
+    border-right-color: rgba(255,255,255,0.12);
+    box-shadow: 10px 0 50px rgba(0,0,0,0.6);
+  }
+
+  /* Logo */
+  .sb-logo {
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow: hidden;
+    gap: 12px;
+  }
+  .sb-logo-icon {
+    width: 32px; height: 32px;
+    background: transparent;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sb-logo-icon img { width: 100%; height: auto; border-radius: 8px; }
+  .sb-logo-text {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.25s 0.1s, transform 0.3s 0.1s;
+    letter-spacing: -0.3px;
+  }
+  .sidebar:hover .sb-logo-text { opacity: 1; transform: translateX(0); }
+
+  /* Nav sections */
+  .sb-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scrollbar-width: none;
+  }
+  .sb-body::-webkit-scrollbar { display: none; }
+
+  .sb-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    padding: 14px 18px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .sidebar:hover .sb-section-label { opacity: 1; }
+
+  .sb-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 46px;
+    padding: 0 10px;
+    gap: 16px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    text-decoration: none;
+    color: var(--muted);
+    overflow: hidden;
+    margin: 0 8px;
+  }
+  .sb-item:hover { 
+    background: rgba(255,255,255,0.04); 
+    color: var(--text); 
+    transform: translateX(4px);
+  }
+  .sb-item.active {
+    background: var(--accent-glow);
+    color: var(--accent2);
+  }
+  .sb-item.active .sb-icon { color: var(--accent2); }
+  .sb-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 25%; bottom: 25%;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 0 3px 3px 0;
+    margin-left: -8px;
+  }
+
+  .sb-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 10px;
+    transition: background 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease;
+  }
+  .sb-item:hover .sb-icon { transform: scale(1.1); }
+  .sb-icon svg { width: 18px; height: 18px; }
+
+  .sb-label {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+  .sidebar:hover .sb-label { 
+    opacity: 1; 
+    transform: translateX(0); 
+    transition-delay: 0.1s;
+  }
+
+  .sb-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s 0.12s;
+  }
+  .sidebar:hover .sb-badge { opacity: 1; }
+
+  .sb-tooltip {
+    position: absolute;
+    left: calc(var(--sidebar-w) + 10px);
+    top: 50%; transform: translateY(-50%) translateX(-6px);
+    background: var(--surface2);
+    border: 1px solid var(--border-hover);
+    color: var(--text);
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 200;
+  }
+  .sb-item:hover .sb-tooltip { opacity: 1; transform: translateY(-50%) translateX(0); }
+  .sidebar:hover .sb-tooltip { display: none; }
+
+  .sb-footer {
+    padding: 16px 0;
+    border-top: 1px solid var(--border);
+  }
+  .sb-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    margin: 0 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.18s;
+    overflow: hidden;
+  }
+  .sb-user:hover { background: var(--surface2); }
+  .sb-avatar {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .sb-user-info {
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.22s 0.08s, transform 0.28s 0.08s;
+  }
+  .sidebar:hover .sb-user-info { opacity: 1; transform: translateX(0); }
+  .sb-user-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .sb-user-role { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-width: 0;
+    transition: margin-left 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+  }
+  .sidebar:hover ~ .main { filter: brightness(0.7); }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,12,18,0.8);
+    backdrop-filter: blur(16px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 20px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+  }
+  .breadcrumb span { color: var(--muted2); }
+  .breadcrumb strong { color: var(--text); font-weight: 600; }
+
+  .search-bar {
+    display: flex; align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    gap: 8px;
+    width: 240px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-bar:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .search-bar svg { width: 15px; height: 15px; color: var(--muted); flex-shrink: 0; }
+  .search-bar input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-size: 13px;
+    width: 100%;
+  }
+  .search-bar input::placeholder { color: var(--muted); }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer; transition: all 0.18s;
+    color: var(--muted);
+    position: relative;
+  }
+  .icon-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border-hover); }
+  .icon-btn svg { width: 17px; height: 17px; }
+  .notif-dot {
+    position: absolute; top: 7px; right: 7px;
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+  }
+  .btn svg { width: 15px; height: 15px; }
+  .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--border-hover); }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 20px var(--accent-glow); }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 3px; }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  }
+  .stat-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .stat-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .stat-value { font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stat-icon svg { width: 22px; height: 22px; }
+  .stat-footer { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .stat-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .stat-badge svg { width: 10px; height: 10px; }
+  .stat-badge.up { background: var(--green-bg); color: var(--green); }
+  .stat-badge.down { background: var(--red-bg); color: var(--red); }
+  .stat-period { font-size: 12px; color: var(--muted); }
+
+  /* Chart Section */
+  .chart-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .chart-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .chart-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .chart-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .chart-container {
+    padding: 20px;
+    height: 280px;
+    position: relative;
+  }
+  canvas { max-height: 240px; width: 100%; }
+
+  /* Bottom Grid */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .card-link {
+    font-size: 12.5px; font-weight: 600;
+    color: var(--accent2); text-decoration: none;
+    transition: color 0.15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .card-link:hover { color: var(--text); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: rgba(255,255,255,0.02); }
+  thead th {
+    padding: 12px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+  }
+  tbody tr { border-top: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  td { padding: 14px 20px; font-size: 13px; color: var(--text); }
+  .order-id { font-family: monospace; font-size: 12px; color: var(--accent2); font-weight: 600; }
+  .customer-cell { display: flex; align-items: center; gap: 12px; }
+  .avi {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .c-name { font-weight: 500; color: var(--text); }
+  .c-email { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .status {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .s-done { background: var(--green-bg); color: var(--green); }
+  .s-ship { background: var(--blue-bg); color: var(--blue); }
+  .s-pend { background: var(--amber-bg); color: var(--amber); }
+  .s-cancel { background: var(--red-bg); color: var(--red); }
+
+  .side-col { display: flex; flex-direction: column; gap: 16px; }
+
+  .perf-body { padding: 20px; }
+  .perf-item { margin-bottom: 18px; }
+  .perf-item:last-child { margin-bottom: 0; }
+  .perf-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .perf-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .perf-val { font-size: 13px; font-weight: 700; }
+  .track { height: 6px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 4px; width: 0; transition: width 1s ease; }
+
+  .activity-body { padding: 20px; }
+  .timeline { position: relative; padding-left: 20px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px; top: 4px; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--border-hover), transparent);
+  }
+  .tl-item { position: relative; margin-bottom: 20px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute;
+    left: -20px; top: 4px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+  .tl-dot.green { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .tl-dot.blue  { background: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
+  .tl-dot.amber { background: var(--amber); box-shadow: 0 0 0 2px var(--amber); }
+  .tl-dot.red   { background: var(--red); box-shadow: 0 0 0 2px var(--red); }
+  .tl-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .tl-text strong { color: var(--text); font-weight: 600; }
+  .tl-text .highlight { color: var(--accent2); font-weight: 600; }
+  .tl-time { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+
+  .page-header { display: flex; align-items: flex-end; justify-content: space-between; }
+  .page-title { font-size: 26px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .page-title span { color: var(--accent2); }
+  .page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  @@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .reveal { opacity: 0; animation: fadeUp 0.5s ease forwards; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10, 12, 18, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .modal-overlay.active .modal-content {
+    transform: translateY(0);
+  }
+  .modal-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: var(--red-bg);
+    color: var(--red);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .modal-icon svg { width: 28px; height: 28px; }
+  .modal-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .modal-desc { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 12px; }
+  .modal-actions .btn { flex: 1; justify-content: center; padding: 10px 0; }
+  .d1 { animation-delay: 0.05s; }
+  .d2 { animation-delay: 0.10s; }
+  .d3 { animation-delay: 0.15s; }
+  .d4 { animation-delay: 0.20s; }
+  .d5 { animation-delay: 0.25s; }
+  .d6 { animation-delay: 0.30s; }
+  .d7 { animation-delay: 0.35s; }
+  .d8 { animation-delay: 0.40s; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <img src="~/images/Logo.png" alt="Logo" />
+    </div>
+    <span class="sb-logo-text">OmniBizAI</span>
+  </div>
+  <nav class="sb-body">
+    <div class="sb-section-label">Chính</div>
+    <a class="sb-item active" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+      <span class="sb-label">Tổng quan</span>
+      <span class="sb-tooltip">Tổng quan</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+      <span class="sb-label">KPI / OKR</span>
+      <span class="sb-tooltip">KPI / OKR</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+      <span class="sb-label">Trợ lý AI</span>
+      <span class="sb-badge" style="background: linear-gradient(45deg, #8b5cf6, #ec4899)">Mới</span>
+      <span class="sb-tooltip">Trợ lý AI</span>
+    </a>
+    <div class="sb-section-label">Kinh doanh</div>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
+      <span class="sb-label">Đơn hàng</span>
+      <span class="sb-tooltip">Đơn hàng</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
+      <span class="sb-label">Sản phẩm</span>
+      <span class="sb-tooltip">Sản phẩm</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
+      <span class="sb-label">Hàng chờ duyệt</span>
+      <span class="sb-badge">5</span>
+      <span class="sb-tooltip">Hàng chờ duyệt (5)</span>
+    </a>
+    <div class="sb-section-label">Tài chính</div>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <span class="sb-label">Ngân sách</span>
+      <span class="sb-tooltip">Ngân sách</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
+      <span class="sb-label">Giao dịch</span>
+      <span class="sb-tooltip">Giao dịch</span>
+    </a>
+    <div class="sb-section-label">Quản lý</div>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <span class="sb-label">Nhân viên</span>
+      <span class="sb-tooltip">Nhân viên</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
+      <span class="sb-label">Khách hàng</span>
+      <span class="sb-tooltip">Khách hàng</span>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+      <span class="sb-label">Báo cáo</span>
+      <span class="sb-tooltip">Báo cáo</span>
+    </a>
+    <div class="sb-section-label">Hệ thống</div>
+    <a class="sb-item" href="#">
+      <div class="sb-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <span class="sb-label">Cài đặt</span>
+      <span class="sb-tooltip">Cài đặt</span>
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">QT</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Quản trị viên</div>
+        <div class="sb-user-role">Administrator</div>
+      </div>
+    </div>
+    <a class="sb-item" href="#" onclick="showLogoutModal(event)" style="color: var(--red); margin-top: 8px;">
+      <div class="sb-icon" style="background: rgba(248,113,113,0.1); color: var(--red);">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </div>
+      <span class="sb-label">Đăng xuất</span>
+      <span class="sb-tooltip">Đăng xuất</span>
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span>Trang chủ</span>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
+        <strong>Tổng quan</strong>
+      </div>
+      <div class="search-bar">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Tìm kiếm...">
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="icon-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg><span class="notif-dot"></span></div>
+      <div class="icon-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg></div>
+      <button class="btn btn-ghost"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Xuất báo cáo</button>
+      <button class="btn btn-primary"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 4v16m8-8H4"/></svg>Thêm mới</button>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="page-header reveal d1">
+      <div>
+        <h1 class="page-title">Chào mừng trở lại, <span>Quản trị viên</span> 👋</h1>
+        <p class="page-sub" id="time-display"></p>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card reveal d2">
+        <div class="stat-header">
+          <div><div class="stat-label">Nhân viên</div><div class="stat-value">124</div></div>
+          <div class="stat-icon" style="background:var(--blue-bg); color:var(--blue)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        </div>
+        <div class="stat-footer"><span class="stat-badge up"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>+3</span><span class="stat-period">so với tháng trước</span></div>
+      </div>
+      <div class="stat-card reveal d3">
+        <div class="stat-header">
+          <div><div class="stat-label">Doanh thu</div><div class="stat-value">4.8 tỷ</div></div>
+          <div class="stat-icon" style="background:var(--green-bg); color:var(--green)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        </div>
+        <div class="stat-footer"><span class="stat-badge up"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>+12.4%</span><span class="stat-period">so với tháng trước</span></div>
+      </div>
+      <div class="stat-card reveal d4">
+        <div class="stat-header">
+          <div><div class="stat-label">Đơn hàng</div><div class="stat-value">318</div></div>
+          <div class="stat-icon" style="background:var(--amber-bg); color:var(--amber)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
+        </div>
+        <div class="stat-footer"><span class="stat-badge up"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>+2.1%</span><span class="stat-period">so với tháng trước</span></div>
+      </div>
+      <div class="stat-card reveal d5">
+        <div class="stat-header">
+          <div><div class="stat-label">Khách hàng</div><div class="stat-value">2,047</div></div>
+          <div class="stat-icon" style="background: rgba(244,114,182,0.08); color:var(--pink)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
+        </div>
+        <div class="stat-footer"><span class="stat-badge up"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>+8.7%</span><span class="stat-period">so với tháng trước</span></div>
+      </div>
+    </div>
+
+    <!-- Chart Section - NEW -->
+    <div class="chart-section reveal d6">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Doanh thu 7 ngày qua</div>
+          <div class="chart-sub">So sánh với tuần trước</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Đơn hàng theo danh mục</div>
+          <div class="chart-sub">Phân bố tỷ lệ %</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Grid -->
+    <div class="bottom-grid reveal d7">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Đơn hàng gần đây</div><div class="card-sub">5 đơn mới nhất trong hệ thống</div></div>
+          <a href="#" class="card-link">Xem tất cả <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg></a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Giá trị</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+              <tr><td><span class="order-id">#ORD-2841</span></td><td><div class="customer-cell"><div class="avi" style="background:rgba(96,165,250,0.12);color:var(--blue)">NL</div><div><div class="c-name">Nguyễn Lan Anh</div><div class="c-email">lan.anh@gmail.com</div></div></div></td><td>Laptop Dell XPS 15</td><td class="td-amount">32.500.000 ₫</td><td><span class="status s-done">Hoàn thành</span></td></tr>
+              <tr><td><span class="order-id">#ORD-2840</span></td><td><div class="customer-cell"><div class="avi" style="background:rgba(167,139,250,0.12);color:#a78bfa">TM</div><div><div class="c-name">Trần Minh Tuấn</div><div class="c-email">minhtuan@outlook.com</div></div></div></td><td>iPhone 15 Pro Max</td><td>29.990.000 ₫</td><td><span class="status s-ship">Đang giao</span></td></tr>
+              <tr><td><span class="order-id">#ORD-2839</span></td><td><div class="customer-cell"><div class="avi" style="background:var(--amber-bg);color:var(--amber)">PH</div><div><div class="c-name">Phạm Hoàng Nam</div><div class="c-email">hoangnam@yahoo.com</div></div></div></td><td>Samsung Galaxy S24</td><td>22.490.000 ₫</td><td><span class="status s-pend">Chờ duyệt</span></td></tr>
+              <tr><td><span class="order-id">#ORD-2838</span></td><td><div class="customer-cell"><div class="avi" style="background:var(--red-bg);color:var(--red)">LT</div><div><div class="c-name">Lê Thị Hương</div><div class="c-email">thihuong@gmail.com</div></div></div></td><td>iPad Pro 12.9"</td><td>27.990.000 ₫</td><td><span class="status s-cancel">Đã huỷ</span></td></tr>
+              <tr><td><span class="order-id">#ORD-2837</span></td><td><div class="customer-cell"><div class="avi" style="background:var(--green-bg);color:var(--green)">VK</div><div><div class="c-name">Võ Khánh Linh</div><div class="c-email">khanhlinh@vn.com</div></div></div></td><td>MacBook Air M3</td><td>34.990.000 ₫</td><td><span class="status s-done">Hoàn thành</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="side-col">
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Hiệu suất kho</div><div class="card-sub">Tháng 4 / 2026</div></div></div>
+          <div class="perf-body">
+            <div class="perf-item"><div class="perf-row"><span class="perf-name">Điện tử</span><span class="perf-val" style="color:var(--green)">82%</span></div><div class="track"><div class="fill" data-w="82%" style="background:linear-gradient(90deg,var(--green),#14b8a6)"></div></div></div>
+            <div class="perf-item"><div class="perf-row"><span class="perf-name">Gia dụng</span><span class="perf-val" style="color:var(--blue)">65%</span></div><div class="track"><div class="fill" data-w="65%" style="background:linear-gradient(90deg,var(--blue),#818cf8)"></div></div></div>
+            <div class="perf-item"><div class="perf-row"><span class="perf-name">Thời trang</span><span class="perf-val" style="color:var(--amber)">48%</span></div><div class="track"><div class="fill" data-w="48%" style="background:linear-gradient(90deg,var(--amber),#f97316)"></div></div></div>
+            <div class="perf-item"><div class="perf-row"><span class="perf-name">Thực phẩm</span><span class="perf-val" style="color:#c084fc">91%</span></div><div class="track"><div class="fill" data-w="91%" style="background:linear-gradient(90deg,#a855f7,#ec4899)"></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Hoạt động</div><div class="card-sub">Nhật ký hôm nay</div></div></div>
+          <div class="activity-body">
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-dot green"></div><div class="tl-text"><strong>Lan Anh</strong> hoàn thành đơn <span class="highlight">#ORD-2841</span></div><div class="tl-time">5 phút trước</div></div>
+              <div class="tl-item"><div class="tl-dot blue"></div><div class="tl-text"><strong>Admin</strong> thêm nhân viên mới: Đặng Hoà</div><div class="tl-time">18 phút trước</div></div>
+              <div class="tl-item"><div class="tl-dot amber"></div><div class="tl-text">Kho <strong>Điện tử</strong> sắp hết hàng (còn 12 sp)</div><div class="tl-time">42 phút trước</div></div>
+              <div class="tl-item"><div class="tl-dot red"></div><div class="tl-text">Đơn <span class="highlight">#ORD-2838</span> bị huỷ bởi khách hàng</div><div class="tl-time">1 giờ trước</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logout Modal -->
+<div id="logoutModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+    </div>
+    <h3 class="modal-title">Đăng xuất</h3>
+    <p class="modal-desc">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLogoutModal()">Huỷ</button>
+      <a href="/Account/Login" class="btn btn-primary" style="background: var(--red); box-shadow: 0 4px 20px var(--red-bg);">Đăng xuất</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function updateTime() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    const mo = String(now.getMonth()+1).padStart(2,'0');
+    const y = now.getFullYear();
+    document.getElementById('time-display').textContent = `Cập nhật lúc ${h}:${m}, ${d}/${mo}/${y}`;
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  // Modal functions
+  function showLogoutModal(e) {
+    e.preventDefault();
+    document.getElementById('logoutModal').classList.add('active');
+  }
+  function closeLogoutModal() {
+    document.getElementById('logoutModal').classList.remove('active');
+  }
+
+  // Progress bars
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.fill[data-w]').forEach(el => {
+        el.style.width = el.dataset.w;
+      });
+    }, 300);
+  });
+
+  // Revenue Chart (Line)
+  const ctx1 = document.getElementById('revenueChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: ['21/4', '22/4', '23/4', '24/4', '25/4', '26/4', '27/4'],
+      datasets: [{
+        label: 'Doanh thu (triệu ₫)',
+        data: [3.2, 3.8, 4.1, 3.5, 4.6, 5.2, 4.8],
+        borderColor: '#6c63ff',
+        backgroundColor: 'rgba(108, 99, 255, 0.05)',
+        borderWidth: 2,
+        pointBackgroundColor: '#8b85ff',
+        pointBorderColor: '#0a0c12',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#5a6280', font: { size: 11 } } },
+        tooltip: { backgroundColor: '#181c2e', titleColor: '#e2e8f8', bodyColor: '#5a6280' }
+      },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#5a6280' } },
+        x: { grid: { display: false }, ticks: { color: '#5a6280' } }
+      }
+    }
+  });
+
+  // Category Chart (Doughnut)
+  const ctx2 = document.getElementById('categoryChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Điện tử', 'Gia dụng', 'Thời trang', 'Thực phẩm'],
+      datasets: [{
+        data: [42, 23, 18, 17],
+        backgroundColor: ['#6c63ff', '#2dd4bf', '#fbbf24', '#f472b6'],
+        borderWidth: 0,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#5a6280', font: { size: 11 }, usePointStyle: true, pointStyle: 'circle' } },
+        tooltip: { backgroundColor: '#181c2e', titleColor: '#e2e8f8', bodyColor: '#5a6280' }
+      },
+      cutout: '65%'
+    }
+  });
+</script>
+</body>
+</html>
