@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OmniBizAI.Data;
 
@@ -11,9 +12,11 @@ using OmniBizAI.Data;
 namespace OmniBizAI.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427070210_SyncFinanceTablesWithExistingDb")]
+    partial class SyncFinanceTablesWithExistingDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -474,6 +477,10 @@ namespace OmniBizAI.Data.Migrations
                         .HasColumnType("nvarchar(3)")
                         .HasDefaultValue("VND")
                         .HasColumnName("DefaultCurrency");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
 
                     b.Property<string>("Name")
                         .IsRequired()
