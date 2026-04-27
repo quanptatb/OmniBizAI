@@ -1,0 +1,778 @@
+/* 
+    OmniBizAI — Payment Request
+    Đồng nhất với Executive Dashboard (dark theme)
+    Dùng chung biến CSS từ dashboard layout
+*/
+
+/* ── Fallback vars (khi dùng độc lập) ─────────────────────── */
+:root {
+    --pr-accent: var(--accent2, #6C63FF);
+    --pr-accent-hover: var(--accent2-hover, #5a52e0);
+    --pr-accent-glow: rgba(108, 99, 255, 0.25);
+    --pr-accent-subtle: rgba(108, 99, 255, 0.08);
+    --pr-accent-border: rgba(108, 99, 255, 0.22);
+
+    --pr-bg: var(--bg, #0F1117);
+    --pr-surface: var(--surface, #161B27);
+    --pr-surface2: #1C2232;
+
+    --pr-text: var(--text, #E2E8F0);
+    --pr-muted: var(--muted, #64748B);
+    --pr-muted2: var(--muted2, #3A3F5C);
+
+    --pr-border: var(--border, rgba(255, 255, 255, 0.07));
+    --pr-border-hover: var(--border-hover, rgba(255, 255, 255, 0.13));
+
+    --pr-green: var(--green, #34D399);
+    --pr-green-bg: var(--green-bg, rgba(52, 211, 153, 0.08));
+    --pr-amber: var(--amber, #FBBF24);
+    --pr-amber-bg: var(--amber-bg, rgba(251, 191, 36, 0.08));
+    --pr-red: var(--red, #EF4444);
+    --pr-red-bg: var(--red-bg, rgba(239, 68, 68, 0.08));
+    --pr-blue: var(--blue, #60A5FA);
+    --pr-blue-bg: var(--blue-bg, rgba(96, 165, 250, 0.08));
+
+    --pr-radius: var(--radius, 12px);
+    --pr-radius-sm: 8px;
+    --pr-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+    --pr-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Animations ─────────────────────────────────────────── */
+@keyframes pr-fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pr-shimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes pr-pulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+    }
+
+    70% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+.pr-reveal {
+    opacity: 0;
+    animation: pr-fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.pr-d1 {
+    animation-delay: 0.04s;
+}
+
+.pr-d2 {
+    animation-delay: 0.10s;
+}
+
+.pr-d3 {
+    animation-delay: 0.16s;
+}
+
+.pr-d4 {
+    animation-delay: 0.22s;
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+.pr-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: 'Inter', sans-serif;
+    color: var(--pr-text);
+}
+
+/* ── Page Header ────────────────────────────────────────── */
+.pr-header {
+    margin-bottom: 28px;
+}
+
+.pr-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pr-accent);
+    margin-bottom: 8px;
+    opacity: 0.75;
+}
+
+.pr-eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pr-accent);
+    box-shadow: 0 0 8px var(--pr-accent);
+    position: relative;
+}
+
+.pr-eyebrow-dot::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: var(--pr-accent);
+    animation: pr-pulse 1.8s ease-out infinite;
+}
+
+.pr-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--pr-accent);
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+    margin: 0 0 6px 0;
+}
+
+.pr-header h1 span {
+    color: var(--pr-accent);
+}
+
+.pr-header p {
+    color: var(--pr-muted);
+    margin: 0;
+    font-size: 13px;
+}
+
+/* ── Grid ───────────────────────────────────────────────── */
+.pr-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .pr-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Card Base ───────────────────────────────────────────── */
+.pr-card {
+    background: var(--pr-surface);
+    border: 1px solid var(--pr-border);
+    border-radius: var(--pr-radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pr-card:hover {
+    border-color: var(--pr-border-hover);
+}
+
+.pr-card-inner {
+    padding: 22px 24px;
+}
+
+.pr-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--pr-border);
+}
+
+.pr-card-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--pr-text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pr-card-title i {
+    color: var(--pr-accent);
+    font-size: 13px;
+}
+
+/* ── Form ───────────────────────────────────────────────── */
+.pr-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 20px 24px;
+}
+
+.pr-col-full {
+    grid-column: span 2;
+}
+
+.pr-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pr-form-group label {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--pr-muted);
+}
+
+.pr-input {
+    padding: 10px 13px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--pr-border);
+    border-radius: var(--pr-radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    color: var(--pr-text);
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.pr-input::placeholder {
+    color: var(--pr-muted2);
+}
+
+.pr-input:focus {
+    border-color: var(--pr-accent);
+    background: rgba(108, 99, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15), 0 0 12px rgba(108, 99, 255, 0.2);
+    color: #FFFFFF; /* Làm chữ sáng lên khi nhập */
+}
+
+.pr-input:read-only {
+    background: rgba(255, 255, 255, 0.02);
+    cursor: default;
+    color: #FFFFFF; /* Cho chữ ở ô Thành Tiền trắng tinh */
+}
+
+select.pr-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748B' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+select.pr-input {
+    color: var(--pr-text); /* Đảm bảo chữ trong combobox sáng lên */
+}
+
+select.pr-input option {
+    background: #1C2232;
+    color: #FFFFFF;
+}
+
+textarea.pr-input {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* ── Table ───────────────────────────────────────────────── */
+.pr-table-container {
+    overflow-x: auto;
+    padding: 0 24px 20px;
+}
+
+.pr-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pr-table thead tr {
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.pr-table th {
+    padding: 11px 12px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--pr-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--pr-border);
+    white-space: nowrap;
+}
+
+.pr-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--pr-border);
+    vertical-align: middle;
+}
+
+.pr-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.pr-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.pr-table tfoot td {
+    padding-top: 16px;
+    border-bottom: none;
+}
+
+.pr-total-row td {
+    background: rgba(108, 99, 255, 0.04);
+    border-top: 1px solid var(--pr-accent-border) !important;
+}
+
+.pr-total-label {
+    text-align: right;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--pr-muted);
+    padding: 14px 12px !important;
+}
+
+.pr-total-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--pr-accent);
+    letter-spacing: -0.5px;
+    padding: 14px 12px !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.pr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--pr-radius-sm);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: 'Inter', sans-serif;
+    border: none;
+    white-space: nowrap;
+}
+
+.pr-btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.pr-btn-primary {
+    background: var(--pr-accent);
+    color: #fff;
+    box-shadow: 0 0 20px var(--pr-accent-glow);
+}
+
+.pr-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 24px rgba(108, 99, 255, 0.45);
+}
+
+.pr-btn-outline {
+    background: transparent;
+    border: 1px solid var(--pr-border);
+    color: var(--pr-muted);
+}
+
+.pr-btn-outline:hover {
+    border-color: var(--pr-border-hover);
+    color: var(--pr-text);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.pr-btn-text {
+    background: transparent;
+    color: var(--pr-muted);
+}
+
+.pr-btn-text:hover {
+    color: var(--pr-text);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.pr-btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--pr-muted);
+    cursor: pointer;
+    padding: 7px;
+    border-radius: var(--pr-radius-sm);
+    transition: all 0.18s;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.pr-btn-icon:hover {
+    color: var(--pr-red);
+    background: var(--pr-red-bg);
+}
+
+/* ── Action Bar ──────────────────────────────────────────── */
+.pr-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: var(--pr-surface);
+    border: 1px solid var(--pr-border);
+    border-radius: var(--pr-radius);
+    margin-bottom: 16px;
+}
+
+.pr-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+/* ── AI Risk Card ────────────────────────────────────────── */
+.pr-ai-card {
+    background: linear-gradient(160deg, #161B27 0%, #1a1f30 100%);
+    border: 1px solid var(--pr-border);
+    border-top: 3px solid var(--pr-accent);
+    box-shadow: var(--pr-shadow);
+}
+
+.pr-ai-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--pr-border);
+}
+
+/* Badge */
+.pr-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pr-badge-warn {
+    background: var(--pr-amber-bg);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: var(--pr-amber);
+}
+
+.pr-badge-danger {
+    background: var(--pr-red-bg);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: var(--pr-red);
+}
+
+/* Gauge */
+.pr-ai-score-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 22px 22px 16px;
+    border-bottom: 1px solid var(--pr-border);
+}
+
+.pr-ai-score {
+    position: relative;
+    width: 154px;
+    height: 77px;
+}
+
+.pr-gauge {
+    width: 100%;
+    height: 100%;
+}
+
+.pr-gauge-bg {
+    stroke: rgba(255, 255, 255, 0.06);
+    stroke-width: 9;
+    stroke-linecap: round;
+}
+
+.pr-gauge-value {
+    stroke: var(--pr-red);
+    stroke-width: 9;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.5));
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pr-score-text {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.pr-score-num {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--pr-red);
+    letter-spacing: -1px;
+}
+
+.pr-score-max {
+    font-size: 13px;
+    color: var(--pr-muted);
+    font-weight: 600;
+}
+
+.pr-ai-level {
+    margin-top: 18px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--pr-red);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--pr-red-bg);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 5px 14px;
+    border-radius: 20px;
+}
+
+.pr-level-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--pr-red);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.pr-level-dot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--pr-red);
+    animation: pr-pulse 1.6s ease-out infinite;
+}
+
+/* AI sections */
+.pr-ai-section {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--pr-border);
+}
+
+.pr-ai-section:last-child {
+    border-bottom: none;
+}
+
+.pr-ai-subtitle {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--pr-muted);
+    margin: 0 0 12px 0;
+}
+
+.pr-risk-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pr-risk-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px 12px;
+    border-radius: var(--pr-radius-sm);
+    border: 1px solid var(--pr-border);
+    color: var(--pr-text);
+    transition: border-color 0.15s;
+}
+
+.pr-risk-list li:hover {
+    border-color: var(--pr-border-hover);
+}
+
+.pr-risk-list li i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.pr-text-danger {
+    color: var(--pr-red);
+}
+
+.pr-text-warning {
+    color: var(--pr-amber);
+}
+
+.pr-ai-recommendation {
+    background: var(--pr-accent-subtle);
+    border-left: 2px solid var(--pr-accent);
+    padding: 12px 14px;
+    border-radius: 0 var(--pr-radius-sm) var(--pr-radius-sm) 0;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--pr-text);
+}
+
+.pr-ai-recommendation p {
+    margin: 0;
+}
+
+/* ── Attachment Card ─────────────────────────────────────── */
+.pr-dropzone {
+    border: 1.5px dashed var(--pr-border);
+    border-radius: var(--pr-radius-sm);
+    padding: 28px 16px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.015);
+    transition: all 0.2s;
+    cursor: pointer;
+    margin: 0 24px 16px;
+}
+
+.pr-dropzone:hover,
+.pr-dropzone.pr-dragover {
+    border-color: var(--pr-accent);
+    background: var(--pr-accent-subtle);
+}
+
+.pr-upload-icon {
+    font-size: 22px;
+    color: var(--pr-muted);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.pr-dropzone p {
+    margin: 0 0 4px;
+    font-size: 12.5px;
+    color: var(--pr-muted);
+}
+
+.pr-text-accent {
+    color: var(--pr-accent);
+    font-weight: 600;
+}
+
+.pr-text-xs {
+    font-size: 11px;
+}
+
+.pr-file-list {
+    list-style: none;
+    padding: 0 24px 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.pr-file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--pr-border);
+    border-radius: var(--pr-radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 12.5px;
+    color: var(--pr-text);
+    transition: border-color 0.15s;
+}
+
+.pr-file-item:hover {
+    border-color: var(--pr-border-hover);
+}
+
+.pr-file-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--pr-muted);
+}
+
+.pr-file-item .fa-file-pdf {
+    color: var(--pr-red);
+}
+
+.pr-file-item .fa-times {
+    color: var(--pr-muted);
+    cursor: pointer;
+    transition: color 0.15s;
+    margin-left: auto;
+}
+
+.pr-file-item .fa-times:hover {
+    color: var(--pr-red);
+}
+
+/* ── Utilities ───────────────────────────────────────────── */
+.pr-text-center {
+    text-align: center;
+}
+
+.pr-text-right {
+    text-align: right;
+}
+
+.pr-font-semibold {
+    font-weight: 600;
+}
+
+.pr-font-bold {
+    font-weight: 700;
+}
+
+.pr-text-muted {
+    color: var(--pr-muted);
+    font-size: 12.5px;
+}
+
+.pr-mb-3 {
+    margin-bottom: 12px;
+}
+
+.pr-cursor-pointer {
+    cursor: pointer;
+}

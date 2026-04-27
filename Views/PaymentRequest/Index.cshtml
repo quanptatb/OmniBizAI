@@ -1,0 +1,258 @@
+@using OmniBizAI.ViewModels
+@model PaymentRequestViewModel
+@{
+    ViewData["Title"] = "Tạo Yêu Cầu Thanh Toán";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/payment-request.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="pr-container">
+    <div class="pr-header pr-reveal pr-d1">
+        <div class="pr-eyebrow">
+            <span class="pr-eyebrow-dot"></span>
+            Tài Chính · OmniBizAI
+        </div>
+        <h1>Tạo Yêu Cầu <span>Thanh Toán</span></h1>
+        <p>Hệ thống hỗ trợ tạo yêu cầu và phân tích rủi ro tự động.</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" style="background: var(--pr-green-bg); color: var(--pr-green); border: 1px solid var(--pr-green); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <form asp-action="Create" method="post" id="paymentForm">
+        <div asp-validation-summary="ModelOnly" class="text-danger pr-mb-3"></div>
+
+        <div class="pr-layout">
+            <div class="pr-main-col">
+                <div class="pr-card pr-reveal pr-d2">
+                    <div class="pr-card-header">
+                        <h2 class="pr-card-title"><i class="fas fa-file-alt"></i> Thông Tin Chung</h2>
+                    </div>
+                    <div class="pr-form-grid">
+                        <div class="pr-form-group pr-col-full">
+                            <label asp-for="Title">Tiêu Đề Yêu Cầu</label>
+                            <input asp-for="Title" class="pr-input" placeholder="VD: Mua bản quyền phần mềm thiết kế" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="pr-form-group">
+                            <label asp-for="Department">Phòng Ban</label>
+                            <select asp-for="Department" class="pr-input">
+                                <option value="">Chọn phòng ban...</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="IT">Kỹ thuật / IT</option>
+                                <option value="Finance">Tài chính</option>
+                            </select>
+                            <span asp-validation-for="Department" class="text-danger"></span>
+                        </div>
+
+                        <div class="pr-form-group">
+                            <label asp-for="Category">Danh Mục</label>
+                            <select asp-for="Category" class="pr-input">
+                                <option value="">Chọn loại chi phí...</option>
+                                <option value="Software">Phần mềm</option>
+                                <option value="Hardware">Thiết bị</option>
+                                <option value="Marketing">Quảng cáo</option>
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+
+                        <div class="pr-form-group">
+                            <label asp-for="Vendor">Nhà Cung Cấp</label>
+                            <input asp-for="Vendor" class="pr-input" placeholder="Tên đơn vị thụ hưởng" />
+                            <span asp-validation-for="Vendor" class="text-danger"></span>
+                        </div>
+
+                        <div class="pr-form-group">
+                            <label asp-for="Budget">Nguồn Ngân Sách</label>
+                            <select asp-for="Budget" class="pr-input">
+                                <option value="">Chọn ngân sách...</option>
+                                <option value="B2026-MKT">Marketing Q2-2026</option>
+                                <option value="B2026-OPEX">Vận hành doanh nghiệp</option>
+                            </select>
+                            <span asp-validation-for="Budget" class="text-danger"></span>
+                        </div>
+
+                        <div class="pr-form-group pr-col-full">
+                            <label asp-for="Description">Ghi Chú Chi Tiết</label>
+                            <textarea asp-for="Description" class="pr-input" placeholder="Giải trình lý do thanh toán..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pr-card pr-reveal pr-d3">
+                    <div class="pr-card-header">
+                        <h2 class="pr-card-title"><i class="fas fa-list-ul"></i> Chi Tiết Khoản Mục</h2>
+                        <button type="button" class="pr-btn pr-btn-outline pr-btn-sm" onclick="addItemRow()">
+                            <i class="fas fa-plus"></i> Thêm Dòng
+                        </button>
+                    </div>
+                    <div class="pr-table-container">
+                        <table class="pr-table" id="itemsTable">
+                            <thead>
+                                <tr>
+                                    <th>Mô Tả</th>
+                                    <th width="100">SL</th>
+                                    <th width="150">Đơn Giá</th>
+                                    <th width="150">Thành Tiền</th>
+                                    <th width="40"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.LineItems.Count; i++)
+                                {
+                                    <tr>
+                                        <td><input asp-for="LineItems[i].Description" class="pr-input" /></td>
+                                        <td><input asp-for="LineItems[i].Quantity" type="number" class="pr-input pr-qty" oninput="calculateTotal()" /></td>
+                                        <td><input asp-for="LineItems[i].UnitPrice" type="number" class="pr-input pr-price" oninput="calculateTotal()" /></td>
+                                        <td><input class="pr-input pr-subtotal" readonly value="0" /></td>
+                                        <td><button type="button" class="pr-btn-icon" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="pr-total-row">
+                                    <td colspan="3" class="pr-total-label">Tổng Cộng</td>
+                                    <td colspan="2" class="pr-total-val" id="totalDisplay">0 ₫</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pr-actions pr-reveal pr-d4">
+                    <button type="button" class="pr-btn pr-btn-text">Hủy Bỏ</button>
+                    <div class="pr-actions-right">
+                        <button type="submit" name="action" value="draft" class="pr-btn pr-btn-outline"><i class="fas fa-save"></i> Lưu Nháp (Draft)</button>
+                        <button type="submit" name="action" value="submit" class="pr-btn pr-btn-primary"><i class="fas fa-paper-plane"></i> Gửi Phê Duyệt</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pr-side-col">
+                <div class="pr-card pr-ai-card pr-reveal pr-d2">
+                    <div class="pr-ai-header-row">
+                        <h2 class="pr-card-title"><i class="fas fa-robot"></i> AI Risk Score</h2>
+                        <span class="pr-badge pr-badge-danger">High Risk</span>
+                    </div>
+                    <div class="pr-ai-score-wrap">
+                        <div class="pr-ai-score">
+                            <svg class="pr-gauge" viewBox="0 0 100 50">
+                                <path class="pr-gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" />
+                                <path class="pr-gauge-value" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke-dasharray="125.6" stroke-dashoffset="18.8" />
+                            </svg>
+                            <div class="pr-score-text">
+                                <span class="pr-score-num">85</span><span class="pr-score-max">/100</span>
+                            </div>
+                        </div>
+                        <div class="pr-ai-level"><span class="pr-level-dot"></span> Cần rà soát kỹ</div>
+                    </div>
+                </div>
+
+                <div class="pr-card pr-reveal pr-d3">
+                    <div class="pr-card-header">
+                        <h2 class="pr-card-title"><i class="fas fa-paperclip"></i> Tệp Đính Kèm</h2>
+                    </div>
+                    <p class="pr-text-muted" style="padding: 12px 24px 0;">
+                        Tải lên hóa đơn, biên lai hoặc hợp đồng.
+                    </p>
+                    <div class="pr-dropzone" id="dropzone">
+                        <i class="fas fa-cloud-upload-alt pr-upload-icon"></i>
+                        <p>Kéo thả tệp vào đây hoặc 
+                            <span class="pr-text-accent pr-cursor-pointer">tải lên</span>
+                        </p>
+                        <p class="pr-text-xs pr-text-muted">Hỗ trợ PDF, JPG, PNG (Tối đa 10MB)</p>
+                    </div>
+                    <ul class="pr-file-list" id="fileList">
+                        </ul>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // JS xử lý tính toán và thêm dòng
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll('#itemsTable tbody tr').forEach(tr => {
+                const qty = tr.querySelector('.pr-qty').value || 0;
+                const price = tr.querySelector('.pr-price').value || 0;
+                const subtotal = qty * price;
+                tr.querySelector('.pr-subtotal').value = subtotal.toLocaleString('vi-VN');
+                total += subtotal;
+            });
+            document.getElementById('totalDisplay').innerText = total.toLocaleString('vi-VN') + " ₫";
+        }
+
+        let rowCount = @Model.LineItems.Count;
+        function addItemRow() {
+            const tbody = document.querySelector('#itemsTable tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input name="LineItems[${rowCount}].Description" class="pr-input" /></td>
+                <td><input name="LineItems[${rowCount}].Quantity" type="number" class="pr-input pr-qty" oninput="calculateTotal()" /></td>
+                <td><input name="LineItems[${rowCount}].UnitPrice" type="number" class="pr-input pr-price" oninput="calculateTotal()" /></td>
+                <td><input class="pr-input pr-subtotal" readonly value="0" /></td>
+                <td><button type="button" class="pr-btn-icon" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            rowCount++;
+        }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            calculateTotal();
+        }
+
+        /* ── Drag & Drop ── */
+        const dropzone = document.getElementById('dropzone');
+        if (dropzone) {
+            dropzone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropzone.classList.add('pr-dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('pr-dragover');
+            });
+
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropzone.classList.remove('pr-dragover');
+                [...e.dataTransfer.files].forEach(addFileItem);
+            });
+
+            dropzone.addEventListener('click', () => {
+                const inp = document.createElement('input');
+                inp.type = 'file';
+                inp.multiple = true;
+                inp.accept = '.pdf,.jpg,.jpeg,.png';
+                inp.onchange = () => [...inp.files].forEach(addFileItem);
+                inp.click();
+            });
+        }
+
+        function addFileItem(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const icon = ext === 'pdf' ? 'fa-file-pdf' :
+                         ['jpg','jpeg','png'].includes(ext) ? 'fa-file-image' : 'fa-file';
+            const li = document.createElement('li');
+            li.className = 'pr-file-item';
+            li.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span class="pr-file-name">${file.name}</span>
+                <i class="fas fa-times" onclick="this.closest('li').remove()"></i>
+            `;
+            document.getElementById('fileList').appendChild(li);
+        }
+    </script>
+}
