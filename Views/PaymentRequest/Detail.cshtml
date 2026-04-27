@@ -1,0 +1,211 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chi tiết yêu cầu thanh toán";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/payment-request-detail.css" />
+}
+
+<!-- Page Header -->
+<div class="pr-page-header">
+    <div>
+        <h1 class="pr-page-title">Chi tiết yêu cầu thanh toán</h1>
+        <p class="pr-page-subtitle">Xem và phê duyệt yêu cầu thanh toán</p>
+    </div>
+    <div class="pr-action-bar">
+        <a href="#" class="btn btn-ghost">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Quay lại
+        </a>
+        <button class="btn btn-primary">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Xuất PDF
+        </button>
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div class="pr-container">
+
+    <!-- ── Left Column: Main Content ── -->
+    <div class="pr-main">
+
+        <!-- Request Info Card -->
+        <div class="pr-card">
+            <div class="pr-header-top">
+                <div class="pr-code-group">
+                    <div class="pr-code">Yêu cầu thanh toán #PR-001</div>
+                    <div class="pr-meta">Tạo lúc 09:30, ngày 27/04/2026 · Phòng Marketing</div>
+                </div>
+                <div class="pr-badge pending">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Chờ duyệt
+                </div>
+            </div>
+
+            <!-- Info Grid -->
+            <div class="pr-info-grid">
+                <div class="pr-info-item">
+                    <div class="pr-info-label">Người tạo</div>
+                    <div class="pr-info-value">Nguyễn Văn A</div>
+                </div>
+                <div class="pr-info-item">
+                    <div class="pr-info-label">Phòng ban</div>
+                    <div class="pr-info-value">Marketing</div>
+                </div>
+                <div class="pr-info-item">
+                    <div class="pr-info-label">Ngày cần thanh toán</div>
+                    <div class="pr-info-value">30/04/2026</div>
+                </div>
+                <div class="pr-info-item">
+                    <div class="pr-info-label">Danh mục chi phí</div>
+                    <div class="pr-info-value">Marketing & Quảng cáo</div>
+                </div>
+                <div class="pr-info-item">
+                    <div class="pr-info-label">Nhà cung cấp</div>
+                    <div class="pr-info-value">Công ty TNHH ABC Media</div>
+                </div>
+                <div class="pr-info-item">
+                    <div class="pr-info-label">Phương thức thanh toán</div>
+                    <div class="pr-info-value">Chuyển khoản ngân hàng</div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="pr-section-title">Mô tả</div>
+            <div class="pr-note-box">
+                Chi phí marketing cho chiến dịch ra mắt sản phẩm Q3/2026, bao gồm thuê KOL, quảng cáo mạng xã hội và in ấn tài liệu truyền thông.
+            </div>
+        </div>
+
+        <!-- Line Items Card -->
+        <div class="pr-card">
+            <div class="pr-section-title">Danh sách mục chi phí</div>
+            <table class="pr-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên mục lục</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th class="amount">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color: var(--muted); font-size: 12px;">01</td>
+                        <td>Chi phí Marketing quý 3</td>
+                        <td>1</td>
+                        <td>5.000.000 ₫</td>
+                        <td class="amount">5.000.000 ₫</td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--muted); font-size: 12px;">02</td>
+                        <td>Thuê KOL quảng cáo</td>
+                        <td>2</td>
+                        <td>1.500.000 ₫</td>
+                        <td class="amount">3.000.000 ₫</td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--muted); font-size: 12px;">03</td>
+                        <td>In ấn tài liệu truyền thông</td>
+                        <td>500</td>
+                        <td>2.000 ₫</td>
+                        <td class="amount">1.000.000 ₫</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pr-total-section">
+                <div>
+                    <div class="pr-total-label">Tổng yêu cầu</div>
+                    <div class="pr-total-sub">/ Ngân sách: 85.000.000 ₫</div>
+                </div>
+                <div class="pr-total-amount">9.000.000 ₫</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Right Column: Sidebar ── -->
+    <div class="pr-sidebar">
+
+        <!-- AI Risk Section -->
+        <div class="pr-card">
+            <div class="pr-side-title">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color: #8b85ff;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                Phân tích rủi ro AI
+            </div>
+            <div class="ai-risk-card medium">
+                <div class="risk-score">Điểm rủi ro: 58 / 100</div>
+                <div class="risk-level">⚠ Rủi ro Trung bình</div>
+                <div class="risk-desc">
+                    Ngân sách Marketing đang vượt mức 80% so với kế hoạch dự kiến trong tháng. Cần xem xét thêm trước khi phê duyệt.
+                </div>
+                <div class="risk-bar-wrap">
+                    <div class="risk-bar" style="width: 58%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="pr-card">
+            <div class="pr-side-title">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color: var(--blue);"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                Hành động phê duyệt
+            </div>
+            <div class="pr-action-buttons">
+                <button class="btn btn-approve">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                    Phê duyệt
+                </button>
+                <button class="btn btn-reject">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    Từ chối
+                </button>
+            </div>
+        </div>
+
+        <!-- Workflow Timeline -->
+        <div class="pr-card">
+            <div class="pr-side-title">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color: var(--green);"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Lịch sử phê duyệt
+            </div>
+            <div class="workflow-timeline">
+                <div class="workflow-item completed">
+                    <div class="workflow-dot"></div>
+                    <div class="workflow-content">
+                        <h4>Tạo yêu cầu</h4>
+                        <p>Nguyễn Văn A</p>
+                        <div class="workflow-meta">27/04/2026 · 09:30</div>
+                    </div>
+                </div>
+                <div class="workflow-item current">
+                    <div class="workflow-dot"></div>
+                    <div class="workflow-content">
+                        <h4>Chờ Trưởng phòng duyệt</h4>
+                        <p>Trần Thị B</p>
+                        <div class="workflow-meta">Đang chờ...</div>
+                    </div>
+                </div>
+                <div class="workflow-item">
+                    <div class="workflow-dot"></div>
+                    <div class="workflow-content">
+                        <h4>Chờ Giám đốc duyệt</h4>
+                        <p>Lê Văn C</p>
+                    </div>
+                </div>
+                <div class="workflow-item">
+                    <div class="workflow-dot"></div>
+                    <div class="workflow-content">
+                        <h4>Hoàn tất thanh toán</h4>
+                        <p>Kế toán</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
