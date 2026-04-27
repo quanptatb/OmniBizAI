@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
+using OmniBizAI.Data.Seeders;
+using OmniBizAI.Services.Finance;
+using OmniBizAI.Services.System;
 
 LoadDotEnv(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
@@ -21,7 +24,26 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+// ========================================
+// Đăng ký Application Services
+// Blueprint mục 3.6: IDataScopeService — phân quyền dữ liệu
+// Blueprint mục 7.3: IBudgetService — quản lý ngân sách
+// ========================================
+builder.Services.AddScoped<IDataScopeService, DataScopeService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
+
 var app = builder.Build();
+
+// ========================================
+// Chạy Seeder trong môi trường Development
+// Blueprint mục 9.9: Seed phải idempotent, chạy nhiều lần không tạo duplicate.
+// ========================================
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await BudgetSeeder.SeedAsync(dbContext);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -50,7 +72,7 @@ app.MapControllerRoute(
 app.MapRazorPages()
    .WithStaticAssets();
 
-app.Run();
+await app.RunAsync();
 
 static void LoadDotEnv(string path)
 {
