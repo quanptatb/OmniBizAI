@@ -1,0 +1,261 @@
+@using OmniBizAI.ViewModels
+@model CheckInFormViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Check-in KPI";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/kpi.css" />
+}
+
+<div class="kpi-page-header kpi-reveal d1">
+    <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <a href="@Url.Action("Index","Kpi")" style="color:var(--muted);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                KPI / OKR
+            </a>
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color:var(--muted2)"><path d="M9 5l7 7-7 7"/></svg>
+            <a href="@Url.Action("Detail","Kpi",new{id=Model.KpiId})" style="color:var(--muted);font-size:13px;text-decoration:none">Chi tiết</a>
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color:var(--muted2)"><path d="M9 5l7 7-7 7"/></svg>
+            <span style="font-size:13px;color:var(--muted)">Check-in</span>
+        </div>
+        <h1 class="kpi-page-title">Gửi Check-in</h1>
+        <p class="kpi-page-sub">@Model.KpiObjective</p>
+    </div>
+</div>
+
+<form asp-action="CheckIn" asp-controller="Kpi" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="KpiId" value="@Model.KpiId" />
+    <input type="hidden" name="KpiObjective" value="@Model.KpiObjective" />
+
+    <div class="kpi-checkin-layout kpi-reveal d2">
+
+        <!-- LEFT: Form -->
+        <div class="kpi-form-card">
+
+            <!-- Key Result select -->
+            <div class="kpi-field">
+                <label class="kpi-label" for="SelectedKeyResultId">
+                    Key Result <span>*</span>
+                </label>
+                <select class="kpi-select" id="SelectedKeyResultId" name="SelectedKeyResultId" required onchange="onKrChange(this)">
+                    <option value="">-- Chọn Key Result --</option>
+                    @foreach (var kr in Model.KeyResults)
+                    {
+                        var isSelected = Model.SelectedKeyResultId == kr.Id;
+                        if (isSelected)
+                        {
+                            <option value="@kr.Id"
+                                    data-start="@kr.StartValue"
+                                    data-current="@kr.CurrentValue"
+                                    data-target="@kr.TargetValue"
+                                    data-unit="@kr.Unit"
+                                    data-dir="@((int)kr.Direction)"
+                                    selected>
+                                @kr.Title
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@kr.Id"
+                                    data-start="@kr.StartValue"
+                                    data-current="@kr.CurrentValue"
+                                    data-target="@kr.TargetValue"
+                                    data-unit="@kr.Unit"
+                                    data-dir="@((int)kr.Direction)">
+                                @kr.Title
+                            </option>
+                        }
+                    }
+                </select>
+                <span class="kpi-validation-error" asp-validation-for="SelectedKeyResultId"></span>
+            </div>
+
+            <!-- Current value info bar -->
+            <div id="kr-info-bar" style="display:none;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                    <div>
+                        <div class="kpi-metric-label">Giá trị bắt đầu</div>
+                        <div class="kpi-metric-val" id="info-start">–</div>
+                    </div>
+                    <div>
+                        <div class="kpi-metric-label">Giá trị hiện tại</div>
+                        <div class="kpi-metric-val" style="color:var(--accent2)" id="info-current">–</div>
+                    </div>
+                    <div>
+                        <div class="kpi-metric-label">Mục tiêu</div>
+                        <div class="kpi-metric-val" style="color:var(--green)" id="info-target">–</div>
+                    </div>
+                </div>
+                <!-- Preview progress bar -->
+                <div style="margin-top:14px">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                        <span style="font-size:11px;color:var(--muted)">Tiến độ sau check-in</span>
+                        <span style="font-size:12px;font-weight:700;color:var(--text)" id="preview-pct">0%</span>
+                    </div>
+                    <div class="kpi-detail-track">
+                        <div class="kpi-detail-fill" id="preview-bar" style="background:linear-gradient(90deg,var(--accent),#a78bfa);width:0%;transition:width 0.4s"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New value -->
+            <div class="kpi-field">
+                <label class="kpi-label" for="NewValue">
+                    Giá trị mới <span>*</span>
+                    <span id="unit-hint" style="color:var(--accent2);margin-left:4px;font-weight:700"></span>
+                </label>
+                <input class="kpi-input" type="number" step="any" id="NewValue" name="NewValue"
+                       placeholder="Nhập giá trị cập nhật..."
+                       value="@(Model.NewValue != 0 ? Model.NewValue.ToString() : "")"
+                       oninput="updatePreview()" required />
+                <span class="kpi-validation-error" asp-validation-for="NewValue"></span>
+            </div>
+
+            <!-- Note -->
+            <div class="kpi-field">
+                <label class="kpi-label" for="Note">Ghi chú</label>
+                <textarea class="kpi-textarea" id="Note" name="Note"
+                          placeholder="Mô tả những gì đã làm được, khó khăn gặp phải...">@Model.Note</textarea>
+                <span class="kpi-validation-error" asp-validation-for="Note"></span>
+            </div>
+
+            <!-- Evidence upload -->
+            <div class="kpi-field">
+                <label class="kpi-label">Bằng chứng đính kèm</label>
+                <label class="kpi-upload-area" for="evidence-file" id="upload-label">
+                    <div class="kpi-upload-icon">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    </div>
+                    <div class="kpi-upload-text" id="upload-text">Kéo thả hoặc nhấp để chọn file</div>
+                    <div class="kpi-upload-hint">PNG, JPG, PDF – tối đa 10 MB</div>
+                    <input type="file" id="evidence-file" name="EvidenceFile"
+                           accept=".png,.jpg,.jpeg,.pdf,.xlsx,.docx"
+                           onchange="onFileSelect(this)" />
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:10px;margin-top:4px">
+                <a href="@Url.Action("Detail","Kpi",new{id=Model.KpiId})" class="kpi-btn kpi-btn-ghost">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    Huỷ
+                </a>
+                <button type="submit" class="kpi-btn kpi-btn-primary" style="flex:1;justify-content:center">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    Gửi cho quản lý
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Info -->
+        <div style="display:flex;flex-direction:column;gap:18px">
+            <div class="kpi-info-card kpi-reveal d3">
+                <div class="kpi-info-title">
+                    <svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px;color:var(--accent2)" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Hướng dẫn check-in
+                </div>
+                <div class="kpi-info-list">
+                    <div class="kpi-info-row">
+                        <div class="kpi-info-key">Bước 1</div>
+                        <div class="kpi-info-val">Chọn Key Result cần cập nhật</div>
+                    </div>
+                    <div class="kpi-info-row">
+                        <div class="kpi-info-key">Bước 2</div>
+                        <div class="kpi-info-val">Nhập giá trị đo lường thực tế mới nhất</div>
+                    </div>
+                    <div class="kpi-info-row">
+                        <div class="kpi-info-key">Bước 3</div>
+                        <div class="kpi-info-val">Điền ghi chú và đính kèm bằng chứng (nếu có)</div>
+                    </div>
+                    <div class="kpi-info-row">
+                        <div class="kpi-info-key">Bước 4</div>
+                        <div class="kpi-info-val">Gửi – quản lý sẽ xem xét và phê duyệt</div>
+                    </div>
+                </div>
+                <div class="kpi-divider"></div>
+                <div class="kpi-tip-box">
+                    <div class="kpi-tip-title">💡 Lưu ý</div>
+                    <div class="kpi-tip-text">
+                        Nếu check-in bị từ chối, giá trị KPI sẽ không được cập nhật.
+                        Hãy đảm bảo số liệu chính xác và có bằng chứng đi kèm để dễ được phê duyệt.
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-info-card kpi-reveal d4">
+                <div class="kpi-info-title">Quy trình duyệt</div>
+                <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+                    @foreach (var (step, icon, color, text) in new[]{
+                        ("1","M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z","var(--accent2)","Nhân viên gửi check-in"),
+                        ("2","M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9","var(--amber)","Quản lý nhận thông báo"),
+                        ("3","M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z","var(--green)","Duyệt → KPI được cập nhật")
+                    })
+                    {
+                        <div style="display:flex;align-items:flex-start;gap:10px">
+                            <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:@color">
+                                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="@icon"/></svg>
+                            </div>
+                            <div style="padding-top:4px">
+                                <div style="font-size:10px;color:var(--muted);font-weight:600">Bước @step</div>
+                                <div style="font-size:12px;color:var(--text);font-weight:500;margin-top:2px">@text</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+  let krData = {};
+  document.querySelectorAll('#SelectedKeyResultId option[data-start]').forEach(opt => {
+    krData[opt.value] = {
+      start:   parseFloat(opt.dataset.start),
+      current: parseFloat(opt.dataset.current),
+      target:  parseFloat(opt.dataset.target),
+      unit:    opt.dataset.unit,
+      dir:     parseInt(opt.dataset.dir)
+    };
+  });
+
+  function onKrChange(sel) {
+    const d = krData[sel.value];
+    const bar = document.getElementById('kr-info-bar');
+    if (!d) { bar.style.display = 'none'; document.getElementById('unit-hint').textContent = ''; return; }
+    bar.style.display = 'block';
+    document.getElementById('info-start').textContent    = d.start    + ' ' + d.unit;
+    document.getElementById('info-current').textContent  = d.current  + ' ' + d.unit;
+    document.getElementById('info-target').textContent   = d.target   + ' ' + d.unit;
+    document.getElementById('unit-hint').textContent     = '(' + d.unit + ')';
+    updatePreview();
+  }
+
+  function updatePreview() {
+    const sel = document.getElementById('SelectedKeyResultId');
+    const d   = krData[sel.value];
+    if (!d) return;
+    const newVal = parseFloat(document.getElementById('NewValue').value);
+    if (isNaN(newVal)) return;
+    let raw;
+    if (d.dir === 0) { // Higher
+      raw = d.target === d.start ? 0 : (newVal - d.start) / (d.target - d.start) * 100;
+    } else {           // Lower
+      raw = d.start === d.target ? 0 : (d.start - newVal) / (d.start - d.target) * 100;
+    }
+    const clamped = Math.max(0, Math.min(100, raw));
+    document.getElementById('preview-pct').textContent = Math.round(clamped) + '%' + (raw > 100 ? ' (Vượt mục tiêu 🎉)' : '');
+    document.getElementById('preview-bar').style.width  = clamped + '%';
+  }
+
+  function onFileSelect(input) {
+    const txt = document.getElementById('upload-text');
+    txt.textContent = input.files.length ? input.files[0].name : 'Kéo thả hoặc nhấp để chọn file';
+  }
+</script>
+}

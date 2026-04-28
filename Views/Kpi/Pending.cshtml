@@ -1,0 +1,189 @@
+@using OmniBizAI.ViewModels
+@model PendingCheckInViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Chờ duyệt Check-in";
+    var items = Model.PendingItems;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/kpi.css" />
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="kpi-alert kpi-reveal d1">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="kpi-page-header kpi-reveal d1">
+    <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <a href="@Url.Action("Index","Kpi")" style="color:var(--muted);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                KPI / OKR
+            </a>
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="color:var(--muted2)"><path d="M9 5l7 7-7 7"/></svg>
+            <span style="font-size:13px;color:var(--muted)">Chờ duyệt</span>
+        </div>
+        <h1 class="kpi-page-title">Hàng chờ duyệt Check-in</h1>
+        <p class="kpi-page-sub">@items.Count check-in đang chờ phê duyệt của bạn</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+        <div class="kpi-badge kpi-badge-atrisk">@items.Count chờ duyệt</div>
+    </div>
+</div>
+
+@if (items.Count == 0)
+{
+    <div class="kpi-pending-table-wrap kpi-reveal d2">
+        <div class="kpi-empty">
+            <div class="kpi-empty-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            </div>
+            <div class="kpi-empty-title">Không có check-in nào đang chờ</div>
+            <div class="kpi-empty-sub">Tất cả check-in đã được xử lý.</div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="kpi-pending-table-wrap kpi-reveal d2">
+        <table class="kpi-table">
+            <thead>
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Mục tiêu (Objective)</th>
+                    <th>Key Result</th>
+                    <th>Thay đổi</th>
+                    <th>Thời gian</th>
+                    <th style="text-align:right">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    var delta      = item.NewValue - item.PreviousValue;
+                    bool deltaUp   = delta >= 0;
+                    string deltaColor = deltaUp ? "var(--green)" : "var(--red)";
+                    string arrowPath  = deltaUp
+                        ? "M5 10l7-7m0 0l7 7m-7-7v18"
+                        : "M19 14l-7 7m0 0l-7-7m7 7V3";
+                    var initials = string.Concat(item.SubmittedBy.Split(' ').Take(2).Select(w => w[0]));
+
+                    <tr id="row-@item.Id">
+                        <td>
+                            <div class="kpi-submitter">
+                                <div class="kpi-submitter-avatar">@initials</div>
+                                <div>
+                                    <div style="font-weight:600;color:var(--text)">@item.SubmittedBy</div>
+                                    <div style="font-size:11px;color:var(--muted)">Nhân viên</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:500;color:var(--text);max-width:200px;line-height:1.4">@item.KpiObjective</div>
+                        </td>
+                        <td>
+                            <div style="font-size:12px;color:var(--muted);max-width:180px;line-height:1.4">@item.KeyResultTitle</div>
+                        </td>
+                        <td>
+                            <div class="kpi-delta">
+                                <svg class="kpi-delta-arrow" fill="none" viewBox="0 0 24 24" stroke="@deltaColor" stroke-width="2.5">
+                                    <path d="@arrowPath"/>
+                                </svg>
+                                <div>
+                                    <div style="font-size:13px;font-weight:700;color:@deltaColor">
+                                        @item.NewValue @item.Unit
+                                    </div>
+                                    <div style="font-size:11px;color:var(--muted)">
+                                        từ @item.PreviousValue @item.Unit
+                                        (@(delta >= 0 ? "+" : "")@delta.ToString("0.##"))
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size:12px;color:var(--text)">@item.SubmittedAt.ToString("HH:mm")</div>
+                            <div style="font-size:11px;color:var(--muted)">@item.SubmittedAt.ToString("dd/MM/yyyy")</div>
+                        </td>
+                        <td>
+                            <div class="kpi-pending-actions" style="justify-content:flex-end">
+                                <!-- Approve -->
+                                <form asp-action="Approve" asp-controller="Kpi" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="kpi-btn kpi-btn-green" title="Duyệt check-in này">
+                                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                                        Duyệt
+                                    </button>
+                                </form>
+
+                                <!-- Reject (open modal) -->
+                                <button type="button" class="kpi-btn kpi-btn-red"
+                                        onclick="openRejectModal(@item.Id)"
+                                        title="Từ chối check-in này">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Từ chối
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="kpi-modal-overlay" id="rejectModal">
+        <div class="kpi-modal">
+            <div class="kpi-modal-header">
+                <div class="kpi-modal-title">Từ chối Check-in</div>
+                <button type="button" class="kpi-modal-close" onclick="closeRejectModal()">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+                Nhập lý do từ chối để nhân viên biết cần điều chỉnh gì. Giá trị KPI sẽ không được cập nhật.
+            </p>
+            <form asp-action="Reject" asp-controller="Kpi" method="post" id="rejectForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="rejectItemId" value="" />
+                <div class="kpi-field" style="margin-bottom:16px">
+                    <label class="kpi-label" for="managerNote">Lý do từ chối</label>
+                    <textarea class="kpi-textarea" id="managerNote" name="managerNote"
+                              placeholder="Ví dụ: Số liệu chưa có bằng chứng xác minh, vui lòng đính kèm ảnh chụp màn hình..."
+                              style="min-height:80px"></textarea>
+                </div>
+                <div class="kpi-modal-actions">
+                    <button type="button" class="kpi-btn kpi-btn-ghost" onclick="closeRejectModal()">Huỷ</button>
+                    <button type="submit" class="kpi-btn kpi-btn-red">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        Xác nhận từ chối
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+  function openRejectModal(id) {
+    document.getElementById('rejectItemId').value = id;
+    document.getElementById('managerNote').value  = '';
+    document.getElementById('rejectModal').classList.add('active');
+  }
+
+  function closeRejectModal() {
+    document.getElementById('rejectModal').classList.remove('active');
+  }
+
+  window.addEventListener('click', e => {
+    const overlay = document.getElementById('rejectModal');
+    if (overlay && e.target === overlay) closeRejectModal();
+  });
+</script>
+}
