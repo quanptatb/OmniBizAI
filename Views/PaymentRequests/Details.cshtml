@@ -1,0 +1,104 @@
+@model PaymentRequestDetailDto
+
+@{
+    ViewData["Title"] = Model.RequestNumber;
+}
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h1 class="h3 mb-1">@Model.RequestNumber</h1>
+        <p class="text-muted mb-0">@Model.Title</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (Model.Status == "Draft")
+        {
+            <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit Draft</a>
+        }
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted small">Status</div>
+            <div class="fs-5"><span class="badge bg-secondary">@Model.Status</span></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted small">Total</div>
+            <div class="fs-5 fw-semibold">@Model.TotalAmount.ToString("N0") @Model.Currency</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted small">Priority</div>
+            <div class="fs-5">@Model.Priority</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted small">Created</div>
+            <div class="fs-6">@Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+        </div>
+    </div>
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Requester</dt>
+    <dd class="col-sm-9">@Model.RequesterName</dd>
+    <dt class="col-sm-3">Department</dt>
+    <dd class="col-sm-9">@Model.DepartmentName</dd>
+    <dt class="col-sm-3">Category</dt>
+    <dd class="col-sm-9">@Model.CategoryName</dd>
+    <dt class="col-sm-3">Vendor</dt>
+    <dd class="col-sm-9">@(Model.VendorName ?? "-")</dd>
+    <dt class="col-sm-3">Budget</dt>
+    <dd class="col-sm-9">@(Model.BudgetName ?? "-")</dd>
+    <dt class="col-sm-3">Payment Due Date</dt>
+    <dd class="col-sm-9">@(Model.PaymentDueDate?.ToString("yyyy-MM-dd") ?? "-")</dd>
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9">@(Model.Description ?? "-")</dd>
+</dl>
+
+<h2 class="h5 mt-4">Line Items</h2>
+<div class="table-responsive">
+    <table class="table table-bordered align-middle">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th class="text-end">Quantity</th>
+                <th>Unit</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Tax Rate</th>
+                <th class="text-end">Tax</th>
+                <th class="text-end">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Description</td>
+                <td class="text-end">@item.Quantity.ToString("N2")</td>
+                <td>@item.Unit</td>
+                <td class="text-end">@item.UnitPrice.ToString("N0")</td>
+                <td class="text-end">@item.TaxRate.ToString("N2")%</td>
+                <td class="text-end">@item.TaxAmount.ToString("N0")</td>
+                <td class="text-end fw-semibold">@item.TotalPrice.ToString("N0")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
