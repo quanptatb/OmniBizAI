@@ -1,0 +1,50 @@
+@model IEnumerable<OmniBizAI.Models.Entities.Department>
+@{
+    ViewData["Title"] = "Departments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2 class="fw-bold mb-0 text-primary"><i class="bi bi-diagram-3"></i> Departments</h2>
+    <a asp-action="Create" class="btn btn-primary rounded-pill shadow-sm px-4">
+        + Create New Department
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th class="ps-4">Code</th>
+                        <th>Name</th>
+                        <th>Company</th>
+                        <th>Parent Department</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model) {
+                        <tr>
+                            <td class="ps-4 fw-semibold text-dark">@item.Code</td>
+                            <td>@item.Name</td>
+                            <td class="text-muted">@item.Company?.Name</td>
+                            <td class="text-muted">@item.ParentDepartment?.Name</td>
+                            <td>
+                                @if (item.IsActive) {
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Active</span>
+                                } else {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">Edit</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
