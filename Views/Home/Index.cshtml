@@ -1,8 +1,26 @@
-﻿@{
+@using OmniBizAI.Services.Auth
+@inject ITenantContext TenantContext
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to OmniBizAI</h1>
+    <p>Intelligent Catering Management System</p>
+    
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="alert alert-success mt-4">
+            <h4 class="alert-heading">Authenticated!</h4>
+            <p>Welcome, @User.Identity.Name</p>
+            <hr>
+            <p class="mb-0"><strong>Tenant ID:</strong> @(TenantContext.CurrentTenantId?.ToString() ?? "None (System Admin or Error)")</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-4">
+            <p>Please <a asp-controller="Auth" asp-action="Login">log in</a> to access the system.</p>
+        </div>
+    }
 </div>

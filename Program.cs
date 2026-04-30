@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
+using OmniBizAI.Models.Entities;
 
 LoadDotEnv(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
@@ -16,12 +17,37 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.SignIn.RequireConfirmedAccount = builder.Configuration.GetValue("Security:RequireConfirmedAccount", false))
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
+    options.LogoutPath = "/Auth/Logout";
+    options.AccessDeniedPath = "/Auth/AccessDenied";
+});
+
+builder.Configuration.AddJsonFile("permissions.json", optional: true, reloadOnChange: true);
+builder.Services.Configure<OmniBizAI.Models.Auth.PermissionsConfig>(builder.Configuration.GetSection("PermissionsConfig"));
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<OmniBizAI.Services.Auth.ITenantContext, OmniBizAI.Services.Auth.TenantContext>();
+builder.Services.AddSingleton<OmniBizAI.Services.Auth.IPermissionService, OmniBizAI.Services.Auth.PermissionService>();
+
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<OmniBizAI.Filters.DynamicAuthorizationFilter>();
+});
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await OmniBizAI.Services.DataSeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

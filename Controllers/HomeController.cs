@@ -2,8 +2,11 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using OmniBizAI.Models;
 
+using Microsoft.AspNetCore.Authorization;
+
 namespace OmniBizAI.Controllers;
 
+[AllowAnonymous]
 public class HomeController : Controller
 {
     public IActionResult Index()

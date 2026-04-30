@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-card">
+    <div class="auth-header bg-danger">
+        <h2>403</h2>
+        <p class="mb-0 text-white-50">Forbidden</p>
+    </div>
+    <div class="auth-body text-center">
+        <h4 class="mb-3 text-dark fw-bold">Access Denied</h4>
+        <p class="text-muted mb-4">You do not have permission to access this resource. Please contact your administrator if you believe this is a mistake.</p>
+        
+        <div class="d-grid mt-2">
+            <a href="/" class="btn btn-primary shadow-sm">
+                Return to Home
+            </a>
+        </div>
+    </div>
+</div>

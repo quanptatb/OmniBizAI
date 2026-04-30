@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-card">
+    <div class="auth-header">
+        <h2>OmniBizAI</h2>
+        <p class="mb-0 text-white-50">Intelligent Catering Management</p>
+    </div>
+    <div class="auth-body">
+        <h4 class="mb-4 text-center text-dark fw-bold">Welcome Back</h4>
+        
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" role="alert">
+                <div asp-validation-summary="All" class="text-danger mb-0"></div>
+            </div>
+        }
+
+        <form asp-controller="Auth" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+            <div class="mb-4">
+                <label for="email" class="form-label text-muted fw-semibold small">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope text-muted" viewBox="0 0 16 16">
+                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                        </svg>
+                    </span>
+                    <input type="email" class="form-control border-start-0 ps-0" id="email" name="email" placeholder="name@example.com" required autocomplete="username">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="password" class="form-label text-muted fw-semibold small mb-0">Password</label>
+                    <a href="#" class="text-decoration-none small">Forgot password?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lock text-muted" viewBox="0 0 16 16">
+                            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                        </svg>
+                    </span>
+                    <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+            </div>
+
+            <div class="mb-4 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe" value="true">
+                <label class="form-check-label text-muted small" for="rememberMe">Remember me for 30 days</label>
+            </div>
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                    Sign In
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

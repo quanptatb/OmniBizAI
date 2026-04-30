@@ -1,0 +1,37 @@
+{
+  "PermissionsConfig": {
+    "RoutePermissionRules": [
+      {
+        "Area": "",
+        "Controller": "Home",
+        "Action": "Index",
+        "HttpMethod": "GET",
+        "RequiredPermissionCode": ""
+      },
+      {
+        "Area": "Admin",
+        "Controller": "Dashboard",
+        "Action": "Index",
+        "HttpMethod": "GET",
+        "RequiredPermissionCode": "ADMIN_ACCESS"
+      }
+    ],
+    "RolePermissions": [
+      {
+        "RoleCode": "ADMIN",
+        "Permissions": [
+          "ADMIN_ACCESS",
+          "USER_MANAGE",
+          "SYSTEM_CONFIG"
+        ]
+      },
+      {
+        "RoleCode": "MANAGER",
+        "Permissions": [
+          "DASHBOARD_VIEW",
+          "MENU_APPROVE"
+        ]
+      }
+    ]
+  }
+}
