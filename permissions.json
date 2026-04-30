@@ -14,6 +14,27 @@
         "Action": "Index",
         "HttpMethod": "GET",
         "RequiredPermissionCode": "ADMIN_ACCESS"
+      },
+      {
+        "Area": "",
+        "Controller": "Company",
+        "Action": "*",
+        "HttpMethod": "*",
+        "RequiredPermissionCode": "ADMIN_ACCESS"
+      },
+      {
+        "Area": "",
+        "Controller": "Department",
+        "Action": "*",
+        "HttpMethod": "*",
+        "RequiredPermissionCode": "ADMIN_ACCESS"
+      },
+      {
+        "Area": "",
+        "Controller": "Employee",
+        "Action": "*",
+        "HttpMethod": "*",
+        "RequiredPermissionCode": "ADMIN_ACCESS"
       }
     ],
     "RolePermissions": [
