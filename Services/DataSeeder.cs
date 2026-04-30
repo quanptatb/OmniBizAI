@@ -64,5 +64,61 @@ public static class DataSeeder
                 await userManager.AddClaimAsync(adminUser, new Claim("TenantId", tenant.Id.ToString()));
             }
         }
+
+        // Seed Company
+        var company = await context.Companies.FirstOrDefaultAsync(c => c.TenantId == tenant.Id && c.Code == "BIZEN_CORP");
+        if (company == null)
+        {
+            company = new Company
+            {
+                TenantId = tenant.Id,
+                Code = "BIZEN_CORP",
+                Name = "Bizen Catering Services",
+                IsActive = true
+            };
+            context.Companies.Add(company);
+            await context.SaveChangesAsync();
+        }
+
+        // Seed Departments
+        var deptCodes = new[] { "BOD", "OPS", "MENU", "KITCHEN", "QA", "PUR", "CS", "ADMIN" };
+        foreach (var code in deptCodes)
+        {
+            var dept = await context.Departments.FirstOrDefaultAsync(d => d.TenantId == tenant.Id && d.Code == code);
+            if (dept == null)
+            {
+                context.Departments.Add(new Department
+                {
+                    TenantId = tenant.Id,
+                    CompanyId = company.Id,
+                    Code = code,
+                    Name = code + " Department",
+                    IsActive = true
+                });
+            }
+        }
+        await context.SaveChangesAsync();
+
+        // Seed EmployeeProfile for Admin
+        if (adminUser != null)
+        {
+            var adminDept = await context.Departments.FirstOrDefaultAsync(d => d.TenantId == tenant.Id && d.Code == "ADMIN");
+            if (adminDept != null)
+            {
+                var emp = await context.EmployeeProfiles.FirstOrDefaultAsync(e => e.UserId == adminUser.Id);
+                if (emp == null)
+                {
+                    context.EmployeeProfiles.Add(new EmployeeProfile
+                    {
+                        UserId = adminUser.Id,
+                        DepartmentId = adminDept.Id,
+                        PositionName = "System Administrator",
+                        EmployeeCode = "EMP0001",
+                        JoinDate = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
     }
 }
