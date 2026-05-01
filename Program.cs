@@ -21,6 +21,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddScoped<OmniBizAI.Services.Kpi.IKpiService, OmniBizAI.Services.Kpi.KpiService>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
