@@ -1698,7 +1698,7 @@ Không commit password SQL Server thật hoặc API key thật.
 - [ ] Service duyệt nội bộ và customer form approval có transaction boundary.
 - [ ] MenuPlan state machine không cho nhảy trạng thái sai.
 - [ ] Customer approval token dùng hash và expiry.
-- [ ] Route MVC theo mục 8 có authorization.
+- [X] Route MVC theo mục 8 có authorization.
 - [ ] ViewModel không expose entity trực tiếp ở form public.
 - [ ] Dashboard có số liệu menu chờ duyệt, menu chờ khách, menu thiếu BOM, giấy đi chợ hôm nay.
 - [ ] AI có fallback hoạt động khi chưa có provider thật.
