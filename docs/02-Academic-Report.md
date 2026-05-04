@@ -2,7 +2,7 @@
 
 > Ngày cập nhật: 2026-04-30
 > Tên đề tài cố định: **"Hệ thống vận hành thông minh cho doanh nghiệp vừa và nhỏ, hỗ trợ quản lý đa cấp và đưa ra quyết định bằng AI"**
-> Phạm vi minh họa: **OmniBizAI Catering Operations Platform**; Bizen Catering Services là tenant/case study đầu tiên dựa trên dữ liệu Lark thật.
+> Phạm vi minh họa: **OmniBizAI SME Operations Platform**; Bizen Catering Services là tenant/case study đầu tiên dựa trên dữ liệu Lark thật.
 
 ## Hướng Dẫn Sử Dụng Tài Liệu Báo Cáo
 
@@ -42,7 +42,7 @@ Khung báo cáo này đủ để nhóm bắt đầu viết bản nộp trường
 - Nhóm thực hiện: 7 thành viên
 - Giảng viên hướng dẫn: [Tên GVHD]
 - Thời gian thực hiện: [Thời gian học kỳ]
-- Công nghệ chính: ASP.NET Core MVC, SQL Server, Entity Framework Core, Razor Views
+- Công nghệ chính: ASP.NET Core MVC trên .NET 10, SQL Server, Entity Framework Core 10, Razor Views
 
 ## Lời Cam Đoan
 
@@ -54,15 +54,15 @@ Nhóm xin cảm ơn giảng viên hướng dẫn, khoa, nhà trường và các 
 
 ## Tóm Tắt
 
-Đề tài xây dựng một nền tảng vận hành thông minh cho doanh nghiệp vừa và nhỏ trong lĩnh vực suất ăn/catering, có khả năng cấu hình theo từng khách hàng triển khai. Bizen Catering Services được dùng làm case study đầu tiên với dữ liệu Lark thật. Hệ thống tập trung vào quy trình lập thực đơn, kiểm duyệt nội bộ, gửi khách hàng duyệt qua email, ghi nhận số lượng suất ăn, tính toán nguyên vật liệu dựa trên BOM định mức và xuất giấy đi chợ. Bên cạnh các chức năng nghiệp vụ, hệ thống bổ sung lớp AI hỗ trợ ra quyết định nhằm cảnh báo số lượng biến động bất thường, phát hiện món thiếu định mức nguyên vật liệu và tóm tắt nhu cầu mua hàng cho quản lý.
+Đề tài xây dựng một nền tảng vận hành thông minh cho doanh nghiệp vừa và nhỏ, có khả năng cấu hình theo từng khách hàng triển khai. Hệ thống được thiết kế theo hai lớp: lớp quản lý quy trình vận hành toàn công ty và lớp quản lý công việc cụ thể theo phòng ban kiểu Trello/Jira/Asana. Bizen Catering Services được dùng làm case study đầu tiên với dữ liệu Lark thật, tập trung vào quy trình lập thực đơn, kiểm duyệt nội bộ, gửi khách hàng dashboard/form, ghi nhận số lượng suất ăn, tính BOM và xuất giấy đi chợ PDF/XLSX. Bên cạnh các chức năng nghiệp vụ, hệ thống bổ sung lớp AI hỗ trợ ra quyết định nhằm cảnh báo số lượng biến động, task trễ hạn, điểm nghẽn phòng ban và tóm tắt nhu cầu mua hàng cho quản lý.
 
-Về kỹ thuật, hệ thống được xây dựng bằng ASP.NET Core MVC, Razor Views, Entity Framework Core và SQL Server. Runtime mặc định cho Sprint 1 là .NET 8 LTS; nhóm có thể nâng lên .NET 10 nếu môi trường phát triển/demo thống nhất. Kiến trúc được định hướng theo mô hình Modular MVC Monolith, giúp nhóm sinh viên có thể triển khai trong một project nhưng vẫn tách rõ controller, service, entity, ViewModel và rule nghiệp vụ. Kết quả kỳ vọng là một MVP có thể demo end-to-end từ lập menu đến xuất giấy đi chợ, có phân quyền theo vai trò, có audit log và có bằng chứng kiểm thử.
+Về kỹ thuật, hệ thống được xây dựng bằng ASP.NET Core MVC trên .NET 10, Razor Views, Entity Framework Core 10 và SQL Server. Kiến trúc được định hướng theo mô hình Modular MVC Monolith, giúp nhóm sinh viên có thể triển khai trong một project nhưng vẫn tách rõ controller, service, entity, ViewModel và rule nghiệp vụ. Kết quả kỳ vọng là một MVP có thể demo end-to-end từ lập menu đến xuất giấy đi chợ, có phân quyền theo vai trò, có audit log và có bằng chứng kiểm thử.
 
 ## Abstract
 
-This project develops an intelligent and configurable catering operations platform for small and medium-sized enterprises. Bizen Catering Services is used as the first case study with real Lark-derived operational data. The system focuses on menu planning, internal approval, customer email approval, meal quantity confirmation, BOM-based ingredient calculation, and procurement list generation. An AI decision-support layer is included to detect abnormal quantity changes, identify missing BOM definitions, and summarize procurement needs for managers.
+This project develops an intelligent and configurable operations platform for small and medium-sized enterprises. It has two layers: company-wide workflow operations and department-level work management using board/list/card concepts similar to Trello, Jira, or Asana. Bizen Catering Services is used as the first case study with real Lark-derived operational data, covering menu planning, configurable internal approval, customer email dashboards/forms, meal quantity confirmation, BOM-based ingredient calculation, and PDF/XLSX procurement list generation. An AI decision-support layer is included to detect abnormal quantities, overdue tasks, department bottlenecks, missing BOM definitions, and procurement needs.
 
-The system is implemented with ASP.NET Core MVC, Razor Views, Entity Framework Core, and SQL Server. Sprint 1 defaults to .NET 8 LTS, with .NET 10 as an optional upgrade if the team environment is aligned. The architecture follows a Modular MVC Monolith approach, allowing a student team to build a maintainable application within a single project while keeping controllers, services, entities, ViewModels, and business rules separated. The expected result is an end-to-end MVP with role-based access control, audit logging, test evidence, and a practical demonstration flow.
+The system is implemented with ASP.NET Core MVC on .NET 10, Razor Views, Entity Framework Core 10, and SQL Server. The architecture follows a Modular MVC Monolith approach, allowing a student team to build a maintainable application within a single project while keeping controllers, services, entities, ViewModels, and business rules separated. The expected result is an end-to-end MVP with role-based access control, audit logging, test evidence, and a practical demonstration flow.
 
 ## Danh Mục Từ Viết Tắt Và Thuật Ngữ
 
@@ -77,7 +77,9 @@ The system is implemented with ASP.NET Core MVC, Razor Views, Entity Framework C
 | MenuPlan | Thực đơn theo ngày, ca ăn và khách hàng |
 | DailyMealOrder | Dòng số lượng suất ăn sau khi áp dụng rule dự kiến/chốt/phát sinh |
 | ProcurementPlan | Giấy đi chợ/nguyên liệu cần mua |
-| Token | Chuỗi bảo mật gửi qua email để khách hàng duyệt mà không cần đăng nhập |
+| WorkBoard | Board công việc theo phòng ban/dự án |
+| WorkTask | Card/task có assignee, deadline, checklist, comment và file |
+| Token | Chuỗi bảo mật gửi qua email để khách hàng xem dashboard, góp ý và nhập form mà không cần đăng nhập |
 | Tenant | Doanh nghiệp triển khai độc lập trong hệ thống |
 | Configuration | Tập cấu hình ca ăn, loại suất, vị trí món, workflow, rule theo tenant |
 | Staging Import | Lớp trung gian để kiểm tra dữ liệu thật trước khi ghi vào bảng vận hành |
@@ -88,7 +90,7 @@ The system is implemented with ASP.NET Core MVC, Razor Views, Entity Framework C
 
 Trong quá trình chuyển đổi số, nhiều doanh nghiệp vừa và nhỏ vẫn xử lý vận hành bằng bảng tính, email, tin nhắn và các file rời rạc. Đối với doanh nghiệp cung cấp suất ăn công nghiệp/catering như Bizen Catering Services, quy trình vận hành có nhiều điểm cần kiểm soát chặt chẽ: thực đơn phải được lập đúng, nội bộ phải kiểm duyệt trước khi gửi khách, khách hàng cần xác nhận thực đơn và số lượng, bộ phận bếp/thu mua cần biết chính xác nguyên liệu cần chuẩn bị.
 
-Nếu các bước này không được quản lý tập trung, doanh nghiệp dễ gặp các vấn đề như gửi nhầm menu, khách duyệt chậm, số lượng chốt không rõ ràng, thiếu nguyên liệu, mua dư nguyên liệu, hoặc khó truy vết khi có thay đổi phút cuối. Đây là bài toán phù hợp để xây dựng một hệ thống vận hành thông minh theo hướng quản lý đa cấp và hỗ trợ ra quyết định.
+Nếu các bước này không được quản lý tập trung, doanh nghiệp dễ gặp các vấn đề như gửi nhầm menu, khách phản hồi chậm, số lượng chốt không rõ ràng, thiếu nguyên liệu, mua dư nguyên liệu, hoặc khó truy vết khi có thay đổi phút cuối. Đây là bài toán phù hợp để xây dựng một hệ thống vận hành thông minh theo hướng quản lý đa cấp và hỗ trợ ra quyết định.
 
 ### 1.2 Lý do chọn đề tài
 
@@ -100,40 +102,42 @@ Nếu các bước này không được quản lý tập trung, doanh nghiệp d
 
 Câu hỏi nghiên cứu chính:
 
-**Làm thế nào để xây dựng một hệ thống vận hành thông minh cho doanh nghiệp vừa và nhỏ, có khả năng quản lý quy trình thực đơn - số lượng - nguyên vật liệu theo nhiều cấp duyệt, đồng thời hỗ trợ nhà quản lý ra quyết định bằng AI?**
+**Làm thế nào để xây dựng một hệ thống vận hành thông minh cho doanh nghiệp vừa và nhỏ, có khả năng quản lý công việc phòng ban, chuẩn hóa quy trình nghiệp vụ nhiều cấp duyệt và hỗ trợ nhà quản lý ra quyết định bằng AI?**
 
 Các câu hỏi phụ:
 
 | Mã | Câu hỏi | Nội dung cần giải quyết |
 |---|---|---|
 | RQ1 | Làm thế nào để quản lý thực đơn và kiểm duyệt nội bộ rõ ràng? | State machine menu, internal approval, audit log |
-| RQ2 | Làm thế nào để khách hàng duyệt qua email an toàn và dễ dùng? | Token bảo mật, email approval, public review page |
-| RQ3 | Làm thế nào để xử lý số lượng dự kiến/chốt/phát sinh nhất quán? | Rule fallback ngày trước, rule final, rule phát sinh |
+| RQ2 | Làm thế nào để khách hàng phản hồi qua email an toàn và dễ dùng? | Token bảo mật, dashboard menu, public forms |
+| RQ3 | Làm thế nào để xử lý số lượng dự kiến/chốt/phát sinh nhất quán? | Rule fallback theo tuần trước, chốt trước 09:00, rule phát sinh |
 | RQ4 | Làm thế nào để tính nguyên vật liệu từ thực đơn và BOM? | Dish BOM, ingredient aggregation, procurement plan |
-| RQ5 | Làm thế nào để AI hỗ trợ quyết định mà không làm sai nghiệp vụ? | AI advisory, citation nội bộ, fallback rule-based |
-| RQ6 | Làm thế nào để kiểm thử hệ thống trong phạm vi đồ án? | Unit test, manual test, Playwright smoke, evidence |
+| RQ5 | Làm thế nào để quản lý công việc phòng ban không chỉ là Trello clone? | Board/List/Card, My Tasks, liên kết workflow, audit |
+| RQ6 | Làm thế nào để AI hỗ trợ quyết định mà không làm sai nghiệp vụ? | AI advisory, citation nội bộ, fallback rule-based |
+| RQ7 | Làm thế nào để kiểm thử hệ thống trong phạm vi đồ án? | Unit test, manual test, Playwright smoke, evidence |
 
 ### 1.4 Mục tiêu đề tài
 
 Mục tiêu tổng quát:
 
-Xây dựng một web application bằng ASP.NET Core MVC và SQL Server để hỗ trợ doanh nghiệp suất ăn/catering quản lý quy trình vận hành từ lập thực đơn đến xuất giấy đi chợ, có tenant/configuration để tùy biến theo khách hàng triển khai, có phân quyền theo vai trò, có kiểm duyệt đa cấp, có hỗ trợ duyệt qua email và có AI hỗ trợ ra quyết định.
+Xây dựng một web application bằng ASP.NET Core MVC trên .NET 10 và SQL Server để hỗ trợ doanh nghiệp SME quản lý quy trình vận hành và công việc phòng ban, có tenant/configuration để tùy biến theo khách hàng triển khai, có phân quyền theo vai trò, có kiểm duyệt đa cấp, có hỗ trợ khách hàng phản hồi qua email/form và có AI hỗ trợ ra quyết định. Bizen Catering là workflow nghiệp vụ đầu tiên để demo end-to-end.
 
 Mục tiêu cụ thể:
 
 | Mã | Mục tiêu |
 |---|---|
 | O1 | Xây dựng chức năng đăng nhập, phân quyền và quản lý công ty/phòng ban/nhân sự cơ bản |
-| O2 | Xây dựng chức năng quản lý khách hàng, hợp đồng, địa điểm giao và người liên hệ |
-| O3 | Xây dựng chức năng tạo thực đơn, quản lý món ăn và BOM nguyên vật liệu |
-| O4 | Xây dựng quy trình duyệt nội bộ cho thực đơn |
-| O5 | Xây dựng cơ chế gửi email để khách hàng duyệt menu và nhập số lượng |
-| O6 | Xây dựng rule tính số lượng dự kiến, số lượng chốt và phát sinh |
-| O7 | Xây dựng chức năng tính BOM và xuất giấy đi chợ |
-| O8 | Xây dựng dashboard, báo cáo cơ bản và AI advisory |
-| O9 | Xây dựng import staging cho dữ liệu thật từ Lark/CSV |
-| O10 | Đảm bảo nghiệp vụ biến đổi theo khách hàng đều nằm trong cấu hình, không hard-code |
-| O11 | Kiểm thử và chuẩn bị bằng chứng demo cho báo cáo tốt nghiệp |
+| O2 | Xây dựng chức năng quản lý công việc theo board/list/card, My Tasks, assignee, deadline, checklist, comment và file |
+| O3 | Xây dựng chức năng quản lý khách hàng, hợp đồng, địa điểm giao và người liên hệ |
+| O4 | Xây dựng chức năng tạo thực đơn, quản lý món ăn và BOM nguyên vật liệu |
+| O5 | Xây dựng quy trình duyệt nội bộ cho thực đơn |
+| O6 | Xây dựng cơ chế gửi email để khách hàng xem dashboard menu, góp ý và nhập số lượng qua các form |
+| O7 | Xây dựng rule tính số lượng dự kiến, số lượng chốt và phát sinh |
+| O8 | Xây dựng chức năng tính BOM và xuất giấy đi chợ |
+| O9 | Xây dựng dashboard, báo cáo cơ bản và AI advisory |
+| O10 | Xây dựng import staging cho dữ liệu thật từ Lark/CSV |
+| O11 | Đảm bảo nghiệp vụ biến đổi theo khách hàng đều nằm trong cấu hình, không hard-code |
+| O12 | Kiểm thử và chuẩn bị bằng chứng demo cho báo cáo tốt nghiệp |
 
 ### 1.5 Phạm vi đề tài
 
@@ -143,11 +147,13 @@ Trong phạm vi:
 - Có nền tảng `TenantId` và cấu hình để triển khai thêm doanh nghiệp catering khác.
 - Không hard-code role, workflow, form, vị trí món, rule số lượng, BOM, template hoặc prompt AI.
 - Quản lý phòng ban, chức vụ, nhân sự nội bộ cơ bản.
+- Quản lý board/list/card theo phòng ban, My Tasks, giao việc, deadline, checklist, comment, file đính kèm và activity log.
+- Liên kết task với workflow nghiệp vụ, ví dụ task sửa menu hoặc task thu mua nguyên liệu.
 - Quản lý khách hàng doanh nghiệp và người liên hệ.
 - Import dữ liệu Lark/CSV qua staging, validation và mapping.
 - Tạo thực đơn theo ngày, ca ăn, khách hàng.
 - Kiểm duyệt nội bộ trước khi gửi khách.
-- Khách duyệt qua email bằng link token.
+- Khách phản hồi qua email bằng dashboard/form token.
 - Nhập số lượng dự kiến/chốt/phát sinh.
 - Tính nguyên vật liệu dựa trên BOM định mức.
 - Xuất giấy đi chợ và dashboard cơ bản.
@@ -156,9 +162,11 @@ Trong phạm vi:
 Ngoài phạm vi:
 
 - Kế toán, thanh toán, hóa đơn, công nợ.
-- KPI/OKR nhân sự.
+- KPI/OKR nhân sự đầy đủ; MVP chỉ có số liệu task cơ bản như quá hạn/đúng hạn.
 - Payroll.
 - Kho nâng cao theo lô/hạn dùng.
+- SOP/document repository có versioning đầy đủ.
+- Timeline/Gantt, Calendar và Workload nâng cao.
 - App mobile native.
 - Self-service SaaS/billing/subscription cho nhiều khách hàng tự đăng ký.
 - Tự động đặt hàng nhà cung cấp.
@@ -172,7 +180,7 @@ Nhóm thực hiện đề tài theo hướng phân tích - thiết kế - triể
 |---|---|---|
 | Khảo sát và phân tích | Xác định nghiệp vụ suất ăn/catering từ case Bizen, actor, use case, rule số lượng | Danh sách yêu cầu và quy trình nghiệp vụ |
 | Thiết kế | Thiết kế kiến trúc MVC, database, state machine, route map | Tài liệu kỹ thuật, ERD, activity diagram |
-| Triển khai | Lập trình ASP.NET Core MVC, SQL Server, Razor Views | Source code MVP |
+| Triển khai | Lập trình ASP.NET Core MVC trên .NET 10, SQL Server, Razor Views | Source code MVP |
 | Kiểm thử | Unit test, manual test, UI smoke, security check | Test report và bug list |
 | Đánh giá | So sánh kết quả với mục tiêu và tiêu chí nghiệm thu | Kết luận, hạn chế, hướng phát triển |
 
@@ -202,15 +210,16 @@ WasteQty = RequiredQty * WasteRatePercent / 100
 PurchaseQty = RequiredQty + WasteQty
 ```
 
-### 2.5 Email approval token
+### 2.5 Email/form token
 
-Khách hàng có thể không có tài khoản trong hệ thống. Vì vậy, hệ thống gửi email chứa link duyệt có token bảo mật. Token được lưu dạng hash trong database, có thời hạn sử dụng và chỉ gắn với một menu cụ thể. Cách này giúp khách hàng duyệt nhanh mà vẫn giảm rủi ro lộ dữ liệu.
+Khách hàng có thể không có tài khoản trong hệ thống. Vì vậy, hệ thống gửi email chứa link dashboard/form có token bảo mật. Token được lưu dạng hash trong database, có thời hạn sử dụng và chỉ gắn với một menu hoặc form cụ thể. Cách này giúp khách hàng xem menu, gửi góp ý và nhập số lượng nhanh mà vẫn giảm rủi ro lộ dữ liệu.
 
 ### 2.6 AI hỗ trợ ra quyết định
 
 Trong đề tài, AI không thay con người quyết định. AI chỉ đọc dữ liệu đã được hệ thống tổng hợp và đưa ra gợi ý như:
 
-- Số lượng hôm nay tăng bất thường so với ngày trước.
+- Số lượng hôm nay tăng bất thường so với cùng ngày tuần trước.
+- Task phòng ban có nguy cơ trễ hạn hoặc bị bỏ quên.
 - Một món trong menu chưa có BOM.
 - Nguyên liệu nào có nhu cầu mua lớn nhất.
 - Giấy đi chợ hôm nay tăng vì khách nhập phát sinh.
@@ -239,8 +248,8 @@ Trong đề tài, AI không thay con người quyết định. AI chỉ đọc d
 | Bếp | Xem menu đã duyệt, kiểm tra khả năng sản xuất |
 | QA | Kiểm tra chất lượng, dị ứng, tiêu chuẩn món ăn |
 | Thu mua | Nhận giấy đi chợ và xử lý mua nguyên liệu |
-| CS | Gửi menu cho khách, theo dõi khách duyệt và nhập số lượng |
-| Khách hàng | Duyệt menu, nhập số lượng qua email |
+| CS | Gửi menu cho khách, theo dõi khách phản hồi và nhập số lượng |
+| Khách hàng | Xem menu, góp ý và nhập số lượng qua email/form |
 | Admin | Quản lý tài khoản, phòng ban, cấu hình |
 
 ### 3.2 Yêu cầu chức năng
@@ -248,22 +257,26 @@ Trong đề tài, AI không thay con người quyết định. AI chỉ đọc d
 | Mã | Yêu cầu |
 |---|---|
 | FR-01 | Người dùng nội bộ đăng nhập và sử dụng chức năng theo vai trò |
-| FR-02 | Admin quản lý công ty, phòng ban, chức vụ và nhân sự cơ bản |
-| FR-03 | CS/Ops quản lý khách hàng, người liên hệ, hợp đồng và địa điểm giao |
-| FR-04 | MenuPlanner/Ops tạo thực đơn theo ngày, ca ăn và khách hàng |
-| FR-05 | Hệ thống cho phép quản lý món ăn và BOM nguyên vật liệu |
-| FR-06 | Người lập menu gửi thực đơn vào luồng duyệt nội bộ |
-| FR-07 | Người duyệt nội bộ có thể duyệt hoặc yêu cầu chỉnh sửa |
-| FR-08 | CS gửi email cho khách hàng sau khi menu được duyệt nội bộ |
-| FR-09 | Khách hàng mở link email để duyệt menu hoặc yêu cầu chỉnh sửa |
-| FR-10 | Khách hàng nhập số lượng dự kiến, số lượng chốt và phát sinh |
-| FR-11 | Hệ thống tự lấy số lượng ngày trước đó nếu khách không nhập dự kiến |
-| FR-12 | Hệ thống lấy số lượng dự kiến làm số lượng chốt nếu khách không nhập chốt |
-| FR-13 | Hệ thống cho phép phát sinh theo hai mode: cộng thêm hoặc tổng mới |
-| FR-14 | Hệ thống tính BOM và tạo giấy đi chợ |
-| FR-15 | Hệ thống hiển thị dashboard và báo cáo cơ bản |
-| FR-16 | Hệ thống ghi audit log cho thao tác quan trọng |
-| FR-17 | Hệ thống cung cấp AI advisory/fallback cho quản lý |
+| FR-02 | Admin quản lý công ty, phòng ban, team, chức vụ và nhân sự cơ bản |
+| FR-03 | Người dùng nội bộ tạo board/list/card theo phòng ban hoặc dự án |
+| FR-04 | Người dùng giao task, đặt deadline, checklist, comment, file đính kèm và label |
+| FR-05 | Người dùng xem My Tasks và lọc task theo người phụ trách, deadline, trạng thái, ưu tiên |
+| FR-06 | Hệ thống ghi activity log/audit cho thay đổi task và cho phép liên kết task với workflow nghiệp vụ |
+| FR-07 | CS/Ops quản lý khách hàng, người liên hệ, hợp đồng và địa điểm giao |
+| FR-08 | MenuPlanner/Ops tạo thực đơn theo ngày, ca ăn và khách hàng |
+| FR-09 | Hệ thống cho phép quản lý món ăn và BOM nguyên vật liệu |
+| FR-10 | Người lập menu gửi thực đơn vào luồng duyệt nội bộ |
+| FR-11 | Người duyệt nội bộ có thể duyệt hoặc yêu cầu chỉnh sửa |
+| FR-12 | CS gửi email cho khách hàng sau khi menu được Chị Nga hoặc người duyệt cấu hình phê duyệt nội bộ |
+| FR-13 | Khách hàng mở link email để xem dashboard menu, gửi góp ý hoặc yêu cầu chỉnh sửa |
+| FR-14 | Khách hàng nhập số lượng dự kiến, số lượng chốt và phát sinh |
+| FR-15 | Hệ thống tự tạo dự kiến cho cả tuần mới từ cùng ngày/ca/loại suất của tuần trước nếu khách không nhập dự kiến |
+| FR-16 | Hệ thống lấy số lượng dự kiến làm số lượng chốt nếu khách không nhập chốt trước 09:00 ngày phục vụ |
+| FR-17 | Hệ thống cho phép phát sinh theo hai mode: điều chỉnh tăng/giảm hoặc nhập tổng mới chính xác |
+| FR-18 | Hệ thống tính BOM và tạo giấy đi chợ, có in/export PDF/XLSX |
+| FR-19 | Hệ thống hiển thị dashboard và báo cáo cơ bản |
+| FR-20 | Hệ thống ghi audit log cho thao tác quan trọng |
+| FR-21 | Hệ thống cung cấp AI advisory/fallback cho quản lý, gồm cảnh báo task trễ hạn/quá tải |
 
 ### 3.3 Yêu cầu phi chức năng
 
@@ -281,7 +294,7 @@ Trong đề tài, AI không thay con người quyết định. AI chỉ đọc d
 
 | Actor | Use case chính |
 |---|---|
-| Admin | Quản lý tài khoản, phòng ban, nhân sự |
+| Admin | Quản lý tài khoản, phòng ban, team, nhân sự |
 | Director | Xem dashboard, xem AI advisory, duyệt ngoại lệ |
 | OperationsManager | Duyệt vận hành, chốt số lượng, phát hành giấy đi chợ |
 | MenuPlanner | Tạo menu, quản lý món, quản lý BOM |
@@ -289,28 +302,39 @@ Trong đề tài, AI không thay con người quyết định. AI chỉ đọc d
 | QAReviewer | Kiểm duyệt chất lượng thực đơn |
 | PurchasingStaff | Xem/tạo/phát hành giấy đi chợ |
 | CustomerService | Quản lý khách, gửi email, theo dõi phản hồi |
-| CustomerContact | Duyệt menu và nhập số lượng qua email |
+| DepartmentManager | Quản lý board/task và workload phòng ban |
+| TeamLead | Giao task và theo dõi tiến độ team |
+| Employee | Xử lý My Tasks, checklist, comment |
+| CustomerContact | Xem menu và nhập số lượng qua email/form |
 
-#### 3.4.1 Sơ đồ Use Case — Quản lý tổ chức và khách hàng
+#### 3.4.1 Sơ đồ Use Case — Tổ chức và công việc
 
 ```mermaid
 graph LR
     Admin((Admin))
     Director((Director))
-    CS((CustomerService))
+    DM((DepartmentManager))
+    TL((TeamLead))
+    Emp((Employee))
 
-    subgraph "Quản lý Tổ chức và Khách hàng"
+    subgraph "Tổ chức và Work Management"
         UC01["FR-01: Đăng nhập theo vai trò"]
-        UC02["FR-02: Quản lý công ty, phòng ban, nhân sự"]
-        UC03["FR-03: Quản lý khách hàng, liên hệ, hợp đồng"]
+        UC02["FR-02: Quản lý công ty, phòng ban, team, nhân sự"]
+        UC03["FR-03: Tạo board/list/card"]
+        UC04["FR-04: Giao task, deadline, checklist, comment, file"]
+        UC05["FR-05: My Tasks và lọc task"]
+        UC06["FR-06: Activity log và liên kết workflow-task"]
     end
 
     Admin --> UC01
     Admin --> UC02
     Admin --> UC03
     Director --> UC01
-    CS --> UC01
-    CS --> UC03
+    DM --> UC03
+    DM --> UC04
+    TL --> UC04
+    Emp --> UC05
+    UC04 -.-> UC06
 ```
 
 #### 3.4.2 Sơ đồ Use Case — Quy trình thực đơn và duyệt
@@ -325,23 +349,25 @@ graph LR
     Cust(("Khách hàng"))
 
     subgraph "Quy trình Thực đơn và Duyệt"
-        UC04["FR-04: Tạo thực đơn"]
-        UC05["FR-05: Quản lý món ăn và BOM"]
-        UC06["FR-06: Gửi duyệt nội bộ"]
-        UC07["FR-07: Duyệt hoặc yêu cầu sửa"]
-        UC08["FR-08: Gửi email khách duyệt"]
-        UC09["FR-09: Khách duyệt menu qua link"]
+        UC07["FR-07: Quản lý khách hàng, liên hệ, hợp đồng"]
+        UC08["FR-08: Tạo thực đơn"]
+        UC09["FR-09: Quản lý món ăn và BOM"]
+        UC10["FR-10: Gửi duyệt nội bộ"]
+        UC11["FR-11: Duyệt hoặc yêu cầu sửa"]
+        UC12["FR-12: Gửi email dashboard/form"]
+        UC13["FR-13: Khách góp ý menu qua link"]
     end
 
-    MP --> UC04
-    MP --> UC05
-    MP --> UC06
-    Ops --> UC04
-    QA --> UC07
-    KL --> UC07
-    Ops --> UC07
-    CS2 --> UC08
-    Cust --> UC09
+    CS2 --> UC07
+    MP --> UC08
+    MP --> UC09
+    MP --> UC10
+    Ops --> UC08
+    QA --> UC11
+    KL --> UC11
+    Ops --> UC11
+    CS2 --> UC12
+    Cust --> UC13
 ```
 
 #### 3.4.3 Sơ đồ Use Case — Số lượng, BOM và AI
@@ -354,22 +380,22 @@ graph LR
     Cust2(("Khách hàng"))
 
     subgraph "Số lượng, Giấy đi chợ và AI"
-        UC10["FR-10: Nhập số lượng dự kiến/chốt/phát sinh"]
-        UC11["FR-11: Fallback số lượng tự động"]
-        UC14["FR-14: Tính BOM và xuất giấy đi chợ"]
-        UC15["FR-15: Dashboard và báo cáo"]
-        UC16["FR-16: Audit log"]
-        UC17["FR-17: AI advisory"]
+        UC14["FR-14: Nhập số lượng dự kiến/chốt/phát sinh"]
+        UC15["FR-15: Fallback số lượng tự động"]
+        UC18["FR-18: Tính BOM và xuất giấy đi chợ"]
+        UC19["FR-19: Dashboard và báo cáo"]
+        UC20["FR-20: Audit log"]
+        UC21["FR-21: AI advisory"]
     end
 
-    Cust2 --> UC10
-    Ops2 --> UC10
-    UC10 -.-> UC11
+    Cust2 --> UC14
     Ops2 --> UC14
-    PUR --> UC14
-    Dir2 --> UC15
-    Dir2 --> UC17
-    Ops2 --> UC17
+    UC14 -.-> UC15
+    Ops2 --> UC18
+    PUR --> UC18
+    Dir2 --> UC19
+    Dir2 --> UC21
+    Ops2 --> UC21
 ```
 
 ### 3.5 Quy trình nghiệp vụ chính
@@ -377,13 +403,13 @@ graph LR
 ```text
 MenuPlanner tạo menu
   -> Gửi duyệt nội bộ
-  -> QA/Kitchen/Ops duyệt hoặc yêu cầu sửa
-  -> CS gửi email cho khách
-  -> Khách duyệt menu và nhập số lượng trên cùng link email
+  -> Chị Nga/người duyệt cấu hình duyệt hoặc yêu cầu sửa
+  -> CS gửi email dashboard menu và các form cho khách
+  -> Khách góp ý menu hoặc nhập dự kiến/chốt/phát sinh qua form riêng
   -> Hệ thống áp dụng rule dự kiến/chốt/phát sinh
   -> Hệ thống tự chốt nếu đủ dữ liệu hoặc Ops bổ sung nếu thiếu fallback
   -> Hệ thống tính BOM
-  -> Purchasing phát hành giấy đi chợ
+  -> Purchasing phát hành và export giấy đi chợ
   -> Director xem dashboard/AI advisory
 ```
 
@@ -392,16 +418,12 @@ MenuPlanner tạo menu
 ```mermaid
 flowchart TD
     A["MenuPlanner tạo menu Draft"] --> B["Gửi duyệt nội bộ"]
-    B --> C{"QA Review"}
-    C -->|"Đạt"| D{"Kitchen Review"}
+    B --> C{"Chị Nga duyệt"}
+    C -->|"Đạt"| D["CS gửi email khách gồm dashboard + form"]
     C -->|"Yêu cầu sửa"| A
-    D -->|"Đạt"| E{"Ops Approval"}
-    D -->|"Yêu cầu sửa"| A
-    E -->|"Đạt"| F["CS gửi email khách"]
-    E -->|"Yêu cầu sửa"| A
-    F --> G{"Khách phản hồi"}
-    G -->|"Duyệt"| H["Hệ thống resolve số lượng"]
-    G -->|"Yêu cầu sửa"| A
+    D --> F{"Khách phản hồi"}
+    F -->|"Góp ý menu"| A
+    F -->|"Gửi dự kiến/chốt/phát sinh"| H["Hệ thống resolve số lượng"]
     H --> I{"Đủ dữ liệu?"}
     I -->|"Có"| J["QuantityConfirmed"]
     I -->|"Không"| K["QuantityOpen"]
@@ -412,7 +434,7 @@ flowchart TD
     N -->|"Có"| O["Báo lỗi, bổ sung BOM"]
     O --> M
     N -->|"Không"| P["Preview giấy đi chợ"]
-    P --> Q["Phát hành giấy đi chợ"]
+    P --> Q["Phát hành và export PDF/XLSX"]
 ```
 
 #### 3.5.2 Activity Diagram — Rule tính số lượng
@@ -421,20 +443,21 @@ flowchart TD
 flowchart TD
     Start(["Nhận input số lượng"]) --> A{"Khách nhập ExpectedQty?"}
     A -->|"Có"| B["Dùng giá trị khách nhập"]
-    A -->|"Không"| C{"Có dữ liệu ngày trước?"}
-    C -->|"Có"| D["Lấy TotalCookingQty ngày trước"]
+    A -->|"Không"| C{"Có dữ liệu cùng ngày tuần trước?"}
+    C -->|"Có"| D["Lấy TotalCookingQty tuần trước"]
     C -->|"Không"| E{"Hợp đồng có default?"}
     E -->|"Có"| F["Lấy DefaultExpectedQty"]
     E -->|"Không"| G["Yêu cầu nội bộ nhập"]
     B --> H{"Khách nhập FinalQty?"}
     D --> H
     F --> H
-    H -->|"Có"| I["Dùng FinalQty khách nhập"]
+    G --> H
+    H -->|"Có trước 09:00"| I["Dùng FinalQty khách nhập"]
     H -->|"Không"| J["FinalQty = ExpectedQty"]
     I --> K{"ExtraModeCode?"}
     J --> K
     K -->|"None"| L["TotalCookingQty = FinalQty"]
-    K -->|"AddToFinal"| M["TotalCookingQty = FinalQty + ExtraInputQty"]
+    K -->|"AdjustFinal"| M["TotalCookingQty = FinalQty + ExtraInputQty"]
     K -->|"OverrideTotal"| N["TotalCookingQty = ExtraInputQty"]
     L --> End(["Hoàn thành"])
     M --> End
@@ -448,7 +471,8 @@ Nhóm bảng chính:
 | Nhóm | Bảng |
 |---|---|
 | Tenant & cấu hình | Tenant, TenantSetting, MealSlotDefinition, KitchenAssignmentRule, ApprovalWorkflowConfig, QuantityRuleConfig |
-| Tổ chức | Company, Department, Position, EmployeeProfile, Kitchen |
+| Tổ chức | Company, Department, Team, Position, EmployeeProfile, Kitchen |
+| Work Management | WorkBoard, WorkColumn, WorkTask, WorkTaskAssignee, WorkTaskChecklistItem, WorkTaskComment, WorkTaskAttachment, WorkTaskActivity |
 | Khách hàng | CustomerCompany, CustomerContact, ServiceContract, DeliveryLocation |
 | Menu | Dish, MenuPlan, MenuPlanItem, MenuPlanRevision |
 | Duyệt | InternalApproval, CustomerApprovalToken, ApprovalTimeline |
@@ -466,8 +490,15 @@ erDiagram
     Tenant ||--o{ MealSlotDefinition : "cau hinh slot"
     Company ||--o{ Department : "co nhieu"
     Company ||--o{ Kitchen : "co nhieu bep"
+    Department ||--o{ Team : "co nhieu team"
     Department ||--o{ Position : "co nhieu"
     Department ||--o{ EmployeeProfile : "co nhieu"
+    Team ||--o{ EmployeeProfile : "co nhieu"
+    Department ||--o{ WorkBoard : "co board"
+    WorkBoard ||--o{ WorkColumn : "co cot"
+    WorkColumn ||--o{ WorkTask : "co task"
+    WorkTask ||--o{ WorkTaskAssignee : "co nguoi phu trach"
+    WorkTask ||--o{ WorkTaskComment : "co binh luan"
     CustomerCompany ||--o{ CustomerContact : "co nhieu"
     CustomerCompany ||--o{ ServiceContract : "co nhieu"
     CustomerCompany ||--o{ MenuPlan : "dat menu"
@@ -578,10 +609,10 @@ flowchart LR
 
 | Thành phần | Công nghệ |
 |---|---|
-| Framework | ASP.NET Core MVC |
+| Framework | ASP.NET Core MVC trên .NET 10 |
 | Ngôn ngữ | C# |
 | Database | SQL Server |
-| ORM | Entity Framework Core theo runtime đã chốt |
+| ORM | Entity Framework Core 10 |
 | UI | Razor Views, Bootstrap |
 | Auth | ASP.NET Core Identity |
 | Test | xUnit, Playwright/manual QA |
@@ -592,17 +623,18 @@ flowchart LR
 | Module | Kết quả cần có |
 |---|---|
 | Auth/RBAC | Login, role seed, 403 theo quyền |
-| Tenant/Company | Tenant Bizen, danh sách phòng ban, nhân sự cơ bản |
+| Tenant/Company | Tenant Bizen, danh sách phòng ban, team, nhân sự cơ bản |
+| Work Management | Board/list/card, My Tasks, assignee, deadline, checklist, comment, file, activity log |
 | Configuration | Cấu hình ca ăn, loại suất, slot món, bếp theo site/món, workflow |
 | Customer | CRUD khách hàng và contact |
 | Menu | CRUD món, BOM, tạo menu |
 | Internal Approval | Queue duyệt và timeline |
-| Customer Approval | Gửi email/link, trang public review |
-| Quantity | Form nhập số lượng và rule fallback |
-| Procurement | Preview/tạo/phát hành giấy đi chợ |
+| Customer Forms | Gửi email/link, dashboard menu và form public |
+| Quantity | Form dự kiến/chốt/phát sinh và rule fallback theo tuần trước |
+| Procurement | Preview/tạo/phát hành/export giấy đi chợ |
 | Import | Staging import CSV Lark, validation issue, commit dữ liệu sạch |
-| Dashboard | Thống kê menu chờ duyệt, chờ khách, thiếu BOM, giấy đi chợ |
-| AI | Cảnh báo/fallback có citation nội bộ |
+| Dashboard | Thống kê task quá hạn, workload cơ bản, menu chờ duyệt, chờ khách, thiếu BOM, giấy đi chợ |
+| AI | Cảnh báo/fallback có citation nội bộ cho task và vận hành catering |
 
 ### 4.3 Thuật toán xử lý số lượng
 
@@ -612,16 +644,16 @@ Input:
 
 Step 1:
   Nếu ExpectedQtyInput có giá trị thì dùng giá trị này.
-  Nếu không, tìm TotalCookingQty của ngày trước đó.
+  Nếu không, tìm TotalCookingQty của cùng ngày/ca/loại suất ở tuần trước.
   Nếu không có, dùng DefaultExpectedQty trong hợp đồng.
 
 Step 2:
-  Nếu FinalQtyInput có giá trị thì dùng giá trị này.
+  Nếu FinalQtyInput có giá trị và được gửi trước 09:00 ngày phục vụ thì dùng giá trị này.
   Nếu không, FinalQty = ExpectedQty.
 
 Step 3:
   Nếu ExtraModeCode = none, TotalCookingQty = FinalQty.
-  Nếu ExtraModeCode = add_to_final, TotalCookingQty = FinalQty + ExtraInputQty.
+  Nếu ExtraModeCode = adjust_final, TotalCookingQty = FinalQty + ExtraInputQty.
   Nếu ExtraModeCode = override_total, TotalCookingQty = ExtraInputQty.
 
 Step 4:
@@ -664,12 +696,12 @@ public async Task<ResolvedQuantityResult> ResolveAsync(
     }
     else
     {
-        var previousDay = await FindPreviousDayOrderAsync(
+        var previousWeekSameDay = await FindPreviousWeekSameDayOrderAsync(
             request.MenuPlanId, cancellationToken);
-        if (previousDay != null)
+        if (previousWeekSameDay != null)
         {
-            expectedQty = previousDay.TotalCookingQty;
-            expectedSourceCode = "previous_day_fallback";
+            expectedQty = previousWeekSameDay.TotalCookingQty;
+            expectedSourceCode = "previous_week_fallback";
         }
         else
         {
@@ -681,12 +713,14 @@ public async Task<ResolvedQuantityResult> ResolveAsync(
     }
 
     // Step 2: Resolve FinalQty
-    int finalQty = request.FinalQtyInput ?? expectedQty;
+    int finalQty = request.IsFinalSubmittedBeforeCutoff
+        ? request.FinalQtyInput ?? expectedQty
+        : expectedQty;
 
     // Step 3: Resolve TotalCookingQty
     int totalCookingQty = request.ExtraModeCode switch
     {
-        "add_to_final"
+        "adjust_final"
             => finalQty + (request.ExtraInputQty ?? 0),
         "override_total"
             => request.ExtraInputQty ?? finalQty,
@@ -800,7 +834,7 @@ public async Task ApplyMenuActionAsync(
 4. Màn hình quản lý khách hàng.
 5. Màn hình tạo thực đơn.
 6. Màn hình duyệt nội bộ.
-7. Email/link khách hàng duyệt menu.
+7. Email/link khách hàng xem dashboard menu và gửi form phản hồi.
 8. Màn hình khách nhập số lượng.
 9. Màn hình quản lý BOM món ăn.
 10. Màn hình preview giấy đi chợ.
@@ -813,9 +847,9 @@ public async Task ApplyMenuActionAsync(
 
 | Mức | Nội dung |
 |---|---|
-| Unit test | Rule số lượng, rule BOM, state machine |
-| Integration/manual | Luồng menu -> duyệt -> email -> số lượng -> giấy đi chợ |
-| UI smoke | Login, dashboard, tạo menu, duyệt, procurement |
+| Unit test | Rule số lượng, rule BOM, state machine, move/assign task |
+| Integration/manual | Luồng work board -> task -> comment/checklist và luồng menu -> duyệt -> email -> số lượng -> giấy đi chợ |
+| UI smoke | Login, dashboard, My Tasks, board, tạo menu, duyệt, procurement |
 | Security check | Role, anti-forgery, token expiry |
 | Evidence | Screenshot, test log, bug list, demo script |
 
@@ -824,23 +858,27 @@ public async Task ApplyMenuActionAsync(
 | Mã | Given | When | Then |
 |---|---|---|---|
 | TC-01 | User chưa đăng nhập | Vào `/MenuPlans` | Chuyển tới login |
-| TC-02 | Menu Draft | Submit internal | Status thành InternalReview |
-| TC-03 | QA duyệt menu | Approve | Tạo timeline, chuyển bước tiếp theo |
-| TC-04 | Menu đã nội bộ duyệt | CS gửi email | Tạo token và log email |
-| TC-05 | Token hết hạn | Khách mở link | Hệ thống báo link hết hạn |
-| TC-06 | Khách không nhập dự kiến | Submit số lượng | Dự kiến lấy ngày trước đó |
-| TC-07 | Khách không nhập chốt | Submit số lượng | Chốt bằng dự kiến |
-| TC-08 | Phát sinh cộng thêm | Final 520, extra 30 | TotalCookingQty 550 |
-| TC-09 | Phát sinh tổng mới | Final 520, extra 600 | TotalCookingQty 600 |
-| TC-10 | Món thiếu BOM | Tạo giấy đi chợ | Hệ thống chặn và báo món thiếu BOM |
-| TC-11 | BOM đầy đủ | Generate procurement | Có dòng nguyên liệu cộng dồn |
-| TC-12 | AI provider lỗi | Hỏi AI | Trả fallback có citation |
+| TC-02 | Board phòng ban | Tạo task, assign user | Task xuất hiện trong board và My Tasks |
+| TC-03 | Task đang làm | Move sang Chờ duyệt | Cột đổi, activity log ghi lại |
+| TC-04 | Task có checklist/comment | Cập nhật checklist/comment | Progress và timeline cập nhật |
+| TC-05 | Menu Draft | Submit internal | Status thành InternalReview |
+| TC-06 | Chị Nga duyệt menu | Approve | Tạo timeline, menu sẵn sàng gửi khách |
+| TC-07 | Menu đã nội bộ duyệt | CS gửi email | Tạo token, log email và link các form khách hàng |
+| TC-08 | Token hết hạn | Khách mở link | Hệ thống báo link hết hạn |
+| TC-09 | Khách không nhập dự kiến | Submit số lượng | Dự kiến lấy cùng ngày/ca/loại suất của tuần trước |
+| TC-10 | Khách không nhập chốt | Submit số lượng | Chốt bằng dự kiến |
+| TC-11 | Phát sinh điều chỉnh | Final 520, extra +30 hoặc -20 | TotalCookingQty 550 hoặc 500 |
+| TC-12 | Phát sinh tổng mới | Final 520, extra 600 | TotalCookingQty 600 |
+| TC-13 | Món thiếu BOM | Tạo giấy đi chợ | Hệ thống chặn và báo món thiếu BOM |
+| TC-14 | BOM đầy đủ | Generate procurement | Có dòng nguyên liệu cộng dồn |
+| TC-15 | AI provider lỗi | Hỏi AI | Trả fallback có citation |
 
 ### 5.3 Tiêu chí đánh giá
 
 | Tiêu chí | Cách đo |
 |---|---|
 | Đúng nghiệp vụ | Luồng end-to-end chạy theo demo script |
+| Đúng quản lý công việc | Board/List/Card, My Tasks, assign, move, checklist, comment hoạt động đúng quyền |
 | Đúng rule số lượng | Unit test pass cho fallback/final/extra |
 | Đúng BOM | So sánh kết quả tính với bảng mẫu thủ công |
 | Bảo mật cơ bản | Route nhạy cảm yêu cầu login/role, token có expiry |
@@ -853,6 +891,7 @@ public async Task ApplyMenuActionAsync(
 |---|---|
 | `dotnet build` | [Điền kết quả] |
 | Unit test số lượng | [Điền số pass/fail] |
+| Unit test Work Management | [Điền số pass/fail] |
 | Unit test BOM | [Điền số pass/fail] |
 | Manual E2E | [Điền pass/fail] |
 | UI smoke | [Điền pass/fail] |
@@ -863,13 +902,14 @@ public async Task ApplyMenuActionAsync(
 
 ### 6.1 Kết luận
 
-Đề tài đã xác định được phạm vi triển khai cụ thể cho một hệ thống vận hành thông minh trong doanh nghiệp vừa và nhỏ. Với ngành suất ăn/catering và tenant đầu tiên là Bizen Catering Services, hệ thống tập trung vào quy trình có giá trị thực tế cao: lập thực đơn, duyệt nội bộ, khách duyệt qua email, chốt số lượng, tính BOM và xuất giấy đi chợ. Cách tiếp cận này giúp đề tài vừa giữ đúng tên gọi ban đầu, vừa có hướng phát triển thành sản phẩm có thể bán nhờ tenant/configuration và import dữ liệu thật.
+Đề tài đã xác định được phạm vi triển khai cụ thể cho một hệ thống vận hành thông minh trong doanh nghiệp vừa và nhỏ. Hệ thống có lớp quản lý công việc chung theo phòng ban và workflow nghiệp vụ đầu tiên là Bizen Catering Services: lập thực đơn, duyệt nội bộ, khách phản hồi qua email/form, chốt số lượng, tính BOM và xuất giấy đi chợ. Cách tiếp cận này giúp đề tài vừa giữ đúng tên gọi ban đầu, vừa có hướng phát triển thành sản phẩm có thể bán nhờ tenant/configuration và import dữ liệu thật.
 
-Về mặt kỹ thuật, hệ thống sử dụng ASP.NET Core MVC và SQL Server, phù hợp với yêu cầu coding thuần MVC. Runtime Sprint 1 ưu tiên .NET 8 LTS để giảm rủi ro môi trường; có thể nâng .NET 10 nếu nhóm đã chốt. Kiến trúc Modular MVC Monolith giúp nhóm chia việc rõ ràng, dễ kiểm thử và dễ demo. Lớp AI được thiết kế như công cụ hỗ trợ ra quyết định, không thay thế người dùng và không làm sai lệch quy trình nghiệp vụ.
+Về mặt kỹ thuật, hệ thống sử dụng ASP.NET Core MVC trên .NET 10 và SQL Server, phù hợp với yêu cầu coding thuần MVC. Kiến trúc Modular MVC Monolith giúp nhóm chia việc rõ ràng, dễ kiểm thử và dễ demo. Lớp AI được thiết kế như công cụ hỗ trợ ra quyết định, không thay thế người dùng và không làm sai lệch quy trình nghiệp vụ.
 
 ### 6.2 Hạn chế
 
 - MVP chưa triển khai kho nâng cao theo lô và hạn sử dụng.
+- MVP chỉ có Kanban/List/My Tasks cơ bản, chưa có Calendar, Gantt, Workload heatmap và SOP repository đầy đủ.
 - Chưa tự động đặt hàng nhà cung cấp.
 - AI ở giai đoạn đầu có thể dùng mock/fallback, chưa cần tích hợp provider thật.
 - Chưa có mobile app cho khách hàng.
@@ -883,8 +923,9 @@ Về mặt kỹ thuật, hệ thống sử dụng ASP.NET Core MVC và SQL Serve
 - Bổ sung cost estimation theo menu.
 - Bổ sung dự báo số lượng dựa trên lịch sử.
 - Bổ sung dashboard nâng cao cho ban giám đốc.
+- Bổ sung Calendar, Timeline/Gantt, Workload, KPI/OKR và SOP/document repository.
 - Tích hợp email thật và AI provider thật khi deploy.
-- Bổ sung export PDF/XLSX cho giấy đi chợ và báo cáo.
+- Mở rộng export PDF/XLSX sang nhiều mẫu báo cáo nâng cao ngoài giấy đi chợ.
 - Bổ sung màn hình cấu hình tenant nâng cao để triển khai khách mới mà không cần sửa code.
 - Bổ sung import API trực tiếp từ Lark hoặc hệ thống khách hàng khác thay vì chỉ CSV.
 - Bổ sung quy trình ẩn danh dữ liệu demo và bộ công cụ onboarding khách hàng mới.
@@ -893,14 +934,16 @@ Về mặt kỹ thuật, hệ thống sử dụng ASP.NET Core MVC và SQL Serve
 
 | Requirement | Use case | Module | Test |
 |---|---|---|---|
-| FR-04 | Tạo thực đơn | Menu | TC-02 |
-| FR-06 | Duyệt nội bộ | Approval | TC-03 |
-| FR-08 | Gửi email khách | Customer Approval | TC-04 |
-| FR-09 | Khách duyệt | Customer Approval | TC-05 |
-| FR-10 | Nhập số lượng | Quantity | TC-06, TC-07 |
-| FR-13 | Phát sinh | Quantity | TC-08, TC-09 |
-| FR-14 | Giấy đi chợ | Procurement | TC-10, TC-11 |
-| FR-17 | AI advisory | AI | TC-12 |
+| FR-03 | Board/List/Card | Work Management | TC-02 |
+| FR-04 | Giao task/checklist/comment | Work Management | TC-03, TC-04 |
+| FR-08 | Tạo thực đơn | Menu | TC-05 |
+| FR-10 | Gửi duyệt nội bộ | Approval | TC-06 |
+| FR-12 | Gửi email khách | Customer Forms | TC-07 |
+| FR-13 | Khách phản hồi | Customer Forms | TC-08 |
+| FR-14 | Nhập số lượng | Quantity | TC-09, TC-10 |
+| FR-17 | Phát sinh | Quantity | TC-11, TC-12 |
+| FR-18 | Giấy đi chợ | Procurement | TC-13, TC-14 |
+| FR-21 | AI advisory | AI | TC-15 |
 
 ## Tài Liệu Tham Khảo Gợi Ý
 

@@ -1,14 +1,14 @@
-# OmniBizAI - Bộ Tài Liệu Dự Án Catering Operations Platform
+# OmniBizAI - Bộ Tài Liệu Dự Án SME Operations Platform
 
 > Ngày cập nhật: 2026-04-30
 > Tên đề tài cố định: **"Hệ thống vận hành thông minh cho doanh nghiệp vừa và nhỏ, hỗ trợ quản lý đa cấp và đưa ra quyết định bằng AI"**
-> Phạm vi triển khai: nền tảng vận hành suất ăn/catering có thể cấu hình theo từng doanh nghiệp; **Bizen Catering Services** là tenant/case study đầu tiên dựa trên dữ liệu Lark thật.
+> Phạm vi triển khai: nền tảng vận hành SME có hai lớp: quản lý quy trình toàn công ty và quản lý công việc theo phòng ban; **Bizen Catering Services** là tenant/case study đầu tiên dựa trên dữ liệu Lark thật.
 
 ## 1. Tài Liệu Kỹ Thuật
 
 - File: [01-Technical-Implementation-Blueprint.md](01-Technical-Implementation-Blueprint.md)
 - Dành cho: dev, tester, PM/BA.
-- Nội dung: phạm vi MVP, kiến trúc ASP.NET Core MVC, SQL Server schema, tenant/config entity, service contract, route map, state machine, rule tính số lượng suất ăn, BOM nguyên vật liệu, import dữ liệu Lark và giấy đi chợ.
+- Nội dung: phạm vi MVP, kiến trúc ASP.NET Core MVC trên .NET 10, SQL Server schema, tenant/config entity, Work Management Board/List/Card, service contract, route map, state machine, rule tính số lượng suất ăn theo tuần trước/chốt 09:00/phát sinh, BOM nguyên vật liệu, import dữ liệu Lark và giấy đi chợ.
 
 ## 2. Tài Liệu Báo Cáo Dự Án Tốt Nghiệp
 
@@ -20,7 +20,7 @@
 
 - File: [03-User-Guide.md](03-User-Guide.md)
 - Dành cho: người dùng cuối, người demo, nhóm test.
-- Nội dung: cách đăng nhập, quản lý công ty/phòng ban, khách hàng, thực đơn, duyệt nội bộ, duyệt qua email, nhập số lượng dự kiến/chốt/phát sinh, tính BOM, xuất giấy đi chợ, dashboard và AI hỗ trợ quyết định.
+- Nội dung: cách đăng nhập, quản lý công ty/phòng ban/team, board/list/card, công việc của tôi, khách hàng, thực đơn, Chị Nga/người cấu hình duyệt nội bộ, gửi email dashboard/form cho khách, nhập số lượng dự kiến/chốt/phát sinh, tính BOM, xuất giấy đi chợ, dashboard và AI hỗ trợ quyết định.
 
 ## 4. Tài Liệu Kế Hoạch Thực Hiện Nhóm 7 Người
 
@@ -38,11 +38,11 @@
 
 - File: [06-Sprint-1-Implementation-Cutline.md](06-Sprint-1-Implementation-Cutline.md)
 - Dành cho: dev team, PM/BA, tester.
-- Nội dung: khóa phạm vi 7 ngày theo Must-have/Should-have/Nice-to-have, chốt cách làm config bằng JSON/import profile trước khi làm UI cấu hình nâng cao, và chọn runtime `.NET 8 LTS` làm mặc định an toàn.
+- Nội dung: khóa phạm vi 7 ngày theo Must-have/Should-have/Nice-to-have, chốt cách làm config bằng JSON/import profile trước khi làm UI cấu hình nâng cao, và chọn runtime `.NET 10`/ASP.NET Core MVC 10 làm chuẩn triển khai.
 
 ## Ghi Chú Bảo Trì
 
-- MVP vẫn tập trung hoàn thành core flow suất ăn trước, nhưng database và service phải có `TenantId`, cấu hình theo tenant và import staging để có thể bán cho khách khác sau này.
+- MVP vẫn tập trung hoàn thành core flow suất ăn và Work Management Core trước; database và service phải có `TenantId`, cấu hình theo tenant và import staging để có thể bán cho khách khác sau này.
 - Không hard-code nghiệp vụ: role, permission, workflow, form, vị trí món, rule số lượng, BOM, email, export, dashboard và AI prompt đều phải đi qua cấu hình hoặc import profile.
 - Chưa triển khai self-service SaaS, billing/subscription, marketplace plugin hoặc workflow designer kéo thả trong sprint đầu; đây là phần thương mại hóa giai đoạn sau.
 - AI trong đề tài được giữ đúng tinh thần tên đề tài: AI chỉ hỗ trợ ra quyết định bằng cảnh báo, tóm tắt, gợi ý mua hàng và phát hiện bất thường; AI không tự duyệt, không tự gửi email và không tự sửa dữ liệu nghiệp vụ.
