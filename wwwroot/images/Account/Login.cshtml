@@ -1,0 +1,348 @@
+@model OmniBizAI.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Đăng nhập vào hệ thống quản lý doanh nghiệp OmniBizAI" />
+    <title>@ViewData["Title"] - OmniBizAI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body>
+
+<div class="lp-shell">
+
+    <!-- ══════════════════════════════════════════════════════════
+         HERO PANEL (left)
+    ══════════════════════════════════════════════════════════ -->
+    <aside class="lp-hero" aria-hidden="true">
+
+        <!-- Background image -->
+        <img class="lp-hero__img"
+             src="~/images/login-hero.png"
+             alt=""
+             role="presentation" />
+
+        <!-- Dark gradient overlay -->
+        <div class="lp-hero__overlay"></div>
+
+        <!-- Floating particles (CSS-only) -->
+        <div class="lp-particles">
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+            <div class="lp-particle"></div>
+        </div>
+
+        <!-- Sparkle crosses (CSS-only) -->
+        <div class="lp-sparkle lp-sparkle--1"></div>
+        <div class="lp-sparkle lp-sparkle--2"></div>
+        <div class="lp-sparkle lp-sparkle--3"></div>
+
+        <!-- Branding overlay: minimal — ảnh đã có chữ -->
+        <div class="lp-hero__content">
+            <div class="lp-hero__badge">
+                <span class="lp-hero__badge-dot"></span>
+                Hệ thống đang hoạt động
+            </div>
+            <div class="lp-hero__stats">
+                <div class="lp-hero__stat">
+                    <span class="lp-hero__stat-val">99.9%</span>
+                    <span class="lp-hero__stat-lbl">Uptime</span>
+                </div>
+                <div class="lp-hero__stat">
+                    <span class="lp-hero__stat-val">AI</span>
+                    <span class="lp-hero__stat-lbl">Driven</span>
+                </div>
+                <div class="lp-hero__stat">
+                    <span class="lp-hero__stat-val">Real-time</span>
+                    <span class="lp-hero__stat-lbl">Analytics</span>
+                </div>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ══════════════════════════════════════════════════════════
+         FORM PANEL (right)
+    ══════════════════════════════════════════════════════════ -->
+    <main class="lp-form-panel">
+        <div class="lp-card">
+
+            <div class="lp-card__body">
+
+                <!-- Logo + app name -->
+                <div class="lp-card__logo-wrap">
+                    <div class="lp-card__logo-icon" aria-hidden="true">
+                        <img src="~/images/Logo.png" alt="OmniBizAI Logo" style="width:32px;height:32px;object-fit:contain;" />
+                    </div>
+                    <span class="lp-card__app-name">OmniBiz<sub>AI</sub></span>
+                </div>
+
+                <h1 class="lp-card__heading">Chào mừng đến với OmniBizAI</h1>
+                <p class="lp-card__sub">Đăng nhập để tiếp tục quản lý hệ thống</p>
+
+                <!-- ── Server error alert ── -->
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey("LoginError"))
+                {
+                    <div class="lp-alert lp-alert--error" role="alert">
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-.75-11.25a.75.75 0 0 1 1.5 0v4a.75.75 0 0 1-1.5 0v-4zm.75 7a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5z" clip-rule="evenodd" />
+                        </svg>
+                        <span>@Html.ValidationMessage("LoginError")</span>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="lp-alert lp-alert--error" role="alert">
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-.75-11.25a.75.75 0 0 1 1.5 0v4a.75.75 0 0 1-1.5 0v-4zm.75 7a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5z" clip-rule="evenodd" />
+                        </svg>
+                        <span>@TempData["ErrorMessage"]</span>
+                    </div>
+                }
+
+                <!-- ── Login Form ── -->
+                <form id="loginForm"
+                      asp-controller="Account"
+                      asp-action="Login"
+                      method="post"
+                      novalidate>
+
+                    @Html.AntiForgeryToken()
+
+                    <!-- Email -->
+                    <div class="lp-field">
+                        <label asp-for="Email" class="lp-field__label">
+                            Email <span class="req" aria-hidden="true">*</span>
+                        </label>
+                        <div class="lp-input-wrap">
+                            <svg class="lp-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0 0 16 4H4a2 2 0 0 0-1.997 1.884z"/>
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.118z"/>
+                            </svg>
+                            <input asp-for="Email"
+                                   id="Email"
+                                   class="lp-input"
+                                   type="email"
+                                   placeholder="name@@company.com"
+                                   autocomplete="email"
+                                   spellcheck="false"
+                                   maxlength="256" />
+                        </div>
+                        <span id="emailError" class="lp-error" role="alert"></span>
+                        <span asp-validation-for="Email" class="d-none" id="emailValMsg"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="lp-field">
+                        <label asp-for="Password" class="lp-field__label">
+                            Mật khẩu <span class="req" aria-hidden="true">*</span>
+                        </label>
+                        <div class="lp-input-wrap">
+                            <svg class="lp-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1.5V5.5A4.5 4.5 0 0 0 10 1zm3 8V5.5a3 3 0 1 0-6 0V9h6z" clip-rule="evenodd"/>
+                            </svg>
+                            <input asp-for="Password"
+                                   id="Password"
+                                   class="lp-input"
+                                   type="password"
+                                   placeholder="••••••••"
+                                   autocomplete="current-password" />
+                            <button type="button"
+                                    id="togglePw"
+                                    class="lp-toggle-pw"
+                                    aria-label="Hiện/ẩn mật khẩu"
+                                    aria-pressed="false">
+                                <!-- Eye -->
+                                <svg id="iconEye" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path d="M10 3C5.5 3 1.73 5.61 0 9.5 1.73 13.39 5.5 16 10 16s8.27-2.61 10-6.5C18.27 5.61 14.5 3 10 3zm0 11a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-7.2a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4z"/>
+                                </svg>
+                                <!-- Eye-off -->
+                                <svg id="iconEyeOff" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="display:none">
+                                    <path d="M3.28 2.22a.75.75 0 0 0-1.06 1.06l1.2 1.2A9.97 9.97 0 0 0 0 9.5C1.73 13.39 5.5 16 10 16c1.68 0 3.27-.41 4.67-1.13l1.85 1.86a.75.75 0 1 0 1.06-1.06L3.28 2.22zm5.17 5.17 4.16 4.16A2.7 2.7 0 0 1 8.45 7.39zM10 3C5.5 3 1.73 5.61 0 9.5a9.97 9.97 0 0 0 2.12 3.37l1.5-1.5A4.5 4.5 0 0 1 10 5c.89 0 1.72.26 2.42.7l1.5-1.5C12.57 3.46 11.32 3 10 3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <span id="pwError" class="lp-error" role="alert"></span>
+                        <span asp-validation-for="Password" class="d-none" id="pwValMsg"></span>
+                    </div>
+
+                    <!-- Remember me + Forgot -->
+                    <div class="lp-meta">
+                        <label class="lp-check-label">
+                            <input asp-for="RememberMe" id="RememberMe" type="checkbox" class="lp-check-input" />
+                            Ghi nhớ đăng nhập
+                        </label>
+                        <a href="#" class="lp-forgot">Quên mật khẩu?</a>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" id="btnLogin" class="lp-btn" disabled>
+                        <span id="btnText">Đăng nhập</span>
+                        <span id="btnSpinner" class="d-none">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Đang xử lý…
+                        </span>
+                    </button>
+
+                    <!-- Security note -->
+                    <div class="lp-security">
+                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1.5V5.5A4.5 4.5 0 0 0 10 1zm3 8V5.5a3 3 0 1 0-6 0V9h6z" clip-rule="evenodd"/>
+                        </svg>
+                        Kết nối được mã hóa SSL 256-bit
+                    </div>
+
+                </form>
+
+            </div><!-- /.lp-card__body -->
+
+            <div class="lp-card__footer">
+                Chưa có tài khoản?&nbsp;
+                <a asp-controller="Account" asp-action="Register">Liên hệ quản trị viên</a>
+            </div>
+
+        </div><!-- /.lp-card -->
+    </main>
+
+</div><!-- /.lp-shell -->
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+(function () {
+    'use strict';
+
+    var emailInput = document.getElementById('Email');
+    var pwInput    = document.getElementById('Password');
+    var btnLogin   = document.getElementById('btnLogin');
+    var btnText    = document.getElementById('btnText');
+    var btnSpinner = document.getElementById('btnSpinner');
+    var togglePw   = document.getElementById('togglePw');
+    var iconEye    = document.getElementById('iconEye');
+    var iconEyeOff = document.getElementById('iconEyeOff');
+    var emailError = document.getElementById('emailError');
+    var pwError    = document.getElementById('pwError');
+    var form       = document.getElementById('loginForm');
+
+    /* ── Validation helpers ── */
+    function isEmailFmt(v) {
+        return new RegExp("^[^\\s@@]+@@[^\\s@@]+\\.[^\\s@@]+$").test(v);
+    }
+
+    function showError(input, errorSpan, msg) {
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        errorSpan.textContent = msg;
+        errorSpan.classList.add('is-visible');
+    }
+
+    function clearError(input, errorSpan) {
+        input.classList.remove('is-invalid');
+        if (input.value.trim()) input.classList.add('is-valid');
+        errorSpan.classList.remove('is-visible');
+    }
+
+    function validateEmail() {
+        var v = emailInput.value.trim();
+        if (!v) {
+            showError(emailInput, emailError, 'Email không được để trống.');
+            return false;
+        }
+        if (!isEmailFmt(v)) {
+            showError(emailInput, emailError, 'Địa chỉ email không hợp lệ.');
+            return false;
+        }
+        clearError(emailInput, emailError);
+        return true;
+    }
+
+    function validatePassword() {
+        var v = pwInput.value;
+        if (!v) {
+            showError(pwInput, pwError, 'Mật khẩu không được để trống.');
+            return false;
+        }
+        if (v.length < 6) {
+            showError(pwInput, pwError, 'Mật khẩu phải có ít nhất 6 ký tự.');
+            return false;
+        }
+        clearError(pwInput, pwError);
+        return true;
+    }
+
+    /* ── Enable/disable button ── */
+    function refreshBtn() {
+        btnLogin.disabled = !(emailInput.value.trim().length > 0 && pwInput.value.length >= 6);
+    }
+
+    /* ── Events ── */
+    emailInput.addEventListener('blur',  validateEmail);
+    pwInput.addEventListener('blur',     validatePassword);
+    emailInput.addEventListener('input', refreshBtn);
+    pwInput.addEventListener('input',    refreshBtn);
+
+    /* ── Submit ── */
+    form.addEventListener('submit', function (e) {
+        var ok = validateEmail() & validatePassword(); // bitwise: run both
+        if (!ok) { e.preventDefault(); return; }
+        btnText.classList.add('d-none');
+        btnSpinner.classList.remove('d-none');
+        btnLogin.disabled = true;
+    });
+
+    /* ── Toggle password ── */
+    togglePw.addEventListener('click', function () {
+        var show = pwInput.type === 'password';
+        pwInput.type = show ? 'text' : 'password';
+        iconEye.style.display    = show ? 'none'  : 'block';
+        iconEyeOff.style.display = show ? 'block' : 'none';
+        togglePw.setAttribute('aria-pressed', String(show));
+    });
+
+    /* ── Sync jquery-validation messages → our styled spans ── */
+    $(function () {
+        function syncMsg(nativeId, input, errorSpan) {
+            var native = document.getElementById(nativeId);
+            if (!native) return;
+            new MutationObserver(function () {
+                var msg = native.textContent.trim();
+                if (msg) {
+                    showError(input, errorSpan, msg);
+                } else if (!input.classList.contains('is-invalid')) {
+                    errorSpan.classList.remove('is-visible');
+                }
+            }).observe(native, { childList: true, subtree: true, characterData: true });
+        }
+        syncMsg('emailValMsg', emailInput, emailError);
+        syncMsg('pwValMsg',    pwInput,    pwError);
+    });
+
+}());
+</script>
+
+</body>
+</html>
