@@ -1,0 +1,551 @@
+@model OmniBizAI.ViewModels.ReportIndexViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Báo cáo";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/report.css" />
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE HEADER
+════════════════════════════════════════════════════════════════ -->
+<div class="rpt-header reveal d1">
+    <div>
+        <h1 class="rpt-title">Báo cáo <span>& Phân tích</span></h1>
+        <p class="rpt-subtitle">Tổng hợp dữ liệu, xem trước và xuất báo cáo theo kỳ.</p>
+    </div>
+
+    <div class="rpt-export-group">
+        @if (Model?.CanExport == true)
+        {
+            <button id="btn-pdf" class="btn btn-pdf" onclick="exportReport('pdf')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Xuất PDF
+            </button>
+            <button id="btn-excel" class="btn btn-excel" onclick="exportReport('excel')">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Xuất Excel
+            </button>
+        }
+        else
+        {
+            <!-- Staff: buttons disabled + tooltip -->
+            <div class="rpt-tooltip-wrap">
+                <button class="btn btn-pdf" disabled id="btn-pdf">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Xuất PDF
+                </button>
+                <span class="rpt-tip">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M12 15v2m0-9v4m9 1a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Bạn không đủ quyền xuất báo cáo
+                </span>
+            </div>
+            <div class="rpt-tooltip-wrap">
+                <button class="btn btn-excel" disabled id="btn-excel">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Xuất Excel
+                </button>
+                <span class="rpt-tip">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M12 15v2m0-9v4m9 1a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Bạn không đủ quyền xuất báo cáo
+                </span>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FILTER BAR
+════════════════════════════════════════════════════════════════ -->
+<div class="rpt-filter-card reveal d2">
+    <div class="rpt-filter-row">
+
+        <!-- Loại báo cáo -->
+        <div class="rpt-field">
+            <label class="rpt-label" for="sel-type">Loại báo cáo</label>
+            <div class="rpt-select-wrap">
+                <select class="rpt-select" id="sel-type" name="ReportType">
+                    <option value="">-- Chọn loại --</option>
+                    @foreach (var opt in Model?.ReportTypes ?? [])
+                    {
+                        <option value="@opt.Value">@opt.Label</option>
+                    }
+                </select>
+            </div>
+            <span class="rpt-error-msg" id="err-type"></span>
+        </div>
+
+        <!-- Kỳ -->
+        <div class="rpt-field">
+            <label class="rpt-label" for="sel-period">Kỳ báo cáo</label>
+            <div class="rpt-select-wrap">
+                <select class="rpt-select" id="sel-period" name="Period">
+                    <option value="">-- Chọn kỳ --</option>
+                    @foreach (var opt in Model?.Periods ?? [])
+                    {
+                        <option value="@opt.Value">@opt.Label</option>
+                    }
+                </select>
+            </div>
+            <span class="rpt-error-msg" id="err-period"></span>
+        </div>
+
+        <!-- Phòng ban -->
+        <div class="rpt-field">
+            <label class="rpt-label" for="sel-dept">Phòng ban</label>
+            <div class="rpt-select-wrap">
+                <select class="rpt-select" id="sel-dept" name="Department">
+                    @foreach (var opt in Model?.Departments ?? [])
+                    {
+                        <option value="@opt.Value">@opt.Label</option>
+                    }
+                </select>
+            </div>
+            <span class="rpt-error-msg" id="err-dept"></span>
+        </div>
+
+        <!-- Date From -->
+        <div class="rpt-field">
+            <label class="rpt-label" for="date-from">Từ ngày</label>
+            <input type="date" class="rpt-input" id="date-from" name="DateFrom" />
+            <span class="rpt-error-msg" id="err-date-from"></span>
+        </div>
+
+        <!-- Date To -->
+        <div class="rpt-field">
+            <label class="rpt-label" for="date-to">Đến ngày</label>
+            <input type="date" class="rpt-input" id="date-to" name="DateTo" />
+            <span class="rpt-error-msg" id="err-date-to"></span>
+        </div>
+
+    </div>
+
+    <div class="rpt-filter-actions">
+        <button class="btn btn-ghost" onclick="resetFilter()" type="button" id="btn-reset">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Đặt lại
+        </button>
+        <button class="btn btn-accent" onclick="loadPreview()" type="button" id="btn-preview">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            Xem trước
+        </button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LOADING SKELETON
+════════════════════════════════════════════════════════════════ -->
+<div class="rpt-loading" id="rpt-loading">
+    <div class="skeleton-row">
+        <div class="skeleton-block"></div>
+        <div class="skeleton-block"></div>
+        <div class="skeleton-block"></div>
+        <div class="skeleton-block"></div>
+    </div>
+    <div class="skeleton-row">
+        <div class="skeleton-block tall"></div>
+    </div>
+    <div class="skeleton-row">
+        <div class="skeleton-block slim"></div>
+    </div>
+    <div class="skeleton-row">
+        <div class="skeleton-block slim"></div>
+    </div>
+    <div class="skeleton-row">
+        <div class="skeleton-block slim"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     EMPTY STATE (default)
+════════════════════════════════════════════════════════════════ -->
+<div class="rpt-empty" id="rpt-empty">
+    <div class="rpt-empty-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+    </div>
+    <div class="rpt-empty-title">Chưa có dữ liệu báo cáo</div>
+    <div class="rpt-empty-sub">Chọn loại báo cáo và kỳ, sau đó nhấn <strong>Xem trước</strong> để tải dữ liệu.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PREVIEW CONTENT (injected by JS)
+════════════════════════════════════════════════════════════════ -->
+<div id="rpt-preview-root" style="display:none;"></div>
+
+@section Scripts {
+<script>
+/* ── state ──────────────────────────────────────────────────── */
+let previewChart = null;
+let hasData = false;
+
+/* ── helpers ─────────────────────────────────────────────────── */
+function showEl(id)  { document.getElementById(id).style.display = ''; }
+function hideEl(id)  { document.getElementById(id).style.display = 'none'; }
+function showFlex(id){ document.getElementById(id).style.display = 'flex'; }
+
+/* ── validation ──────────────────────────────────────────────── */
+function clearErrors() {
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.rpt-error-msg').forEach(el => {
+        el.classList.remove('active');
+        el.textContent = '';
+    });
+}
+
+function setError(inputId, errorId, msg) {
+    const input = document.getElementById(inputId);
+    const errEl = document.getElementById(errorId);
+    if (input) input.classList.add('is-invalid');
+    if (errEl) {
+        errEl.textContent = msg;
+        errEl.classList.add('active');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Clear errors on input change
+    const inputs = [
+        { id: 'sel-type', errId: 'err-type' },
+        { id: 'sel-period', errId: 'err-period' },
+        { id: 'sel-dept', errId: 'err-dept' },
+        { id: 'date-from', errId: 'err-date-from' },
+        { id: 'date-to', errId: 'err-date-to' }
+    ];
+    inputs.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el) {
+            el.addEventListener('input', () => {
+                el.classList.remove('is-invalid');
+                const errEl = document.getElementById(item.errId);
+                if (errEl) {
+                    errEl.classList.remove('active');
+                    errEl.textContent = '';
+                }
+            });
+            el.addEventListener('change', () => {
+                el.classList.remove('is-invalid');
+                const errEl = document.getElementById(item.errId);
+                if (errEl) {
+                    errEl.classList.remove('active');
+                    errEl.textContent = '';
+                }
+            });
+        }
+    });
+});
+
+/* ── filter reset ────────────────────────────────────────────── */
+function resetFilter() {
+    clearErrors();
+    ['sel-type','sel-period','sel-dept'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.selectedIndex = 0;
+    });
+    document.getElementById('date-from').value = '';
+    document.getElementById('date-to').value   = '';
+    hideEl('rpt-preview-root');
+    showFlex('rpt-empty');
+    hasData = false;
+}
+
+/* ── load preview ────────────────────────────────────────────── */
+function loadPreview() {
+    const btn = document.getElementById('btn-preview');
+    if (btn.disabled) return; // Prevent double submit
+
+    const reportType = document.getElementById('sel-type').value;
+    const period     = document.getElementById('sel-period').value;
+    const dept       = document.getElementById('sel-dept').value;
+    const dateFrom   = document.getElementById('date-from').value;
+    const dateTo     = document.getElementById('date-to').value;
+
+    clearErrors();
+    let isValid = true;
+    let firstInvalid = null;
+
+    if (!reportType) {
+        setError('sel-type', 'err-type', 'Vui lòng chọn loại báo cáo');
+        isValid = false;
+        if (!firstInvalid) firstInvalid = 'sel-type';
+    }
+    if (!period) {
+        setError('sel-period', 'err-period', 'Vui lòng chọn kỳ báo cáo');
+        isValid = false;
+        if (!firstInvalid) firstInvalid = 'sel-period';
+    }
+
+    if (dateFrom && dateTo) {
+        if (new Date(dateFrom) > new Date(dateTo)) {
+            setError('date-from', 'err-date-from', 'Từ ngày phải ≤ Đến ngày');
+            setError('date-to', 'err-date-to', 'Đến ngày phải ≥ Từ ngày');
+            isValid = false;
+            if (!firstInvalid) firstInvalid = 'date-from';
+        }
+    }
+
+    if (!isValid) {
+        shakeFilter();
+        if (firstInvalid) document.getElementById(firstInvalid).focus();
+        return;
+    }
+
+    // Show loading
+    hideEl('rpt-empty');
+    hideEl('rpt-preview-root');
+    showFlex('rpt-loading');
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:1rem;height:1rem;margin-right:8px;border-width:0.15em;"></span> Đang tải...`;
+
+    fetch('/Report/Preview', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': getAntiForgeryToken()
+        },
+        body: JSON.stringify({ reportType, period, department: dept, dateFrom, dateTo })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            renderPreview(res.data);
+        } else if (res.errors) {
+            // Handle backend model validation errors
+            let firstBackendInvalid = null;
+            Object.keys(res.errors).forEach(key => {
+                let inputId = null;
+                let errId = null;
+                if (key.toLowerCase() === 'reporttype') { inputId = 'sel-type'; errId = 'err-type'; }
+                else if (key.toLowerCase() === 'period') { inputId = 'sel-period'; errId = 'err-period'; }
+                else if (key.toLowerCase() === 'department') { inputId = 'sel-dept'; errId = 'err-dept'; }
+                else if (key.toLowerCase() === 'datefrom') { inputId = 'date-from'; errId = 'err-date-from'; }
+                else if (key.toLowerCase() === 'dateto') { inputId = 'date-to'; errId = 'err-date-to'; }
+
+                if (inputId && errId) {
+                    setError(inputId, errId, res.errors[key]);
+                    if (!firstBackendInvalid) firstBackendInvalid = inputId;
+                }
+            });
+            if (firstBackendInvalid) {
+                document.getElementById(firstBackendInvalid).focus();
+                shakeFilter();
+                showFlex('rpt-empty'); // Restore empty state since we hid it
+            } else {
+                showError(res.message || 'Dữ liệu không hợp lệ');
+            }
+        } else {
+            showError(res.message || 'Lỗi không xác định');
+        }
+    })
+    .catch(() => showError('Không thể kết nối máy chủ.'))
+    .finally(() => {
+        hideEl('rpt-loading');
+        btn.disabled = false;
+        btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg> Xem trước`;
+    });
+}
+
+/* ── render ──────────────────────────────────────────────────── */
+function renderPreview(data) {
+    if (!data || data.rows.length === 0) {
+        showFlex('rpt-empty');
+        document.querySelector('.rpt-empty-title').textContent = 'Không có dữ liệu';
+        document.querySelector('.rpt-empty-sub').textContent   = 'Bộ lọc hiện tại không trả về kết quả nào.';
+        return;
+    }
+
+    const root = document.getElementById('rpt-preview-root');
+
+    const summaryHtml = data.summary.map(c => `
+        <div class="rpt-sum-card c-${c.color}">
+            <div class="rpt-sum-label">${c.label}</div>
+            <div class="rpt-sum-value">${c.value}</div>
+            <div class="rpt-sum-footer">
+                ${c.direction !== 'flat' ? `<span class="rpt-badge-${c.direction}">${c.change}</span>` : ''}
+                <span class="rpt-sum-period">so với kỳ trước</span>
+            </div>
+        </div>
+    `).join('');
+
+    const rowsHtml = data.rows.map(r => {
+        const cls = r.trangThai === 'Hoàn thành' ? 'done' : r.trangThai === 'Chờ duyệt' ? 'pend' : 'cancel';
+        return `
+        <tr>
+            <td>${r.stt}</td>
+            <td><span class="rpt-maso">${r.maSo}</span></td>
+            <td>${r.tenMuc}</td>
+            <td>${r.giaTri}</td>
+            <td>${r.ngayTao}</td>
+            <td><span class="rpt-status ${cls}">${r.trangThai}</span></td>
+        </tr>`;
+    }).join('');
+
+    root.innerHTML = `
+    <div class="rpt-preview-area">
+        <!-- Summary cards -->
+        <div class="rpt-summary-grid">${summaryHtml}</div>
+
+        <!-- AI Summary -->
+        <div class="rpt-ai-card">
+            <div class="rpt-ai-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div class="rpt-ai-body">
+                <div class="rpt-ai-label">✦ AI Summary</div>
+                <div class="rpt-ai-text">${data.aiSummary}</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="rpt-chart-card">
+            <div class="rpt-chart-head">
+                <div>
+                    <div class="rpt-chart-title">Biểu đồ xu hướng</div>
+                    <div class="rpt-chart-sub">${data.title}</div>
+                </div>
+            </div>
+            <div class="rpt-chart-container">
+                <canvas id="rptChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Data table -->
+        <div class="rpt-table-card">
+            <div class="rpt-card-head">
+                <div>
+                    <div class="rpt-card-title">Chi tiết dữ liệu</div>
+                    <div class="rpt-card-sub">${data.title}</div>
+                </div>
+                <span class="rpt-row-count">${data.rows.length} dòng</span>
+            </div>
+            <div class="rpt-table-wrap">
+                <table class="rpt-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Mã số</th>
+                            <th>Tên mục</th>
+                            <th>Giá trị</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        </div>
+    </div>`;
+
+    showEl('rpt-preview-root');
+    hasData = true;
+
+    // Render chart
+    requestAnimationFrame(() => {
+        if (previewChart) { previewChart.destroy(); previewChart = null; }
+        const ctx = document.getElementById('rptChart');
+        if (!ctx) return;
+        previewChart = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.chartLabels,
+                datasets: [{
+                    label: 'Giá trị',
+                    data: data.chartValues,
+                    backgroundColor: 'rgba(108,99,255,0.5)',
+                    borderColor: '#6c63ff',
+                    borderWidth: 1.5,
+                    borderRadius: 5,
+                    hoverBackgroundColor: '#8b85ff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#181c2e',
+                        titleColor: '#e2e8f8',
+                        bodyColor: '#5a6280',
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        ticks: { color: '#5a6280' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#5a6280' }
+                    }
+                }
+            }
+        });
+    });
+}
+
+/* ── error helper ────────────────────────────────────────────── */
+function showError(msg) {
+    const root = document.getElementById('rpt-preview-root');
+    root.innerHTML = `
+        <div class="rpt-empty">
+            <div class="rpt-empty-icon" style="background:var(--red-bg);color:var(--red)">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+            </div>
+            <div class="rpt-empty-title">Đã xảy ra lỗi</div>
+            <div class="rpt-empty-sub">${msg}</div>
+        </div>`;
+    showEl('rpt-preview-root');
+}
+
+/* ── shake filter bar ────────────────────────────────────────── */
+function shakeFilter() {
+    const card = document.querySelector('.rpt-filter-card');
+    card.style.animation = 'none';
+    card.offsetHeight;
+    card.style.animation = 'shakeX 0.4s ease';
+    setTimeout(() => card.style.animation = '', 500);
+}
+
+/* ── export ──────────────────────────────────────────────────── */
+function exportReport(type) {
+    if (!hasData) {
+        alert('Vui lòng xem trước dữ liệu trước khi xuất.');
+        return;
+    }
+    // Placeholder – tích hợp thực tế tuỳ backend
+    const label = type === 'pdf' ? 'PDF' : 'Excel';
+    alert(`Xuất ${label} sẽ được tích hợp ở giai đoạn tiếp theo.`);
+}
+
+/* ── anti-forgery token ──────────────────────────────────────── */
+function getAntiForgeryToken() {
+    const el = document.querySelector('input[name="__RequestVerificationToken"]');
+    return el ? el.value : '';
+}
+
+</script>
+}
