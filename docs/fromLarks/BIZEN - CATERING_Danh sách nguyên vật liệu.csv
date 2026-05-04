@@ -1,0 +1,1773 @@
+﻿ID,Mã nguyên vật liệu,Tên nguyên vật liệu,Nhóm nguyên vật liệu,ĐVT định mức,Check (Hoàng nhỏ),Hiệu chỉnh lần 1
+1,BANH_001,Bánh bao,BÁNH,gói,1,0
+2,BANH_002,Bánh bao cua,BÁNH,gói,1,0
+3,BANH_003,Bánh bao không nhân,BÁNH,cái,1,0
+4,BANH_004,Bánh bao nhân đậu xanh,BÁNH,cái,1,0
+5,BANH_005,Bánh bauli moonfils choco 45g (20 cái/thùng),BÁNH,cái,1,0
+6,BANH_006,Bánh bauli moonfils phô mai mới 45g (20 cái/thùng),BÁNH,cái,1,0
+7,BANH_007,Bánh bauli moonfils strawberry 45g 20 cái / thùng,BÁNH,thùng,1,0
+8,BANH_008,Bánh bauli moonfils vanilla 45g (20 cái/thùng),BÁNH,cái,1,0
+9,BANH_009,Bánh bon 120 cái/thùng,BÁNH,thùng,1,0
+10,BANH_010,Bánh bông lan,BÁNH,cái,1,0
+11,BANH_011,Bánh bông lan cuộn kem,BÁNH,cái,1,0
+12,BANH_012,Bánh bông lan staff nho 38g 60 cái/thùng,BÁNH,thùng,1,0
+13,BANH_013,Bánh cua phô mai,BÁNH,cái,1,0
+14,BANH_014,Bánh custas trứng - hộp lớn,BÁNH,hộp,1,0
+15,BANH_015,Bánh chà bông tam giác,BÁNH,cái,1,0
+16,BANH_016,Bánh choco pie 160 cái/thùng,BÁNH,thùng,1,0
+17,BANH_017,Bánh choco pn 288 cái/thùng,BÁNH,thùng,1,0
+18,BANH_018,Bánh chưng,BÁNH,cái,1,0
+19,BANH_019,Bánh chưng không nhân,BÁNH,cái,1,0
+20,BANH_020,Bánh da lợn,BÁNH,cái,1,0
+21,BANH_021,Bánh đa nướng,BÁNH,cái,1,0
+22,BANH_022,Bánh đậu phộng poca 80 bịch/thùng,BÁNH,thùng,1,0
+23,BANH_023,Bánh đúc xiên,BÁNH,hộp,1,0
+24,BANH_024,Bánh gà nướng,BÁNH,cái,1,0
+25,BANH_025,Bánh gạo kun ( 280 cái/thùng),BÁNH,thùng,1,0
+26,BANH_026,Bánh gạo yappy snowy 288c/thùng,BÁNH,thùng,1,0
+28,BANH_027,Bánh giò,BÁNH,cái,1,0
+29,BANH_028,Bánh karo trứng tươi chà bông (72 cái/thùng - 12 túi/thùng),BÁNH,thùng,1,0
+31,BANH_029,Bánh kem size nhỏ,BÁNH,cái,1,0
+32,BANH_030,Bánh lá dứa,BÁNH,cái,1,0
+33,BANH_031,Bánh limo mè đen 240_new (20g x 12 gói x 12 hộp),BÁNH,thùng,1,0
+35,BANH_032,Bánh mì chà bông gà,BÁNH,cái,1,0
+36,BANH_033,Bánh mì hoa cúc,BÁNH,cái,1,0
+37,BANH_034,Bánh mì otto sandwich tươi chà bông xốt mayonaise cay 82.5 (82.5g x 6 cái x 6 hộp),BÁNH,cái,1,0
+38,BANH_035,Bánh nabati,BÁNH,thùng,1,0
+39,BANH_036,Bánh ngọt bơ sữa tròn,BÁNH,cái,1,0
+40,BANH_037,Bánh oshi,BÁNH,gói,1,0
+41,BANH_038,Bánh panacota,BÁNH,cái,1,0
+42,BANH_039,Bánh pepie 20c/hộp ,BÁNH,hộp,1,0
+43,BANH_040,Bánh peppie 240 cái/thùng,BÁNH,thùng,1,0
+45,BANH_041,Bánh pizza nấm,BÁNH,cái,1,0
+46,BANH_042,Bánh pizza tan chảy,BÁNH,cái,1,0
+47,BANH_043,Bánh pizza xúc xích,BÁNH,cái,1,0
+48,BANH_044,Bánh flan,BÁNH,cái,1,0
+49,BANH_045,Bánh phồng tôm,BÁNH,bịch,1,0
+50,BANH_046,Bánh phú sỹ,BÁNH,cái,1,0
+51,BANH_047,Bánh quế cosy 24 bịch/thùng,BÁNH,thùng,1,0
+52,BANH_048,"Bánh sandwich cá hồi otto 82.5 (82,5g x 6 cái x 6 hộp)",BÁNH,thùng,1,0
+54,BANH_049,Bánh sanwich ngọt,BÁNH,cái,1,0
+55,BANH_050,Bánh socola,BÁNH,cái,1,0
+56,BANH_051,"Bánh solo kem vị lá dứa-pandan new 288 ( 12 cái/ túi, 24 túi/ thùng)",BÁNH,thùng,1,0
+57,BANH_052,Bánh staff chà bông phô mai 60g,BÁNH,cái,1,0
+58,BANH_053,Bánh su kem,BÁNH,cái,1,0
+59,BANH_054,Bánh tét ,BÁNH,cái,1,0
+60,BANH_055,Bánh tét không nhân,BÁNH,cái,1,0
+61,BANH_056,"Bánh tipo 19 cái/hộp, 228 cái/thùng",BÁNH,thùng,1,0
+63,BANH_057,Bánh tráng,BÁNH,bịch,1,0
+64,BANH_058,Bánh tráng cuốn chả giò,BÁNH,bịch,1,0
+65,BANH_059,Bánh tráng xấp lớn,BÁNH,bịch,1,0
+66,BANH_060,Bánh tròn,BÁNH,cái,1,0
+67,BANH_061,Bánh trung thu,BÁNH,cái,1,0
+68,BANH_062,Bánh trứng tươi otto kem custard 35 (35g x 10cái x 8bịch),BÁNH,thùng,1,0
+69,BANH_063,Bánh trứng tươi otto kem lá dứa 35 ( 35g x 10 cái x 8 bịch),BÁNH,cái,1,0
+70,BANH_064,Bông lan trứng muối to,BÁNH,cái,1,0
+71,BANH_065,Cơm cháy,BÁNH,kg,1,0
+72,BANH_066,Ostar,BÁNH,bịch,1,0
+73,BANH_067,Bánh bò,BÁNH ,cái,1,0
+74,BANH_068,Bánh bò thốt nốt,BÁNH ,cái,1,0
+75,BANH_069,Bánh bon phô mai (100cái/thùng),BÁNH ,thùng,1,0
+76,BANH_070,Bánh bon sợi thịt gà (100 cái/thùng,BÁNH ,thùng,1,0
+77,BANH_071,Bánh bông lan trứng muối,BÁNH ,cái,1,0
+78,BANH_072,Bánh custas 96 cái/thùng,BÁNH ,thùng,1,0
+79,BANH_073,Bánh choco pie 96 cái/thùng,BÁNH ,thùng,1,0
+80,BANH_074,Bánh choco pn (312 cái/thùng),BÁNH ,thùng,1,0
+81,BANH_075,Bánh gạo(160cái/thùng),BÁNH ,thùng,1,0
+82,BANH_076,Bánh hura (240 cái/thùng),BÁNH ,thùng,1,0
+83,BANH_077,Bánh kem,BÁNH ,cái,1,0
+84,BANH_078,Bánh mì nướng muối ớt,BÁNH ,hộp,1,0
+85,BANH_079,Bánh quế cosy 24 bịch/ thùng,BÁNH ,thùng,1,0
+86,BANH_080,Bánh snack 6 loại (20 gói/loại - 120 gói/6loại),BÁNH ,bịch,1,0
+87,BANH_081,"Bánh solite (240cái/thùng),(1 hộp/20 cái)",BÁNH ,thùng,1,0
+88,BANH_082,"Bánh solo kem new 168( 12 cái/ túi, 24 túi/ thùng) ",BÁNH ,thùng,1,0
+89,BANH_083,Bánh swing bò (snack),BÁNH ,bịch,1,0
+90,BANH_084,"Bánh trung thu kinh đô (1 hộp/ 2 cái) - đậu xanh, hạt sen",BÁNH ,hộp,1,0
+91,BANH MI_001,Bánh cốm dừa,BÁNH MÌ,cái,1,0
+92,BANH MI_002,Bánh cuộn đậu xanh,BÁNH MÌ,cái,1,0
+93,BANH MI_003,Bánh chà bông kẹp,BÁNH MÌ,cái,1,0
+94,BANH MI_004,Bánh hamberger,BÁNH MÌ,cái,1,0
+95,BANH MI_005,Bánh mì bơ pháp,BÁNH MÌ,cái,1,0
+96,BANH MI_006,Bánh mì cua,BÁNH MÌ,cái,1,0
+97,BANH MI_007,Bánh mì dài,BÁNH MÌ,cái,1,0
+98,BANH MI_008,Bánh mì dừa mè,BÁNH MÌ,cái,1,0
+99,BANH MI_009,Bánh mì dừa nướng,BÁNH MÌ,cái,1,0
+100,BANH MI_010,Bánh mì đặc ruột,BÁNH MÌ,cái,1,0
+101,BANH MI_011,Bánh mì giòn,BÁNH MÌ,cái,1,0
+102,BANH MI_012,Bánh mì kẹp,BÁNH MÌ,cái,1,0
+103,BANH MI_013,Bánh mì khay bạc,BÁNH MÌ,cái,1,0
+104,BANH MI_014,Bánh mì mặt cười,BÁNH MÌ,cái,1,0
+105,BANH MI_015,Bánh mì nhỏ,BÁNH MÌ,ổ,1,0
+106,BANH MI_016,Bánh mì otto sandwich tươi chà bông xốt mayonaise cay 76 (76g x 6 cái x 6 hộp),BÁNH MÌ,cái,1,0
+107,BANH MI_017,Bánh mì phô mai tan chảy,BÁNH MÌ,cái,1,0
+108,BANH MI_018,Bánh mì sandwich tươi chà bông xốt mayonaise cay 82.5 (36cái/ thùng),BÁNH MÌ,cái,1,0
+109,BANH MI_019,Bánh mì sốt dừa,BÁNH MÌ,cái,1,0
+110,BANH MI_020,Bánh mì staf phô mai chà bông 60g 40 cái/thùng,BÁNH MÌ,thùng,1,0
+111,BANH MI_021,Bánh mì staff chà bông 60g 60 cái/thùng,BÁNH MÌ,thùng,1,0
+112,BANH MI_022,Bánh mì sữa,BÁNH MÌ,cái,1,0
+113,BANH MI_023,Bánh mì thịt xốt mayonnaise cay otto 50 (50g x 60cái),BÁNH MÌ,cái,1,0
+114,BANH MI_024,Bánh mì trứng cút chà bông,BÁNH MÌ,cái,1,0
+115,BANH MI_025,Bánh mì xông khói ,BÁNH MÌ,cái,1,0
+116,BANH MI_026,Bánh mì xúc xích,BÁNH MÌ,cái,1,0
+117,BANH MI_027,Bánh mì xúc xích bắp,BÁNH MÌ,cái,1,0
+118,BANH MI_028,Bánh mì xúc xích rùa,BÁNH MÌ,cái,1,0
+119,BANH MI_029,Bánh sandwich,BÁNH MÌ,cái,1,0
+120,BANH MI_030,Bánh sandwich kẹp trứng,BÁNH MÌ,cái,1,0
+121,BANH MI_031,Bánh sandwich lạt,BÁNH MÌ,cái,1,0
+122,BANH MI_032,Bánh sandwich nho,BÁNH MÌ,cái,1,0
+123,BANH MI_033,Bánh mì tròn,BÁNH MÌ,ổ,1,0
+124,GAS_001,Gas 12 kg,BÌNH GAS,bình,1,0
+125,GAS_002,Gas 45 kg,BÌNH GAS,bình,1,0
+126,GAS_003,Gas 50 kg,BÌNH GAS,bình,1,0
+127,BOT_001,Bột báng,BỘT,gram,1,0
+128,BOT_002,Bột gạo,BỘT,gram,1,0
+129,BOT_003,Bột khoai,BỘT,gram,1,0
+130,BOT_004,Bột không,BỘT,gram,1,0
+131,BOT_005,Bột mì,BỘT,gram,1,0
+132,BUN_001,Bánh canh,BÚN,gram,1,0
+133,BUN_002,Bánh canh bột xắt,BÚN,gram,1,0
+134,BUN_003,Bánh canh sợi nhỏ,BÚN,gram,1,0
+135,BUN_004,Bánh đa,BÚN,gram,1,0
+136,BUN_005,Bánh hỏi,BÚN,gram,1,0
+137,BUN_006,Bánh ướt,BÚN,gram,1,0
+138,BUN_007,Bún,BÚN,gram,1,0
+139,BUN_008,Bún bò,BÚN,gram,1,0
+140,BUN_009,Bún gạo,BÚN,gram,1,0
+141,BUN_010,Bún gạo vinh thạnh 0.5kg/1 gói,BÚN,gram,1,0
+142,BUN_011,Bún nhỏ,BÚN,gram,1,0
+143,BUN_012,Phở,BÚN,gram,1,0
+144,CA BIEN_001,Cá bạc má size 10,CÁ BIỂN,gram,1,0
+145,CA BIEN_002,Cá bạc má size 8,CÁ BIỂN,gram,1,0
+146,CA BIEN_003,Cá bống biển,CÁ BIỂN,gram,1,0
+147,CA BIEN_004,Cá bống mú,CÁ BIỂN,gram,1,0
+148,CA BIEN_005,Cá bớp,CÁ BIỂN,gram,1,0
+149,CA BIEN_006,Cá cờ,CÁ BIỂN,gram,1,0
+150,CA BIEN_007,Cá cơm tươi,CÁ BIỂN,gram,1,0
+151,CA BIEN_008,Cá chẻm,CÁ BIỂN,gram,1,0
+152,CA BIEN_009,Cá chim size 10,CÁ BIỂN,gram,1,0
+153,CA BIEN_010,Cá chim size 8,CÁ BIỂN,gram,1,0
+154,CA BIEN_011,Cá đổng lai size 10,CÁ BIỂN,gram,1,0
+155,CA BIEN_012,Cá đổng lai size 8,CÁ BIỂN,gram,1,0
+156,CA BIEN_013,Cá đổng size 10,CÁ BIỂN,gram,1,0
+157,CA BIEN_014,Cá đổng size 8,CÁ BIỂN,gram,1,0
+158,CA BIEN_015,Cá hố,CÁ BIỂN,gram,1,0
+159,CA BIEN_016,Cá hường size 10,CÁ BIỂN,gram,1,0
+160,CA BIEN_017,Cá hường size 8,CÁ BIỂN,gram,1,0
+161,CA BIEN_018,Cá lò size 10,CÁ BIỂN,gram,1,0
+162,CA BIEN_019,Cá lò size 8,CÁ BIỂN,gram,1,0
+163,CA BIEN_020,Cá mèo,CÁ BIỂN,gram,1,0
+164,CA BIEN_021,Cá nục size 10,CÁ BIỂN,gram,1,0
+165,CA BIEN_022,Cá nục size 15,CÁ BIỂN,gram,1,0
+166,CA BIEN_023,Cá nục size 6-7,CÁ BIỂN,gram,1,0
+167,CA BIEN_024,Cá nục size 8,CÁ BIỂN,gram,1,0
+168,CA BIEN_025,Cá ngân size 10,CÁ BIỂN,gram,1,0
+169,CA BIEN_026,Cá ngân size 15,CÁ BIỂN,gram,1,0
+170,CA BIEN_027,Cá ngân size 8,CÁ BIỂN,gram,1,0
+171,CA BIEN_028,Cá ngừ lát size 10,CÁ BIỂN,gram,1,0
+172,CA BIEN_029,Cá ngừ lát size 8,CÁ BIỂN,gram,1,0
+173,CA BIEN_030,Cá ngừ nguyên con,CÁ BIỂN,gram,1,0
+174,CA BIEN_031,Cá ngừ nguyên con nhỏ,CÁ BIỂN,gram,1,0
+175,CA BIEN_032,Cá ngừ ồ lát size 10,CÁ BIỂN,gram,1,0
+176,CA BIEN_033,Cá ngừ ồ lát size 8,CÁ BIỂN,gram,1,0
+177,CA BIEN_034,Cá phèn size 20 ,CÁ BIỂN,gram,1,0
+178,CA BIEN_035,Cá sapa,CÁ BIỂN,gram,1,0
+179,CA BIEN_036,Cá sóc size 8,CÁ BIỂN,gram,1,0
+180,CA BIEN_037,Cá thu,CÁ BIỂN,gram,1,0
+181,CA BIEN_038,Cá tráo size 10,CÁ BIỂN,gram,1,0
+182,CA BIEN_039,Cá tráo size 8,CÁ BIỂN,gram,1,0
+183,CA NHAP KHAU_001,Cá cam nhập khẩu,CÁ NHẬP KHẨU,gram,1,0
+184,CA NHAP KHAU_002,Cá hồi,CÁ NHẬP KHẨU,gram,1,0
+185,CA NHAP KHAU_003,Cá nục 15/20-boda,CÁ NHẬP KHẨU,gram,1,0
+186,CA NHAP KHAU_004,Cá nục bông 200-400g,CÁ NHẬP KHẨU,gram,1,0
+187,CA NHAP KHAU_005,Cá nục bông 400-600g,CÁ NHẬP KHẨU,gram,1,0
+188,CA NHAP KHAU_006,Cá thu đao nhập khẩu,CÁ NHẬP KHẨU,gram,1,0
+189,CA SONG_001,Cá ba sa có đầu,CÁ SÔNG,gram,1,0
+190,CA SONG_002,Cá ba sa không đầu,CÁ SÔNG,gram,1,0
+191,CA SONG_003,Cá bống,CÁ SÔNG,gram,1,0
+192,CA SONG_004,Cá bông lau,CÁ SÔNG,gram,1,0
+193,CA SONG_005,Cá chim cắt lát size 10,CÁ SÔNG,gram,1,0
+194,CA SONG_006,Cá chim cắt lát size 8,CÁ SÔNG,gram,1,0
+195,CA SONG_007,Cá diêu hồng,CÁ SÔNG,gram,1,0
+196,CA SONG_008,Cá kèo,CÁ SÔNG,gram,1,0
+197,CA SONG_009,Cá lăng,CÁ SÔNG,gram,1,0
+198,CA SONG_010,Cá lóc,CÁ SÔNG,gram,1,0
+199,CA SONG_011,Cá rô size 10,CÁ SÔNG,gram,1,0
+200,CA SONG_012,Cá rô size 6-7 con,CÁ SÔNG,gram,1,0
+201,CA SONG_013,Cá rô size 8,CÁ SÔNG,gram,1,0
+202,CA SONG_014,Cá tai tượng,CÁ SÔNG,gram,1,0
+203,CA SONG_015,Cá thác lác,CÁ SÔNG,gram,1,0
+204,CA SONG_016,Cá tra,CÁ SÔNG,gram,1,0
+205,CA SONG_017,Cá trê,CÁ SÔNG,gram,1,0
+206,CA SONG_018,File cá basa,CÁ SÔNG,gram,1,0
+207,CCDC_001,Áo mưa dùng 1 lần (50 cái/thiên),CCDC,thiên,1,0
+208,CCDC_002,Bàn chải chà sàn,CCDC,cái,1,0
+209,CCDC_003,Bàn chải nhựa,CCDC,cái,1,0
+210,CCDC_004,Bàn chải sắt,CCDC,cái,1,0
+211,CCDC_005,Bao đũa,CCDC,cái,1,0
+212,CCDC_006,Bao tay cao su,CCDC,đôi,1,0
+213,CCDC_007,Bao tay chia cơm,CCDC,kg,1,0
+214,CCDC_008,Bao tay vải,CCDC,đôi,1,0
+215,CCDC_009,Bếp cồn,CCDC,cái,1,0
+216,CCDC_010,Bếp công nghiệp,CCDC,cái,1,0
+217,CCDC_011,Bếp tủ cơm,CCDC,cái,1,0
+218,CCDC_012,Bình bông sứ,CCDC,cái,1,0
+219,CCDC_013,Bình đựng tương ,CCDC,cái,1,0
+220,CCDC_014,Bình giữ nhiệt,CCDC,cái,1,0
+221,CCDC_015,Bình inox đựng nước 2l,CCDC,cái,1,0
+222,CCDC_016,Bình nước,CCDC,cái,1,0
+223,CCDC_017,Bình nước trái cây 3l,CCDC,cái,1,0
+224,CCDC_018,Bình nhựa,CCDC,cái,1,0
+225,CCDC_019,Bình xịt tưới cây,CCDC,cái,1,0
+226,CCDC_020,Bọc 12 x 20,CCDC,gram,1,0
+227,CCDC_021,Bọc canh nhỏ,CCDC,gram,1,0
+228,CCDC_022,Bọc chữ t đựng nước,CCDC,gram,1,0
+229,CCDC_023,Bọc đựng 10kg,CCDC,gram,1,0
+230,CCDC_024,Bọc đựng 1kg,CCDC,gram,1,0
+231,CCDC_025,Bọc đựng 2 kg,CCDC,gram,1,0
+232,CCDC_026,Bọc đựng 5 kg,CCDC,gram,1,0
+233,CCDC_027,Bọc nước mắm,CCDC,cái,1,0
+234,CCDC_028,Bọc rác cuộn (1 bịch/kg),CCDC,gram,1,0
+235,CCDC_029,Bọc rác đại 90*120,CCDC,gram,1,0
+236,CCDC_030,Bộ bàn ghế,CCDC,bộ,1,0
+237,CCDC_031,Bộ cont 1/1 cao 10,CCDC,cái,1,0
+238,CCDC_032,Bộ cont 1/1 cao 15,CCDC,cái,1,0
+239,CCDC_033,Bộ cont 1/1 cao 15 có nắp,CCDC,cái,1,0
+240,CCDC_034,Bộ cont 1/1/10 + nắp,CCDC,bộ,1,0
+241,CCDC_035,Bộ cont 1/1/20 + nắp,CCDC,bộ,1,0
+242,CCDC_036,Bộ cont 1/2 cao 15,CCDC,cái,1,0
+243,CCDC_037,Bộ cont 1/2 cao 15 có nắp,CCDC,cái,1,0
+244,CCDC_038,Bộ cont 1/4 cao 10 có nắp,CCDC,cái,1,0
+245,CCDC_039,Bộ cont inox 1/2 cao 20 có nắp,CCDC,cái,1,0
+246,CCDC_040,Bộ cont inox 1/4 cao 100 + nắp,CCDC,bộ,1,0
+247,CCDC_041,Bộ dĩa muỗng,CCDC,bộ,1,0
+248,CCDC_042,Bộ khay inox 5 ngăn có nắp 2 sọc,CCDC,bộ,1,0
+249,CCDC_043,Bộ khay inox úp ly 35*50,CCDC,bộ,1,0
+250,CCDC_044,Bộ khò gas,CCDC,cái,1,0
+251,CCDC_045,Bộ lau nhà,CCDC,cái,1,0
+252,CCDC_046,Bộ úp ly inox 30*40,CCDC,cái,1,0
+253,CCDC_047,Bộ van dây gas,CCDC,bộ,1,0
+254,CCDC_048,Bông lau 6 tấc,CCDC,cái,1,0
+255,CCDC_049,Bơ nhôm cao 64 ,CCDC,cái,1,0
+256,CCDC_050,Búa đập thịt,CCDC,cái,1,0
+257,CCDC_051,Ca 2.5l,CCDC,cái,1,0
+258,CCDC_052,Ca đong 1l,CCDC,cái,1,0
+259,CCDC_053,Ca inox ngắn,CCDC,cái,1,0
+260,CCDC_054,Ca mỏ dài,CCDC,cái,1,0
+261,CCDC_055,Ca múc nước ,CCDC,cái,1,0
+262,CCDC_056,Ca nhựa,CCDC,cái,1,0
+263,CCDC_057,Cân 1/2 kg,CCDC,cái,1,0
+264,CCDC_058,Cân đồng hồ 100kg,CCDC,cái,1,0
+265,CCDC_059,Cân đồng hồ 20kg,CCDC,cái,1,0
+266,CCDC_060,Cân đồng hồ 2kg,CCDC,cái,1,0
+267,CCDC_061,Cân đồng hồ 30kg,CCDC,cái,1,0
+268,CCDC_062,Cân đồng hồ 5kg,CCDC,cái,1,0
+269,CCDC_063,Cân đồng hồ 60kg,CCDC,cái,1,0
+270,CCDC_064,Cây bào vỏ chanh,CCDC,cái,1,0
+271,CCDC_065,Cây cào kính,CCDC,cái,1,0
+272,CCDC_066,Cây cào nước,CCDC,cái,1,0
+273,CCDC_067,Cây đập đá,CCDC,cái,1,0
+274,CCDC_068,Cây lau 6t,CCDC,cái,1,0
+275,CCDC_069,Cây lau kính,CCDC,cây,1,0
+276,CCDC_070,Cây lau nhà,CCDC,cái,1,0
+277,CCDC_071,Cây lau vải mùng,CCDC,cái,1,0
+278,CCDC_072,Cây xới cơm inox,CCDC,cây,1,0
+279,CCDC_073,Cont 1/2 cao 10cm không nắp,CCDC,cái,1,0
+280,CCDC_074,Cont inox 1/2 cao 10 cm + nắp,CCDC,bộ,1,0
+281,CCDC_075,Cont inox 1/4/100 không nắp,CCDC,cái,1,0
+282,CCDC_076,Cont inox 10*16,CCDC,cái,1,0
+283,CCDC_077,Cồn,CCDC,viên,1,0
+284,CCDC_078,Công inox 1.5t có nắp,CCDC,cái,1,0
+285,CCDC_079,Công inox 1/2 cao 10cm,CCDC,cái,1,0
+286,CCDC_080,Công inox 1t có nắp,CCDC,cái,1,0
+287,CCDC_081,Cục chà nồi,CCDC,cái,1,0
+288,CCDC_082,Cước xanh chà nồi,CCDC,cái,1,0
+289,CCDC_083,Chai tẩy sumo,CCDC,chai,1,0
+290,CCDC_084,Chai xịt côn trùng,CCDC,chai,1,0
+303,CCDC_085,Chảo máy bay,CCDC,cái,1,0
+304,CCDC_086,Chén có tay cầm 5 (bv039-5) (pastel green),CCDC,cái,1,0
+305,CCDC_087,Chén chấm tròn dày 3.5(white) ctb6437-3.5w,CCDC,cái,1,0
+306,CCDC_088,Chén nhôm nhỏ,CCDC,cái,1,0
+307,CCDC_089,Chén nhựa,CCDC,cái,1,0
+308,CCDC_090,Chén nhựa đl nhỏ,CCDC,cái,1,0
+309,CCDC_091,Chén nhựa đựng canh 450ml có nắp,CCDC,cái,1,0
+310,CCDC_092,Chén sứ trắng ăn súp,CCDC,cái,1,0
+311,CCDC_093,"Chén tròn nhám 4.5""",CCDC,cái,1,0
+312,CCDC_094,Chén vuông 4 inch (white) ctb6430-4w,CCDC,cái,1,0
+313,CCDC_095,Chổi chà sàn,CCDC,cái,1,0
+314,CCDC_096,Chổi dừa,CCDC,cái,1,0
+315,CCDC_097,Chổi quét nước ,CCDC,cây,1,0
+316,CCDC_098,Chổi quét nước màu,CCDC,cái,1,0
+317,CCDC_099,Chổi quét nhà,CCDC,cái,1,0
+318,CCDC_100,Chổi quét nhà nhựa ,CCDC,cái,1,0
+319,CCDC_101,Dao bào 2 lưỡi lớn,CCDC,cái,1,0
+320,CCDC_102,Dao bào cán gỗ,CCDC,cái,1,0
+321,CCDC_103,Dao bào inox,CCDC,cái,1,0
+322,CCDC_104,Dao bào lớn thép không rỉ,CCDC,cái,1,0
+323,CCDC_105,Dao bào trung thép không rỉ,CCDC,cái,1,0
+324,CCDC_106,Dao bào vỏ nhựa,CCDC,cái,1,0
+325,CCDC_107,Dao cán đen,CCDC,cái,1,0
+326,CCDC_108,Dao cán vàng,CCDC,cái,1,0
+327,CCDC_109,Dao chặtt inox,CCDC,cái,1,0
+328,CCDC_110,Dao ốp đen,CCDC,cái,1,0
+329,CCDC_111,Dao thái lan cán gỗ,CCDC,cái,1,0
+330,CCDC_112,Dao thái màu trắng,CCDC,cái,1,0
+331,CCDC_113,Dao thái sợi cà rốt,CCDC,cái,1,0
+332,CCDC_114,Dao việt nam,CCDC,cái,1,0
+333,CCDC_115,Dầu gội bondy,CCDC,chai,1,0
+334,CCDC_116,Dĩa nến lh,CCDC,cái,1,0
+335,CCDC_117,Dĩa sâu 6 (pv137-6) (pastel green),CCDC,cái,1,0
+336,CCDC_118,Dĩa sâu nhám 5.2'',CCDC,cái,1,0
+337,CCDC_119,Dĩa sứ,CCDC,cái,1,0
+338,CCDC_120,Dĩa tương 2 ngăn 3.5 (dv188-3.5) (pastel green),CCDC,cái,1,0
+339,CCDC_121,"Dĩa tương nhám 3.6""",CCDC,cái,1,0
+340,CCDC_122,Dĩa tròn có vân 7 pv055-7s,CCDC,cái,1,0
+341,CCDC_123,Dĩa tròn nhám 7,CCDC,cái,1,0
+342,CCDC_124,Dĩa tròn nhựa 12cm,CCDC,cái,1,0
+343,CCDC_125,Dĩa vuông cạn dày 8.25 inch ctp6410-8.25b,CCDC,cái,1,0
+344,CCDC_126,Dĩa vuông cạnh tròn nhám 7.5,CCDC,cái,1,0
+345,CCDC_127,Dĩa vuông cạnh tròn nhám 75,CCDC,cái,1,0
+346,CCDC_128,Đầu khò,CCDC,cái,1,0
+347,CCDC_129,Đầu khò + gas,CCDC,cái,1,0
+348,CCDC_130,Đĩa 3 ngăn,CCDC,cái,1,0
+349,CCDC_131,Đĩa bạc,CCDC,cái,1,0
+350,CCDC_132,Đĩa kê ly,CCDC,cái,1,0
+351,CCDC_133,Đĩa nhựa 18,CCDC,cái,1,0
+352,CCDC_134,Đĩa nhựa 23,CCDC,cái,1,0
+353,CCDC_135,Đĩa sứ trắng 31 m.long,CCDC,cái,1,0
+354,CCDC_136,Đĩa sứ trắng tròn 15cm,CCDC,cái,1,0
+355,CCDC_137,Đĩa sứ trắng tròn 25cm,CCDC,cái,1,0
+356,CCDC_138,Đĩa sứ trắng tròn 30cm,CCDC,cái,1,0
+357,CCDC_139,Đĩa sứ trắng tròn hơi lõm 15cm,CCDC,cái,1,0
+358,CCDC_140,"Đĩa thuỷ tinh cao 12, rộng 30",CCDC,cái,1,0
+359,CCDC_141,Đĩa tròn nhỏ,CCDC,cái,1,0
+360,CCDC_142,Đĩa tròn nhựa 12cm,CCDC,cái,1,0
+361,CCDC_143,Đĩa tròn trung,CCDC,cái,1,0
+362,CCDC_144,Đũa cán vàng,CCDC,đôi,1,0
+363,CCDC_145,Đũa đen đầu bạc,CCDC,đôi,1,0
+364,CCDC_146,Đũa gỗ,CCDC,đôi,1,0
+365,CCDC_147,Đũa nhựa trắng,CCDC,đôi,1,0
+366,CCDC_148,Đũa tre rẻ(1 bao 60 bịch/1 bịch 80 đôi),CCDC,bao,1,0
+367,CCDC_149,Fin cà phê,CCDC,cái,1,0
+368,CCDC_150,Fin cà phê nhỏ,CCDC,cái,1,0
+369,CCDC_151,Fin cà phê trung,CCDC,cái,1,0
+370,CCDC_152,Gáo inox,CCDC,cái,1,0
+371,CCDC_153,Gáo múc nước inox,CCDC,cái,1,0
+372,CCDC_154,Gáo nhựa,CCDC,cái,1,0
+373,CCDC_155,Gắp thức ăn,CCDC,cái,1,0
+374,CCDC_156,Ghế nhựa,CCDC,cái,1,0
+375,CCDC_157,Giấy bọc đũa,CCDC,cái,1,0
+376,CCDC_158,Giấy rút cam,CCDC,cây,1,0
+377,CCDC_159,Giấy rút hồng,CCDC,cây,1,0
+378,CCDC_160,Giấy rút vuông,CCDC,cây,1,0
+379,CCDC_161,Giấy vệ sinh cuộn,CCDC,cái,1,0
+380,CCDC_162,Giấy vuông,CCDC,cây,1,0
+381,CCDC_163,Giỏ móc,CCDC,cái,1,0
+382,CCDC_164,Hộp 2 quai (hộp lưu mẫu),CCDC,cái,1,0
+383,CCDC_165,Hộp 2 quai lớn,CCDC,cái,1,0
+384,CCDC_166,"Hộp 3 ngăn (1 cây/100 cái, 1 thiên/400 cái)",CCDC,thiên,1,0
+386,CCDC_167,"Hộp bánh bao 4 cây/thùng, 150 cái/cây",CCDC,cây,1,0
+387,CCDC_168,Hộp đũa 9.5 (chv002-9.5) (pastel green),CCDC,cái,1,0
+388,CCDC_169,Hộp đựng giấy,CCDC,cái,1,0
+389,CCDC_170,Hộp lưu mẫu (6 hộp + 1 hộp nhựa),CCDC,cái,1,0
+390,CCDC_171,Hộp lưu mẫu inox lớn,CCDC,cái,1,0
+391,CCDC_172,Hộp lưu mẫu inox nhỏ,CCDC,cái,1,0
+392,CCDC_173,Hộp nhựa 10l,CCDC,cái,1,0
+393,CCDC_174,Hộp nhựa 25 x 30,CCDC,cái,1,0
+394,CCDC_175,Hộp nhựa 25 x 40,CCDC,cái,1,0
+395,CCDC_176,Hộp nhựa 30 x 60,CCDC,cái,1,0
+396,CCDC_177,Hộp nhựa 5l,CCDC,cái,1,0
+397,CCDC_178,Hộp nhựa 7l,CCDC,cái,1,0
+398,CCDC_179,Hộp nhựa giả mây,CCDC,cái,1,0
+399,CCDC_180,Hộp nhựa vuông 10*20,CCDC,cái,1,0
+400,CCDC_181,Hộp nhựa vuông 20*40,CCDC,cái,1,0
+401,CCDC_182,Hốt rác cán ngắn nhựa,CCDC,cái,1,0
+402,CCDC_183,Hốt rác inox,CCDC,cái,1,0
+403,CCDC_184,Hốt rác nhựa cán dài,CCDC,cái,1,0
+404,CCDC_185,Kéo,CCDC,cái,1,0
+405,CCDC_186,Kẹp gắp rau,CCDC,cái,1,0
+406,CCDC_187,Kẹp thịt,CCDC,cái,1,0
+407,CCDC_188,Kệ buffet xài cồn,CCDC,cái,1,0
+408,CCDC_189,Kệ dép 4 ngăn,CCDC,cái,1,0
+409,CCDC_190,Kệ dép 5 tầng,CCDC,cái,1,0
+410,CCDC_191,Kệ để dép 3 tầng,CCDC,cái,1,0
+411,CCDC_192,Kệ xéo,CCDC,cái,1,0
+412,CCDC_193,Ky rác cán dài,CCDC,cái,1,0
+413,CCDC_194,Khay 1/2 + nắp cao 10,CCDC,cái,1,0
+414,CCDC_195,Khay 3 ngăn 1cây-400cái,CCDC,cái,1,0
+415,CCDC_196,Khay chữ nhật 17,CCDC,cái,1,0
+416,CCDC_197,Khay chữ nhật có tay 15 (t300-15) (pastel green),CCDC,cái,1,0
+417,CCDC_198,Khay chữ nhật có tay 17.5 (t301-17.5) (pastel green),CCDC,cái,1,0
+418,CCDC_199,Khay đen đựng cơm 4 ngăn,CCDC,cây,1,0
+419,CCDC_200,Khay đựng cơm inox 530*325*150,CCDC,cái,1,0
+420,CCDC_201,Khay inox 5 ngăn,CCDC,cái,1,0
+421,CCDC_202,Khay viền tròn,CCDC,cái,1,0
+422,CCDC_203,Khăn 3t vàng + trắng,CCDC,cái,1,0
+423,CCDC_204,Khăn lạnh,CCDC,cái,1,0
+424,CCDC_205,Khẩu trang 50h/thùng,CCDC,thùng,1,0
+425,CCDC_206,Khuôn chữ nhật,CCDC,cái,1,0
+426,CCDC_207,Loa ,CCDC,cái,1,0
+427,CCDC_208,Lưới rửa chén,CCDC,cái,1,0
+428,CCDC_209,Lưới rửa chén lớn,CCDC,cái,1,0
+429,CCDC_210,Ly 280 (1000 cái/1 thiên) - 1 cây/50ly,CCDC,thiên,1,0
+430,CCDC_211,Ly 350 ,CCDC,thiên,1,0
+431,CCDC_212,Ly 400 (1000 cái/1 thiên) - 1 cây/50ly,CCDC,thiên,1,0
+433,CCDC_213,Ly 500 + nắp(1t=1000cái),CCDC,thiên,1,0
+434,CCDC_214,Ly 8oz,CCDC,cái,1,0
+435,CCDC_215,Ly giấy 14oz,CCDC,cái,1,0
+436,CCDC_216,Ly giấy 6oz,CCDC,thùng,1,0
+437,CCDC_217,Ly giấy 8oz,CCDC,thùng,1,0
+438,CCDC_218,Ly giấy đựng canh,CCDC,thùng,1,0
+440,CCDC_219,Ly nhám xoắn 3 (clay - dark brown) cv207-3cd,CCDC,cái,1,0
+441,CCDC_220,Ly nhỏ 110ml,CCDC,thiên,1,0
+443,CCDC_221,Ly nhựa,CCDC,cái,1,0
+444,CCDC_222,Ly nhựa có nắp bán cafe 350ml - 1000 cái/cây,CCDC,thiên,1,0
+445,CCDC_223,Ly oz,CCDC,cái,1,0
+446,CCDC_224,Mài dao,CCDC,cái,1,0
+447,CCDC_225,Màng bọc,CCDC,cuộn,1,0
+448,CCDC_226,Mâm chữ nhật 17,CCDC,cái,1,0
+449,CCDC_227,Mâm inox,CCDC,cái,1,0
+450,CCDC_228,Mâm inox 40 x 60,CCDC,cái,1,0
+451,CCDC_229,Mâm tròn inox cao 64,CCDC,cái,1,0
+452,CCDC_230,Miếng cước xanh,CCDC,cái,1,0
+453,CCDC_231,Miếng lau 4t5,CCDC,cái,1,0
+454,CCDC_232,Miếng lau nhà 6t,CCDC,cái,1,0
+455,CCDC_233,Miếng lót ly,CCDC,cái,1,0
+456,CCDC_234,Muỗng ăn bánh plan,CCDC,cái,1,0
+457,CCDC_235,Muỗng ăn cơm loại mỏng,CCDC,cái,1,0
+458,CCDC_236,Muỗng ăn liền 5000cái/bao lớn,CCDC,bao,1,0
+459,CCDC_237,Muỗng canh,CCDC,cái,1,0
+460,CCDC_238,Muỗng cơm 5.5 (white) sp303-5.5w	,CCDC,cái,1,0
+461,CCDC_239,Muỗng cơm nhựa trắng,CCDC,cái,1,0
+462,CCDC_240,Muỗng dài,CCDC,cái,1,0
+463,CCDC_241,Muỗng dài inox,CCDC,cái,1,0
+464,CCDC_242,Muỗng inox,CCDC,cái,1,0
+465,CCDC_243,Muỗng inox dày,CCDC,cái,1,0
+466,CCDC_244,Muỗng inox xịn,CCDC,cái,1,0
+467,CCDC_245,Muỗng nhựa đl,CCDC,cái,1,0
+468,CCDC_246,Muỗng sứ trắng ăn súp ,CCDC,cái,1,0
+469,CCDC_247,Muỗng vịt lộn,CCDC,cái,1,0
+470,CCDC_248,Nắp nhựa đậy khay inox 5 ngăn,CCDC,cái,1,0
+471,CCDC_249,Nắp sóng màu vàng,CCDC,cái,1,0
+472,CCDC_250,Nĩa ăn trái cây,CCDC,cái,1,0
+473,CCDC_251,Nĩa inox,CCDC,cái,1,0
+474,CCDC_252,Nĩa inox dày,CCDC,cái,1,0
+475,CCDC_253,Nĩa inox xịn,CCDC,cái,1,0
+476,CCDC_254,Nĩa trúc,CCDC,bịch,1,0
+477,CCDC_255,Nồi 100l,CCDC,cái,1,0
+478,CCDC_256,Nồi 50 lít,CCDC,cái,1,0
+479,CCDC_257,Nồi 80 lít,CCDC,cái,1,0
+480,CCDC_258,Nồi buffẻ tròn,CCDC,cái,1,0
+481,CCDC_259,Nồi cơm điện sharp,CCDC,cái,1,0
+482,CCDC_260,Nồi hâm inox 2 ngăn sử dụng cồn,CCDC,bộ,1,0
+483,CCDC_261,Nồi inox 150l,CCDC,cái,1,0
+484,CCDC_262,Nồi inox 30,CCDC,cái,1,0
+485,CCDC_263,Nồi inox 45cm,CCDC,cái,1,0
+486,CCDC_264,Nồi inox 50cm,CCDC,cái,1,0
+487,CCDC_265,Nồi kho tộ,CCDC,cái,1,0
+488,CCDC_266,Nồi lẩu,CCDC,cái,1,0
+489,CCDC_267,Nồi phở 120 lít inox	,CCDC,cái,1,0
+490,CCDC_268,Nồi súp inox 15l,CCDC,cái,1,0
+491,CCDC_269,Nùi lau 6t,CCDC,cái,1,0
+492,CCDC_270,Nước giặt power 9kg ,CCDC,thùng,1,0
+493,CCDC_271,Nước rửa tay lifeboy,CCDC,can,1,0
+494,CCDC_272,Nước tẩy rửa javen 20 lít/can,CCDC,can,1,0
+495,CCDC_273,Nhắc nồi,CCDC,cái,1,0
+496,CCDC_274,Ổ bếp khè,CCDC,cái,1,0
+497,CCDC_275,Ống đũa nắp đậy,CCDC,cái,1,0
+498,CCDC_276,Ống hút trà sữa,CCDC,bao,1,0
+499,CCDC_277,Ống hút trà sữa ,CCDC,cái,1,0
+500,CCDC_278,Ống hút trắng,CCDC,bao,1,0
+501,CCDC_279,Ống tăm,CCDC,cái,1,0
+502,CCDC_280,Pallet,CCDC,cái,1,0
+503,CCDC_281,Phễu lớn,CCDC,cái,1,0
+504,CCDC_282,Rá gạo 4t,CCDC,cái,1,0
+505,CCDC_283,Rá inox 50,CCDC,cái,1,0
+506,CCDC_284,Rá inox 60cm lỗ nhỏ,CCDC,cái,1,0
+507,CCDC_285,Rá inox 60cm lỗ to,CCDC,cái,1,0
+508,CCDC_286,Rá nhôm 60,CCDC,cái,1,0
+509,CCDC_287,Rá nhựa 6t,CCDC,cái,1,0
+510,CCDC_288,Rổ 4t6,CCDC,cái,1,0
+511,CCDC_289,Rổ inox,CCDC,cái,1,0
+512,CCDC_290,Rổ inox 30,CCDC,cái,1,0
+513,CCDC_291,Rổ inox 40,CCDC,cái,1,0
+514,CCDC_292,Rổ inox 50,CCDC,cái,1,0
+515,CCDC_293,Rổ inox 60,CCDC,cái,1,0
+516,CCDC_294,Rổ inox size 48,CCDC,cái,1,0
+517,CCDC_295,Rổ inox size 52,CCDC,cái,1,0
+518,CCDC_296,Rổ lọc rác,CCDC,cái,1,0
+519,CCDC_297,Rổ mây chữ nhật,CCDC,cái,1,0
+520,CCDC_298,Rổ mây vuông,CCDC,cái,1,0
+521,CCDC_299,Rổ móc lớn,CCDC,cái,1,0
+522,CCDC_300,Rổ nhôm 60,CCDC,cái,1,0
+523,CCDC_301,Rổ nhựa,CCDC,cái,1,0
+524,CCDC_302,Rổ nhựa 2t5,CCDC,cái,1,0
+525,CCDC_303,Rổ nhựa 5t6,CCDC,cái,1,0
+526,CCDC_304,Rổ nhựa lỗ to 30cm,CCDC,cái,1,0
+527,CCDC_305,Rổ nhựa tròn đường kính 60cm,CCDC,cái,1,0
+528,CCDC_306,Rổ nhựa vuông 30 x 40,CCDC,cái,1,0
+529,CCDC_307,Rổ nhựa vuông dài 60cm,CCDC,cái,1,0
+530,CCDC_308,Rổ tròn 25cm,CCDC,cái,1,0
+531,CCDC_309,Rổ tròn 4t2,CCDC,cái,1,0
+532,CCDC_310,Rổ tròn nhỏ,CCDC,cái,1,0
+533,CCDC_311,Sạn chiên,CCDC,cái,1,0
+534,CCDC_312,Sóng bánh xe,CCDC,cái,1,0
+535,CCDC_313,Sóng bít 2t5 ,CCDC,cái,1,0
+536,CCDC_314,Song bit 3t9,CCDC,cái,1,0
+537,CCDC_315,Sóng bít 41*61*39,CCDC,cái,1,0
+538,CCDC_316,Sóng bít hs042,CCDC,cái,1,0
+539,CCDC_317,Sóng đặt 3.1t,CCDC,cái,1,0
+540,CCDC_318,Sóng hở 019,CCDC,cái,1,0
+541,CCDC_319,Sóng hở 2t5,CCDC,cái,1,0
+542,CCDC_320,Sóng hở 3t9,CCDC,cái,1,0
+543,CCDC_321,Sóng hở loại lớn 700*500*430,CCDC,cái,1,0
+544,CCDC_322,Sóng hở loại nhỏ 600*420*390,CCDC,cái,1,0
+545,CCDC_323,Sóng nhựa 042,CCDC,cái,1,0
+546,CCDC_324,Sọt bánh xe,CCDC,cái,1,0
+547,CCDC_325,Sọt rác,CCDC,cái,1,0
+548,CCDC_326,Tai nghe,CCDC,cái,1,0
+549,CCDC_327,Tạp dề nilon,CCDC,cái,1,0
+550,CCDC_328,Tạp dề simili,CCDC,cái,1,0
+551,CCDC_329,Tăm giấy,CCDC,cái,1,0
+552,CCDC_330,Tô 6 bông xanh,CCDC,cái,1,0
+553,CCDC_331,Tô 6 xoắn,CCDC,cái,1,0
+554,CCDC_332,Tô 8,CCDC,cái,1,0
+555,CCDC_333,Tô ăn 1 lần,CCDC,cái,1,0
+556,CCDC_334,Tô có khất kiểu hàn 7 (bv042-7) (pastel green),CCDC,cái,1,0
+557,CCDC_335,Tô nhựa,CCDC,cái,1,0
+558,CCDC_336,Tô nhựa size 6,CCDC,cái,1,0
+559,CCDC_337,Tô nhựa size 8,CCDC,cái,1,0
+560,CCDC_338,Tô phở 7 bv001-7c	,CCDC,cái,1,0
+561,CCDC_339,Tô sứ,CCDC,cái,1,0
+562,CCDC_340,Tô sứ trắng tròn ,CCDC,cái,1,0
+563,CCDC_341,Tô tròn 7 (bv247-7) (pastel green),CCDC,cái,1,0
+564,CCDC_342,Tô tròn nhám 7.5,CCDC,cái,1,0
+565,CCDC_343,Tô tròn nhám 8 (rb762-8) (moka),CCDC,cái,1,0
+566,CCDC_344,Tủ hấp bánh bao,CCDC,cái,1,0
+567,CCDC_345,Túi lọc trà,CCDC,cái,1,0
+568,CCDC_346,Túi zip 5 x 8,CCDC,kg,1,0
+569,CCDC_347,Thảm 90 x 120,CCDC,cái,1,0
+570,CCDC_348,Thảm bar,CCDC,cái,1,0
+571,CCDC_349,Thảm chùi chân,CCDC,cái,1,0
+572,CCDC_350,Thau 40,CCDC,cái,1,0
+573,CCDC_351,Thau 6t,CCDC,cái,1,0
+574,CCDC_352,Thau 72,CCDC,cái,1,0
+575,CCDC_353,Thau 7t,CCDC,cái,1,0
+576,CCDC_354,Thau 8t2,CCDC,cái,1,0
+577,CCDC_355,Thau inox 60,CCDC,cái,1,0
+578,CCDC_356,Thau inox 72,CCDC,cái,1,0
+579,CCDC_357,Thau nhôm 60,CCDC,cái,1,0
+580,CCDC_358,Thau nhựa duy tân 60cm,CCDC,cái,1,0
+581,CCDC_359,Thau nhựa lớn đỏ,CCDC,cái,1,0
+582,CCDC_360,Thố cháo có chân,CCDC,thiên,1,0
+583,CCDC_361,Thố nhựa có nắp,CCDC,cái,1,0
+584,CCDC_362,Thố nhựa lớn,CCDC,cái,1,0
+585,CCDC_363,Thố ướp champanh 35cm,CCDC,cái,1,0
+586,CCDC_364,Thớt chữ nhật,CCDC,cái,1,0
+587,CCDC_365,Thớt gỗ size 30,CCDC,cái,1,0
+588,CCDC_366,Thớt gỗ tròn size 26,CCDC,cái,1,0
+589,CCDC_367,Thớt gỗ vuông đại,CCDC,cái,1,0
+590,CCDC_368,Thớt me đại,CCDC,cái,1,0
+591,CCDC_369,Thớt nhựa 31*22,CCDC,cái,1,0
+592,CCDC_370,Thớt nhựa trắng 30*40,CCDC,cái,1,0
+593,CCDC_371,Thớt tròn size 28cm,CCDC,cái,1,0
+594,CCDC_372,"Thun cột canh  0,5kg/bịch",CCDC,kg,1,0
+595,CCDC_373,Thun cột canh  1kg/bịch,CCDC,bịch,1,0
+596,CCDC_374,Thùng 120l,CCDC,cái,1,0
+597,CCDC_375,Thùng 160l,CCDC,cái,1,0
+598,CCDC_376,Thùng 25 l,CCDC,cái,1,0
+599,CCDC_377,Thùng 60l,CCDC,cái,1,0
+600,CCDC_378,Thùng bánh xe 120l,CCDC,cái,1,0
+601,CCDC_379,Thùng bánh xe 140l,CCDC,cái,1,0
+602,CCDC_380,Thùng bánh xe 220l,CCDC,cái,1,0
+603,CCDC_381,Thùng bánh xe 90l,CCDC,cái,1,0
+604,CCDC_382,Thùng đá ,CCDC,cái,1,0
+605,CCDC_383,Thùng đá 20l,CCDC,cái,1,0
+606,CCDC_384,Thùng đá 45l ,CCDC,cái,1,0
+607,CCDC_385,Thùng đá 60l,CCDC,cái,1,0
+608,CCDC_386,Thùng đá olong đào,CCDC,cái,1,0
+609,CCDC_387,Thùng đá tròn 40l,CCDC,cái,1,0
+610,CCDC_388,Thùng đốt tiền,CCDC,cái,1,0
+611,CCDC_389,Thùng nhựa 15l,CCDC,cái,1,0
+612,CCDC_390,Thùng nhựa 25l,CCDC,cái,1,0
+613,CCDC_391,Thùng nhựa 30 l,CCDC,cái,1,0
+614,CCDC_392,Thùng nhựa 40 x 60,CCDC,cái,1,0
+615,CCDC_393,Thùng nhựa 80l,CCDC,cái,1,0
+616,CCDC_394,Thùng nhựa 90l,CCDC,cái,1,0
+617,CCDC_395,Thùng nhựa có nắp,CCDC,cái,1,0
+618,CCDC_396,Thùng rác,CCDC,cái,1,0
+619,CCDC_397,Thùng rác 240l ,CCDC,cái,1,0
+620,CCDC_398,Thùng rác đạp 120l,CCDC,cái,1,0
+621,CCDC_399,Thùng rác đạp 50l,CCDC,cái,1,0
+622,CCDC_400,Thùng rác gạt tàn inox,CCDC,cái,1,0
+623,CCDC_401,Thùng vuông nhựa,CCDC,cái,1,0
+624,CCDC_402,Thùng xốp 29 x 40,CCDC,cái,1,0
+625,CCDC_403,Thùng xốp 37 x 50,CCDC,cái,1,0
+626,CCDC_404,Thùng xốp dán băng keo 40 (25kg),CCDC,cái,1,0
+627,CCDC_405,Thùng xốp dán băng keo 42 (20kg),CCDC,cái,1,0
+628,CCDC_406,Thùng xốp không dán băng keo 40 (25kg),CCDC,cái,1,0
+629,CCDC_407,Thùng xốp không dán băng keo 42 (20kg),CCDC,cái,1,0
+630,CCDC_408,Thùng xốp số 2,CCDC,cái,1,0
+631,CCDC_409,Thùng xốp số 3,CCDC,cái,1,0
+632,CCDC_410,Thùng xốp số 4,CCDC,cái,1,0
+633,CCDC_411,Ủng,CCDC,cái,1,0
+634,CCDC_412,Vá cơm không dính lớn,CCDC,cái,1,0
+635,CCDC_413,Vá cơm tròn (white) sp237w,CCDC,cái,1,0
+636,CCDC_414,Vá inox chia thức ăn,CCDC,cái,1,0
+637,CCDC_415,Vá inox nhỏ,CCDC,cái,1,0
+638,CCDC_416,Vá inox xịn,CCDC,cái,1,0
+639,CCDC_417,Vá múc canh,CCDC,cái,1,0
+640,CCDC_418,Vá múc cơm,CCDC,cái,1,0
+641,CCDC_419,Vá múc cơm inox lớn,CCDC,cái,1,0
+642,CCDC_420,Vá múc nước lèo lớn,CCDC,cái,1,0
+643,CCDC_421,Vá múc nước lèo nhỏ,CCDC,cái,1,0
+644,CCDC_422,Vá nhựa,CCDC,cái,1,0
+645,CCDC_423,Vá tốt,CCDC,cái,1,0
+646,CCDC_424,Vá thái,CCDC,cái,1,0
+647,CCDC_425,Van dây,CCDC,cái,1,0
+648,CCDC_426,Vỉ kẹp,CCDC,cái,1,0
+649,CCDC_427,Vỉ nướng sườn 50*70 inox,CCDC,cái,1,0
+650,CCDC_428,Vỉ nướng thịt 30*50,CCDC,cái,1,0
+651,CCDC_429,Vỉ nướng thịt 40*60,CCDC,cái,1,0
+652,CCDC_430,Vỉ sườn,CCDC,cái,1,0
+653,CCDC_431,Vỏ can 29l,CCDC,can,1,0
+654,CCDC_432,Vợt bọt sâu 25,CCDC,cái,1,0
+655,CCDC_433,Vợt cầu lông,CCDC,cái,1,0
+656,CCDC_434,Vợt inox xương,CCDC,cái,1,0
+657,CCDC_435,Vợt lọc trà,CCDC,cái,1,0
+658,CCDC_436,Vợt lưới,CCDC,cái,1,0
+659,CCDC_437,Vợt lưới 24,CCDC,cái,1,0
+660,CCDC_438,Vợt lưới caro dày,CCDC,cái,1,0
+661,CCDC_439,Vợt rau tốt,CCDC,cái,1,0
+662,CCDC_440,Vợt sọc vòng 3t cán gỗ dày,CCDC,cái,1,0
+663,CCDC_441,Vợt vớt bọt,CCDC,cái,1,0
+664,CCDC_442,Xe thu dọn thức ăn,CCDC,cái,1,0
+665,CCDC_443,Xe thu hồi cơm thừa 2 hộc,CCDC,cái,1,0
+666,CCDC_444,Xẻng chiên,CCDC,cái,1,0
+667,CCDC_445,Xiên que,CCDC,cái,1,0
+668,CCDC_446,Xiên que 25cm,CCDC,bịch,1,0
+669,CCDC_447,Xô 10l inox,CCDC,cái,1,0
+670,CCDC_448,Xô 20l,CCDC,cái,1,0
+671,CCDC_449,Xô 6 lít,CCDC,cái,1,0
+672,CCDC_450,Xô 8 lít,CCDC,cái,1,0
+673,CCDC_451,Xúc đá,CCDC,cái,1,0
+674,CHE BIEN SAN_001,Gỏi cuốn,CHẾ BIẾN SẴN,cái,1,0
+675,CHE BIEN SAN_002,Há cảo,CHẾ BIẾN SẴN,cái,1,0
+676,CHE BIEN SAN_003,Xôi bắp,CHẾ BIẾN SẴN,gram,1,0
+677,CHE BIEN SAN_004,Xôi cúc,CHẾ BIẾN SẴN,phần,1,0
+678,CHE BIEN SAN_005,Xôi đậu phông,CHẾ BIẾN SẴN,gram,1,0
+679,CHE BIEN SAN_006,Xôi đậu phộng,CHẾ BIẾN SẴN,gram,1,0
+680,CHE BIEN SAN_007,Xôi đậu xanh,CHẾ BIẾN SẴN,gram,1,0
+681,CHE BIEN SAN_008,Xôi gà,CHẾ BIẾN SẴN,phần,1,0
+682,CHE BIEN SAN_009,Xôi hạt sen,CHẾ BIẾN SẴN,kg,1,0
+683,CHE BIEN SAN_010,Xôi mặn,CHẾ BIẾN SẴN,phần,1,0
+684,CHE BIEN SAN_011,Xôi ngọt,CHẾ BIẾN SẴN,phần,1,0
+685,CHE BIEN SAN_012,Xôi sầu riêng,CHẾ BIẾN SẴN,kg,1,0
+686,CHE BIEN SAN_013,Xôi trắng,CHẾ BIẾN SẴN,kg,1,0
+687,DAU_001,Dầu ăn cái lân 2l,DẦU ĂN,chai,1,0
+688,DAU_002,Dầu ăn can chef cook 25l/can,DẦU ĂN,can,1,0
+689,DAU_003,Dầu ăn can song long 25l,DẦU ĂN,can,1,0
+690,DAU_004,Dầu ăn orchid 5l,DẦU ĂN,thùng,1,0
+691,DAU_005,Dầu ăn orchid can 25kg,DẦU ĂN,can,1,0
+692,DAU_006,Dầu ăn satellite 25 lít,DẦU ĂN,can,1,0
+693,DAU_007,Dầu ăn sen vàng 25l/can,DẦU ĂN,can,1,0
+694,DAU_008,Dầu ăn simpli 1l,DẦU ĂN,chai,1,0
+695,DAU_009,Dầu ăn simply 5 lít,DẦU ĂN,thùng,1,0
+696,DAU_010,Dầu ăn tường an- 1 lít,DẦU ĂN,can,1,0
+697,DAU_011,Dầu ăn vạn an can 25kg,DẦU ĂN,can,1,0
+698,DAU_012,Dầu can smile cook 25kg,DẦU ĂN,can,1,0
+699,DAU_013,Dầu song long can 25kg,DẦU ĂN,can,1,0
+700,DAU_014,Dầu thực vật hiệu cái lân 1l,DẦU ĂN,can,1,0
+701,ĐA_001,Đá cây,ĐÁ,cây,1,0
+702,ĐA_002,Đá mi,ĐÁ,kg,1,0
+703,ĐA_003,Đá ống,ĐÁ,bao,1,0
+704,ĐA_004,Đá xay,ĐÁ,bao,1,0
+705,ĐA_005,Nước đá tinh khiết,ĐÁ,bao,1,0
+706,ĐAU HAT_001,Đậu đen,ĐẬU HẠT,gram,1,0
+707,ĐAU HAT_002,Đậu đỏ,ĐẬU HẠT,gram,1,0
+708,ĐAU HAT_003,Đậu phộng rang (chế biến sẵn),ĐẬU HẠT,gram,1,0
+709,ĐAU HAT_004,Đậu phộng sống,ĐẬU HẠT,gram,1,0
+710,ĐAU HAT_005,Đậu xanh hạt - có vỏ,ĐẬU HẠT,gram,1,0
+711,ĐAU HAT_006,Đậu xanh không vỏ,ĐẬU HẠT,gram,1,0
+712,ĐAU HU_001,Đậu hũ bi,ĐẬU HŨ,gram,1,0
+713,ĐAU HU_002,Đậu hũ chiên,ĐẬU HŨ,miếng,1,0
+714,ĐAU HU_003,Đậu hũ chiên miến + hành,ĐẬU HŨ,miếng,1,0
+715,ĐAU HU_004,Đậu hũ chiên miến nấm,ĐẬU HŨ,miếng,1,0
+716,ĐAU HU_005,Đậu hũ chiên mổ bụng,ĐẬU HŨ,miếng,1,0
+717,ĐAU HU_006,Đậu hũ da,ĐẬU HŨ,gram,1,0
+718,ĐAU HU_007,Đậu hũ non cây,ĐẬU HŨ,cái,1,0
+719,ĐAU HU_008,Đậu hũ non hộp,ĐẬU HŨ,hộp,1,0
+720,ĐAU HU_009,Đậu hũ trắng,ĐẬU HŨ,miếng,1,0
+721,ĐAU HU_010,Váng đậu,ĐẬU HŨ,gram,1,0
+722,ĐO CHAY_001,Bò lát chay,ĐỒ CHAY,gram,1,0
+723,ĐO CHAY_002,Bò viên chay,ĐỒ CHAY,gram,1,0
+724,ĐO CHAY_003,Cá cơm chay,ĐỒ CHAY,gram,1,0
+725,ĐO CHAY_004,Cá thu chay,ĐỒ CHAY,gram,1,0
+726,ĐO CHAY_005,Chả cá chay,ĐỒ CHAY,gram,1,0
+727,ĐO CHAY_006,Chả cá chay rong biển,ĐỒ CHAY,gram,1,0
+728,ĐO CHAY_007,Chả giò xốp chay,ĐỒ CHAY,bịch,1,0
+729,ĐO CHAY_008,Chả lụa chay,ĐỒ CHAY,gram,1,0
+730,ĐO CHAY_009,Chả quế chay,ĐỒ CHAY,gram,1,0
+731,ĐO CHAY_010,Đùi gà chay,ĐỒ CHAY,gram,1,0
+732,ĐO CHAY_011,Gà lát chay,ĐỒ CHAY,gram,1,0
+733,ĐO CHAY_012,Gà viên chay,ĐỒ CHAY,gram,1,0
+734,ĐO CHAY_013,Ham chay,ĐỒ CHAY,gram,1,0
+735,ĐO CHAY_014,Mắm thái chay,ĐỒ CHAY,gram,1,0
+736,ĐO CHAY_015,Mì căn (ruột chay non),ĐỒ CHAY,gram,1,0
+737,ĐO CHAY_016,Sườn dừa chay,ĐỒ CHAY,gram,1,0
+738,ĐO CHAY_017,Sườn non chay,ĐỒ CHAY,gram,1,0
+739,ĐO CHAY_018,Tàu hũ ki tươi,ĐỒ CHAY,gram,1,0
+740,ĐO CHAY_019,Tôm chay ngon,ĐỒ CHAY,gram,1,0
+741,ĐO HOP_001,Cá hộp 3 cô gái,ĐỒ HỘP,hộp,1,0
+742,ĐO HOP_002,Cá ngừ hộp ngâm dầu,ĐỒ HỘP,hộp,1,0
+743,ĐO HOP_003,Cá ngừ lon,ĐỒ HỘP,hộp,1,0
+744,GAO_001,Gạo cơm chiên 50kg/bao,GẠO,gram,1,0
+745,GAO_002,Gạo nếp,GẠO,gram,1,0
+746,GAO_003,Gạo st25,GẠO,gram,1,0
+747,GAO_004,Gạo tấm,GẠO,gram,1,0
+748,GAO_005,Gạo thơm lài 25kg/bao,GẠO,bao,1,0
+749,GAO_006,Gạo thơm lài 50kg/bao,GẠO,bao,1,0
+750,GIA VI_001,Baking soda,GIA VỊ,hộp,1,0
+751,GIA VI_002,"Bột chiên giòn meizan 1 kg/gói, 10 gói/thùng",GIA VỊ,thùng,1,0
+752,GIA VI_003,Bột hành tây,GIA VỊ,gram,1,0
+753,GIA VI_004,Bột năng 10 kg/cây,GIA VỊ,bao,1,0
+754,GIA VI_005,Bột năng đa dụng meizan 400g (12 gói),GIA VỊ,túi,1,0
+755,GIA VI_006,Bột phô mai 200g,GIA VỊ,gói,1,0
+756,GIA VI_007,Bột tỏi,GIA VỊ,gram,1,0
+757,GIA VI_008,Bột xù (1kg/8gói/thùng),GIA VỊ,thùng,1,0
+758,GIA VI_009,Cà chua paste metro,GIA VỊ,hộp,1,0
+759,GIA VI_010,Cooking cream ,GIA VỊ,hộp,1,0
+760,GIA VI_011,Dầu chuối,GIA VỊ,ống,1,0
+761,GIA VI_012,Dầu mè thơm tường an 100ml,GIA VỊ,chai,1,0
+762,GIA VI_013,Đường cát trắng 12kg/bao,GIA VỊ,bao,1,0
+763,GIA VI_014,Đường cát trắng 50kg/bao,GIA VỊ,bao,1,0
+764,GIA VI_015,Đường cát trắng coba- 1kg/bịch,GIA VỊ,kg,1,0
+765,GIA VI_016,Đường phèn 10kg/bao,GIA VỊ,bao,1,0
+766,GIA VI_017,Đường vàng 12kg/1bao,GIA VỊ,bao,1,0
+767,GIA VI_018,Đường vàng 50kg/1bao,GIA VỊ,bao,1,0
+768,GIA VI_019,Gia vị hoàn chỉnh canh chua,GIA VỊ,gói,1,0
+769,GIA VI_020,Giấm 10 chai/thùng,GIA VỊ,chai,1,0
+770,GIA VI_021,Giấm 12 chai/thùng,GIA VỊ,chai,1,0
+771,GIA VI_022,Giấm 8 chai/ lốc,GIA VỊ,lốc,1,0
+772,GIA VI_023,Giấm chai 2l,GIA VỊ,chai,1,0
+773,GIA VI_024,Hộp kem tươi (whipping cream),GIA VỊ,hộp,1,0
+774,GIA VI_025,Mè đen,GIA VỊ,gram,1,0
+775,GIA VI_026,Mè trắng,GIA VỊ,gram,1,0
+776,GIA VI_027,Muối 25kg/bao,GIA VỊ,bao,1,0
+777,GIA VI_028,Muối bao 50 kg/bao,GIA VỊ,bao,1,0
+778,GIA VI_029,Muối tiêu,GIA VỊ,hũ,1,0
+779,GIA VI_030,Nước cốt chanh dây 1l/chai,GIA VỊ,chai,1,0
+780,GIA VI_031,Ớt khô,GIA VỊ,gram,1,0
+781,GIA VI_032,Ớt sa tế cholimex hũ 150g,GIA VỊ,hũ,1,0
+782,GIA VI_033,Phô mai bột,GIA VỊ,bịch,1,0
+783,GIA VI_034,Phô mai mozela ,GIA VỊ,hộp,1,0
+784,GIA VI_035,Rượu nếp,GIA VỊ,lít,1,0
+785,GIA VI_036,Sốt x o ,GIA VỊ,hộp,1,0
+786,GIA VI CHAM_001,Muối ớt,GIA VỊ CHẤM,hũ,1,0
+787,GIA VI CHAM_002,Nước chấm đậu nành đầu bếp sen hồng 470ml,GIA VỊ CHẤM,thùng,1,0
+788,GIA VI CHAM_003,Nước chấm đậu nành nam dương hàng việt 4l (4 can/1thùng),GIA VỊ CHẤM,thùng,1,0
+789,GIA VI CHAM_004,Nước chấm đậu nành nam dương hàng việt 500ml (24chai/1thùng),GIA VỊ CHẤM,thùng,1,0
+790,GIA VI CHAM_005,Nước chấm tam thái tử nhị ca iode 4bl x 6c x 500 ml,GIA VỊ CHẤM,thùng,1,0
+791,GIA VI CHAM_006,Nước mắm chinsu (24chai/ 1 thùng),GIA VỊ CHẤM,thùng,1,0
+792,GIA VI CHAM_007,Nước mắm chinsu cá hồi 15c/thùng,GIA VỊ CHẤM,thùng,1,0
+793,GIA VI CHAM_008,Nước mắm đầu bếp tôm chai 900ml (15 chai/1 thùng),GIA VỊ CHẤM,thùng,1,0
+794,GIA VI CHAM_009,Nước mắm hưng thịnh,GIA VỊ CHẤM,chai,1,0
+795,GIA VI CHAM_010,Nước mắm nam ngư chai 750 ml (18 chai/ thùng),GIA VỊ CHẤM,chai,1,0
+796,GIA VI CHAM_011,Nước mắm nam ngư siêu tiết kiệm 800 ml (18 chai/ thùng),GIA VỊ CHẤM,thùng,1,0
+797,GIA VI CHAM_012,Nước mắm nhĩ thuận lợi (12 chai/lốc),GIA VỊ CHẤM,chai,1,0
+798,GIA VI CHAM_013,Nước mắm táo maggi,GIA VỊ CHẤM,thùng,1,0
+799,GIA VI CHAM_014,Nước mắm y phụng,GIA VỊ CHẤM,lốc,1,0
+800,GIA VI CHAM_015,Nước tương đầu bếp 470ml ( 24c/thùng),GIA VỊ CHẤM,thùng,1,0
+801,GIA VI CHAM_016,Nước tương maggi 24chai/thùng,GIA VỊ CHẤM,thùng,1,0
+802,GIA VI CHAM_017,Nước tương maggi đậm đặc 700ml,GIA VỊ CHẤM,chai,1,0
+803,GIA VI CHAM_018,Tương ớt chinsu 250g,GIA VỊ CHẤM,chai,1,0
+804,GIA VI MON NHAT_001,Bột cà ri spicy curru powder s&b 400g,GIA VỊ MÓN NHẬT,hộp,1,0
+805,GIA VI MON NHAT_002,Bột chiên karaage mix 1kg,GIA VỊ MÓN NHẬT,gói,1,0
+806,GIA VI MON NHAT_003,Bột chiên tempura ko showa 700g,GIA VỊ MÓN NHẬT,gói,1,0
+807,GIA VI MON NHAT_004,Bột nêm từ cá ngừ katsuo dashi no moto (shimaya) 1kg,GIA VỊ MÓN NHẬT,kg,1,0
+808,GIA VI MON NHAT_005,Bột trộn sẵn tempura th-205 - 1kg,GIA VỊ MÓN NHẬT,gói,1,0
+809,GIA VI MON NHAT_006,Bột wasabi powder 1kg - ts4,GIA VỊ MÓN NHẬT,gói,1,0
+810,GIA VI MON NHAT_007,Bơ lạt anchor gói 227g,GIA VỊ MÓN NHẬT,gói,1,0
+811,GIA VI MON NHAT_008,Cut wakame - rong biển xoắn ts 1,GIA VỊ MÓN NHẬT,gói,1,0
+812,GIA VI MON NHAT_009,Gừng chế biến manyo sushigari pink b 1.5kg,GIA VỊ MÓN NHẬT,gói,1,0
+813,GIA VI MON NHAT_010,Gừng hồng cắt sợi 1kg/gói,GIA VỊ MÓN NHẬT,gói,1,0
+814,GIA VI MON NHAT_011,Gia vị nấu ăn cooking sake (with salt) (dalian),GIA VỊ MÓN NHẬT,thùng,1,0
+815,GIA VI MON NHAT_012,Gia vị nấu ăn hon mirin (dalian),GIA VỊ MÓN NHẬT,thùng,1,0
+816,GIA VI MON NHAT_013,Gia vị tương lên men shiro miko chan,GIA VỊ MÓN NHẬT,,1,0
+817,GIA VI MON NHAT_014,Gia vị tương lên men shiro miko chan (miso trắng),GIA VỊ MÓN NHẬT,kg,1,0
+818,GIA VI MON NHAT_015,Giấm yawaraka sanmi no kokumotsu su (uchibori) 20l,GIA VỊ MÓN NHẬT,chai,1,0
+819,GIA VI MON NHAT_016,Haechandle tương ớt 200g*32ea/ct,GIA VỊ MÓN NHẬT,chai,1,0
+820,GIA VI MON NHAT_017,Mơ muối,GIA VỊ MÓN NHẬT,hộp,1,0
+821,GIA VI MON NHAT_018,Mù tạt  marco polo karashi s&b 300gr/gói,GIA VỊ MÓN NHẬT,gói,1,0
+822,GIA VI MON NHAT_019,Mù tạt hạt,GIA VỊ MÓN NHẬT,hũ,1,0
+823,GIA VI MON NHAT_020,Mù tạt xanh,GIA VỊ MÓN NHẬT,tuýp,1,0
+824,GIA VI MON NHAT_021,Muối tiêu vị tắc nhật yuzu gosho (kaneku) 160g,GIA VỊ MÓN NHẬT,chai,1,0
+825,GIA VI MON NHAT_022,Nước sốt gia vị cho sushi - kewpie 1.9l,GIA VỊ MÓN NHẬT,chai,1,0
+826,GIA VI MON NHAT_023,Nước sốt hương vị quả yuzu và quả tắc (kewpie) - 1l,GIA VỊ MÓN NHẬT,chai,1,0
+827,GIA VI MON NHAT_024,Nước sốt mè rang vị wasabi và rong biển (kewpie) - 1l,GIA VỊ MÓN NHẬT,chai,1,0
+828,GIA VI MON NHAT_025,Nước tương higashimaru usukuchi shoyu 1.8l,GIA VỊ MÓN NHẬT,chai,1,0
+829,GIA VI MON NHAT_026,Nước tương houjun koikuchi 18l hiệu kikoman,GIA VỊ MÓN NHẬT,thùng,1,0
+830,GIA VI MON NHAT_027,Nước tương kikkoman 18l,GIA VỊ MÓN NHẬT,thùng,1,0
+831,GIA VI MON NHAT_028,Nước tương kikkoman chai 1l,GIA VỊ MÓN NHẬT,chai,1,0
+832,GIA VI MON NHAT_029,Nước xốt mu-hi kimchee base,GIA VỊ MÓN NHẬT,chai,1,0
+833,GIA VI MON NHAT_030,Nước xốt phô mai cay (kewpie) - 1l,GIA VỊ MÓN NHẬT,chai,1,0
+834,GIA VI MON NHAT_031,Nước xốt salad dressing mè rang - kewpie (chai 1lx9),GIA VỊ MÓN NHẬT,chai,1,0
+835,GIA VI MON NHAT_032,Nước xốt salad dressing mè rang hương vị quả yuzu và quả tắc - kewpie 1l,GIA VỊ MÓN NHẬT,chai,1,0
+836,GIA VI MON NHAT_033,Nước xốt salad dressing mè rang vị wasabi và rong biển - kewpie (chai 1lx9),GIA VỊ MÓN NHẬT,chai,1,0
+837,GIA VI MON NHAT_034,Nước xốt salad dressing phô mai cay - kewpie (chai 1lx9),GIA VỊ MÓN NHẬT,chai,1,0
+838,GIA VI MON NHAT_035,Nước xốt tsuyu (soba & udon) 1l,GIA VỊ MÓN NHẬT,chai,1,0
+839,GIA VI MON NHAT_036,Rong biển cuộn sushi - sushi nori 50sh - ts2,GIA VỊ MÓN NHẬT,gói,1,0
+840,GIA VI MON NHAT_037,Rong biển khô (có muối) dried cut wakame (tmt) 500g,GIA VỊ MÓN NHẬT,bịch,1,0
+841,GIA VI MON NHAT_038,Rong biển khô donan bou kombu (fukushima katsuo) 1kg,GIA VỊ MÓN NHẬT,bịch,1,0
+842,GIA VI MON NHAT_039,Rong biển trộn mè,GIA VỊ MÓN NHẬT,gram,1,0
+843,GIA VI MON NHAT_040,Rong biển yaki nori custom gold 130g,GIA VỊ MÓN NHẬT,gói,1,0
+844,GIA VI MON NHAT_041,Rượu vang,GIA VỊ MÓN NHẬT,chai,1,0
+845,GIA VI MON NHAT_042,Sacha,GIA VỊ MÓN NHẬT,kg,1,0
+846,GIA VI MON NHAT_043,Sốt lee kim hee 230g,GIA VỊ MÓN NHẬT,chai,1,0
+847,GIA VI MON NHAT_044,Sốt mayonaise aijmayo chai,GIA VỊ MÓN NHẬT,chai,1,0
+848,GIA VI MON NHAT_045,Sốt mayonnaise aji mayo 3kg,GIA VỊ MÓN NHẬT,thùng,1,0
+849,GIA VI MON NHAT_046,Sốt mè rang,GIA VỊ MÓN NHẬT,chai,1,0
+850,GIA VI MON NHAT_047,Súp mì ramen cô đặc - miso vị gà,GIA VỊ MÓN NHẬT,chai,1,0
+851,GIA VI MON NHAT_048,Tôm surimi 500g/gói,GIA VỊ MÓN NHẬT,kg,1,0
+852,GIA VI MON NHAT_049,Viên sốt cà ri,GIA VỊ MÓN NHẬT,kg,1,0
+853,GIA VI MON NHAT_050,Viên sốt cà ri nhật bản - java curry 1kg,GIA VỊ MÓN NHẬT,gói,1,0
+854,GIA VI MON NHAT_051,Viên xốt cà ri nhật bản 1kg,GIA VỊ MÓN NHẬT,gói,1,0
+855,GIA VI MON NHAT_052,Xốt kim chi (kim chi base) 1000ml,GIA VỊ MÓN NHẬT,chai,1,0
+856,GIA VI MON NHAT_053,Xốt mayonnaise hương vị nhật (chai 1kg x12),GIA VỊ MÓN NHẬT,chai,1,0
+857,GIA VI NEM_001,Bột cà ri,GIA VỊ NÊM,gram,1,0
+858,GIA VI NEM_002,Bột canh 12 bịch/ thùng,GIA VỊ NÊM,thùng,1,0
+859,GIA VI NEM_003,Bột chanh,GIA VỊ NÊM,gram,1,0
+860,GIA VI NEM_004,Bột nghệ,GIA VỊ NÊM,gram,1,0
+861,GIA VI NEM_005,Bột ngọt aji-gold 25kg/bao,GIA VỊ NÊM,bao,1,0
+862,GIA VI NEM_006,Bột ngọt ajino takara bao 25kg/bao,GIA VỊ NÊM,bao,1,0
+863,GIA VI NEM_007,Bột ngọt meizan 400g,GIA VỊ NÊM,gói,1,0
+864,GIA VI NEM_008,Bột ngọt monosodium glutamate 25kg/bao,GIA VỊ NÊM,bao,1,0
+865,GIA VI NEM_009,Bột ngọt vedu 25kg/bao,GIA VỊ NÊM,,1,0
+866,GIA VI NEM_010,Bột ngọt veju 25kg/bao,GIA VỊ NÊM,bao,1,0
+867,GIA VI NEM_011,Bột ngũ vị hương,GIA VỊ NÊM,gói,1,0
+868,GIA VI NEM_012,Bột thịt gà,GIA VỊ NÊM,hũ,1,0
+869,GIA VI NEM_013,Bột xá xíu,GIA VỊ NÊM,bịch,1,0
+870,GIA VI NEM_014,Bơ đậu phộng,GIA VỊ NÊM,hũ,1,0
+871,GIA VI NEM_015,Bơ hũ 800g,GIA VỊ NÊM,hộp,1,0
+872,GIA VI NEM_016,Bơ vàng hũ,GIA VỊ NÊM,hộp,1,0
+873,GIA VI NEM_017,Cà chua cô đặc 198g/hũ,GIA VỊ NÊM,hũ,1,0
+874,GIA VI NEM_018,Cốt dừa,GIA VỊ NÊM,gram,1,0
+875,GIA VI NEM_019,Chao,GIA VỊ NÊM,hộp,1,0
+876,GIA VI NEM_020,Dấm táo,GIA VỊ NÊM,chai,1,0
+877,GIA VI NEM_021,Dầu hào 1.2kg 8 chai/thùng,GIA VỊ NÊM,chai,1,0
+878,GIA VI NEM_022,Dầu hào 12 chai/thùng,GIA VỊ NÊM,chai,1,0
+879,GIA VI NEM_023,Dầu hào chay,GIA VỊ NÊM,chai,1,0
+880,GIA VI NEM_024,Dầu mè,GIA VỊ NÊM,chai,1,0
+881,GIA VI NEM_025,Dầu mè 1 lít,GIA VỊ NÊM,chai,1,0
+882,GIA VI NEM_026,Dầu mè két,GIA VỊ NÊM,chai,1,0
+883,GIA VI NEM_027,Dầu mè nhỏ,GIA VỊ NÊM,chai,1,0
+884,GIA VI NEM_028,Dầu oliu,GIA VỊ NÊM,chai,1,0
+885,GIA VI NEM_029,Dừa ép,GIA VỊ NÊM,gram,1,0
+886,GIA VI NEM_030,Đẳng sâm,GIA VỊ NÊM,gram,1,0
+887,GIA VI NEM_031,Đường quy,GIA VỊ NÊM,gram,1,0
+888,GIA VI NEM_032,Đường thốt nốt,GIA VỊ NÊM,cái,1,0
+889,GIA VI NEM_033,Gia vị bò kho,GIA VỊ NÊM,hộp,1,0
+890,GIA VI NEM_034,Gia vị bún bò chay,GIA VỊ NÊM,hộp,1,0
+891,GIA VI NEM_035,Gia vị bún bò huế,GIA VỊ NÊM,hộp,1,0
+892,GIA VI NEM_036,Gia vị bún riêu,GIA VỊ NÊM,hộp,1,0
+893,GIA VI NEM_037,Gia vị bún riêu chay,GIA VỊ NÊM,hộp,1,0
+894,GIA VI NEM_038,Gia vị gà tiềm thuốc bắc 10 gói/bịch,GIA VỊ NÊM,hộp,1,0
+895,GIA VI NEM_039,Gia vị gà tiềm thuốc bắc 10 gói/hộp,GIA VỊ NÊM,hộp,1,0
+896,GIA VI NEM_040,Gia vị lagu,GIA VỊ NÊM,hộp,1,0
+897,GIA VI NEM_041,Hạt nêm bếp ngon 20kg/bao,GIA VỊ NÊM,bao,1,0
+898,GIA VI NEM_042,Hạt nêm chay,GIA VỊ NÊM,gram,1,0
+899,GIA VI NEM_043,Hạt nêm chinsu ngọt tôm thơm thịt (16gói*400gr),GIA VỊ NÊM,bao,1,0
+900,GIA VI NEM_044,Hạt nêm chinsu ngọt tôm thơm thịt (6gói*2kg),GIA VỊ NÊM,bao,1,0
+901,GIA VI NEM_045,Hạt nêm knorr 5kg/bịch,GIA VỊ NÊM,bao,1,0
+902,GIA VI NEM_046,Hạt nêm knorr 900g/gói,GIA VỊ NÊM,gói,1,0
+903,GIA VI NEM_047,Hắc xì dầu,GIA VỊ NÊM,chai,1,0
+904,GIA VI NEM_048,Hoa hồi,GIA VỊ NÊM,gram,1,0
+905,GIA VI NEM_049,Hoài sơn,GIA VỊ NÊM,gram,1,0
+906,GIA VI NEM_050,Hột cà ri,GIA VỊ NÊM,gram,1,0
+907,GIA VI NEM_051,Kỷ tử,GIA VỊ NÊM,gram,1,0
+908,GIA VI NEM_052,Lẩu thái,GIA VỊ NÊM,chai,1,0
+909,GIA VI NEM_053,Màu điều,GIA VỊ NÊM,gram,1,0
+910,GIA VI NEM_054,Mắm cá lóc,GIA VỊ NÊM,gram,1,0
+911,GIA VI NEM_055,Mắm linh xay,GIA VỊ NÊM,gram,1,0
+912,GIA VI NEM_056,Mắm lóc,GIA VỊ NÊM,gram,1,0
+913,GIA VI NEM_057,Mắm nêm 179g/chai,GIA VỊ NÊM,chai,1,0
+914,GIA VI NEM_058,Mắm nêm 1l/chai,GIA VỊ NÊM,chai,1,0
+915,GIA VI NEM_059,Mắm nêm 250ml/chai,GIA VỊ NÊM,chai,1,0
+916,GIA VI NEM_060,Mắm nêm 290g/chai,GIA VỊ NÊM,chai,1,0
+917,GIA VI NEM_061,Mắm ruốc hũ,GIA VỊ NÊM,hũ,1,0
+918,GIA VI NEM_062,Mắm tép,GIA VỊ NÊM,gram,1,0
+919,GIA VI NEM_063,Mắm tôm,GIA VỊ NÊM,gram,1,0
+920,GIA VI NEM_064,Mắm thái,GIA VỊ NÊM,gram,1,0
+921,GIA VI NEM_065,Mật ong chai,GIA VỊ NÊM,chai,1,0
+922,GIA VI NEM_066,Mẻ,GIA VỊ NÊM,gram,1,0
+923,GIA VI NEM_067,Mù tạt vàng,GIA VỊ NÊM,chai,1,0
+924,GIA VI NEM_068,Nước chấm đậu nành nam dương hàng việt 4l (4 bình/1thùng),GIA VỊ NÊM,thùng,1,0
+925,GIA VI NEM_069,Nước dừa khô bịch,GIA VỊ NÊM,gram,1,0
+926,GIA VI NEM_070,Nước dừa tươi,GIA VỊ NÊM,bịch,1,0
+927,GIA VI NEM_071,Nước màu kho 330ml/chai,GIA VỊ NÊM,chai,1,0
+928,GIA VI NEM_072,Nước mắm chay,GIA VỊ NÊM,lít,1,0
+929,GIA VI NEM_073,Nước mắm đầu bếp tôm 4.8l (2 chai/ thùng),GIA VỊ NÊM,thùng,1,0
+930,GIA VI NEM_074,Nước mắm nam ngư siêu tiết kiệm 4.8l (4 bình/thùng),GIA VỊ NÊM,thùng,1,0
+931,GIA VI NEM_075,"Nước mắm tây ngư (4,8ml x 4 bình)",GIA VỊ NÊM,thùng,1,0
+932,GIA VI NEM_076,Nước mắm trúc ngọc 5l (4 bình/ thùng),GIA VỊ NÊM,thùng,1,0
+933,GIA VI NEM_077,Nước mắm viên nhĩ 4 bình/thùng,GIA VỊ NÊM,thùng,1,0
+934,GIA VI NEM_078,Nước mắm viên nhĩ 500ml ( 12c/thùng),GIA VỊ NÊM,thùng,1,0
+935,GIA VI NEM_079,Nước mắm việt nhĩ 5l ( 4 can/thùng),GIA VỊ NÊM,thùng,1,0
+936,GIA VI NEM_080,Nước tương chay,GIA VỊ NÊM,lít,1,0
+937,GIA VI NEM_081,Nước tương đậu nành tayaki 24 chai/thùng,GIA VỊ NÊM,thùng,1,0
+938,GIA VI NEM_082,Ớt bột khô,GIA VỊ NÊM,gram,1,0
+939,GIA VI NEM_083,Ớt sa tế,GIA VỊ NÊM,gram,1,0
+940,GIA VI NEM_084,Quế cây,GIA VỊ NÊM,gram,1,0
+941,GIA VI NEM_085,Sa tế tôm,GIA VỊ NÊM,hộp,1,0
+942,GIA VI NEM_086,Sốt bơ ,GIA VỊ NÊM,gram,1,0
+943,GIA VI NEM_087,Sốt sacha,GIA VỊ NÊM,hộp,1,0
+944,GIA VI NEM_088,Sốt tiêu lee kum hee,GIA VỊ NÊM,chai,1,0
+945,GIA VI NEM_089,Sốt xá xíu,GIA VỊ NÊM,bịch,1,0
+946,GIA VI NEM_090,Steak smoke,GIA VỊ NÊM,chai,1,0
+947,GIA VI NEM_091,Tiêu xanh,GIA VỊ NÊM,gram,1,0
+948,GIA VI NEM_092,Tiêu xay,GIA VỊ NÊM,gram,1,0
+949,GIA VI NEM_093,Tôm yum,GIA VỊ NÊM,hũ,1,0
+950,GIA VI NEM_094,Tôm yum hũ,GIA VỊ NÊM,hũ,1,0
+951,GIA VI NEM_095,Thảo quả,GIA VỊ NÊM,gram,1,0
+952,GIA VI NEM_096,Thục địa,GIA VỊ NÊM,gram,1,0
+953,GIA VI NEM_097,Viên súp bò huế,GIA VỊ NÊM,viên,1,0
+954,GIA VI NEM_098,Xốt xá xíu,GIA VỊ NÊM,gói,1,0
+955,GIA VI NEM_099,Ý dĩ,GIA VỊ NÊM,gram,1,0
+956,GIA VI TUONG_001,Tương cà 4 bình/thùng,GIA VỊ TƯƠNG,thùng,1,0
+957,GIA VI TUONG_002,Tương cà cholimex 2 lít 6 bình/thùng,GIA VỊ TƯƠNG,thùng,1,0
+958,GIA VI TUONG_003,Tương cà cholimex 24 chai/thùng,GIA VỊ TƯƠNG,thùng,1,0
+959,GIA VI TUONG_004,Tương cà cholimex 830ml (12 chai/ thùng),GIA VỊ TƯƠNG,chai,1,0
+960,GIA VI TUONG_005,Tương cà heinz,GIA VỊ TƯƠNG,chai,1,0
+961,GIA VI TUONG_006,Tương chua ngọt cholimex 2 lít 6 bình/thùng,GIA VỊ TƯƠNG,thùng,1,0
+962,GIA VI TUONG_007,Tương đen 5l,GIA VỊ TƯƠNG,bình,1,0
+963,GIA VI TUONG_008,Tương đen bịch,GIA VỊ TƯƠNG,bịch,1,0
+964,GIA VI TUONG_009,Tương đen phở ( 1 thùng/12 chai),GIA VỊ TƯƠNG,thùng,1,0
+965,GIA VI TUONG_010,Tương hột,GIA VỊ TƯƠNG,gram,1,0
+966,GIA VI TUONG_011,Tương hột cholimex,GIA VỊ TƯƠNG,hũ,1,0
+967,GIA VI TUONG_012,Tương hột lee kum kee,GIA VỊ TƯƠNG,hũ,1,0
+968,GIA VI TUONG_013,Tương ớt 5l,GIA VỊ TƯƠNG,bình,1,0
+969,GIA VI TUONG_014,Tương ớt chinsu 500g/chai,GIA VỊ TƯƠNG,thùng,1,0
+970,GIA VI TUONG_015,Tương ớt cholimex (24 chai/ thùng),GIA VỊ TƯƠNG,thùng,1,0
+971,GIA VI TUONG_016,Tương ớt cholimex 830ml (12 chai/ thùng),GIA VỊ TƯƠNG,thùng,1,0
+972,GIA VI TUONG_017,Tương ớt cholimex loại 2 lít (6 bình/thùng),GIA VỊ TƯƠNG,chai,1,0
+973,GIA VI TUONG_018,Tương ớt chua ngọt cholimex (24 chai/thùng),GIA VỊ TƯƠNG,thùng,1,0
+974,GIA VI TUONG_019,Tương ớt hàng việt 800g ( 1 thùng/12 chai),GIA VỊ TƯƠNG,thùng,1,0
+975,GIA VI TUONG_020,Tương ớt mekong ,GIA VỊ TƯƠNG,thùng,1,0
+976,GIA VI TUONG_021,Tương xí muội cholimex ,GIA VỊ TƯƠNG,chai,1,0
+977,GIO CHA_001,Cá sống,GIÒ CHẢ,gram,1,0
+978,GIO CHA_002,Cá viên 1000gr/gói,GIÒ CHẢ,gram,1,0
+979,GIO CHA_003,Cá viên ngon 500gr/gói,GIÒ CHẢ,gram,1,0
+980,GIO CHA_004,Chả bì,GIÒ CHẢ,gram,1,0
+981,GIO CHA_005,Chả bò,GIÒ CHẢ,gram,1,0
+982,GIO CHA_006,Chà bông gà,GIÒ CHẢ,gram,1,0
+983,GIO CHA_007,Chà bông gà ngon ,GIÒ CHẢ,gram,1,0
+984,GIO CHA_008,Chà bông heo,GIÒ CHẢ,gram,1,0
+985,GIO CHA_009,Chà bông heo ngon,GIÒ CHẢ,gram,1,0
+986,GIO CHA_010,Chà bông ớt,GIÒ CHẢ,gram,1,0
+987,GIO CHA_011,Chả cá chẽm,GIÒ CHẢ,gram,1,0
+988,GIO CHA_012,Chả cá chiên,GIÒ CHẢ,gram,1,0
+989,GIO CHA_013,Chả cá nha trang,GIÒ CHẢ,gram,1,0
+990,GIO CHA_014,Chả cây bò ,GIÒ CHẢ,cây,1,0
+991,GIO CHA_015,Chả chiên,GIÒ CHẢ,gram,1,0
+992,GIO CHA_016,Chả giò rế hải sản 450g - 20 cuốn/bịch,GIÒ CHẢ,bịch,1,0
+993,GIO CHA_017,Chả giò xốp tôm mực,GIÒ CHẢ,bịch,1,0
+994,GIO CHA_018,Chả giò xốp tôm thịt,GIÒ CHẢ,bịch,1,0
+995,GIO CHA_019,Chả lụa,GIÒ CHẢ,gram,1,0
+996,GIO CHA_020,Chả lụa ngon,GIÒ CHẢ,gram,1,0
+997,GIO CHA_021,Lạp xưởng khô,GIÒ CHẢ,gram,1,0
+998,GIO CHA_022,Lạp xưởng tươi,GIÒ CHẢ,gram,1,0
+999,GIO CHA_023,Mọc,GIÒ CHẢ,gram,1,0
+1000,GIO CHA_024,Mọc ngon,GIÒ CHẢ,gram,1,0
+1001,GIO CHA_025,Nem cua bể,GIÒ CHẢ,gram,1,0
+1002,GIO CHA_026,Nem chua cây,GIÒ CHẢ,gram,1,0
+1003,GIO CHA_027,Nem nướng,GIÒ CHẢ,gram,1,0
+1004,GIO CHA_028,Nem nướng cây,GIÒ CHẢ,cây,1,0
+1005,GIO CHA_029,Pate,GIÒ CHẢ,hộp,1,0
+1006,GIO CHA_030,Thịt nguội,GIÒ CHẢ,gram,1,0
+1007,GIO CHA_031,Xíu mại,GIÒ CHẢ,viên,1,0
+1008,GIO CHA_032,Xúc xích - 40g (20 gói/thùng-100 cái),GIÒ CHẢ,thùng,1,0
+1009,GIO CHA_033,Xúc xích 35g - 100 cây/thùng,GIÒ CHẢ,thùng,1,0
+1010,GIO CHA_034,Xúc xích 500g -8 cây/bịch,GIÒ CHẢ,bịch,1,0
+1011,GIO CHA_035,Xúc xích cp - 175g (20 gói/thùng-100 cái),GIÒ CHẢ,thùng,1,0
+1012,GIO CHA_036,Xúc xích tiệt trùng heo cao bồi bin& bon thịt heo 8 hôp x 50 cây x 19gr,GIÒ CHẢ,thùng,1,0
+1013,GIO CHA_037,"Xúc xích tiệt trùng heo cao bồi lắc phô mai 
+bắp bơ 48ly",GIÒ CHẢ,thùng,1,0
+1014,GIO CHA_038,"Xúc xích tiệt trùng heo cao bồi xốt tôm 
+sữa 48ly",GIÒ CHẢ,thùng,1,0
+1015,GIO CHA_039,"Xúc xích tiệt trùng heo cao bồi xốt tôm 
+sữa 48ly ",GIÒ CHẢ,cây,1,0
+1016,GIO CHA_040,Xúc xích vealz c.p gói 500g 10 cây/gói,GIÒ CHẢ,bịch,1,0
+1017,GIO CHA_041,Xúc xích vissan 35g,GIÒ CHẢ,thùng,1,0
+1018,HAI SAN_001,Bạch tuộc,HẢI SẢN,gram,1,0
+1019,HAI SAN_002,Bạch tuộc size 3 con/1kg,HẢI SẢN,gram,1,0
+1020,HAI SAN_003,Càng ghẹ,HẢI SẢN,bịch,1,0
+1021,HAI SAN_004,Cồi sò điệp 40-60,HẢI SẢN,gram,1,0
+1022,HAI SAN_005,Cồi sò điệp 60-80,HẢI SẢN,gram,1,0
+1023,HAI SAN_006,Cồi sò điệp 80-100,HẢI SẢN,gram,1,0
+1024,HAI SAN_007,Mực bầu,HẢI SẢN,gram,1,0
+1025,HAI SAN_008,Mực lá đại dương,HẢI SẢN,gram,1,0
+1026,HAI SAN_009,Mực lá tươi,HẢI SẢN,gram,1,0
+1027,HAI SAN_010,Mực nang,HẢI SẢN,gram,1,0
+1028,HAI SAN_011,Mực ống,HẢI SẢN,gram,1,0
+1029,HAI SAN_012,Mực ống size 10,HẢI SẢN,gram,1,0
+1030,HAI SAN_013,Mực ống size 15,HẢI SẢN,gram,1,0
+1031,HAI SAN_014,Mực ống size 5,HẢI SẢN,gram,1,0
+1032,HAI SAN_015,Mực ống size 6-8,HẢI SẢN,gram,1,0
+1033,HAI SAN_016,Mực trứng,HẢI SẢN,gram,1,0
+1034,HAI SAN_017,Nghêu,HẢI SẢN,gram,1,0
+1035,HAI SAN_018,Sò điệp (còi) size 110con/kg,HẢI SẢN,gram,1,0
+1036,HAI SAN_019,Sứa,HẢI SẢN,gram,1,0
+1037,HAI SAN_020,Thanh cua,HẢI SẢN,gram,1,0
+1038,HHTQ_001,Băng diana,HHTQ,bịch,1,0
+1039,HHTQ_002,Băng hằng ngày,HHTQ,bịch,1,0
+1040,HHTQ_003,Cà phê sữa hộp nestle 3 in 1 - hộp đỏ,HHTQ,hộp,1,0
+1041,HHTQ_004,Cafe đen,HHTQ,ly,1,0
+1042,HHTQ_005,Cafe sữa,HHTQ,ly,1,0
+1043,HHTQ_006,Kem bắp,HHTQ,thùng,1,0
+1044,HHTQ_007,Kem dâu,HHTQ,thùng,1,0
+1045,HHTQ_008,Kem dâu ly,HHTQ,cái,1,0
+1046,HHTQ_009,Kem dưa lưới,HHTQ,thùng,1,0
+1047,HHTQ_010,Kem đậu xanh,HHTQ,thùng,1,0
+1048,HHTQ_011,Kem khoai môn,HHTQ,thùng,1,0
+1049,HHTQ_012,Kem miki,HHTQ,thùng,1,0
+1050,HHTQ_013,Kem ốc dâu,HHTQ,thùng,1,0
+1051,HHTQ_014,Kem ốc socola,HHTQ,thùng,1,0
+1052,HHTQ_015,Kem ốc vani,HHTQ,thùng,1,0
+1053,HHTQ_016,Kem socola ly,HHTQ,cái,1,0
+1054,HHTQ_017,Kem sô giòn,HHTQ,thùng,1,0
+1055,HHTQ_018,Kem sô hạt,HHTQ,thùng,1,0
+1056,HHTQ_019,Kem việt quất,HHTQ,thùng,1,0
+1057,HHTQ_020,Kem yogu,HHTQ,thùng,1,0
+1058,HHTQ_021,Nước ép cà rốt,HHTQ,ly,1,0
+1059,HHTQ_022,Nước ép cam,HHTQ,ly,1,0
+1060,HHTQ_023,Nước ép cóc,HHTQ,ly,1,0
+1061,HHTQ_024,Nước ép chanh dây,HHTQ,ly,1,0
+1062,HHTQ_025,Nước ép dưa hấu,HHTQ,ly,1,0
+1063,HHTQ_026,Nước ép ổi,HHTQ,ly,1,0
+1064,HHTQ_027,Nước ép sơ ri,HHTQ,ly,1,0
+1065,HHTQ_028,Nước ép thơm,HHTQ,ly,1,0
+1066,HHTQ_029,Sinh tố bơ,HHTQ,ly,1,0
+1067,HHTQ_030,Sinh tố dâu,HHTQ,ly,1,0
+1068,HHTQ_031,Sinh tố dưa gang,HHTQ,ly,1,0
+1069,HHTQ_032,Sinh tố mãng cầu,HHTQ,ly,1,0
+1070,HHTQ_033,Sinh tố sapoche,HHTQ,ly,1,0
+1071,HHTQ_034,Sinh tố xoài,HHTQ,ly,1,0
+1072,HHTQ_035,Trà sữa,HHTQ,ly,1,0
+1073,HHTQ_036,Trà tắc,HHTQ,ly,1,0
+1074,HHTQ_037,Vớ,HHTQ,đôi,1,0
+1075,HHTQ_038,Xôi bánh tiêu,HHTQ,phần,1,0
+1076,HHTQ_038,Xôi bánh tiêu,HHTQ,phần,1,0
+1077,HOA CHAT_001,Hóa chất rửa chén dĩa f2 - 20 lít,HÓA CHẤT,can,1,0
+1078,HOA CHAT_002,Hóa chất tráng chén dĩa b2s - 10 lít,HÓA CHẤT,can,1,0
+1079,HOA CHAT_003,Nước giặt xả 888,HÓA CHẤT,bịch,1,0
+1080,HOA CHAT_004,Nước giặt xả power100 hương nước hoa pháp quyến rũ 9kg,HÓA CHẤT,thùng,1,0
+1081,HOA CHAT_005,Nước lau kính,HÓA CHẤT,chai,1,0
+1082,HOA CHAT_006,Nước lau sàn,HÓA CHẤT,kg,1,0
+1083,HOA CHAT_007,Nước lau sàn light summer flower ,HÓA CHẤT,can,1,0
+1084,HOA CHAT_008,Nước lau sàn power100 tinh dầu chanh sả 3.2 kg,HÓA CHẤT,thùng,1,0
+1085,HOA CHAT_009,Nước lau sàn power100 tinh dầu chanh sả 3.5kg,HÓA CHẤT,chai,1,0
+1086,HOA CHAT_010,Nước rửa chén light (chip) hương chanh 1 can - 29kg,HÓA CHẤT,can,1,0
+1087,HOA CHAT_011,Nước rửa chén power 100 tinh dầu chanh 1.4kg,HÓA CHẤT,chai,1,0
+1088,HOA CHAT_012,Nước rửa chén power 100 tinh dầu chanh 9.0kg,HÓA CHẤT,can,1,0
+1089,HOA CHAT_013,Nước rửa chén siêu sạch chanh 750g/chai,HÓA CHẤT,chai,1,0
+1090,HOA CHAT_014,Nước tẩy bồn cầu vim,HÓA CHẤT,chai,1,0
+1091,HOA CHAT_015,Nước tẩy javen,HÓA CHẤT,chai,1,0
+1092,HOA CHAT_016,Sữa tắm ,HÓA CHẤT,chai,1,0
+1093,HOA CHAT_017,"Xịt facong (kiến, muỗi,...)",HÓA CHẤT,chai,1,0
+1094,HU TIEU MI_001,Hủ tiếu khô,HỦ TIẾU MÌ,gram,1,0
+1095,HU TIEU MI_002,Hủ tiếu tươi,HỦ TIẾU MÌ,gram,1,0
+1096,HU TIEU MI_003,Mì quảng,HỦ TIẾU MÌ,gram,1,0
+1097,HU TIEU MI_004,Mì vàng,HỦ TIẾU MÌ,gram,1,0
+1098,HU TIEU MI_005,Miến lọn,HỦ TIẾU MÌ,gram,1,0
+1099,HU TIEU MI_006,Miến vàng,HỦ TIẾU MÌ,gram,1,0
+1100,KHO HAI SAN_001,Cá cơm khô,KHÔ HẢI SẢN,gram,1,0
+1101,KHO HAI SAN_002,Cá khô đù,KHÔ HẢI SẢN,gram,1,0
+1102,KHO HAI SAN_003,Cá khô đù 1 nắng,KHÔ HẢI SẢN,gram,1,0
+1103,KHO HAI SAN_004,Cá khô lưỡi trâu,KHÔ HẢI SẢN,gram,1,0
+1104,KHO HAI SAN_005,Khô cá chỉ vàng,KHÔ HẢI SẢN,gram,1,0
+1105,KHO HAI SAN_006,Khô cá đù 1 nắng,KHÔ HẢI SẢN,gram,1,0
+1106,KHO HAI SAN_007,Mực khô,KHÔ HẢI SẢN,gram,1,0
+1107,KHO HAI SAN_008,Tôm khô,KHÔ HẢI SẢN,gram,1,0
+1108,KHO THIT_001,Bò khô ngon,KHÔ THỊT,gram,1,0
+1109,LA GOI_001,Lá gói hoành thánh,LÁ GÓI,gram,1,0
+1110,NUOC NGOT_001,7 up 28 lon ,NƯỚC NGỌT,thùng,1,0
+1111,NUOC NGOT_002,7 up lon 320ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1112,NUOC NGOT_003,7 up pet 390ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1113,NUOC NGOT_004,7 up soda 320ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1114,NUOC NGOT_005,Aqua lớn 1500ml - 12 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1115,NUOC NGOT_006,Aqua nhỏ 355ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1116,NUOC NGOT_007,Aqua vừa 500ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1117,NUOC NGOT_008,Bí đao lon lùn 310ml - 24lon/thùng,NƯỚC NGỌT,thùng,1,0
+1118,NUOC NGOT_009,Bia tiger bạc,NƯỚC NGỌT,thùng,1,0
+1119,NUOC NGOT_010,Bia tiger xanh,NƯỚC NGỌT,thùng,1,0
+1120,NUOC NGOT_011,Bò việt 24lon/thùng,NƯỚC NGỌT,thùng,1,0
+1121,NUOC NGOT_012,Boss cà phê sữa lon,NƯỚC NGỌT,thùng,1,0
+1122,NUOC NGOT_013,C2 chanh lớn 500ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1123,NUOC NGOT_014,C2 chanh nhỏ 360ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1124,NUOC NGOT_015,C2 dưa lưới 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1125,NUOC NGOT_016,C2 vị đào 355ml- ,NƯỚC NGỌT,thùng,1,0
+1126,NUOC NGOT_017,C2 vị đào 500ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1127,NUOC NGOT_018,Cà phê sữa boss lon 180ml thùng 24 lon ,NƯỚC NGỌT,thùng,1,0
+1128,NUOC NGOT_019,Cammi lon 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1129,NUOC NGOT_020,Cammi lon 28 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1130,NUOC NGOT_021,Coca 1.5l/chai,NƯỚC NGỌT,chai,1,0
+1131,NUOC NGOT_022,Coca cola light 320ml 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1132,NUOC NGOT_023,Coca lon (24 lon/thùng),NƯỚC NGỌT,thùng,1,0
+1133,NUOC NGOT_024,Coca pet 390 24 chai/thùng,NƯỚC NGỌT,lốc,1,0
+1134,NUOC NGOT_025,Coca pet 390 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1135,NUOC NGOT_026,Chai nước cam nguyên tép teppy 327ml/chai 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1136,NUOC NGOT_027,Chanh dây won 24 chai/ thùng,NƯỚC NGỌT,thùng,1,0
+1137,NUOC NGOT_028,Dâu lon - sting dâu - 24lon/thùng ,NƯỚC NGỌT,thùng,1,0
+1138,NUOC NGOT_029,Dâu lon - sting dâu - 24lon/thùng (warrior),NƯỚC NGỌT,thùng,1,0
+1139,NUOC NGOT_030,Dâu lon - sting dâu - 28lon/thùng,NƯỚC NGỌT,thùng,1,0
+1140,NUOC NGOT_031,Dâu lon - sting dâu - 28lon/thùng (warrior),NƯỚC NGỌT,thùng,1,0
+1141,NUOC NGOT_032,Good mood sữa chua chai nhựa 450ml x 24 chai,NƯỚC NGỌT,thùng,1,0
+1142,NUOC NGOT_033,Juicy milk cam chai nhựa 290 x24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1143,NUOC NGOT_034,Juicy milk dâu chai nhựa 320*24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1144,NUOC NGOT_035,Lipton trà đen vị chanh chai nhựa 450x24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1145,NUOC NGOT_036,Lt trà đen chanh pet 4x6x455ml,NƯỚC NGỌT,thùng,1,0
+1146,NUOC NGOT_037,Mi cam pet 24x390ml,NƯỚC NGỌT,thùng,1,0
+1147,NUOC NGOT_038,Mi xị pet 24x390ml,NƯỚC NGỌT,thùng,1,0
+1148,NUOC NGOT_039,Miriada mix 2 vị soda kem và xá xị 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1149,NUOC NGOT_040,Mirinda 28 lon,NƯỚC NGỌT,thùng,1,0
+1150,NUOC NGOT_041,Mirinda cam chai nhựa 390x24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1151,NUOC NGOT_042,Mirinda chanh muối chai nhựa 390x24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1152,NUOC NGOT_043,Mirinda hương xá xị 320ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1153,NUOC NGOT_044,Mirinda vị dứa 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1154,NUOC NGOT_045,Mirinda vị soda kem 320ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1155,NUOC NGOT_046,Mirinda vị soda kem việt quất chai nhựa 390x24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1156,NUOC NGOT_047,Mirinda xá xị chai nhựa 390x24 lốc 6,NƯỚC NGỌT,thùng,1,0
+1157,NUOC NGOT_048,Mrd soda kem pet 4x6x390ml,NƯỚC NGỌT,thùng,1,0
+1158,NUOC NGOT_049,Mủ trôm nha đam,NƯỚC NGỌT,chai,1,0
+1159,NUOC NGOT_050,Nutriboost 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1160,NUOC NGOT_051,Nước me wonderfarm 310ml,NƯỚC NGỌT,thùng,1,0
+1161,NUOC NGOT_052,Nước ngọt pepsi vị chanh lon 320ml 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1162,NUOC NGOT_053,Nước suối messi ( 24 chai/ thùng),NƯỚC NGỌT,thùng,1,0
+1163,NUOC NGOT_054,Nước suối numbe one 12 chai/lốc 2 lốc/thùng,NƯỚC NGỌT,thùng,1,0
+1165,NUOC NGOT_055,Nước tăng lực 247 amazon 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1166,NUOC NGOT_056,Nước tăng lực lipovitan honey 250ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1167,NUOC NGOT_057,Nước tăng lực mật nhân lipovitan tongkat ali 24lon/1thùng (250ml/lon),NƯỚC NGỌT,thùng,1,0
+1168,NUOC NGOT_058,Nước tăng lực number 1 250ml - 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1169,NUOC NGOT_059,Nước tăng lực redbull thái kẽm và vitamin 250ml 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1170,NUOC NGOT_060,Nước tăng lực rockstar 24lon/thùng,NƯỚC NGỌT,thùng,1,0
+1171,NUOC NGOT_061,Nước tinh khiết vị yoghurt good mood pet 4x6x455ml,NƯỚC NGỌT,thùng,1,0
+1172,NUOC NGOT_062,Nước trái cây ice vị táo,NƯỚC NGỌT,chai,1,0
+1173,NUOC NGOT_063,Nước yến dừa tingco 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1174,NUOC NGOT_064,Nước yến nha đam tingco 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1175,NUOC NGOT_065,Nho lon- sting nho- 24 lon/thùng (warrior),NƯỚC NGỌT,thùng,1,0
+1176,NUOC NGOT_066,Nho lon- sting nho- 28 lon/thùng (warrior),NƯỚC NGỌT,thùng,1,0
+1177,NUOC NGOT_067,Olong chanh 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1178,NUOC NGOT_068,Olong đào lon 320ml (24 lon/thùng),NƯỚC NGỌT,thùng,1,0
+1179,NUOC NGOT_069,Olong đen lon 320ml  ( 24 lon/thùng),NƯỚC NGỌT,thùng,1,0
+1180,NUOC NGOT_070,Olong lớn 1l,NƯỚC NGỌT,chai,1,0
+1181,NUOC NGOT_071,Olong mật ong chai,NƯỚC NGỌT,thùng,1,0
+1182,NUOC NGOT_072,Olong nhỏ 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1183,NUOC NGOT_073,Olong trà đào pepsi,NƯỚC NGỌT,chai,1,0
+1184,NUOC NGOT_074,Pepsi 1.5l ,NƯỚC NGỌT,thùng,1,0
+1185,NUOC NGOT_075,Pepsi chanh lon 28 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1186,NUOC NGOT_076,Pepsi không calo 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1187,NUOC NGOT_077,Pepsi lon 24lon/thùng,NƯỚC NGỌT,thùng,1,0
+1188,NUOC NGOT_078,Pepsi lon 28lon/thùng,NƯỚC NGỌT,thùng,1,0
+1189,NUOC NGOT_079,Pepsi pet 24x390ml,NƯỚC NGỌT,thùng,1,0
+1190,NUOC NGOT_080,Revai chanh muối pet 4x6x390ml,NƯỚC NGỌT,thùng,1,0
+1191,NUOC NGOT_081,Revai muối 24lon/thùng,NƯỚC NGỌT,thùng,1,0
+1192,NUOC NGOT_082,Revive pet 24x500ml,NƯỚC NGỌT,thùng,1,0
+1193,NUOC NGOT_083,Revive thể thao chai nhựa 450 x 24 ,NƯỚC NGỌT,thùng,1,0
+1194,NUOC NGOT_084,Sâm bí đao,NƯỚC NGỌT,lít,1,0
+1195,NUOC NGOT_085,Sâm la hán hoa cúc ,NƯỚC NGỌT,chai,1,0
+1196,NUOC NGOT_086,St dâu pet 24x330ml 24chai/thùng,NƯỚC NGỌT,thùng,1,0
+1197,NUOC NGOT_087,Sting dâu chai 500ml 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1198,NUOC NGOT_088,Sting dâu pet 24x330ml,NƯỚC NGỌT,thùng,1,0
+1199,NUOC NGOT_089,Sting vàng lon 28 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1200,NUOC NGOT_090,Sting vàng pet 24x330ml,NƯỚC NGỌT,thùng,1,0
+1201,NUOC NGOT_091,Sting việt quất 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1202,NUOC NGOT_092,Sữa trái cây nutri cam 297ml - 24 hộp/thùng,NƯỚC NGỌT,thùng,1,0
+1203,NUOC NGOT_093,Sữa trái cây nutri dâu 297ml - 24 hộp/thùng,NƯỚC NGỌT,thùng,1,0
+1204,NUOC NGOT_094,Sữa trái cây twister cam pet 4x6x320ml,NƯỚC NGỌT,thùng,1,0
+1205,NUOC NGOT_095,Sữa trái cây twister dâu pet 4x6x320ml,NƯỚC NGỌT,thùng,1,0
+1206,NUOC NGOT_096,Tăng lực 24lon/thùng,NƯỚC NGỌT,thùng,1,0
+1207,NUOC NGOT_097,Tăng lực number one 24*350ml 24chai/thùng,NƯỚC NGỌT,thùng,1,0
+1208,NUOC NGOT_098,Tw cam không tép pet 4x6x350ml,NƯỚC NGỌT,thùng,1,0
+1209,NUOC NGOT_099,Tw cam pet 4x6x455ml,NƯỚC NGỌT,thùng,1,0
+1210,NUOC NGOT_100,Twister cam 320ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1211,NUOC NGOT_101,Twister cam 455ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1212,NUOC NGOT_102,Trà bí đao wonderfam,NƯỚC NGỌT,thùng,1,0
+1213,NUOC NGOT_103,Trà chanh olong tea + pet 4x6x455ml,NƯỚC NGỌT,thùng,1,0
+1214,NUOC NGOT_104,Trà đào và hạt chia fuze tea + 450ml 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1215,NUOC NGOT_105,Trà đen c2 vị đào 24x455ml,NƯỚC NGỌT,thùng,1,0
+1216,NUOC NGOT_106,Trà mật ong boncha 450ml 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1217,NUOC NGOT_107,Trà olong đào 24 chai/thùng 450ml,NƯỚC NGỌT,thùng,1,0
+1218,NUOC NGOT_108,Trà olong pet 4x6x455ml 24chai/thùng,NƯỚC NGỌT,thùng,1,0
+1219,NUOC NGOT_109,Trà sữa go,NƯỚC NGỌT,chai,1,0
+1220,NUOC NGOT_110,Trà xanh 0 độ   24 chai x 455 ml/thùng,NƯỚC NGỌT,thùng,1,0
+1221,NUOC NGOT_111,Trà xanh c2 vị chanh 24*455ml,NƯỚC NGỌT,thùng,1,0
+1222,NUOC NGOT_112,Trà xanh c2 vị dâu 360ml - 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1223,NUOC NGOT_113,Trà xanh go,NƯỚC NGỌT,chai,1,0
+1224,NUOC NGOT_114,Trà xanh hương chanh wonderfram 24 chai/thùng,NƯỚC NGỌT,thùng,1,0
+1225,NUOC NGOT_115,Wake up 247 vị cà phê hương whisky 24 lon/thùng,NƯỚC NGỌT,thùng,1,0
+1226,NUOC NGOT_116,Wakeup 247 vị cà phê 24x330ml,NƯỚC NGỌT,thùng,1,0
+1227,PHA CHE_001,Boss cafe,PHA CHẾ,thùng,1,0
+1228,PHA CHE_002,Cà phê bột,PHA CHẾ,kg,1,0
+1229,PHA CHE_003,Cà phê nescafé ( 1 bịch 46 gói x 17g ) thùng 12 bịch,PHA CHẾ,thùng,1,0
+1231,PHA CHE_004,Café bột ( true cafe 500 gram/1 bịch/24gói),PHA CHẾ,bịch,1,0
+1232,PHA CHE_005,Chanh dây hộp 1l,PHA CHẾ,chai,1,0
+1233,PHA CHE_006,Dừa khô (rắc chè),PHA CHẾ,kg,1,0
+1234,PHA CHE_007,Đào ngâm,PHA CHẾ,hộp,1,0
+1235,PHA CHE_008,Hạt é,PHA CHẾ,kg,1,0
+1236,PHA CHE_009,Hồng trà túi 1kg,PHA CHẾ,kg,1,0
+1237,PHA CHE_010,Nhãn hộp,PHA CHẾ,hộp,1,0
+1238,PHA CHE_011,Nhãn nhục,PHA CHẾ,gram,1,0
+1239,PHA CHE_012,Origano,PHA CHẾ,hộp,1,0
+1240,PHA CHE_013,Sương sáo đen,PHA CHẾ,gram,1,0
+1241,PHA CHE_014,Sương sáo trắng,PHA CHẾ,gram,1,0
+1242,PHA CHE_015,Táo đỏ,PHA CHẾ,gram,1,0
+1243,PHA CHE_016,Thạch dừa,PHA CHẾ,gram,1,0
+1244,PHA CHE_017,Trà đào cozi,PHA CHẾ,ly,1,0
+1245,PHA CHE_018,Trà đào cozy hòa tan 16 gói/hộp,PHA CHẾ,hộp,1,0
+1246,PHA CHE_019,Trà đen,PHA CHẾ,hộp,1,0
+1247,PHA CHE_020,Trà khô hương dứa,PHA CHẾ,gram,1,0
+1248,PHA CHE_021,Trà lài,PHA CHẾ,bịch,1,0
+1249,PHA CHE_022,Trà lipton ,PHA CHẾ,hộp,1,0
+1250,PHA CHE_023,Whipping cream,PHA CHẾ,hộp,1,0
+1251,RAU_001,Bạc hà,RAU,gram,1,0
+1252,RAU_002,Bắp bào,RAU,gram,1,0
+1253,RAU_003,Bắp cải tím,RAU,gram,1,0
+1254,RAU_004,Bắp cải trắng,RAU,gram,1,0
+1255,RAU_005,Bắp luộc,RAU,phần,1,0
+1256,RAU_006,Bắp mỹ,RAU,trái,1,0
+1257,RAU_007,Bắp nếp,RAU,trái,1,0
+1258,RAU_008,Bắp non,RAU,gram,1,0
+1259,RAU_009,Bầu,RAU,gram,1,0
+1260,RAU_010,Bí đỏ,RAU,gram,1,0
+1261,RAU_011,Bí ngòi,RAU,gram,1,0
+1262,RAU_012,Bí xanh,RAU,gram,1,0
+1263,RAU_013,Bông bí,RAU,gram,1,0
+1264,RAU_014,Bông cải trắng,RAU,gram,1,0
+1265,RAU_015,Bông cải xanh,RAU,gram,1,0
+1266,RAU_016,Bông súng,RAU,gram,1,0
+1267,RAU_017,Bông thiên lý,RAU,gram,1,0
+1268,RAU_018,Cà chua,RAU,gram,1,0
+1269,RAU_019,Cà chua bi,RAU,gram,1,0
+1270,RAU_020,Cà pháo,RAU,gram,1,0
+1271,RAU_021,Cà rốt,RAU,gram,1,0
+1272,RAU_022,Cà rốt ngâm chua,RAU,gram,1,0
+1273,RAU_023,Cà tím,RAU,gram,1,0
+1274,RAU_024,Cải bó xôi,RAU,gram,1,0
+1275,RAU_025,Cải cúc,RAU,gram,1,0
+1276,RAU_026,Cải ngọt,RAU,gram,1,0
+1277,RAU_027,Cải nhúng,RAU,gram,1,0
+1278,RAU_028,Cải thảo,RAU,gram,1,0
+1279,RAU_029,Cải thìa,RAU,gram,1,0
+1280,RAU_030,Cải xanh,RAU,gram,1,0
+1281,RAU_031,Cải xoăn,RAU,gram,1,0
+1282,RAU_032,Cải xoong,RAU,gram,1,0
+1283,RAU_033,Cần nước,RAU,gram,1,0
+1284,RAU_034,Cần tàu,RAU,gram,1,0
+1285,RAU_035,Cần tây,RAU,gram,1,0
+1286,RAU_036,Cần tây đà lạt,RAU,gram,1,0
+1287,RAU_037,Củ cải muối,RAU,gram,1,0
+1288,RAU_038,Củ cải trắng,RAU,gram,1,0
+1289,RAU_039,Củ đậu,RAU,gram,1,0
+1290,RAU_040,Củ hủ dừa,RAU,gram,1,0
+1291,RAU_041,Củ nén,RAU,gram,1,0
+1292,RAU_042,Củ sắn,RAU,gram,1,0
+1293,RAU_043,Củ sen tươi,RAU,gram,1,0
+1294,RAU_044,Cùi dừa,RAU,gram,1,0
+1295,RAU_045,Chanh,RAU,gram,1,0
+1296,RAU_046,Chanh giấy,RAU,gram,1,0
+1297,RAU_047,Chanh mỹ,RAU,gram,1,0
+1298,RAU_048,Chanh vàng,RAU,gram,1,0
+1299,RAU_049,Chuối bào,RAU,gram,1,0
+1300,RAU_050,Chuối xanh,RAU,gram,1,0
+1301,RAU_051,Dưa chua,RAU,gram,1,0
+1302,RAU_052,Dưa leo,RAU,gram,1,0
+1303,RAU_053,Dưa mắm,RAU,gram,1,0
+1304,RAU_054,Đậu bắp,RAU,gram,1,0
+1305,RAU_055,Đậu đũa,RAU,gram,1,0
+1306,RAU_056,Đậu hà lan,RAU,gram,1,0
+1307,RAU_057,Đậu ngự,RAU,gram,1,0
+1308,RAU_058,Đậu rồng,RAU,gram,1,0
+1309,RAU_059,Đậu ve,RAU,gram,1,0
+1310,RAU_060,Đọt rau bí,RAU,gram,1,0
+1311,RAU_061,Đồ chua sợi,RAU,gram,1,0
+1312,RAU_062,Đu đủ xanh,RAU,gram,1,0
+1313,RAU_063,Đu đủ xanh gọt,RAU,gram,1,0
+1314,RAU_064,Gừng,RAU,gram,1,0
+1315,RAU_065,Gừng xay,RAU,gram,1,0
+1316,RAU_066,Giá,RAU,gram,1,0
+1317,RAU_067,Hành baro,RAU,gram,1,0
+1318,RAU_068,Hành lá,RAU,gram,1,0
+1319,RAU_069,Hành phi,RAU,gram,1,0
+1320,RAU_070,Hành tây,RAU,gram,1,0
+1321,RAU_071,Hành tím củ,RAU,gram,1,0
+1322,RAU_072,Hành tím xay,RAU,gram,1,0
+1323,RAU_073,Hạt đậu hà lan tươi,RAU,gram,1,0
+1324,RAU_074,Hạt đậu trắng,RAU,gram,1,0
+1325,RAU_075,Hạt sen tươi,RAU,gram,1,0
+1326,RAU_076,Hẹ,RAU,gram,1,0
+1327,RAU_077,Hoa hồng đỏ,RAU,cây,1,0
+1328,RAU_078,Hồ lô (trái bí),RAU,gram,1,0
+1329,RAU_079,Húng cây,RAU,gram,1,0
+1330,RAU_080,Húng lủi,RAU,gram,1,0
+1331,RAU_081,Húng quế,RAU,gram,1,0
+1332,RAU_082,Kèo nèo,RAU,gram,1,0
+1333,RAU_083,Kim chi,RAU,gram,1,0
+1334,RAU_084,Kinh giới,RAU,gram,1,0
+1335,RAU_085,Khế,RAU,gram,1,0
+1336,RAU_086,Khoai lang,RAU,gram,1,0
+1337,RAU_087,Khoai luộc,RAU,phần,1,0
+1338,RAU_088,Khoai mì ,RAU,phần,1,0
+1339,RAU_089,Khoai mì ăn được,RAU,gram,1,0
+1340,RAU_090,Khoai môn,RAU,gram,1,0
+1341,RAU_091,Khoai mỡ,RAU,gram,1,0
+1342,RAU_092,Khoai tây,RAU,gram,1,0
+1343,RAU_093,Khoai tây cọng nhỏ 1kg/bịch,RAU,bịch,1,0
+1344,RAU_094,Khổ qua,RAU,gram,1,0
+1345,RAU_095,Lá chanh,RAU,gram,1,0
+1346,RAU_096,Lá dứa,RAU,gram,1,0
+1347,RAU_097,Lá giang,RAU,gram,1,0
+1348,RAU_098,Lá lốt,RAU,gram,1,0
+1349,RAU_099,Lá ngải cứu,RAU,gram,1,0
+1350,RAU_100,Lá quế,RAU,gram,1,0
+1351,RAU_101,Lá xạ hương,RAU,gram,1,0
+1352,RAU_102,Măng chua,RAU,gram,1,0
+1353,RAU_103,Măng khô,RAU,gram,1,0
+1354,RAU_104,Măng tây,RAU,gram,1,0
+1355,RAU_105,Măng tươi,RAU,gram,1,0
+1356,RAU_106,Măng trúc,RAU,gram,1,0
+1357,RAU_107,Me,RAU,gram,1,0
+1358,RAU_108,Mít non,RAU,gram,1,0
+1359,RAU_109,Mồng tơi,RAU,gram,1,0
+1360,RAU_110,Muống bào,RAU,gram,1,0
+1361,RAU_111,Mướp,RAU,gram,1,0
+1362,RAU_112,Nấm bào ngư xám,RAU,gram,1,0
+1363,RAU_113,Nấm đông cô,RAU,gram,1,0
+1364,RAU_114,Nấm đùi gà,RAU,gram,1,0
+1365,RAU_115,Nấm đùi gà loại nhỏ nhất,RAU,gram,1,0
+1366,RAU_116,Nấm đùi gà loại trung,RAU,gram,1,0
+1367,RAU_117,Nấm đùi gà nhỏ,RAU,gram,1,0
+1368,RAU_118,Nấm kim châm,RAU,bịch,1,0
+1369,RAU_119,Nấm linh chi nâu,RAU,bịch,1,0
+1370,RAU_120,Nấm linh chi trắng đen,RAU,bịch,1,0
+1371,RAU_121,Nấm mèo,RAU,gram,1,0
+1372,RAU_122,Nấm rơm,RAU,gram,1,0
+1373,RAU_123,Nấm tuyết,RAU,cái,1,0
+1374,RAU_124,Ngò gai,RAU,gram,1,0
+1375,RAU_125,Ngò ôm,RAU,gram,1,0
+1376,RAU_126,Ngò rí,RAU,gram,1,0
+1377,RAU_127,Ngó sen,RAU,gram,1,0
+1378,RAU_128,Ngò tây,RAU,gram,1,0
+1379,RAU_129,Nha đam,RAU,gram,1,0
+1380,RAU_130,Ớt chuông đỏ,RAU,gram,1,0
+1381,RAU_131,Ớt chuông đủ màu,RAU,gram,1,0
+1382,RAU_132,Ớt chuông xanh,RAU,gram,1,0
+1383,RAU_133,Ớt sừng cay,RAU,gram,1,0
+1384,RAU_134,Ớt sừng ngọt,RAU,gram,1,0
+1385,RAU_135,Ớt trái,RAU,gram,1,0
+1386,RAU_136,Ớt trái nhỏ,RAU,gram,1,0
+1387,RAU_137,Ớt xay,RAU,gram,1,0
+1388,RAU_138,Ớt xiêm xanh ,RAU,gram,1,0
+1389,RAU_139,Quả dừa tươi,RAU,trái,1,0
+1390,RAU_140,Rau bí,RAU,gram,1,0
+1391,RAU_141,Rau càng cua,RAU,gram,1,0
+1392,RAU_142,Rau cần nước,RAU,gram,1,0
+1393,RAU_143,Rau củ tc,RAU,gram,1,0
+1394,RAU_144,Rau dền,RAU,gram,1,0
+1395,RAU_145,Rau diếp cá,RAU,gram,1,0
+1396,RAU_146,Rau đay,RAU,gram,1,0
+1397,RAU_147,Rau đắng,RAU,gram,1,0
+1398,RAU_148,Rau khoai lang,RAU,gram,1,0
+1399,RAU_149,Rau má,RAU,gram,1,0
+1400,RAU_150,Rau má cọng nhỏ,RAU,gram,1,0
+1401,RAU_151,Rau mầm nhỏ,RAU,gram,1,0
+1402,RAU_152,Rau muống,RAU,gram,1,0
+1403,RAU_153,Rau muống cọng,RAU,gram,1,0
+1404,RAU_154,Rau ngót,RAU,gram,1,0
+1405,RAU_155,Rau ôm,RAU,gram,1,0
+1406,RAU_156,Rau răm,RAU,gram,1,0
+1407,RAU_157,Rau tiến vua,RAU,gram,1,0
+1408,RAU_158,Rau tiến vua khô,RAU,gram,1,0
+1409,RAU_159,Rau thơm,RAU,gram,1,0
+1410,RAU_160,Riềng,RAU,gram,1,0
+1411,RAU_161,Riềng xay,RAU,gram,1,0
+1412,RAU_162,Rong biển,RAU,gram,1,0
+1413,RAU_163,Rong nho,RAU,gram,1,0
+1414,RAU_164,Sả bào,RAU,gram,1,0
+1415,RAU_165,Sả bằm,RAU,gram,1,0
+1416,RAU_166,Sả cây,RAU,gram,1,0
+1417,RAU_167,Sa kê,RAU,gram,1,0
+1418,RAU_168,Sả xay,RAU,gram,1,0
+1419,RAU_169,Su hào,RAU,gram,1,0
+1420,RAU_170,Su su,RAU,gram,1,0
+1421,RAU_171,Tắc,RAU,gram,1,0
+1422,RAU_172,Tần ô,RAU,gram,1,0
+1423,RAU_173,Tía tô,RAU,gram,1,0
+1424,RAU_174,Tỏi củ,RAU,gram,1,0
+1425,RAU_175,Tỏi xay,RAU,gram,1,0
+1426,RAU_176,Thì là,RAU,gram,1,0
+1427,RAU_177,Thính,RAU,gram,1,0
+1428,RAU_178,Xà lách caron,RAU,gram,1,0
+1429,RAU_179,Xà lách gai,RAU,gram,1,0
+1430,RAU_180,Xà lách giòn,RAU,gram,1,0
+1431,RAU_181,Xà lách lo lo tím,RAU,gram,1,0
+1432,RAU_182,Xà lách xoăn,RAU,gram,1,0
+1433,RAU_183,Xà lách xoắn,RAU,gram,1,0
+1434,RAU_184,Xà lách xoong ,RAU,gram,1,0
+1435,SUA_001,Grow vàng 180,SỮA,thùng,1,0
+1436,SUA_002,Nuvi 110ml 48 hộp/thùng,SỮA,thùng,1,0
+1437,SUA_003,Sca star có đường 100g,SỮA,thùng,1,0
+1438,SUA_004,Sca vnm dâu 100g 48h/thùng,SỮA,thùng,1,0
+1439,SUA_005,Sca vnm lựu đỏ ít đường collagen 100g (24 hộp/thùng),SỮA,thùng,1,0
+1440,SUA_006,Sca vnm nha đam 100g 48hũ/thùng,SỮA,thùng,1,0
+1441,SUA_007,Sca vnm trái cây 100g 48h/thùng,SỮA,thùng,1,0
+1442,SUA_008,Sdd hương dâu vnm adm 180ml (48 hộp/thùng),SỮA,thùng,1,0
+1443,SUA_009,Sdd vnm adm 110ml (48hộp/thùng),SỮA,thùng,1,0
+1444,SUA_010,Sdd vnm adm 180ml - socola (48 hộp/ thùng),SỮA,thùng,1,0
+1445,SUA_011,Sdd vnm adm 180ml (48 hộp/ thùng),SỮA,thùng,1,0
+1446,SUA_012,Sdd vnm adm dâu 110ml (48hộp/thùng),SỮA,thùng,1,0
+1447,SUA_013,Sdd vnm adm ít đường 110ml - 48h/thùng,SỮA,thùng,1,0
+1448,SUA_014,Sdd vnm adm soloca 110ml (48hộp/thùng),SỮA,thùng,1,0
+1449,SUA_015,Sttt hương dâu vnm 180ml,SỮA,thùng,1,0
+1450,SUA_016,Sttt ít đường vnm 180ml,SỮA,thùng,1,0
+1451,SUA_017,Sttt không đường vnm 180ml (48 bịch/1 thùng),SỮA,thùng,1,0
+1452,SUA_018,Sttt sôcôla vnm 180 ml,SỮA,thùng,1,0
+1453,SUA_019,Sữa anlene ,SỮA,thùng,1,0
+1454,SUA_020,Sữa bắp,SỮA,chai,1,0
+1455,SUA_021,Sữa bắp lít,SỮA,lít,1,0
+1456,SUA_022,Sữa bịch vinamilk 220ml 48 bịch/1thùng,SỮA,thùng,1,0
+1457,SUA_023,Sữa bịch vinamilk 48 bịch/1thùng,SỮA,thùng,1,0
+1458,SUA_024,Sữa canxi 180ml 48h/thùng,SỮA,thùng,1,0
+1459,SUA_025,Sữa chua ăn nutimilk 48 hộp/thùng,SỮA,thùng,1,0
+1460,SUA_026,Sữa chua ăn vinamilk nếp cẩm 24 hộp/thùng,SỮA,thùng,1,0
+1461,SUA_027,Sữa chua bịch,SỮA,cái,1,0
+1462,SUA_028,Sữa chua hạt lựu ,SỮA,thùng,1,0
+1463,SUA_029,Sữa chua long thành 48 hộp/thùng,SỮA,thùng,1,0
+1464,SUA_030,Sữa chua lovi cam 48 hộp/thùng,SỮA,thùng,1,0
+1465,SUA_031,Sữa chua lovi dâu 48 hộp/thùng,SỮA,thùng,1,0
+1466,SUA_032,Sữa chua nếp cẩm,SỮA,hũ,1,0
+1467,SUA_033,Sữa chua nutimilk 100g,SỮA,thùng,1,0
+1468,SUA_034,Sữa chua nha đam (48 hộp/thùng),SỮA,thùng,1,0
+1469,SUA_035,Sữa chua pororo,SỮA,chai,1,0
+1470,SUA_036,Sữa chua vinamik có đường 48 hộp/ thùng,SỮA,thùng,1,0
+1471,SUA_037,Sữa chua vinamilk dâu- 48 hộp/thùng,SỮA,thùng,1,0
+1472,SUA_038,Sữa chua vinamilk star có đường 48h/thùng,SỮA,thùng,1,0
+1473,SUA_039,Sữa chua vinamilk trái cây- 48 hộp/thùng,SỮA,thùng,1,0
+1474,SUA_040,Sữa chua vinamilk trắng không đường 48 hộp/thùng,SỮA,thùng,1,0
+1475,SUA_041,Sữa chua yakult,SỮA,chai,1,0
+1476,SUA_042,Sữa chua yakult light,SỮA,chai,1,0
+1477,SUA_043,Sữa đặc sao giấy 12 hộp 1 thùng,SỮA,thùng,1,0
+1478,SUA_044,Sữa đậu nành,SỮA,lít,1,0
+1479,SUA_045,Sữa đậu nành bịch nuti 36 bịch x 1thùng,SỮA,thùng,1,0
+1480,SUA_046,Sữa đậu nành fami 200ml 48 hộp/thùng,SỮA,thùng,1,0
+1481,SUA_047,Sữa đậu nành fami hộp 36 hộp/thùng,SỮA,thùng,1,0
+1482,SUA_048,Sữa đậu nành nuti hộp 36 hộp/thùng,SỮA,thùng,1,0
+1483,SUA_049,Sữa đậu nành nguyên chất fami 200ml  40 bịch,SỮA,thùng,1,0
+1484,SUA_050,Sữa đậu xanh,SỮA,lít,1,0
+1485,SUA_051,Sữa gạo lứt,SỮA,chai,1,0
+1486,SUA_052,Sữa hạt sen,SỮA,chai,1,0
+1487,SUA_053,Sữa hạt vinamilk hộp 180ml (24 hộp/thùng),SỮA,thùng,1,0
+1488,SUA_054,Sữa kun 180ml - 48 hộp/ thùng,SỮA,thùng,1,0
+1489,SUA_055,Sữa lothamilk cam (mộc châu) - 48h/thùng,SỮA,thùng,1,0
+1490,SUA_056,Sữa lothamilk dâu (mộc châu)  (48h/thùng),SỮA,thùng,1,0
+1491,SUA_057,Sữa milo 180ml - 48 hộp/thùng,SỮA,thùng,1,0
+1492,SUA_058,Sữa new zealand loại 1l,SỮA,thùng,1,0
+1493,SUA_059,Sữa nuvi 180ml 48 hộp/thùng,SỮA,thùng,1,0
+1494,SUA_060,Sữa nuvi lúa mạch,SỮA,thùng,1,0
+1495,SUA_061,Sữa nuvi socola 48h/ thùng,SỮA,thùng,1,0
+1496,SUA_062,Sữa nuvi trắng,SỮA,thùng,1,0
+1497,SUA_063,Sữa ttt nc vinamilk green fram organic 180ml (48 hộp/ thùng),SỮA,thùng,1,0
+1498,SUA_064,Sữa tươi bịch,SỮA,bịch,1,0
+1499,SUA_065,Sữa tươi bịch nuti 48 bịch x 1thùng,SỮA,thùng,1,0
+1500,SUA_066,Sữa tươi không đường loại 1 lít 12 hộp/thùng,SỮA,thùng,1,0
+1501,SUA_067,Sữa tươi không đường new zealand 48 hộp/thùng,SỮA,thùng,1,0
+1502,SUA_068,Sữa tươi tiệt trùng vinamilk 1l,SỮA,thùng,1,0
+1503,SUA_069,Sữa th true milk 110ml,SỮA,thùng,1,0
+1504,SUA_070,Sữa th true milk 180ml ( 48 hộp/thùng),SỮA,thùng,1,0
+1505,SUA_071,Sữa trái cây kun hộp 110ml (48hộp 1thùng),SỮA,thùng,1,0
+1506,SUA_072,Sữa vinamilk có đường hộp 180ml (48 hộp/thùng),SỮA,thùng,1,0
+1507,SUA_073,Sữa vinamilk dâu 180ml,SỮA,thùng,1,0
+1508,SUA_074,Sữa vinamilk dâu hộp 180ml,SỮA,thùng,1,0
+1509,SUA_075,Sữa vinamilk không đường hộp 180ml (48 hộp/thùng),SỮA,thùng,1,0
+1510,SUA_076,Sữa vinamilk socola hộp 180ml- 48h/thùng,SỮA,thùng,1,0
+1511,SUA_077,Sữa vinamilk vị chuối,SỮA,hộp,1,0
+1512,SUA_078,Sữa vnm có đường hộp 180ml (48 hộp/ thùng),SỮA,thùng,1,0
+1513,SUA_079,Sữa yomost ,SỮA,thùng,1,0
+1514,TOM_001,Tép,TÔM,gram,1,0
+1515,TOM_002,Tôm càng size 15-17 con,TÔM,gram,1,0
+1516,TOM_003,Tôm càng size 18-20 con,TÔM,gram,1,0
+1517,TOM_004,Tôm còn vỏ,TÔM,gram,1,0
+1518,TOM_005,Tôm chiên tẩm bột,TÔM,gram,1,0
+1519,TOM_006,Tôm chua,TÔM,gram,1,0
+1520,TOM_007,Tôm lột,TÔM,gram,1,0
+1521,TOM_008,Tôm nõn,TÔM,gram,1,0
+1522,TOM_009,Tôm sú size 25,TÔM,gram,1,0
+1523,TOM_010,Tôm sú size 28,TÔM,gram,1,0
+1524,TOM_011,Tôm thẻ size 100 con,TÔM,gram,1,0
+1525,TOM_012,Tôm thẻ size 130 con,TÔM,gram,1,0
+1526,TOM_013,Tôm thẻ size 140 con,TÔM,gram,1,0
+1527,TOM_014,Tôm thẻ size 150 con,TÔM,gram,1,0
+1528,TOM_015,Tôm thẻ size 20 con,TÔM,gram,1,0
+1529,TOM_016,Tôm thẻ size 20-25 con,TÔM,gram,1,0
+1530,TOM_017,Tôm thẻ size 24-26 con,TÔM,gram,1,0
+1531,TOM_018,Tôm thẻ size 25 con,TÔM,gram,1,0
+1532,TOM_019,Tôm thẻ size 25-28 con,TÔM,gram,1,0
+1533,TOM_020,Tôm thẻ size 25-30 con,TÔM,gram,1,0
+1534,TOM_021,Tôm thẻ size 28-30 con,TÔM,gram,1,0
+1535,TOM_022,Tôm thẻ size 30 con,TÔM,gram,1,0
+1536,TOM_023,Tôm thẻ size 35 con,TÔM,gram,1,0
+1537,TOM_024,Tôm thẻ size 36-40 con,TÔM,gram,1,0
+1538,TOM_025,Tôm thẻ size 40,TÔM,gram,1,0
+1539,TOM_026,Tôm thẻ size 45 con,TÔM,gram,1,0
+1540,TOM_027,Tôm thẻ size 50 con,TÔM,gram,1,0
+1541,TOM_028,Tôm thẻ size 60 con,TÔM,gram,1,0
+1542,TOM_029,Tôm thẻ size 65 con,TÔM,gram,1,0
+1543,TOM_030,Tôm thẻ size 80 con,TÔM,gram,1,0
+1544,TOM_031,Tôm thẻ size 90-110 con,TÔM,gram,1,0
+1545,THIT BO_001,Ba chỉ bò dài,THỊT BÒ,gram,1,0
+1546,THIT BO_002,Ba chỉ bò mỹ cuộn,THỊT BÒ,gram,1,0
+1547,THIT BO_003,Ba chỉ bò nguyên khối,THỊT BÒ,gram,1,0
+1548,THIT BO_004,Ba rọi bò mỹ,THỊT BÒ,gram,1,0
+1549,THIT BO_005,Ba rọi bò mỹ cuộn,THỊT BÒ,gram,1,0
+1550,THIT BO_006,Ba rọi bò mỹ lát,THỊT BÒ,gram,1,0
+1551,THIT BO_007,Bắp bò,THỊT BÒ,gram,1,0
+1552,THIT BO_008,Bắp bò hoa ngon,THỊT BÒ,gram,1,0
+1553,THIT BO_009,Bắp bò ngon ,THỊT BÒ,gram,1,0
+1554,THIT BO_010,Bò file ,THỊT BÒ,gram,1,0
+1555,THIT BO_011,Bò gàu,THỊT BÒ,gram,1,0
+1556,THIT BO_012,Bò gân,THỊT BÒ,gram,1,0
+1557,THIT BO_013,Bò gân ngon,THỊT BÒ,gram,1,0
+1558,THIT BO_014,Bò gân trong,THỊT BÒ,gram,1,0
+1559,THIT BO_015,Bò mỹ lát 200g,THỊT BÒ,gram,1,0
+1560,THIT BO_016,Bò mỹ ribeye hokube - 200g/lát,THỊT BÒ,gram,1,0
+1561,THIT BO_017,Bò nạm,THỊT BÒ,gram,1,0
+1562,THIT BO_018,Bò nạm gàu úc,THỊT BÒ,gram,1,0
+1563,THIT BO_019,Bò nạm không dây,THỊT BÒ,gram,1,0
+1564,THIT BO_020,Bò nạm ngon ,THỊT BÒ,gram,1,0
+1565,THIT BO_021,Bò nguyên,THỊT BÒ,gram,1,0
+1566,THIT BO_022,Bò tái,THỊT BÒ,gram,1,0
+1567,THIT BO_023,Bò tái ngon ,THỊT BÒ,gram,1,0
+1568,THIT BO_024,Bò thăn,THỊT BÒ,gram,1,0
+1569,THIT BO_025,Bò viên,THỊT BÒ,gram,1,0
+1570,THIT BO_026,Bò viên ngon ,THỊT BÒ,gram,1,0
+1571,THIT BO_027,Bò xáo,THỊT BÒ,gram,1,0
+1572,THIT BO_028,Bò xay,THỊT BÒ,gram,1,0
+1573,THIT BO_029,Thăn ngoại bò cắt lát,THỊT BÒ,gram,1,0
+1574,THIT BO_030,Thịt bò đông lạnh (thăn ngoại bò hokubee - úc) cắt lát,THỊT BÒ,gram,1,0
+1575,THIT BO_031,Xương ống bò,THỊT BÒ,gram,1,0
+1576,THIT GA_001,Cánh gà đông size 8,THỊT GÀ,gram,1,0
+1577,THIT GA_002,Cánh gà sale size 8,THỊT GÀ,gram,1,0
+1578,THIT GA_003,Cánh gà tươi size 8,THỊT GÀ,gram,1,0
+1579,THIT GA_004,Đùi góc tư đông,THỊT GÀ,gram,1,0
+1580,THIT GA_005,Đùi góc tư sale,THỊT GÀ,gram,1,0
+1581,THIT GA_006,Đùi góc tư tươi,THỊT GÀ,gram,1,0
+1582,THIT GA_007,Đùi tỏi gà đông size 6->6.5 cái,THỊT GÀ,gram,1,0
+1583,THIT GA_008,Đùi tỏi gà sale size 6->6.5 cái,THỊT GÀ,gram,1,0
+1584,THIT GA_009,Đùi tỏi tươi size 6->6.5 cái,THỊT GÀ,gram,1,0
+1585,THIT GA_010,File không da đông,THỊT GÀ,gram,1,0
+1586,THIT GA_011,File không da sale,THỊT GÀ,gram,1,0
+1587,THIT GA_012,File không da tươi,THỊT GÀ,gram,1,0
+1588,THIT GA_013,Gà ta,THỊT GÀ,gram,1,0
+1589,THIT GA_014,Gà tam hoàng,THỊT GÀ,gram,1,0
+1590,THIT GA_015,Lòng gà,THỊT GÀ,gram,1,0
+1591,THIT GA_016,Má gà đông,THỊT GÀ,gram,1,0
+1592,THIT GA_017,Má gà sale,THỊT GÀ,gram,1,0
+1593,THIT GA_018,Má gà tươi,THỊT GÀ,gram,1,0
+1594,THIT GA_019,Má gà tháo khớp,THỊT GÀ,gram,1,0
+1595,THIT GA_020,Xương gà,THỊT GÀ,gram,1,0
+1596,THIT HEO_001,Ba rọi heo cuộn,THỊT HEO,gram,1,0
+1597,THIT HEO_002,Ba rọi xông khói,THỊT HEO,gram,1,0
+1598,THIT HEO_003,Ba rọi xông khói 500g,THỊT HEO,gói,1,0
+1599,THIT HEO_004,Bao tử,THỊT HEO,gram,1,0
+1600,THIT HEO_005,Bắp giò rút xương,THỊT HEO,gram,1,0
+1601,THIT HEO_006,Bì heo,THỊT HEO,gram,1,0
+1602,THIT HEO_007,Cật heo,THỊT HEO,gram,1,0
+1603,THIT HEO_008,Cotlet chặt,THỊT HEO,gram,1,0
+1604,THIT HEO_009,Cotlet chặt (1kg/10 miếng),THỊT HEO,gram,1,0
+1605,THIT HEO_010,Cotlet chặt (1kg/11 miếng),THỊT HEO,gram,1,0
+1606,THIT HEO_011,Cotlet chặt (1kg/12 miếng),THỊT HEO,gram,1,0
+1607,THIT HEO_012,Cotlet chặt (1kg/13 miếng),THỊT HEO,gram,1,0
+1608,THIT HEO_013,Cotlet đông size 10,THỊT HEO,gram,1,0
+1609,THIT HEO_014,Cotlet đông size 11,THỊT HEO,gram,1,0
+1610,THIT HEO_015,Cotlet đông size 12,THỊT HEO,gram,1,0
+1611,THIT HEO_016,Cotlet đông size 13,THỊT HEO,gram,1,0
+1612,THIT HEO_017,Cotlet không chặt,THỊT HEO,gram,1,0
+1613,THIT HEO_018,Cotlet ngon chặt,THỊT HEO,gram,1,0
+1614,THIT HEO_019,Da heo,THỊT HEO,gram,1,0
+1615,THIT HEO_020,Gan heo,THỊT HEO,gram,1,0
+1616,THIT HEO_021,Giò bó,THỊT HEO,gram,1,0
+1617,THIT HEO_022,Giò heo chặt khoanh,THỊT HEO,gram,1,0
+1618,THIT HEO_023,Giò heo chặt khoanh ngon ,THỊT HEO,gram,1,0
+1619,THIT HEO_024,Giò heo đông,THỊT HEO,gram,1,0
+1620,THIT HEO_025,Giò sau đông,THỊT HEO,gram,1,0
+1621,THIT HEO_026,Heo quay,THỊT HEO,gram,1,0
+1622,THIT HEO_027,Heo quay chay,THỊT HEO,gram,1,0
+1623,THIT HEO_028,Heo quay ngon,THỊT HEO,gram,1,0
+1624,THIT HEO_029,Heo quay nguyên con,THỊT HEO,gram,1,0
+1625,THIT HEO_030,Heo quay sale,THỊT HEO,gram,1,0
+1626,THIT HEO_031,Heo sữa quay,THỊT HEO,gram,1,0
+1627,THIT HEO_032,Mỡ heo,THỊT HEO,gram,1,0
+1628,THIT HEO_033,Nạc dăm,THỊT HEO,gram,1,0
+1629,THIT HEO_034,Nạc xay,THỊT HEO,gram,1,0
+1630,THIT HEO_035,Sườn non đông,THỊT HEO,gram,1,0
+1631,THIT HEO_036,Sườn non ngon,THỊT HEO,gram,1,0
+1632,THIT HEO_037,Sườn non tươi,THỊT HEO,gram,1,0
+1633,THIT HEO_038,Tai mũi,THỊT HEO,gram,1,0
+1634,THIT HEO_039,Tai sụn,THỊT HEO,gram,1,0
+1635,THIT HEO_040,Tim heo,THỊT HEO,gram,1,0
+1636,THIT HEO_041,Thịt đùi heo đông,THỊT HEO,gram,1,0
+1637,THIT HEO_042,Thịt đùi heo ngon,THỊT HEO,gram,1,0
+1638,THIT HEO_043,Thịt đùi heo tươi,THỊT HEO,gram,1,0
+1639,THIT HEO_044,Thịt heo ba rọi,THỊT HEO,gram,1,0
+1640,THIT HEO_045,Thịt heo ba rọi ngon,THỊT HEO,gram,1,0
+1641,THIT HEO_046,Thịt heo làm gỏi,THỊT HEO,gram,1,0
+1642,THIT HEO_047,Thịt heo nạc vai,THỊT HEO,gram,1,0
+1643,THIT HEO_048,Thịt heo nạc vai ngon,THỊT HEO,gram,1,0
+1644,THIT HEO_049,Thịt heo nạc vai xắt,THỊT HEO,gram,1,0
+1645,THIT HEO_050,Thịt heo vai đông,THỊT HEO,gram,1,0
+1646,THIT HEO_051,Thịt heo vai đông sale ,THỊT HEO,gram,1,0
+1647,THIT HEO_052,Thịt heo vai ngon,THỊT HEO,gram,1,0
+1648,THIT HEO_053,Thịt heo vai tươi,THỊT HEO,gram,1,0
+1649,THIT HEO_054,Thịt heo xiên que,THỊT HEO,gram,1,0
+1650,THIT HEO_055,Thịt vai xắt,THỊT HEO,gram,1,0
+1651,THIT HEO_056,Thịt vụn,THỊT HEO,gram,1,0
+1652,THIT HEO_057,Thịt vụn đông,THỊT HEO,gram,1,0
+1653,THIT HEO_058,Thịt xay,THỊT HEO,gram,1,0
+1654,THIT HEO_059,Thịt xay ít mỡ,THỊT HEO,gram,1,0
+1655,THIT HEO_060,Xương  heo hầm nước,THỊT HEO,gram,1,0
+1656,THIT HEO_061,Xương đuôi heo,THỊT HEO,gram,1,0
+1657,THIT HEO_062,Xương hầm,THỊT HEO,gram,1,0
+1658,THIT HEO_063,Xương heo,THỊT HEO,gram,1,0
+1659,THIT HEO_064,Xương heo đông,THỊT HEO,gram,1,0
+1660,THIT HEO_065,Xương heo hầm,THỊT HEO,gram,1,0
+1661,THIT HEO_066,Xương ống heo,THỊT HEO,gram,1,0
+1662,THIT VIT_001,Vịt nguyên con không đầu không chân,THỊT VỊT,gram,1,0
+1663,THUY SAN_001,Cua xay,THỦY SẢN,gram,1,0
+1664,THUY SAN_002,Ếch,THỦY SẢN,gram,1,0
+1665,THUY SAN_003,Hến,THỦY SẢN,gram,1,0
+1666,THUY SAN_004,Ốc bươu thịt,THỦY SẢN,gram,1,0
+1667,THUC PHAM KHO_001,Bo bo,THỰC PHẨM KHÔ,gram,1,0
+1668,THUC PHAM KHO_002,Hạt óc chó 250g/ hộp,THỰC PHẨM KHÔ,hộp,1,0
+1669,THUC PHAM KHO_003,Hủ tiếu tô cung đình (12 tô/ thùng),THỰC PHẨM KHÔ,thùng,1,0
+1670,THUC PHAM KHO_004,Mì 6 vắt,THỰC PHẨM KHÔ,bịch,1,0
+1671,THUC PHAM KHO_005,Mì dinh dưỡng khoai tây omachi sườn hầm ngũ quả 24 hộp x 72gr,THỰC PHẨM KHÔ,thùng,1,0
+1672,THUC PHAM KHO_006,Mì dinh dưỡng khoai tây omachi tôm chua cay thái (có thịt) 24 hộp x 11gr,THỰC PHẨM KHÔ,thùng,1,0
+1673,THUC PHAM KHO_007,Mì dinh dưỡng khoai tây omachi tôm chua cay thái 24 hộp x 66gr,THỰC PHẨM KHÔ,thùng,1,0
+1674,THUC PHAM KHO_008,Mì dinh dưỡng khoai tây omachi xôt bò hầm 24 hộp x 70gr,THỰC PHẨM KHÔ,thùng,1,0
+1675,THUC PHAM KHO_009,Mì gấu đỏ 30 gói/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1676,THUC PHAM KHO_010,Mì gói,THỰC PHẨM KHÔ,gói,1,0
+1677,THUC PHAM KHO_011,Mì gói hảo hảo,THỰC PHẨM KHÔ,thùng,1,0
+1678,THUC PHAM KHO_012,Mì giấy,THỰC PHẨM KHÔ,thùng,1,0
+1679,THUC PHAM KHO_013,Mì giòn,THỰC PHẨM KHÔ,gram,1,0
+1680,THUC PHAM KHO_014,Mì hàn quốc,THỰC PHẨM KHÔ,gói,1,0
+1681,THUC PHAM KHO_015,Mì kokomi tôm chua cay (24 ly/ thùng),THỰC PHẨM KHÔ,thùng,1,0
+1682,THUC PHAM KHO_016,Mì ký xanh 1kg/túi (10 túi/ thùng),THỰC PHẨM KHÔ,thùng,1,0
+1683,THUC PHAM KHO_017,Mì ly cung đình 24ly/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1684,THUC PHAM KHO_018,Mì ly cung đình chay (24 hộp/ thùng),THỰC PHẨM KHÔ,thùng,1,0
+1685,THUC PHAM KHO_019,Mì ly kokomi 24 ly/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1686,THUC PHAM KHO_020,Mì ly modern 24 ly x 67 gram/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1687,THUC PHAM KHO_021,Mì ly nhớ 12 hộp/thung,THỰC PHẨM KHÔ,thùng,1,0
+1688,THUC PHAM KHO_022,Mì ly omachi gumi 12ly/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1689,THUC PHAM KHO_023,Mì ly omachi gumi 24ly/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1690,THUC PHAM KHO_024,Mì trộn kool 12 thố - 1 thùng,THỰC PHẨM KHÔ,thùng,1,0
+1691,THUC PHAM KHO_025,Mì ý cọng dài,THỰC PHẨM KHÔ,bịch,1,0
+1692,THUC PHAM KHO_026,Mỳ ý mỹ,THỰC PHẨM KHÔ,gram,1,0
+1693,THUC PHAM KHO_027,Nui 10kg/bao,THỰC PHẨM KHÔ,cây,1,0
+1694,THUC PHAM KHO_028,Nhục đậu khấu,THỰC PHẨM KHÔ,hộp,1,0
+1695,THUC PHAM KHO_029,Phô mai bào nhuyễn,THỰC PHẨM KHÔ,bịch,1,0
+1696,THUC PHAM KHO_030,Phô mai con bò cười,THỰC PHẨM KHÔ,hộp,1,0
+1697,THUC PHAM KHO_031,Phô mai lát,THỰC PHẨM KHÔ,hộp,1,0
+1698,THUC PHAM KHO_032,Phô mai sợi,THỰC PHẨM KHÔ,bịch,1,0
+1699,THUC PHAM KHO_033,Phổ tai,THỰC PHẨM KHÔ,gram,1,0
+1700,THUC PHAM KHO_034,Phở tô bò 12 ly/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1701,THUC PHAM KHO_035,Phở tô gà 12 ly/thùng,THỰC PHẨM KHÔ,thùng,1,0
+1702,THUC PHAM KHO_036,Rong biển cuộn cơm,THỰC PHẨM KHÔ,bịch,1,0
+1703,THUC PHAM KHO_037,Rong biển gói 20g,THỰC PHẨM KHÔ,bịch,1,0
+1704,THUC PHAM KHO_038,Rong biển gói 50g,THỰC PHẨM KHÔ,bịch,1,0
+1705,THUC PHAM KHO_039,Thyme tươi,THỰC PHẨM KHÔ,bịch,1,0
+1706,THUC PHAM MON NHAT_001,Bánh mandu thịt và bắp cj bibigo - gói 350g,THỰC PHẨM MÓN NHẬT,gói,1,0
+1707,THUC PHAM MON NHAT_002,Cá ngừ cắt thỏi đông lạnh c/o 4a - tuna saku with c/o treatment 4a,THỰC PHẨM MÓN NHẬT,gram,1,0
+1708,THUC PHAM MON NHAT_003,Cá ngừ khô bào sợi - 500g,THỰC PHẨM MÓN NHẬT,gram,1,0
+1709,THUC PHAM MON NHAT_004,Chả cá đông lạnh kamaboko red 160g,THỰC PHẨM MÓN NHẬT,gói,1,0
+1710,THUC PHAM MON NHAT_005,Chả cá xoắn naruto - fish surimi,THỰC PHẨM MÓN NHẬT,gói,1,0
+1711,THUC PHAM MON NHAT_006,Đậu phụ chiên ajitsuke inariage 1.4kg,THỰC PHẨM MÓN NHẬT,gói,1,0
+1712,THUC PHAM MON NHAT_007,Gạo nhật 20kg/bao,THỰC PHẨM MÓN NHẬT,,1,0
+1713,THUC PHAM MON NHAT_008,Gạo nhật 25kg/bao,THỰC PHẨM MÓN NHẬT,bao,1,0
+1714,THUC PHAM MON NHAT_009,Gừng muối chua vàng - pickled ginger (yellow),THỰC PHẨM MÓN NHẬT,kg,1,0
+1715,THUC PHAM MON NHAT_010,Há cảo cte mini - gói 500g,THỰC PHẨM MÓN NHẬT,gói,1,0
+1716,THUC PHAM MON NHAT_011,Kim chi nhật,THỰC PHẨM MÓN NHẬT,thùng,1,0
+1717,THUC PHAM MON NHAT_012,Lươn nướng đông lạnh - frozen roasted eel 200g,THỰC PHẨM MÓN NHẬT,gram,1,0
+1718,THUC PHAM MON NHAT_012,Lươn nướng đông lạnh - frozen roasted eel 200g ,THỰC PHẨM MÓN NHẬT,gram,1,0
+1719,THUC PHAM MON NHAT_013,Lườn ngỗng xông khói,THỰC PHẨM MÓN NHẬT,gram,1,0
+1720,THUC PHAM MON NHAT_014,Mì hikari reito udom 250g - 36 gói/thùng,THỰC PHẨM MÓN NHẬT,gói,1,0
+1721,THUC PHAM MON NHAT_015,Mì hikari reito udon 250g,THỰC PHẨM MÓN NHẬT,thùng,1,0
+1722,THUC PHAM MON NHAT_016,Mì sarashina soba - furusato sadachi 1kg,THỰC PHẨM MÓN NHẬT,gram,1,0
+1723,THUC PHAM MON NHAT_017,Mì soba 200g/gói,THỰC PHẨM MÓN NHẬT,gram,1,0
+1724,THUC PHAM MON NHAT_018,Mì somen no. 1 somen 200g nisshin,THỰC PHẨM MÓN NHẬT,gram,1,0
+1725,THUC PHAM MON NHAT_019,Mì tươi ( số 16 s loại thẳng) 120g - ramen,THỰC PHẨM MÓN NHẬT,thùng,1,0
+1726,THUC PHAM MON NHAT_020,Thanh giả cua surimi dài - surimi crab sticks,THỰC PHẨM MÓN NHẬT,gram,1,0
+1727,THUC PHAM MON NHAT_020,Thanh giả cua surimi dài - surimi crab sticks ,THỰC PHẨM MÓN NHẬT,gram,1,0
+1728,THUC PHAM MON NHAT_021,Trà xanh nhật không đường,THỰC PHẨM MÓN NHẬT,thùng,1,0
+1729,THUC PHAM MON NHAT_022,Trứng cá chuồn tẩm gia vị đông lạnh màu đen,THỰC PHẨM MÓN NHẬT,gram,1,0
+1730,THUC PHAM MON NHAT_023,Trứng cá minh thái đông lạnh 340g,THỰC PHẨM MÓN NHẬT,gram,1,0
+1731,THUC PHAM MON NHAT_024,Xốt okonomi sauce otafuku 2.1 kg,THỰC PHẨM MÓN NHẬT,chai,1,0
+1732,THUC PHAM MON NHAT_025,Xốt shiro dashi 1.8l,THỰC PHẨM MÓN NHẬT,chai,1,0
+1733,THUC PHAM MON NHAT_026,Xốt tonkatsu sauce (otafuku) 2.1kg,THỰC PHẨM MÓN NHẬT,chai,1,0
+1734,TRAI CAY_001,Bưởi đỏ,TRÁI CÂY,gram,1,0
+1735,TRAI CAY_002,Bưởi trắng,TRÁI CÂY,gram,1,0
+1736,TRAI CAY_003,Cam,TRÁI CÂY,gram,1,0
+1737,TRAI CAY_004,Chanh dây không hạt,TRÁI CÂY,gram,1,0
+1738,TRAI CAY_005,Chanh dây thường,TRÁI CÂY,gram,1,0
+1739,TRAI CAY_006,Chanh không hạt,TRÁI CÂY,gram,1,0
+1740,TRAI CAY_007,Chôm chôm thái,TRÁI CÂY,gram,1,0
+1741,TRAI CAY_008,Chôm chôm thường,TRÁI CÂY,gram,1,0
+1742,TRAI CAY_009,Chuối cau,TRÁI CÂY,gram,1,0
+1743,TRAI CAY_010,Chuối chát,TRÁI CÂY,gram,1,0
+1744,TRAI CAY_011,Chuối già,TRÁI CÂY,gram,1,0
+1745,TRAI CAY_012,Chuối sứ,TRÁI CÂY,gram,1,0
+1746,TRAI CAY_013,Chuối vàng,TRÁI CÂY,gram,1,0
+1747,TRAI CAY_014,Dâu,TRÁI CÂY,gram,1,0
+1748,TRAI CAY_015,Dứa,TRÁI CÂY,trái,1,0
+1749,TRAI CAY_016,Dưa gang,TRÁI CÂY,gram,1,0
+1750,TRAI CAY_017,Dưa hấu,TRÁI CÂY,gram,1,0
+1751,TRAI CAY_018,Dưa lưới,TRÁI CÂY,gram,1,0
+1752,TRAI CAY_019,Lựu,TRÁI CÂY,gram,1,0
+1753,TRAI CAY_020,Mãng cầu,TRÁI CÂY,gram,1,0
+1754,TRAI CAY_021,Mãng cầu gai,TRÁI CÂY,gram,1,0
+1755,TRAI CAY_022,Măng cụt,TRÁI CÂY,gram,1,0
+1756,TRAI CAY_023,Mận,TRÁI CÂY,gram,1,0
+1757,TRAI CAY_024,Mận bắc,TRÁI CÂY,gram,1,0
+1758,TRAI CAY_025,Nhãn,TRÁI CÂY,gram,1,0
+1759,TRAI CAY_026,Nhãn vip,TRÁI CÂY,gram,1,0
+1760,TRAI CAY_027,Nho,TRÁI CÂY,gram,1,0
+1761,TRAI CAY_028,Nho xanh,TRÁI CÂY,gram,1,0
+1762,TRAI CAY_029,Ổi,TRÁI CÂY,gram,1,0
+1763,TRAI CAY_030,Quả bơ,TRÁI CÂY,gram,1,0
+1764,TRAI CAY_031,Quả cóc xanh,TRÁI CÂY,gram,1,0
+1765,TRAI CAY_032,Quýt,TRÁI CÂY,gram,1,0
+1766,TRAI CAY_033,Quýt thái,TRÁI CÂY,gram,1,0
+1767,TRAI CAY_034,Sapoche,TRÁI CÂY,gram,1,0
+1768,TRAI CAY_035,Sơ ri,TRÁI CÂY,gram,1,0
+1769,TRAI CAY_036,Táo xanh,TRÁI CÂY,gram,1,0
+1770,TRAI CAY_037,Thanh long (2 - 3 trái/kg),TRÁI CÂY,gram,1,0
+1771,TRAI CAY_038,Thanh long (2 trái/kg),TRÁI CÂY,gram,1,0
+1772,TRAI CAY_039,Thơm gọt,TRÁI CÂY,trái,1,0
+1773,TRAI CAY_040,Thơm trái,TRÁI CÂY,trái,1,0
+1774,TRAI CAY_041,Vải,TRÁI CÂY,gram,1,0
+1775,TRAI CAY_042,Xoài cát hòa lộc,TRÁI CÂY,gram,1,0
+1776,TRAI CAY_043,Xoài thái,TRÁI CÂY,gram,1,0
+1777,TRAI CAY_044,Xoài xanh,TRÁI CÂY,gram,1,0
+1778,TRANG MIENG_001,Chè sương sáo,TRÁNG MIỆNG,phần,1,0
+1779,TRANG MIENG_002,Chè trôi nước,TRÁNG MIỆNG,cái,1,0
+1780,TRANG MIENG_003,Rau câu,TRÁNG MIỆNG,cái,1,0
+1781,TRANG MIENG_004,Rau câu cờ đỏ sao vàng,TRÁNG MIỆNG,hũ,1,0
+1782,TRANG MIENG_005,Rau câu dừa ly,TRÁNG MIỆNG,ly,1,0
+1783,TRANG MIENG_006,Rau câu flan,TRÁNG MIỆNG,hộp,1,0
+1784,TRANG MIENG_007,Rau câu giòn lớn,TRÁNG MIỆNG,hộp,1,0
+1785,TRANG MIENG_008,Rau câu giòn nhỏ,TRÁNG MIỆNG,hộp,1,0
+1786,TRANG MIENG_009,Tàu hũ,TRÁNG MIỆNG,hũ,1,0
+1787,TRANG MIENG_010,Tàu hũ cô vang,TRÁNG MIỆNG,hộp,1,0
+1788,TRANG MIENG_011,Tàu hũ singapore,TRÁNG MIỆNG,hũ,1,0
+1789,TRUNG_001,Trứng cút,TRỨNG,quả,1,0
+1790,TRUNG_002,Trứng gà 300 quả/cây,TRỨNG,quả,1,0
+1791,TRUNG_003,Trứng muối,TRỨNG,quả,1,0
+1792,TRUNG_004,Trứng vịt 300 quả/cây,TRỨNG,quả,1,0
+1795,BANH_85,Bánh otto,BÁNH ,thùng,,

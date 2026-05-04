@@ -1,614 +1,418 @@
-﻿# OmniBizAI - Hướng Dẫn Sử Dụng Hệ Thống
+# OmniBizAI - Hướng Dẫn Sử Dụng Hệ Thống
 
-> Tách từ tài liệu tổng OmniBizAI.
-> Mục đích: dành cho người dùng cuối, người demo và người không cần biết kỹ thuật.
-> Nguyên tắc bảo mật: Không ghi password thật, API key thật hoặc secret thật trong tài liệu này.
+> Ngày cập nhật: 2026-04-30
+> Phạm vi hướng dẫn: OmniBizAI Catering Operations Platform; Bizen Catering Services là tenant demo đầu tiên.
 
-## 13. Hướng Dẫn Sử Dụng Hệ Thống
+## 1. Tổng Quan
 
+OmniBizAI hỗ trợ doanh nghiệp suất ăn/catering quản lý quy trình vận hành theo khách hàng doanh nghiệp. Tenant Bizen dùng dữ liệu Lark thật làm cấu hình và dữ liệu demo đầu tiên. Người dùng nội bộ đăng nhập để tạo menu, duyệt nội bộ, gửi khách hàng duyệt qua email, nhập/chốt số lượng, tính nguyên vật liệu theo BOM và xuất giấy đi chợ.
 
-Phần này dành cho người không cần biết lập trình, database hay AI.
+Khách hàng không cần tài khoản. Khách hàng nhận email, mở link duyệt menu và nhập số lượng dự kiến/chốt/phát sinh.
 
+## 2. Vai Trò Người Dùng
 
-### 13.1 Bắt đầu sử dụng
+| Vai trò | Mục tiêu sử dụng |
+|---|---|
+| Admin | Quản lý tài khoản, phòng ban, nhân sự, cấu hình |
+| Director | Xem dashboard, cảnh báo, báo cáo và AI advisory |
+| OperationsManager | Điều phối menu, duyệt vận hành, chốt số lượng |
+| MenuPlanner | Tạo menu, quản lý món ăn và BOM |
+| KitchenLead | Kiểm tra khả năng sản xuất, xem giấy đi chợ |
+| QAReviewer | Kiểm duyệt chất lượng thực đơn |
+| PurchasingStaff | Preview, tạo và phát hành giấy đi chợ |
+| CustomerService | Quản lý khách hàng, gửi email duyệt, theo dõi phản hồi |
+| CustomerContact | Duyệt menu và nhập số lượng qua email |
 
+## 3. Đăng Nhập Và Đăng Xuất
 
-#### Mở hệ thống
+### 3.1 Đăng nhập
 
+1. Mở địa chỉ hệ thống do nhóm triển khai cung cấp.
+2. Nhập email và mật khẩu.
+3. Bấm **Đăng nhập**.
+4. Hệ thống chuyển đến dashboard theo vai trò.
 
-Mục đích: Truy cập vào OmniBizAI để bắt đầu làm việc.
+Nếu nhập sai thông tin, hệ thống hiển thị thông báo lỗi. Nếu tài khoản không có quyền vào một chức năng, hệ thống hiển thị trang 403 hoặc ẩn nút thao tác.
 
+### 3.2 Đăng xuất
 
-Ai được dùng: Tất cả người dùng có tài khoản.
+1. Bấm tên người dùng ở góc trên.
+2. Chọn **Đăng xuất**.
+3. Hệ thống quay lại màn hình đăng nhập.
 
+## 4. Quản Lý Tenant Và Công Ty Vận Hành
 
-1. Mở trình duyệt Chrome, Edge hoặc Firefox.
+### 4.1 Xem thông tin công ty
 
-2. Nhập địa chỉ hệ thống do nhóm triển khai cung cấp.
+1. Vào menu **Công ty**.
+2. Xem tên công ty, địa chỉ, email, số điện thoại.
+3. Admin có thể chỉnh sửa thông tin nếu cần.
 
-3. Chờ trang đăng nhập hiển thị.
+### 4.2 Quản lý phòng ban
 
-4. Nếu trang không mở được, kiểm tra internet hoặc liên hệ Admin.
+1. Vào **Công ty > Phòng ban**.
+2. Bấm **Tạo phòng ban** nếu cần thêm mới.
+3. Nhập mã phòng ban, tên phòng ban và phòng ban cha nếu có.
+4. Bấm **Lưu**.
 
+Các phòng ban trong template demo:
 
-Kết quả mong đợi: Màn hình đăng nhập hiển thị.
+- Ban giám đốc.
+- Vận hành.
+- Kế hoạch thực đơn/R&D.
+- Bếp sản xuất.
+- Kiểm soát chất lượng.
+- Thu mua.
+- Chăm sóc khách hàng.
+- Quản trị hệ thống.
 
+### 4.3 Quản lý nhân sự
 
-[Ảnh minh họa: Màn hình đăng nhập hệ thống]
+1. Vào **Công ty > Nhân sự**.
+2. Chọn **Tạo nhân sự**.
+3. Nhập họ tên, email, phòng ban, chức vụ và role hệ thống.
+4. Bấm **Lưu**.
 
+Nhân sự sau khi được gán role sẽ chỉ thấy các chức năng phù hợp với quyền của mình.
 
-#### Đăng nhập
+### 4.4 Quản lý bếp sản xuất
 
+1. Vào **Công ty > Bếp sản xuất**.
+2. Bấm **Tạo bếp**.
+3. Nhập mã bếp (ví dụ: `KIT-01`), tên bếp, địa chỉ và ghi chú.
+4. Bấm **Lưu**.
 
-1. Nhập email.
+Mỗi bếp đại diện cho một đơn vị sản xuất thực tế. Tenant có thể chọn một bếp chính cho cả menu hoặc cấu hình bếp theo site/loại suất/vị trí món để hệ thống tự suy ra bếp khi tạo giấy đi chợ.
 
-2. Nhập mật khẩu.
+### 4.5 Cấu hình vận hành theo tenant
 
-3. Bấm "Đăng nhập".
+Admin vào **Cấu hình** để quản lý:
 
-4. Nếu thông tin đúng, hệ thống đưa bạn vào dashboard theo vai trò.
+- Role, permission và quyền theo màn hình/chức năng.
+- Ca ăn và tên gọi khác.
+- Loại suất ăn.
+- Vị trí món trong thực đơn.
+- Bếp theo site, loại suất hoặc vị trí món.
+- Bước duyệt nội bộ.
+- Rule fallback số lượng.
+- Form khách hàng, field và validation.
+- Email template, export template, dashboard widget và AI prompt.
 
-5. Nếu thông tin sai, đọc thông báo và nhập lại.
+Các cấu hình này giúp triển khai khách hàng mới mà không cần sửa code. Nếu một yêu cầu mới chỉ thay đổi rule, nhãn, form, quyền, template hoặc thứ tự workflow thì phải xử lý bằng cấu hình.
 
+### 4.6 Import dữ liệu thật
 
-Ghi chú bảo mật:
+Admin/Ops vào **Dữ liệu > Import** để nạp CSV hoặc dữ liệu từ Lark:
 
+1. Chọn nguồn dữ liệu và profile mapping.
+2. Upload file hoặc chọn kết nối đã cấu hình.
+3. Bấm **Validate** để xem lỗi thiếu mã, thiếu đơn vị, trùng dữ liệu hoặc thiếu mapping.
+4. Sửa lỗi trong file nguồn hoặc cập nhật mapping.
+5. Bấm **Commit** khi preview đã đúng.
 
-- Không chia sẻ mật khẩu.
+Dữ liệu import không ghi thẳng vào menu/BOM/số lượng. Hệ thống luôn lưu staging để có thể kiểm tra lại khi phát hiện sai lệch.
 
-- Đăng xuất sau khi dùng trên máy lạ.
+## 5. Quản Lý Khách Hàng
 
-- Nhập sai nhiều lần có thể bị khóa tạm thời.
+### 5.1 Tạo khách hàng doanh nghiệp
 
+1. Vào **Khách hàng**.
+2. Bấm **Tạo khách hàng**.
+3. Nhập tên công ty khách hàng, mã số thuế nếu có, địa chỉ và ghi chú.
+4. Nhập số lượng mặc định nếu hợp đồng thường có số suất cố định.
+5. Bấm **Lưu**.
 
-#### Đăng xuất
+### 5.2 Thêm người liên hệ
 
+1. Mở chi tiết khách hàng.
+2. Chọn tab **Người liên hệ**.
+3. Bấm **Thêm người liên hệ**.
+4. Nhập họ tên, email, số điện thoại và chức danh.
+5. Chọn người liên hệ chính nếu đây là người nhận email duyệt menu.
+6. Bấm **Lưu**.
 
-1. Bấm ảnh đại diện hoặc tên người dùng ở góc trên.
+### 5.3 Thêm địa điểm giao
 
-2. Chọn "Đăng xuất".
+1. Mở chi tiết khách hàng.
+2. Chọn tab **Địa điểm giao**.
+3. Bấm **Thêm địa điểm**.
+4. Nhập tên địa điểm, địa chỉ và ghi chú giao nhận.
+5. Bấm **Lưu**.
 
-3. Chờ hệ thống quay về màn hình đăng nhập.
+## 6. Quản Lý Món Ăn Và BOM
 
+### 6.1 Tạo món ăn
 
-#### Đổi mật khẩu
+1. Vào **Thực đơn > Món ăn**.
+2. Bấm **Tạo món**.
+3. Nhập mã món, tên món, loại món và ghi chú dị ứng nếu có.
+4. Bấm **Lưu**.
 
+Loại món gồm món chính, món phụ, canh, tráng miệng, đồ uống hoặc loại khác.
 
-1. Bấm ảnh đại diện hoặc tên người dùng.
+### 6.2 Nhập BOM cho món
 
-2. Chọn "Hồ sơ cá nhân".
-
-3. Chọn "Đổi mật khẩu".
-
-4. Nhập mật khẩu hiện tại.
-
-5. Nhập mật khẩu mới.
-
-6. Nhập lại mật khẩu mới.
-
-7. Bấm "Lưu thay đổi".
-
-
-### 13.2 Vai trò nào làm được gì
-
-
-| Chức năng | Director | Manager | Accountant | HR | Staff | Admin |
-
-|---|---:|---:|---:|---:|---:|---:|
-
-| Xem dashboard công ty | Có | Không | Một phần | Không | Không | Có |
-
-| Xem dashboard phòng ban | Có | Có | Một phần | Một phần | Không | Có |
-
-| Tạo đề nghị thanh toán | Có | Có | Có | Có | Có | Có |
-
-| Duyệt đề nghị thanh toán | Có | Có | Không | Không | Không | Có |
-
-| Tạo/sửa ngân sách | Có | Không | Có | Không | Không | Có |
-
-| Ghi nhận giao dịch | Không | Không | Có | Không | Không | Có |
-
-| Quản lý nhân viên | Không | Một phần | Không | Có | Không | Có |
-
-| Tạo/sửa KPI/OKR | Có | Có | Không | Không | Không | Có |
-
-| Check-in KPI | Có | Có | Có | Có | Có | Có |
-
-| Duyệt check-in KPI | Có | Có | Không | Không | Không | Có |
-
-| Dùng AI Assistant | Có | Có | Có | Có | Có | Có |
-
-| Xem phân tích thị trường | Có | Có | Có | Một phần | Giới hạn | Có |
-
-| Xuất báo cáo | Có | Có | Có | Có | Không | Có |
-
-| Quản lý tài khoản/phân quyền | Không | Không | Không | Một phần | Không | Có |
-
-| Xem audit log | Không | Không | Không | Không | Không | Có |
-
-
-### 13.3 Hướng dẫn theo vai trò
-
-
-#### Director
-
-
-1. Đăng nhập bằng tài khoản Director.
-
-2. Vào "Dashboard".
-
-3. Chọn kỳ cần xem.
-
-4. Xem tổng thu, tổng chi, ngân sách còn lại, KPI trung bình và pending approvals.
-
-5. Mở "Cảnh báo rủi ro" để xem vấn đề ưu tiên.
-
-6. Bấm "AI Assistant" để hỏi thêm về chiến lược, thị trường hoặc phương án xử lý.
-
-7. Vào "Hàng chờ duyệt" để duyệt các đề nghị cấp cao.
-
-
-[Ảnh minh họa: Dashboard Director]
-
-
-#### Manager
-
-
-1. Vào "Dashboard phòng ban".
-
-2. Xem ngân sách, KPI và việc chờ duyệt của phòng ban.
-
-3. Vào "Hàng chờ duyệt" để xử lý PR.
-
-4. Vào "KPI/OKR" để xem nhân viên chậm tiến độ.
-
-5. Dùng AI để hỏi cách hỗ trợ nhân viên hoặc tối ưu nguồn lực.
-
-
-[Ảnh minh họa: Dashboard Manager]
-
-
-#### Accountant
-
-
-1. Vào "Ngân sách" để xem mức sử dụng ngân sách.
-
-2. Vào "Giao dịch" để ghi nhận thu/chi.
-
-3. Vào "Nhà cung cấp" để quản lý vendor.
-
-4. Vào "Báo cáo" để tạo báo cáo tài chính.
-
-5. Dùng AI để tìm chi phí bất thường hoặc đề xuất tối ưu chi.
-
-
-[Ảnh minh họa: Màn hình ngân sách của Accountant]
-
-
-#### HR
-
-
-1. Vào "Nhân viên".
-
-2. Tìm nhân viên cần cập nhật.
-
-3. Mở hồ sơ, bấm "Chỉnh sửa".
-
-4. Cập nhật phòng ban, chức vụ, quản lý trực tiếp hoặc trạng thái.
-
-5. Bấm "Lưu".
-
-6. Kiểm tra lịch sử thay đổi nếu cần.
-
-
-[Ảnh minh họa: Màn hình hồ sơ nhân viên]
-
-
-#### Staff
-
-
-1. Vào "Dashboard cá nhân".
-
-2. Xem việc cần làm và thông báo.
-
-3. Vào "Đề nghị thanh toán" để tạo đề nghị mới.
-
-4. Vào "KPI của tôi" để check-in tiến độ.
-
-5. Dùng AI để hỏi cách cải thiện KPI hoặc tóm tắt việc cần làm.
-
-
-[Ảnh minh họa: Dashboard cá nhân của Staff]
-
-
-#### Admin
-
-
-1. Vào "Admin".
-
-2. Quản lý user, role, permission.
-
-3. Xem audit log.
-
-4. Cấu hình system settings.
-
-5. Nhập hoặc upload dữ liệu thị trường cho AI.
-
-6. Theo dõi health check và chất lượng dữ liệu.
-
-
-[Ảnh minh họa: Màn hình quản lý người dùng]
-
-
-### 13.4 Quy trình nghiệp vụ chính
-
-
-#### Kịch bản demo nhanh 5-7 phút
-
-
-Kịch bản này dùng khi bảo vệ hoặc giới thiệu hệ thống. Nên chạy bằng dữ liệu seed đã chuẩn bị để tránh AI thiếu evidence.
-
-
-| Bước | Vai trò | Việc cần làm |
-|---|---|---|
-| 1 | Staff | Đăng nhập, tạo PR quảng cáo 85 triệu và xem AI Risk Analysis |
-| 2 | Manager | Mở hàng chờ duyệt, đọc AI risk/budget warning và duyệt bước đầu |
-| 3 | Accountant/Director | Duyệt bước tiếp theo/cuối, kiểm tra transaction và budget cập nhật |
-| 4 | Staff/Manager | Check-in KPI Marketing đang trễ và xem progress |
-| 5 | Director | Hỏi AI về rủi ro ngân sách/KPI, kiểm tra citation/fallback |
-| 6 | Director/Accountant | Xuất báo cáo và xem audit log |
-
-
-Thông điệp cần nói khi demo: workflow quyết định bằng rule ổn định; AI chỉ hỗ trợ phân tích/quyết định, không tự duyệt và không dự báo chắc chắn; dữ liệu hiển thị phụ thuộc quyền người đang đăng nhập.
-
-
-#### Tạo đề nghị thanh toán
-
-
-1. Vào "Tài chính".
-
-2. Chọn "Đề nghị thanh toán".
-
-3. Bấm "Tạo mới".
-
-4. Nhập tiêu đề, phòng ban, danh mục, vendor và mô tả.
-
-5. Thêm từng dòng chi tiết: mô tả, số lượng, đơn giá.
-
-6. Đính kèm hóa đơn/báo giá nếu có.
-
-7. Bấm "Lưu nháp" nếu chưa gửi.
-
-8. Xem AI Risk Analysis.
-
-9. Bấm "Gửi duyệt" khi đã kiểm tra xong.
-
-
-Kết quả mong đợi: Đề nghị vào workflow duyệt và người duyệt nhận thông báo.
-
-
-[Ảnh minh họa: Màn hình tạo đề nghị thanh toán]
-
-
-#### Xem AI Risk Analysis
-
-
-1. Mở đề nghị thanh toán.
-
-2. Tìm khu vực "AI Risk Analysis".
-
-3. Đọc risk score, risk level, risk factors.
-
-4. Đọc recommendation.
-
-5. Nếu rủi ro cao, bổ sung giải trình hoặc chỉnh sửa trước khi gửi.
-
-
-Ghi nhớ: AI chỉ cảnh báo và đề xuất, không tự chặn hoặc tự duyệt. Kết quả AI phụ thuộc dữ liệu hiện có trong phạm vi truy vấn của người dùng. Khi demo, nên dùng các scenario seed đã chuẩn bị sẵn như PR 85 triệu, ngân sách Marketing vượt 80% hoặc vendor tăng chi phí để AI có đủ bằng chứng trả lời tốt.
-
-
-[Ảnh minh họa: Khu vực AI Risk Analysis trong form đề nghị thanh toán]
-
-
-#### Duyệt/từ chối/yêu cầu chỉnh sửa
-
-
-1. Vào "Hàng chờ duyệt".
-
-2. Mở đề nghị cần xử lý.
-
-3. Đọc thông tin, file đính kèm, AI risk và lịch sử.
-
-4. Bấm "Duyệt" nếu đồng ý.
-
-5. Bấm "Từ chối" nếu không đồng ý và nhập lý do.
-
-6. Bấm "Yêu cầu chỉnh sửa" nếu cần người tạo bổ sung.
-
-
-Trường hợp đặc biệt:
-
-- Nếu người duyệt đã nghỉ việc hoặc tài khoản không active, hệ thống chuyển tìm quản lý cấp trên hoặc báo Admin xử lý.
-
-- Nếu người duyệt chưa thao tác quá hạn, hệ thống hiển thị trạng thái quá hạn và gửi nhắc việc; MVP không tự duyệt thay người dùng.
-
-- Nếu bước duyệt đã được người khác xử lý trước, hệ thống báo "Bước duyệt hiện tại đã thay đổi" và yêu cầu tải lại màn hình.
-
-
-[Ảnh minh họa: Màn hình duyệt đề nghị thanh toán]
-
-
-#### Tạo và điều chỉnh ngân sách
-
-
-1. Vào "Ngân sách".
-
-2. Bấm "Tạo ngân sách".
-
-3. Chọn kỳ, phòng ban, danh mục.
-
-4. Nhập số tiền phân bổ và ngưỡng cảnh báo.
-
-5. Bấm "Lưu".
-
-6. Khi cần điều chỉnh, mở ngân sách và bấm "Điều chỉnh".
-
-7. Chọn tăng, giảm hoặc chuyển ngân sách.
-
-8. Nhập lý do và gửi/lưu theo quyền.
-
-
-[Ảnh minh họa: Màn hình tạo ngân sách]
-
-
-#### Tạo OKR/KPI và check-in
-
-
-1. Vào "KPI/OKR".
-
-2. Tạo Objective.
-
-3. Thêm Key Result.
-
-4. Tạo KPI nếu cần đo riêng.
-
-5. Người được giao KPI vào "KPI của tôi".
-
-6. Bấm "Check-in".
-
-7. Nhập giá trị mới, ghi chú và bằng chứng.
-
-8. Gửi cho Manager duyệt.
-
-
-Cách hiểu tiến độ KPI:
-
-- KPI tăng càng tốt: tiến độ = `(giá trị hiện tại - giá trị bắt đầu) / (mục tiêu - giá trị bắt đầu)`.
-
-- KPI giảm càng tốt: hệ thống tính ngược lại, ví dụ giảm chi phí hoặc giảm thời gian xử lý.
-
-- Thanh progress trên UI dùng mức 0-100% để dễ đọc; nếu vượt mục tiêu, hệ thống vẫn lưu raw progress để báo cáo thành tích.
-
-- Đánh giá gợi ý: A từ 90%, B từ 70-89%, C từ 50-69%, D từ 30-49%, E dưới 30%.
-
-- Check-in bị từ chối không cập nhật giá trị hiện tại của KPI.
-
-
-[Ảnh minh họa: Màn hình tạo OKR và KPI]
-
-
-#### Dùng AI Assistant
-
-
-1. Bấm "AI Assistant".
-
-2. Chọn câu hỏi gợi ý hoặc nhập câu hỏi.
-
-3. Ghi rõ thời gian, phòng ban, mục tiêu nếu có.
-
-4. Bấm "Gửi".
-
-5. Đọc summary, analysis, recommendation, confidence và citation.
-
-6. Kiểm chứng thông tin quan trọng trước khi hành động.
-
-
-Khi AI không đủ dữ liệu trong phạm vi truy vấn, hệ thống sẽ nói rõ hạn chế thay vì tự suy đoán. Nếu đang demo, hãy chọn câu hỏi bám vào dữ liệu seed đã chuẩn bị: ngân sách Marketing, PR quảng cáo 85 triệu, KPI Marketing chậm tiến độ, vendor cloud tăng chi phí hoặc market signal đã nhập.
-
+1. Mở chi tiết món ăn.
+2. Chọn tab **BOM nguyên vật liệu**.
+3. Bấm **Thêm nguyên liệu**.
+4. Chọn nguyên liệu.
+5. Nhập định mức cho một suất.
+6. Nhập tỷ lệ hao hụt nếu có.
+7. Bấm **Lưu**.
 
 Ví dụ:
 
+| Món | Nguyên liệu | Định mức/suất | Hao hụt |
+|---|---|---:|---:|
+| Cơm gà sốt nấm | Gạo | 0.120 kg | 3% |
+| Cơm gà sốt nấm | Thịt gà | 0.160 kg | 8% |
+| Canh rau | Rau cải | 0.070 kg | 10% |
 
-- "Tháng này phòng ban nào có nguy cơ vượt ngân sách cao nhất?"
+Nếu món chưa có BOM, hệ thống sẽ không cho phát hành giấy đi chợ.
 
-- "Quý sau nên ưu tiên giảm chi phí nào?"
+## 7. Lập Và Xuất Menu
 
-- "Dựa trên xu hướng thị trường, phòng Marketing nên điều chỉnh ngân sách ra sao?"
+### 7.1 Tạo menu
 
+1. Vào **Thực đơn > Kế hoạch menu**.
+2. Bấm **Tạo menu**.
+3. Chọn khách hàng.
+4. Chọn hợp đồng hoặc địa điểm giao (site ăn) nếu có.
+5. Chọn **bếp chính** nếu tenant yêu cầu; nếu đã có cấu hình bếp theo site/món, hệ thống có thể tự gợi ý.
+6. Chọn ngày phục vụ.
+7. Chọn ca ăn theo cấu hình tenant.
+8. Giao món cho từng vị trí trong thực đơn:
 
-[Ảnh minh họa: Màn hình AI Assistant]
+| Vị trí | Mô tả | Bắt buộc |
+|---|---|---:|
+| Món mặn 1-6 | Món mặn chính | Tùy cấu hình |
+| Món chay 1, 2, 3 | Món chay cho thực khách | Tùy ca ăn |
+| Món nước 1, 2, 3 | Canh, nước dùng | Tùy ca ăn |
+| Món canh | Canh chính | Không |
+| Món rau xào/luộc 1-2 | Rau trong suất ăn | Không |
+| Món tráng miệng | Trái cây, chè | Không |
+| Món buffet | Món buffet tự chọn | Không |
+| Cơm trắng | Cơm trắng kèm suất | Không |
+| Món cháo | Cháo | Không |
+| Món ăn sáng | Dành cho ca sáng | Không |
+| Món mì/sữa | Mì, sữa | Không |
 
+9. Nhập ghi chú nếu cần.
+10. Bấm **Lưu nháp**.
 
-#### Xem Market Signals và AI Recommended Actions
+Hệ thống tự động tính: tuần, thứ, tháng và thứ tự tuần trong tháng từ ngày phục vụ.
 
+Số lượng vị trí hiển thị phụ thuộc cấu hình tenant. Với tenant Bizen, hệ thống seed bộ slot từ dữ liệu Lark; khách hàng khác có thể có ít hoặc nhiều vị trí hơn.
 
-1. Vào dashboard hoặc AI Assistant.
+Kết quả: menu ở trạng thái **Draft**.
 
-2. Mở "Market Signals".
+### 7.2 Xem và xuất menu
 
-3. Chọn chủ đề: tài chính, nhân sự, marketing, vendor, KPI.
+1. Mở chi tiết menu.
+2. Kiểm tra khách hàng, ngày, ca ăn và danh sách món.
+3. Bấm **Xuất menu** hoặc **In menu** nếu cần gửi bản xem trước nội bộ.
 
-4. Đọc tín hiệu thị trường.
+Menu chỉ nên gửi khách hàng sau khi đã được duyệt nội bộ.
 
-5. Đọc tác động đến doanh nghiệp.
+## 8. Nội Bộ Kiểm Duyệt Menu
 
-6. Đọc đề xuất hành động.
+### 8.1 Gửi duyệt nội bộ
 
-7. Chọn Accept/Dismiss nếu UI có hỗ trợ.
+1. Mở menu trạng thái **Draft**.
+2. Bấm **Gửi duyệt nội bộ**.
+3. Hệ thống chuyển menu sang trạng thái **InternalReview**.
+4. Người duyệt nhận thông báo trong hàng chờ.
 
+### 8.2 Duyệt nội bộ
 
-[Ảnh minh họa: Market Signals và AI Recommended Actions]
+1. Người duyệt vào **Duyệt nội bộ > Hàng chờ**.
+2. Mở menu cần duyệt.
+3. Kiểm tra danh sách món, ghi chú dị ứng và khả năng sản xuất.
+4. Chọn **Duyệt** nếu đạt yêu cầu.
+5. Nhập bình luận nếu cần.
+6. Bấm **Xác nhận**.
 
+Kết quả: nếu tất cả bước duyệt đã xong, menu chuyển sang **InternalApproved**.
 
-#### Tạo báo cáo và xuất PDF/Excel
+### 8.3 Yêu cầu chỉnh sửa
 
+1. Mở menu trong hàng chờ duyệt.
+2. Chọn **Yêu cầu chỉnh sửa**.
+3. Nhập lý do rõ ràng.
+4. Bấm **Gửi yêu cầu**.
 
-1. Vào "Báo cáo".
+Kết quả: menu chuyển sang **InternalChangeRequested**. Người lập menu chỉnh sửa và gửi duyệt lại.
 
-2. Chọn loại báo cáo.
+## 9. Khách Hàng Duyệt Qua Email
 
-3. Chọn kỳ và phạm vi.
+### 9.1 Gửi email duyệt menu
 
-4. Bấm "Xem trước".
+1. CS hoặc Ops mở menu đã **InternalApproved**.
+2. Bấm **Gửi khách duyệt**.
+3. Chọn người liên hệ nhận email.
+4. Kiểm tra nội dung email preview.
+5. Bấm **Gửi email**.
 
-5. Kiểm tra số liệu.
+Kết quả: hệ thống tạo link duyệt có thời hạn và menu chuyển sang **SentToCustomer**.
 
-6. Bấm "Tạo tóm tắt AI" nếu cần.
+### 9.2 Khách hàng duyệt menu và gửi số lượng
 
-7. Bấm "Xuất PDF" hoặc "Xuất Excel".
+1. Khách hàng mở email.
+2. Bấm link **Xem và duyệt thực đơn**.
+3. Trang duyệt hiển thị menu, ngày, ca ăn và khách hàng.
+4. Khách chọn **Duyệt menu** nếu đồng ý.
+5. Khách nhập số lượng dự kiến, số lượng chốt và phát sinh nếu đã có dữ liệu.
+6. Nếu chưa có số lượng, khách có thể để trống; hệ thống sẽ áp dụng rule fallback ở mục 10.
+7. Khách có thể nhập ghi chú.
+8. Bấm **Gửi xác nhận**.
 
+Kết quả: nếu hệ thống resolve đủ dữ liệu số lượng, menu chuyển sang **QuantityConfirmed**. Nếu thiếu dữ liệu fallback bắt buộc, menu chuyển sang **QuantityOpen** để CS/Ops nhập bổ sung.
 
-[Ảnh minh họa: Màn hình tạo và xuất báo cáo]
+### 9.3 Khách hàng yêu cầu chỉnh sửa
 
+1. Khách mở link email.
+2. Bấm **Yêu cầu chỉnh sửa**.
+3. Nhập lý do, ví dụ đổi món cay hoặc món có dị ứng.
+4. Bấm **Gửi yêu cầu**.
 
-#### Xem thông báo
+Kết quả: menu chuyển sang **CustomerChangeRequested**. Nội bộ chỉnh sửa và gửi duyệt lại.
 
+## 10. Nhập Số Lượng Dự Kiến, Chốt Và Phát Sinh
 
-1. Bấm biểu tượng chuông.
+### 10.1 Khách hàng nhập số lượng
 
-2. Xem thông báo mới.
+Trên cùng trang duyệt menu từ email, khách có thể nhập:
 
-3. Bấm vào thông báo để mở chi tiết.
+- **Số lượng dự kiến**: số suất ước tính.
+- **Số lượng chốt**: số suất chính thức.
+- **Phát sinh**: số lượng bổ sung hoặc tổng mới.
+- **Cách xử lý phát sinh**:
+  - Không có phát sinh.
+  - Cộng thêm vào số lượng chốt.
+  - Dùng làm tổng số lượng mới.
 
-4. Bấm "Đánh dấu đã đọc" hoặc "Đánh dấu tất cả đã đọc".
+### 10.2 Rule tự động của hệ thống
 
+Nếu khách không nhập số lượng dự kiến:
 
-[Ảnh minh họa: Bảng thông báo]
+- Hệ thống lấy số lượng nấu của ngày trước đó cùng khách hàng, cùng địa điểm và cùng ca ăn.
+- Nếu không có dữ liệu ngày trước, hệ thống lấy số lượng mặc định trong hợp đồng.
 
+Nếu khách không nhập số lượng chốt:
 
-#### Tìm kiếm, lọc, sắp xếp, phân trang
+- Hệ thống lấy số lượng dự kiến làm số lượng chốt.
 
+Nếu khách nhập phát sinh:
 
-1. Vào một màn hình danh sách.
+- Chọn **Cộng thêm vào chốt**: tổng nấu = số lượng chốt + số phát sinh.
+- Chọn **Dùng làm tổng mới**: tổng nấu = số phát sinh được nhập.
 
-2. Nhập từ khóa vào ô tìm kiếm.
+### 10.3 Ví dụ
 
-3. Chọn bộ lọc trạng thái, phòng ban, kỳ hoặc ngày.
+| Tình huống | Dự kiến | Chốt | Phát sinh | Mode | Tổng nấu |
+|---|---:|---:|---:|---|---:|
+| Khách nhập đủ | 500 | 520 | 0 | Không có | 520 |
+| Không nhập dự kiến | Lấy ngày trước: 520 | 520 | 0 | Không có | 520 |
+| Không nhập chốt | 520 | Tự bằng dự kiến | 0 | Không có | 520 |
+| Phát sinh cộng thêm | 520 | 520 | 30 | Cộng thêm | 550 |
+| Phát sinh tổng mới | 520 | 520 | 600 | Tổng mới | 600 |
 
-4. Bấm "Áp dụng".
+### 10.4 Nội bộ chỉnh số lượng
 
-5. Bấm tên cột để sắp xếp.
+Ops hoặc CS có thể nhập/sửa số lượng thay khách trong trường hợp khách xác nhận qua điện thoại. Khi sửa thay khách, bắt buộc nhập ghi chú để audit.
 
-6. Dùng phân trang ở cuối bảng.
+## 11. Tính BOM Và Xuất Giấy Đi Chợ
 
+### 11.1 Xem trước giấy đi chợ
 
-[Ảnh minh họa: Tìm kiếm và bộ lọc danh sách]
+1. Vào **Giấy đi chợ**.
+2. Bấm **Tạo giấy đi chợ**.
+3. Chọn ngày phục vụ.
+4. Chọn ca ăn.
+5. Chọn các menu đã chốt số lượng.
+6. Bấm **Xem trước**.
 
+Hệ thống hiển thị danh sách nguyên liệu, định mức, hao hụt và tổng cần mua.
 
-### 13.5 AI cho người không chuyên
+### 11.2 Phát hành giấy đi chợ
 
+1. Kiểm tra các dòng nguyên liệu.
+2. Nếu có lỗi món thiếu BOM, quay lại bổ sung BOM trước.
+3. Nếu dữ liệu đúng, bấm **Phát hành**.
+4. Hệ thống chuyển giấy đi chợ sang trạng thái **Issued**.
 
-Trong OmniBizAI, AI không tự học hoặc tự huấn luyện từ dữ liệu công ty. Hệ thống lấy dữ liệu đã được lọc theo quyền, tính các chỉ số bằng rule ổn định, rồi dùng AI để tóm tắt, giải thích và gợi ý hành động. Vì vậy, AI là công cụ hỗ trợ quyết định, không phải người ra quyết định và không phải công cụ dự báo chắc chắn tương lai.
+Sau khi phát hành, PurchasingStaff và KitchenLead có thể xem để chuẩn bị mua hàng và sản xuất.
 
+### 11.3 In giấy đi chợ
 
-AI có thể:
+1. Mở chi tiết giấy đi chợ.
+2. Bấm **In** hoặc dùng chức năng in của trình duyệt.
+3. Kiểm tra ngày, ca ăn, tổng suất và nguyên liệu.
 
+## 12. Dashboard Và AI Advisory
 
-- Giải thích số liệu.
+### 12.1 Dashboard vận hành
 
-- Tóm tắt tình hình.
+Dashboard hiển thị:
 
-- Phát hiện rủi ro khi hệ thống có dữ liệu đủ liên quan.
+- Menu đang chờ duyệt nội bộ.
+- Menu đã gửi khách nhưng chưa phản hồi.
+- Menu đã duyệt nhưng chưa chốt số lượng.
+- Món thiếu BOM.
+- Giấy đi chợ hôm nay.
+- Cảnh báo số lượng biến động.
 
-- Gợi ý hành động.
+### 12.2 Hỏi AI
 
-- Viết bản nháp báo cáo để người dùng kiểm tra và chỉnh sửa.
+1. Vào **AI Assistant** hoặc bấm panel AI trên dashboard.
+2. Chọn ngữ cảnh: menu, số lượng hoặc giấy đi chợ.
+3. Nhập câu hỏi.
+4. Bấm **Gửi**.
 
-- Kết hợp dữ liệu nội bộ và dữ liệu thị trường đã nhập.
+Câu hỏi gợi ý:
 
-- Trả lời tốt nhất với các scenario có dữ liệu seed/predefined như PR vượt ngưỡng, KPI trễ hoặc vendor tăng chi phí.
+- "Hôm nay khách nào tăng số lượng nhiều nhất?"
+- "Giấy đi chợ ca trưa có nguyên liệu nào cần ưu tiên?"
+- "Menu nào chưa đủ BOM để phát hành?"
+- "Vì sao tổng thịt gà hôm nay tăng so với ngày trước?"
 
+AI chỉ đưa gợi ý. Người dùng vẫn phải tự kiểm tra và quyết định.
 
-AI không thể:
+## 13. Demo Script 5-7 Phút
 
+1. Đăng nhập bằng tài khoản Admin hoặc Ops.
+2. Mở dashboard, giới thiệu các card vận hành.
+3. Vào khách hàng, mở ABC Factory.
+4. Tạo menu trưa ngày 2026-05-01.
+5. Gửi duyệt nội bộ.
+6. Đăng nhập QA hoặc KitchenLead để duyệt.
+7. Đăng nhập CS, gửi email duyệt khách.
+8. Mở link khách hàng, duyệt menu và nhập số lượng.
+9. Minh họa rule: không nhập dự kiến để hệ thống lấy ngày trước, không nhập chốt để chốt bằng dự kiến, nhập phát sinh cộng thêm 30.
+10. Vào giấy đi chợ, preview nguyên liệu.
+11. Phát hành giấy đi chợ.
+12. Mở AI advisory để xem cảnh báo/tóm tắt.
 
-- Tự duyệt đề nghị.
+## 14. Lỗi Thường Gặp
 
-- Tự sửa ngân sách, KPI, giao dịch.
-
-- Xem dữ liệu ngoài quyền của bạn.
-
-- Đảm bảo mọi đề xuất đúng tuyệt đối.
-
-- Thay thế quyết định của con người.
-
-- Đảm bảo câu trả lời sâu nếu hệ thống chưa có đủ dữ liệu trong phạm vi truy vấn của bạn.
-
-- Tự học thêm từ dữ liệu doanh nghiệp hoặc thay đổi rule workflow/KPI.
-
-- Dự báo chính xác thị trường, doanh thu hoặc chi phí tương lai nếu hệ thống không có dữ liệu/evidence phù hợp.
-
-
-Cách hỏi tốt:
-
-
-1. Nêu thời gian.
-
-2. Nêu phạm vi.
-
-3. Nêu mục tiêu.
-
-4. Yêu cầu AI đưa lý do và nguồn.
-
-
-Ví dụ tốt:
-
-
-- "Trong tháng 5/2026, phòng ban nào có nguy cơ vượt ngân sách cao nhất và vì sao?"
-
-- "Dựa trên KPI quý này, nhân viên nào trong phòng Marketing cần được hỗ trợ trước?"
-
-- "Đề xuất 3 cách giảm chi phí vendor trong tháng tới, dựa trên dữ liệu giao dịch hiện có."
-
-
-### 13.6 Trạng thái lỗi và cách hệ thống phản hồi
-
-
-| Tình huống | UI hiển thị | Người dùng nên làm |
+| Lỗi | Nguyên nhân | Cách xử lý |
 |---|---|---|
-| Form nhập thiếu hoặc sai | Message ngay dưới field lỗi | Sửa field được báo lỗi rồi gửi lại |
-| Không có quyền thao tác | Trang 403 hoặc ẩn nút thao tác | Kiểm tra vai trò hoặc liên hệ Admin/quản lý |
-| Workflow không khởi tạo được | Đề nghị vẫn ở Draft, hiện thông báo lỗi và mã trace | Không gửi lại nhiều lần; báo Admin/dev kiểm tra workflow template |
-| Người duyệt không còn active | Timeline báo cần xử lý bởi quản lý cấp trên/Admin | Chờ hệ thống chuyển người duyệt hoặc liên hệ Admin |
-| Bước duyệt đã bị xử lý | Toast conflict và yêu cầu tải lại | Reload màn hình để xem trạng thái mới |
-| AI timeout hoặc quá tải | AI panel hiển thị fallback/cached nếu có | Thử lại sau; không coi fallback là quyết định cuối cùng |
-| AI không đủ evidence | Message "Không đủ dữ liệu trong phạm vi truy vấn" | Thu hẹp/mở rộng bộ lọc hợp lệ hoặc bổ sung dữ liệu |
-| Báo cáo không có dữ liệu | Empty report, không coi là lỗi hệ thống | Chọn kỳ khác hoặc kiểm tra dữ liệu seed |
+| Không đăng nhập được | Sai email/mật khẩu hoặc chưa seed user | Kiểm tra tài khoản demo |
+| Không thấy nút duyệt | Tài khoản không có role duyệt | Đổi đúng user hoặc gán quyền |
+| Không gửi được email | SMTP chưa cấu hình | Dùng dev email log hoặc cấu hình SMTP |
+| Link khách hết hạn | Token quá hạn | CS gửi lại email duyệt |
+| Không tạo được giấy đi chợ | Menu chưa chốt số lượng hoặc món thiếu BOM | Chốt số lượng/bổ sung BOM |
+| AI không trả lời | Chưa cấu hình provider | Hệ thống dùng fallback; kiểm tra log |
 
+## 15. Checklist Trước Khi Demo
 
-### 13.7 FAQ và lỗi thường gặp
-
-
-| Tình huống | Nguyên nhân có thể | Cách xử lý |
-
-|---|---|---|
-
-| Không đăng nhập được | Sai email/mật khẩu | Kiểm tra và nhập lại |
-
-| Tài khoản bị khóa | Sai mật khẩu nhiều lần | Chờ mở khóa hoặc liên hệ Admin |
-
-| Không thấy nút thao tác | Không có quyền | Hỏi quản lý/Admin nếu cần cấp quyền |
-
-| Không xem được dữ liệu phòng khác | Data scope giới hạn | Đây là hành vi bảo mật đúng |
-
-| Upload file lỗi | File quá lớn hoặc sai định dạng | Dùng PDF/JPG/PNG/XLSX/DOCX dưới giới hạn |
-
-| Báo cáo không xuất được | Không có quyền hoặc lỗi tạm thời | Kiểm tra quyền, thử lại, báo Admin |
-
-| AI không trả lời | AI lỗi, hết rate limit hoặc câu hỏi ngoài phạm vi | Thử lại sau hoặc đặt câu hỏi rõ hơn |
-
-| AI báo không đủ dữ liệu trong phạm vi truy vấn | Chưa có đủ dữ liệu hợp lệ theo quyền và bộ lọc hiện tại | Chọn lại bộ lọc, bổ sung dữ liệu hoặc dùng scenario demo đã seed |
-
-| Dashboard chưa cập nhật | Cache/realtime chậm | Tải lại trang hoặc chờ vài phút |
-
-
+- [ ] Có tài khoản demo cho Admin, Ops, MenuPlanner, QA, KitchenLead, Purchasing, CS.
+- [ ] Có khách hàng ABC Factory và người liên hệ có email.
+- [ ] Có tenant demo và cấu hình ca ăn, loại suất, vị trí món, bếp.
+- [ ] Import staging có ít nhất một file CSV/Lark sample và hiển thị lỗi validation nếu có.
+- [ ] Có menu ngày trước để test fallback số lượng.
+- [ ] Có ít nhất 10 món và BOM cho các món demo.
+- [ ] Có ít nhất một món thiếu BOM để demo cảnh báo nếu cần.
+- [ ] Gửi email ở dev mode có thể xem được token/link.
+- [ ] Giấy đi chợ preview được số liệu.
+- [ ] AI fallback trả về tóm tắt có citation.
