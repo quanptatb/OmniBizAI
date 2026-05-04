@@ -43,6 +43,9 @@ builder.Services.AddControllersWithViews(options =>
 });
 builder.Services.AddRazorPages();
 
+builder.Services.AddScoped<OmniBizAI.Services.Kpi.IKpiService, OmniBizAI.Services.Kpi.KpiService>();
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
