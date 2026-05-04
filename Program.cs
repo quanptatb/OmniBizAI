@@ -21,6 +21,20 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+// PR #23 — transaction boundary: register services
+builder.Services.AddScoped<OmniBizAI.Services.StateMachine.IStateMachineEngine,
+    OmniBizAI.Services.StateMachine.StateMachineEngine>();
+builder.Services.AddScoped<OmniBizAI.Services.Authorization.IUserRoleService,
+    OmniBizAI.Services.Authorization.UserRoleService>();
+builder.Services.AddScoped<OmniBizAI.Services.Approvals.IInternalApprovalService,
+    OmniBizAI.Services.Approvals.InternalApprovalService>();
+builder.Services.AddScoped<OmniBizAI.Services.Approvals.ICustomerApprovalService,
+    OmniBizAI.Services.Approvals.CustomerApprovalService>();
+builder.Services.AddScoped<OmniBizAI.Services.Procurement.IProcurementPlanService,
+    OmniBizAI.Services.Procurement.ProcurementPlanService>();
+// IQuantityResolutionService — implementation will be registered in a separate PR.
+// For now, controllers/services that depend on it must be tested with mocks.
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
