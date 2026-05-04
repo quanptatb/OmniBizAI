@@ -1,0 +1,308 @@
+/* =========================================================
+   approval.css – OmniBizAI Approval Queue & Detail (Dark Theme)
+   ========================================================= */
+
+/* ---------- Table ---------- */
+.approval-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    font-size: 13px;
+}
+.approval-table th {
+    text-align: left;
+    padding: 14px 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.015);
+}
+.approval-table td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+.approval-table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.approval-table tfoot td {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-weight: 600;
+}
+
+/* ---------- Avatar ---------- */
+.approval-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--surface2);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* ---------- Risk badges ---------- */
+.approval-risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.approval-risk-low { background: var(--green-bg); color: var(--green); border: 1px solid rgba(45,212,191,0.2); }
+.approval-risk-medium { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+.approval-risk-high { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+/* ---------- Status badges ---------- */
+.approval-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.approval-status-pending { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+.approval-status-approved { background: var(--green-bg); color: var(--green); border: 1px solid rgba(45,212,191,0.2); }
+.approval-status-rejected { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+.approval-status-needrevision { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+
+/* ---------- Detail button ---------- */
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.btn-outline:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--border-hover);
+}
+
+/* ---------- Empty state ---------- */
+.approval-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+}
+.approval-empty-state svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* ---------- AI Risk gauge (detail page) ---------- */
+.approval-risk-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+}
+.approval-risk-gauge svg {
+    width: 40px;
+    height: 40px;
+}
+.approval-risk-label {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.approval-risk-gauge-low { color: var(--green); }
+.approval-risk-gauge-medium { color: var(--amber); }
+.approval-risk-gauge-high { color: var(--red); }
+
+/* ---------- Timeline ---------- */
+.approval-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 20px;
+}
+.approval-timeline-step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 16px;
+    position: relative;
+    padding-bottom: 24px;
+}
+.approval-timeline-step:last-child {
+    padding-bottom: 0;
+}
+.approval-timeline-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    z-index: 2;
+}
+.approval-timeline-dot svg {
+    width: 16px;
+    height: 16px;
+}
+.approval-timeline-step.completed .approval-timeline-dot {
+    background: var(--green-bg);
+    border-color: rgba(45, 212, 191, 0.3);
+    color: var(--green);
+}
+.approval-timeline-line {
+    position: absolute;
+    left: 17.5px;
+    top: 36px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+    z-index: 1;
+}
+.approval-timeline-step.completed .approval-timeline-line.line-done {
+    background: var(--green);
+}
+.approval-timeline-content {
+    padding-top: 6px;
+}
+.approval-timeline-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+}
+.approval-timeline-desc {
+    font-size: 12px;
+    color: var(--muted);
+}
+.approval-timeline-waiting {
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* ---------- Textarea ---------- */
+.approval-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    transition: border-color 0.2s;
+    outline: none;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+.approval-textarea:focus {
+    border-color: var(--accent);
+}
+
+.approval-form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+}
+.approval-form-label span {
+    color: var(--red);
+}
+
+/* Flex utilities for custom layout */
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.5rem; }
+.d-flex { display: flex; }
+.align-items-center { align-items: center; }
+.justify-content-between { justify-content: space-between; }
+.flex-column { flex-direction: column; }
+.w-100 { width: 100%; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.p-4 { padding: 1.5rem; }
+
+/* Action buttons in detail */
+.btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    width: 100%;
+}
+.btn-success { background: var(--green); color: #000; }
+.btn-success:hover { background: #10b981; }
+.btn-danger { background: var(--red); color: #000; }
+.btn-danger:hover { background: #ef4444; }
+.btn-warning { background: var(--amber); color: #000; }
+.btn-warning:hover { background: #f59e0b; }
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+@media (max-width: 992px) {
+    .grid-layout { grid-template-columns: 1fr; }
+}
+
+/* Alert styling for dark mode */
+.custom-alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.custom-alert-success {
+    background: var(--green-bg);
+    border: 1px solid rgba(45,212,191,0.2);
+    color: var(--green);
+}
+.custom-alert-error {
+    background: var(--red-bg);
+    border: 1px solid rgba(248,113,113,0.2);
+    color: var(--red);
+}
