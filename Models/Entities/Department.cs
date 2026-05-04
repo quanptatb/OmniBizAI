@@ -28,4 +28,7 @@ public class Department
     
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Employee> Employees { get; set; } = [];
+    public ICollection<PaymentRequest> PaymentRequests { get; set; } = [];
 }

@@ -1,0 +1,68 @@
+@model IReadOnlyList<PaymentRequestListItemDto>
+
+@{
+    ViewData["Title"] = "Payment Requests";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h1 class="h3 mb-1">Payment Requests</h1>
+        <p class="text-muted mb-0">Draft payment requests created from Finance data.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Create New</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Title</th>
+                <th>Requester</th>
+                <th>Department</th>
+                <th class="text-end">Total</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr>
+                <td colspan="9" class="text-center text-muted py-4">No payment requests yet.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@item.RequestNumber</td>
+                    <td>@item.Title</td>
+                    <td>@item.RequesterName</td>
+                    <td>@item.DepartmentName</td>
+                    <td class="text-end">@item.TotalAmount.ToString("N0") VND</td>
+                    <td>@item.Priority</td>
+                    <td><span class="badge bg-secondary">@item.Status</span></td>
+                    <td>@item.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,26 @@
+@model PaymentRequestCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Payment Request";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h1 class="h3 mb-1">Create Payment Request</h1>
+        <p class="text-muted mb-0">Save a draft before sending it into approval later.</p>
+    </div>
+    <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+</div>
+
+<form asp-action="Create" method="post">
+    <partial name="_PaymentRequestForm" model="Model" />
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary">Save Draft</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_PaymentRequestFormScripts" />
+}

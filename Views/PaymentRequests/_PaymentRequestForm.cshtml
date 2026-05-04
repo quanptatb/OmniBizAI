@@ -1,0 +1,105 @@
+@model PaymentRequestCreateViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Priority" class="form-label"></label>
+        <select asp-for="Priority" asp-items="Model.Priorities" class="form-select"></select>
+        <span asp-validation-for="Priority" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="DepartmentId" class="form-label">Department</label>
+        <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select"></select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="CategoryId" class="form-label">Category</label>
+        <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select"></select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PaymentDueDate" class="form-label">Payment Due Date</label>
+        <input asp-for="PaymentDueDate" class="form-control" type="date" />
+        <span asp-validation-for="PaymentDueDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="VendorId" class="form-label">Vendor</label>
+        <select asp-for="VendorId" asp-items="Model.Vendors" class="form-select"></select>
+        <span asp-validation-for="VendorId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="BudgetId" class="form-label">Budget</label>
+        <select asp-for="BudgetId" asp-items="Model.Budgets" class="form-select"></select>
+        <span asp-validation-for="BudgetId" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mt-4 mb-2">
+    <h2 class="h5 mb-0">Line Items</h2>
+    <button type="button" class="btn btn-sm btn-outline-primary" id="add-line-item">Add Item</button>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered align-middle" id="line-items-table">
+        <thead>
+            <tr>
+                <th style="min-width: 240px;">Description</th>
+                <th style="width: 130px;">Quantity</th>
+                <th style="width: 110px;">Unit</th>
+                <th style="width: 160px;">Unit Price</th>
+                <th style="width: 130px;">Tax %</th>
+                <th style="width: 140px;" class="text-end">Line Total</th>
+                <th style="width: 70px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+        @for (var i = 0; i < Model.Items.Count; i++)
+        {
+            <tr>
+                <td>
+                    <input asp-for="Items[i].Description" class="form-control item-description" />
+                    <span asp-validation-for="Items[i].Description" class="text-danger"></span>
+                </td>
+                <td>
+                    <input asp-for="Items[i].Quantity" class="form-control item-quantity" type="number" step="0.01" min="0.01" />
+                    <span asp-validation-for="Items[i].Quantity" class="text-danger"></span>
+                </td>
+                <td>
+                    <input asp-for="Items[i].Unit" class="form-control" />
+                    <span asp-validation-for="Items[i].Unit" class="text-danger"></span>
+                </td>
+                <td>
+                    <input asp-for="Items[i].UnitPrice" class="form-control item-unit-price" type="number" step="1000" min="0" />
+                    <span asp-validation-for="Items[i].UnitPrice" class="text-danger"></span>
+                </td>
+                <td>
+                    <input asp-for="Items[i].TaxRate" class="form-control item-tax-rate" type="number" step="0.01" min="0" max="20" />
+                    <span asp-validation-for="Items[i].TaxRate" class="text-danger"></span>
+                </td>
+                <td class="text-end line-total">0</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-line-item">Remove</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5" class="text-end">Estimated Total</th>
+                <th class="text-end" id="estimated-total">0</th>
+                <th>VND</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>

@@ -1,0 +1,64 @@
+<script>
+    (() => {
+        const table = document.getElementById('line-items-table');
+        const addButton = document.getElementById('add-line-item');
+        const totalElement = document.getElementById('estimated-total');
+
+        function format(value) {
+            return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(value || 0);
+        }
+
+        function renumberRows() {
+            table.querySelectorAll('tbody tr').forEach((row, index) => {
+                row.querySelectorAll('input').forEach((input) => {
+                    input.name = input.name.replace(/Items\[\d+\]/, `Items[${index}]`);
+                    input.id = input.id.replace(/Items_\d+__/, `Items_${index}__`);
+                });
+            });
+        }
+
+        function calculate() {
+            let total = 0;
+            table.querySelectorAll('tbody tr').forEach((row) => {
+                const quantity = Number(row.querySelector('.item-quantity')?.value || 0);
+                const unitPrice = Number(row.querySelector('.item-unit-price')?.value || 0);
+                const taxRate = Number(row.querySelector('.item-tax-rate')?.value || 0);
+                const subtotal = quantity * unitPrice;
+                const lineTotal = subtotal + (subtotal * taxRate / 100);
+                row.querySelector('.line-total').textContent = format(lineTotal);
+                total += lineTotal;
+            });
+            totalElement.textContent = format(total);
+        }
+
+        addButton.addEventListener('click', () => {
+            const body = table.querySelector('tbody');
+            const row = body.querySelector('tr').cloneNode(true);
+            row.querySelectorAll('input').forEach((input) => {
+                input.value = input.classList.contains('item-quantity') ? '1' : '';
+            });
+            row.querySelectorAll('.text-danger').forEach((span) => {
+                span.textContent = '';
+            });
+            body.appendChild(row);
+            renumberRows();
+            calculate();
+        });
+
+        table.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('remove-line-item')) {
+                return;
+            }
+            const rows = table.querySelectorAll('tbody tr');
+            if (rows.length === 1) {
+                return;
+            }
+            event.target.closest('tr').remove();
+            renumberRows();
+            calculate();
+        });
+
+        table.addEventListener('input', calculate);
+        calculate();
+    })();
+</script>

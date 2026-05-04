@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
 using OmniBizAI.Models.Entities;
+using OmniBizAI.Services;
 
 LoadDotEnv(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
@@ -44,13 +45,18 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<OmniBizAI.Services.Kpi.IKpiService, OmniBizAI.Services.Kpi.KpiService>();
-
+builder.Services.AddScoped<IPaymentRequestService, PaymentRequestService>();
 
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     await OmniBizAI.Services.DataSeeder.SeedAsync(scope.ServiceProvider);
+}
+
+if (app.Environment.IsDevelopment())
+{
+    await SeedData.EnsureMinimalFinanceSeedAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.
