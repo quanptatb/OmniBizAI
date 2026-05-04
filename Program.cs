@@ -21,6 +21,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.SignIn.RequireConfirmedAccount = builder.Configuration.GetValue("Security:RequireConfirmedAccount", false))
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, OmniBizAI.Services.Auth.ApplicationClaimsPrincipalFactory>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -64,6 +65,7 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

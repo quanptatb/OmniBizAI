@@ -2,6 +2,11 @@ using System.Security.Claims;
 
 namespace OmniBizAI.Services.Auth;
 
+public static class TenantClaimTypes
+{
+    public const string TenantId = "TenantId";
+}
+
 public interface ITenantContext
 {
     int? CurrentTenantId { get; }
@@ -15,10 +20,10 @@ public class TenantContext(IHttpContextAccessor httpContextAccessor) : ITenantCo
         get
         {
             var user = httpContextAccessor.HttpContext?.User;
-            if (user == null || !user.Identity!.IsAuthenticated)
+            if (user?.Identity?.IsAuthenticated != true)
                 return null;
 
-            var tenantClaim = user.FindFirst("TenantId");
+            var tenantClaim = user.FindFirst(TenantClaimTypes.TenantId);
             if (tenantClaim != null && int.TryParse(tenantClaim.Value, out var tenantId))
             {
                 return tenantId;

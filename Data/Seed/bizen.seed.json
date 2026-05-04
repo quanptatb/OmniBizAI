@@ -1,0 +1,105 @@
+{
+  "DefaultPassword": "Password123!",
+  "Tenant": {
+    "Code": "BIZEN",
+    "Name": "Bizen Catering Services",
+    "IsActive": true
+  },
+  "Company": {
+    "Code": "BIZEN_CORP",
+    "Name": "Bizen Catering Services",
+    "Address": "Ho Chi Minh City",
+    "TaxCode": "",
+    "IsActive": true
+  },
+  "Roles": [
+    {
+      "Code": "ADMIN",
+      "Description": "System administrator"
+    },
+    {
+      "Code": "DIRECTOR",
+      "Description": "Director"
+    },
+    {
+      "Code": "MANAGER",
+      "Description": "Operations manager"
+    },
+    {
+      "Code": "STAFF",
+      "Description": "Operations staff"
+    }
+  ],
+  "Departments": [
+    {
+      "Code": "BOD",
+      "Name": "Board of Directors"
+    },
+    {
+      "Code": "OPS",
+      "Name": "Operations"
+    },
+    {
+      "Code": "MENU",
+      "Name": "Menu Planning"
+    },
+    {
+      "Code": "KITCHEN",
+      "Name": "Kitchen"
+    },
+    {
+      "Code": "QA",
+      "Name": "Quality Assurance"
+    },
+    {
+      "Code": "PUR",
+      "Name": "Purchasing"
+    },
+    {
+      "Code": "CS",
+      "Name": "Customer Service"
+    },
+    {
+      "Code": "ADMIN",
+      "Name": "Administration"
+    }
+  ],
+  "Users": [
+    {
+      "EmailConfigKey": "Seed:AdminEmail",
+      "Email": "admin@omnibiz.ai",
+      "FullName": "System Administrator",
+      "RoleCode": "ADMIN",
+      "DepartmentCode": "ADMIN",
+      "PositionName": "System Administrator",
+      "EmployeeCode": "EMP0001"
+    },
+    {
+      "EmailConfigKey": "Seed:DirectorEmail",
+      "Email": "director@omnibiz.ai",
+      "FullName": "Bizen Director",
+      "RoleCode": "DIRECTOR",
+      "DepartmentCode": "BOD",
+      "PositionName": "Director",
+      "EmployeeCode": "EMP0002"
+    },
+    {
+      "EmailConfigKey": "Seed:ManagerEmail",
+      "Email": "manager.mkt@omnibiz.ai",
+      "FullName": "Operations Manager",
+      "RoleCode": "MANAGER",
+      "DepartmentCode": "OPS",
+      "PositionName": "Operations Manager",
+      "EmployeeCode": "EMP0003"
+    },
+    {
+      "EmailConfigKey": "Seed:StaffEmail",
+      "Email": "staff.mkt@omnibiz.ai",
+      "FullName": "Operations Staff",
+      "RoleCode": "STAFF",
+      "DepartmentCode": "OPS",
+      "PositionName": "Operations Staff",
+      "EmployeeCode": "EMP0004"
+    }
+  ]
+}
