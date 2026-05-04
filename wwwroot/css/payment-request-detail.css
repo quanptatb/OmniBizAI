@@ -1,0 +1,441 @@
+/* wwwroot/css/payment-request-detail.css */
+/* ── Sử dụng design tokens từ AdminLayout.css ── */
+
+/* ── PAGE HEADER ── */
+.pr-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.pr-page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+}
+
+.pr-page-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.pr-action-bar {
+    display: flex;
+    gap: 10px;
+}
+
+/* ── LAYOUT ── */
+.pr-container {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .pr-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── CARD ── */
+.pr-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+}
+
+.pr-card:last-child {
+    margin-bottom: 0;
+}
+
+.pr-card:hover {
+    border-color: var(--border-hover);
+}
+
+/* ── CARD HEADER ── */
+.pr-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.pr-code {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.2px;
+}
+
+.pr-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* ── BADGE ── */
+.pr-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.pr-badge.pending {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.pr-badge.approved {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid rgba(45, 212, 191, 0.2);
+}
+
+.pr-badge.rejected {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+/* ── INFO GRID ── */
+.pr-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.pr-info-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.pr-info-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* ── SECTION TITLE ── */
+.pr-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pr-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ── TABLE ── */
+.pr-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.pr-table thead tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.pr-table th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+
+.pr-table td {
+    padding: 14px;
+    color: var(--text);
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.pr-table tbody tr {
+    transition: background 0.15s;
+}
+
+.pr-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.pr-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.pr-table td.amount {
+    font-weight: 600;
+    color: var(--blue);
+    text-align: right;
+}
+
+.pr-table th.amount {
+    text-align: right;
+}
+
+/* ── TOTAL SECTION ── */
+.pr-total-section {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px dashed var(--border-hover);
+}
+
+.pr-total-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.pr-total-amount {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--accent2);
+    letter-spacing: -0.5px;
+}
+
+.pr-total-sub {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ── SIDE PANEL ── */
+.pr-side-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ── AI RISK CARD ── */
+.ai-risk-card {
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-risk-card::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    opacity: 0.08;
+    background: currentColor;
+}
+
+.ai-risk-card.low {
+    background: var(--green-bg);
+    border-color: rgba(45, 212, 191, 0.2);
+    color: var(--green);
+}
+
+.ai-risk-card.medium {
+    background: var(--amber-bg);
+    border-color: rgba(251, 191, 36, 0.2);
+    color: var(--amber);
+}
+
+.ai-risk-card.high {
+    background: var(--red-bg);
+    border-color: rgba(248, 113, 113, 0.2);
+    color: var(--red);
+}
+
+.risk-level {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: inherit;
+}
+
+.risk-score {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 8px;
+}
+
+.risk-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+/* Risk bar */
+.risk-bar-wrap {
+    margin-top: 12px;
+    height: 4px;
+    background: var(--border-hover);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.risk-bar {
+    height: 100%;
+    border-radius: 4px;
+    background: currentColor;
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── WORKFLOW TIMELINE ── */
+.workflow-timeline {
+    position: relative;
+    padding-left: 28px;
+}
+
+.workflow-timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--border);
+}
+
+.workflow-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.workflow-item:last-child {
+    margin-bottom: 0;
+}
+
+.workflow-dot {
+    position: absolute;
+    left: -28px;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border-hover);
+    transition: all 0.25s;
+}
+
+.workflow-item.completed .workflow-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.workflow-item.current .workflow-dot {
+    background: var(--surface);
+    border-color: var(--blue);
+    border-width: 3px;
+    box-shadow: 0 0 10px var(--blue-bg);
+}
+
+.workflow-content h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 3px 0;
+}
+
+.workflow-item.current .workflow-content h4 {
+    color: var(--blue);
+}
+
+.workflow-content p {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+}
+
+.workflow-meta {
+    font-size: 11px;
+    color: var(--muted2);
+    margin-top: 3px;
+}
+
+/* ── APPROVE / REJECT BUTTONS ── */
+.pr-action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.pr-action-buttons .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+.btn-approve {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid rgba(45, 212, 191, 0.25);
+    font-weight: 600;
+}
+
+.btn-approve:hover {
+    background: rgba(45, 212, 191, 0.15);
+    transform: translateY(-1px);
+}
+
+.btn-reject {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    font-weight: 600;
+}
+
+.btn-reject:hover {
+    background: rgba(248, 113, 113, 0.15);
+    transform: translateY(-1px);
+}
+
+/* ── NOTE / DESCRIPTION BOX ── */
+.pr-note-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-style: italic;
+}
