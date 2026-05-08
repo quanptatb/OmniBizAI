@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OmniBizAI.Data;
 
@@ -11,9 +12,11 @@ using OmniBizAI.Data;
 namespace OmniBizAI.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260508194624_AddWorkItemKanbanIndex")]
+    partial class AddWorkItemKanbanIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -298,7 +301,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("AiInsights", (string)null);
+                    b.ToTable("AiInsights");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.AiPromptTemplate", b =>
@@ -353,7 +356,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("AiPromptTemplates", (string)null);
+                    b.ToTable("AiPromptTemplates");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.AiProviderConfiguration", b =>
@@ -405,7 +408,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("AiProviderConfigurations", (string)null);
+                    b.ToTable("AiProviderConfigurations");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.AppUser", b =>
@@ -459,7 +462,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId", "Email")
                         .IsUnique();
 
-                    b.ToTable("AppUsers", (string)null);
+                    b.ToTable("AppUsers");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ApprovalTask", b =>
@@ -527,7 +530,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId", "TargetType", "TargetId");
 
-                    b.ToTable("ApprovalTasks", (string)null);
+                    b.ToTable("ApprovalTasks");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Attachment", b =>
@@ -588,7 +591,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UploadedByUserId");
 
-                    b.ToTable("Attachments", (string)null);
+                    b.ToTable("Attachments");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.AuditLog", b =>
@@ -654,7 +657,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Budget", b =>
@@ -709,7 +712,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Budgets", (string)null);
+                    b.ToTable("Budgets");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.BusinessProfile", b =>
@@ -761,7 +764,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("BusinessProfiles", (string)null);
+                    b.ToTable("BusinessProfiles");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Customer", b =>
@@ -814,7 +817,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.CustomerContact", b =>
@@ -870,7 +873,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("CustomerContacts", (string)null);
+                    b.ToTable("CustomerContacts");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.CustomerSite", b =>
@@ -927,7 +930,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("CustomerSites", (string)null);
+                    b.ToTable("CustomerSites");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.DashboardWidget", b =>
@@ -990,7 +993,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("DashboardWidgets", (string)null);
+                    b.ToTable("DashboardWidgets");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.EmployeeContract", b =>
@@ -1042,7 +1045,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("EmployeeContracts", (string)null);
+                    b.ToTable("EmployeeContracts");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.EmployeeDepartmentAssignment", b =>
@@ -1094,7 +1097,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("EmployeeDepartmentAssignments", (string)null);
+                    b.ToTable("EmployeeDepartmentAssignments");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.EmployeeProfile", b =>
@@ -1141,7 +1144,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("EmployeeProfiles", (string)null);
+                    b.ToTable("EmployeeProfiles");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.EntityTag", b =>
@@ -1185,7 +1188,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("EntityTags", (string)null);
+                    b.ToTable("EntityTags");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Expense", b =>
@@ -1240,7 +1243,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Expenses", (string)null);
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ImportJob", b =>
@@ -1303,7 +1306,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UploadedByUserId");
 
-                    b.ToTable("ImportJobs", (string)null);
+                    b.ToTable("ImportJobs");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ImportStagingRow", b =>
@@ -1358,7 +1361,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("ImportStagingRows", (string)null);
+                    b.ToTable("ImportStagingRows");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.KpiCheckIn", b =>
@@ -1409,7 +1412,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("KpiCheckIns", (string)null);
+                    b.ToTable("KpiCheckIns");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.KpiDefinition", b =>
@@ -1469,7 +1472,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("KpiDefinitions", (string)null);
+                    b.ToTable("KpiDefinitions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.KpiResult", b =>
@@ -1520,7 +1523,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("KpiResults", (string)null);
+                    b.ToTable("KpiResults");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.KpiTarget", b =>
@@ -1575,7 +1578,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("KpiTargets", (string)null);
+                    b.ToTable("KpiTargets");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Notification", b =>
@@ -1629,7 +1632,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.NotificationDelivery", b =>
@@ -1679,7 +1682,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("NotificationDeliveries", (string)null);
+                    b.ToTable("NotificationDeliveries");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.NumberSequence", b =>
@@ -1729,7 +1732,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("NumberSequences", (string)null);
+                    b.ToTable("NumberSequences");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.OperationRequest", b =>
@@ -1812,7 +1815,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId", "RequestNo")
                         .IsUnique();
 
-                    b.ToTable("OperationRequests", (string)null);
+                    b.ToTable("OperationRequests");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.OperationRequestLine", b =>
@@ -1866,7 +1869,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("OperationRequestLines", (string)null);
+                    b.ToTable("OperationRequestLines");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.OrganizationUnit", b =>
@@ -1927,7 +1930,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.ToTable("OrganizationUnits", (string)null);
+                    b.ToTable("OrganizationUnits");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PaymentRequest", b =>
@@ -1987,7 +1990,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("PaymentRequests", (string)null);
+                    b.ToTable("PaymentRequests");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PaymentRequestLine", b =>
@@ -2035,7 +2038,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("PaymentRequestLines", (string)null);
+                    b.ToTable("PaymentRequestLines");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PermissionAssignment", b =>
@@ -2079,7 +2082,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("PermissionAssignments", (string)null);
+                    b.ToTable("PermissionAssignments");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PermissionDefinition", b =>
@@ -2124,7 +2127,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PermissionDefinitions", (string)null);
+                    b.ToTable("PermissionDefinitions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Position", b =>
@@ -2176,7 +2179,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Positions", (string)null);
+                    b.ToTable("Positions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ProcurementRequest", b =>
@@ -2233,7 +2236,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("ProcurementRequests", (string)null);
+                    b.ToTable("ProcurementRequests");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ProcurementRequestLine", b =>
@@ -2284,7 +2287,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("ProcurementRequestLines", (string)null);
+                    b.ToTable("ProcurementRequestLines");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ProductCategory", b =>
@@ -2336,7 +2339,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("ProductCategories", (string)null);
+                    b.ToTable("ProductCategories");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ProductService", b =>
@@ -2398,7 +2401,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UnitOfMeasureId");
 
-                    b.ToTable("ProductServices", (string)null);
+                    b.ToTable("ProductServices");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PurchaseOrder", b =>
@@ -2453,7 +2456,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("PurchaseOrders", (string)null);
+                    b.ToTable("PurchaseOrders");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PurchaseOrderLine", b =>
@@ -2507,7 +2510,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("PurchaseOrderLines", (string)null);
+                    b.ToTable("PurchaseOrderLines");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.ReportDefinition", b =>
@@ -2560,7 +2563,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("ReportDefinitions", (string)null);
+                    b.ToTable("ReportDefinitions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.RoleDefinition", b =>
@@ -2608,7 +2611,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("RoleDefinitions", (string)null);
+                    b.ToTable("RoleDefinitions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.SystemParameter", b =>
@@ -2661,7 +2664,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("SystemParameters", (string)null);
+                    b.ToTable("SystemParameters");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Tag", b =>
@@ -2706,7 +2709,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("Tags", (string)null);
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Tenant", b =>
@@ -2752,7 +2755,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Tenants", (string)null);
+                    b.ToTable("Tenants");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.TenantModule", b =>
@@ -2802,7 +2805,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("TenantModules", (string)null);
+                    b.ToTable("TenantModules");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.TenantSetting", b =>
@@ -2850,7 +2853,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("TenantSettings", (string)null);
+                    b.ToTable("TenantSettings");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.UnitOfMeasure", b =>
@@ -2894,7 +2897,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("UnitsOfMeasure", (string)null);
+                    b.ToTable("UnitsOfMeasure");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.UserProfile", b =>
@@ -2947,7 +2950,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("UserProfiles", (string)null);
+                    b.ToTable("UserProfiles");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.UserRoleAssignment", b =>
@@ -3000,7 +3003,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("UserId", "RoleDefinitionId", "TenantId")
                         .IsUnique();
 
-                    b.ToTable("UserRoleAssignments", (string)null);
+                    b.ToTable("UserRoleAssignments");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.UserSession", b =>
@@ -3055,7 +3058,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions", (string)null);
+                    b.ToTable("UserSessions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.UserTenant", b =>
@@ -3097,7 +3100,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserTenants", (string)null);
+                    b.ToTable("UserTenants");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Vendor", b =>
@@ -3154,7 +3157,7 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
-                    b.ToTable("Vendors", (string)null);
+                    b.ToTable("Vendors");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkCalendar", b =>
@@ -3205,7 +3208,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("WorkCalendars", (string)null);
+                    b.ToTable("WorkCalendars");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkItem", b =>
@@ -3264,7 +3267,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId", "Status", "DueDate");
 
-                    b.ToTable("WorkItems", (string)null);
+                    b.ToTable("WorkItems");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkItemAssignment", b =>
@@ -3311,7 +3314,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkItemId");
 
-                    b.ToTable("WorkItemAssignments", (string)null);
+                    b.ToTable("WorkItemAssignments");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkItemChecklist", b =>
@@ -3366,7 +3369,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkItemId");
 
-                    b.ToTable("WorkItemChecklists", (string)null);
+                    b.ToTable("WorkItemChecklists");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkItemComment", b =>
@@ -3412,7 +3415,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkItemId");
 
-                    b.ToTable("WorkItemComments", (string)null);
+                    b.ToTable("WorkItemComments");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkflowDefinition", b =>
@@ -3464,7 +3467,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("TenantId");
 
-                    b.ToTable("WorkflowDefinitions", (string)null);
+                    b.ToTable("WorkflowDefinitions");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkflowHistory", b =>
@@ -3524,7 +3527,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkflowInstanceId");
 
-                    b.ToTable("WorkflowHistories", (string)null);
+                    b.ToTable("WorkflowHistories");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkflowInstance", b =>
@@ -3582,7 +3585,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkflowDefinitionId");
 
-                    b.ToTable("WorkflowInstances", (string)null);
+                    b.ToTable("WorkflowInstances");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkflowStep", b =>
@@ -3643,7 +3646,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkflowDefinitionId");
 
-                    b.ToTable("WorkflowSteps", (string)null);
+                    b.ToTable("WorkflowSteps");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.WorkflowTransition", b =>
@@ -3698,7 +3701,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasIndex("WorkflowDefinitionId");
 
-                    b.ToTable("WorkflowTransitions", (string)null);
+                    b.ToTable("WorkflowTransitions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

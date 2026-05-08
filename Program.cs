@@ -44,6 +44,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantContext, TenantContextService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<OperationRequestService>();
+builder.Services.AddScoped<WorkKanbanService>();
 builder.Services.AddScoped<ApprovalService>();
 builder.Services.AddScoped<AiInsightService>();
 

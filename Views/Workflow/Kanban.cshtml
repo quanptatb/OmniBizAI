@@ -1,0 +1,227 @@
+@model OmniBizAI.ViewModels.KanbanBoardViewModel
+@using OmniBizAI.Models.Entities.Enums
+@{
+    ViewData["Title"] = "Kanban workflow";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span>Kanban workflow</span>";
+}
+
+<div class="kanban-page">
+    <div class="kanban-toolbar glass-card mb-4">
+        <div class="kanban-toolbar-main">
+            <div>
+                <h1 class="kanban-title mb-1">Kanban workflow</h1>
+                <div class="kanban-metrics">
+                    <span><i class="fa-solid fa-layer-group"></i> @Model.TotalCards công việc</span>
+                    <span><i class="fa-solid fa-triangle-exclamation"></i> @Model.BlockedCards đang vướng</span>
+                    <span><i class="fa-solid fa-clock"></i> @Model.OverdueCards quá hạn</span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newWorkItemModal">
+                <i class="fa-solid fa-plus me-2"></i>Tạo thẻ
+            </button>
+        </div>
+
+        <form method="get" asp-action="Kanban" class="kanban-filter row g-3 align-items-end">
+            <div class="col-lg-5">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-start-0 bg-light" placeholder="Mã yêu cầu, tiêu đề công việc...">
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <label class="form-label text-muted small fw-bold">Phòng ban</label>
+                <select name="dept" class="form-select bg-light">
+                    <option value="">Tất cả phòng ban</option>
+                    @foreach (var dept in Model.Departments)
+                    {
+                        <option value="@dept.Value" selected="@(Model.DepartmentFilter?.ToString() == dept.Value)">@dept.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
+                <a asp-action="Kanban" class="btn btn-light border" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <div class="kanban-board">
+        @foreach (var column in Model.Columns)
+        {
+            <section class="kanban-column @column.AccentClass">
+                <div class="kanban-column-header">
+                    <div>
+                        <h2>@column.Title</h2>
+                        <span>@column.Items.Count thẻ</span>
+                    </div>
+                </div>
+
+                <div class="kanban-card-list">
+                    @foreach (var card in column.Items)
+                    {
+                        <article class="kanban-card @card.PriorityClass @(card.IsOverdue ? "is-overdue" : "")">
+                            <div class="kanban-card-top">
+                                <a asp-controller="Operations" asp-action="Details" asp-route-id="@card.OperationRequestId" class="kanban-request">@card.RequestNo</a>
+                                <span class="kanban-priority">@card.Priority</span>
+                            </div>
+                            <h3>@card.Title</h3>
+                            @if (!string.IsNullOrWhiteSpace(card.Description))
+                            {
+                                <p>@card.Description</p>
+                            }
+                            <div class="kanban-meta">
+                                <span><i class="fa-solid fa-sitemap"></i>@card.Department</span>
+                                <span><i class="fa-regular fa-calendar"></i>@(card.DueDate?.ToString("dd/MM/yyyy") ?? "Không hạn")</span>
+                                <span><i class="fa-solid fa-user-check"></i>@(card.AssignedTo ?? "Chưa giao")</span>
+                            </div>
+                            @if (card.ChecklistTotal > 0)
+                            {
+                                var progress = Math.Round((decimal)card.ChecklistDone / card.ChecklistTotal * 100);
+                                <div class="kanban-checklist">
+                                    <div class="d-flex justify-content-between text-xs text-muted mb-1">
+                                        <span>Checklist</span>
+                                        <span>@card.ChecklistDone/@card.ChecklistTotal</span>
+                                    </div>
+                                    <div class="progress" role="progressbar" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">
+                                        <div class="progress-bar" style="width: @progress%"></div>
+                                    </div>
+                                </div>
+                            }
+                            <div class="kanban-actions">
+                                @foreach (var nextStatus in NextStatuses(card.Status))
+                                {
+                                    <form asp-action="Move" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="Id" value="@card.Id" />
+                                        <input type="hidden" name="Status" value="@nextStatus" />
+                                        <input type="hidden" name="Search" value="@Model.SearchTerm" />
+                                        <input type="hidden" name="Dept" value="@Model.DepartmentFilter" />
+                                        <button type="submit" class="btn btn-sm btn-light border" title="@MoveTitle(nextStatus)">
+                                            <i class="fa-solid @MoveIcon(nextStatus)"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </article>
+                    }
+
+                    @if (!column.Items.Any())
+                    {
+                        <div class="kanban-empty">
+                            <i class="fa-regular fa-square"></i>
+                            <span>Chưa có thẻ</span>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="newWorkItemModal" tabindex="-1" aria-labelledby="newWorkItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newWorkItemModalLabel">Tạo thẻ Kanban</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Yêu cầu vận hành</label>
+                            <select asp-for="CreateForm.OperationRequestId" name="OperationRequestId" class="form-select" required>
+                                <option value="">Chọn yêu cầu</option>
+                                @foreach (var request in Model.OperationRequests)
+                                {
+                                    <option value="@request.Value">@request.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Tiêu đề công việc</label>
+                            <input asp-for="CreateForm.Title" name="Title" class="form-control" maxlength="250" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ưu tiên</label>
+                            <select asp-for="CreateForm.Priority" name="Priority" class="form-select">
+                                @foreach (var priority in Enum.GetValues<PriorityLevel>())
+                                {
+                                    <option value="@priority">@priority</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phòng ban</label>
+                            <select asp-for="CreateForm.OrganizationUnitId" name="OrganizationUnitId" class="form-select">
+                                <option value="">Theo yêu cầu vận hành</option>
+                                @foreach (var dept in Model.Departments)
+                                {
+                                    <option value="@dept.Value" selected="@(Model.CreateForm.OrganizationUnitId?.ToString() == dept.Value)">@dept.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Người phụ trách</label>
+                            <select asp-for="CreateForm.AssignedToUserId" name="AssignedToUserId" class="form-select">
+                                <option value="">Chưa giao</option>
+                                @foreach (var user in Model.Assignees)
+                                {
+                                    <option value="@user.Value">@user.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Hạn xử lý</label>
+                            <input asp-for="CreateForm.DueDate" name="DueDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Mô tả</label>
+                            <textarea asp-for="CreateForm.Description" name="Description" class="form-control" rows="3" maxlength="2000"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Tạo thẻ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private static IEnumerable<WorkItemStatus> NextStatuses(WorkItemStatus status) => status switch
+    {
+        WorkItemStatus.Todo => new[] { WorkItemStatus.InProgress, WorkItemStatus.Blocked, WorkItemStatus.Cancelled },
+        WorkItemStatus.InProgress => new[] { WorkItemStatus.Blocked, WorkItemStatus.Done, WorkItemStatus.Todo },
+        WorkItemStatus.Blocked => new[] { WorkItemStatus.InProgress, WorkItemStatus.Cancelled },
+        WorkItemStatus.Done => new[] { WorkItemStatus.InProgress },
+        WorkItemStatus.Cancelled => new[] { WorkItemStatus.Todo },
+        _ => Array.Empty<WorkItemStatus>()
+    };
+
+    private static string MoveIcon(WorkItemStatus status) => status switch
+    {
+        WorkItemStatus.Todo => "fa-arrow-rotate-left",
+        WorkItemStatus.InProgress => "fa-play",
+        WorkItemStatus.Blocked => "fa-ban",
+        WorkItemStatus.Done => "fa-check",
+        WorkItemStatus.Cancelled => "fa-xmark",
+        _ => "fa-arrow-right"
+    };
+
+    private static string MoveTitle(WorkItemStatus status) => status switch
+    {
+        WorkItemStatus.Todo => "Chuyển về cần làm",
+        WorkItemStatus.InProgress => "Chuyển sang đang xử lý",
+        WorkItemStatus.Blocked => "Đánh dấu đang vướng",
+        WorkItemStatus.Done => "Đánh dấu hoàn thành",
+        WorkItemStatus.Cancelled => "Hủy công việc",
+        _ => "Chuyển trạng thái"
+    };
+}

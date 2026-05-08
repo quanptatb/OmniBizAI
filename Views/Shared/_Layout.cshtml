@@ -44,6 +44,15 @@
                     <span class="nav-badge" id="pendingBadge" style="display:none"></span>
                 </a>
 
+                @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                {
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Workflow" ? "active" : "")"
+                       asp-controller="Workflow" asp-action="Kanban">
+                        <i class="fa-solid fa-table-columns"></i>
+                        <span>Kanban workflow</span>
+                    </a>
+                }
+
                 @if (User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
                 {
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Approvals" ? "active" : "")"

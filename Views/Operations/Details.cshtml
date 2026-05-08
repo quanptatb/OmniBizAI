@@ -59,7 +59,10 @@
 
                 @if (Model.CanSubmit || Model.CanCancel)
                 {
-                    <div class="d-flex gap-2 pt-3 border-top mt-4">
+                    <div class="d-flex flex-wrap gap-2 pt-3 border-top mt-4">
+                        <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light border">
+                            <i class="fa-solid fa-table-columns me-2"></i> Xem trên Kanban
+                        </a>
                         @if (Model.CanSubmit)
                         {
                             <form asp-action="Submit" asp-route-id="@Model.Id" method="post">
@@ -72,6 +75,14 @@
                                 <button type="submit" class="btn btn-outline-danger"><i class="fa-solid fa-ban me-2"></i> Hủy yêu cầu</button>
                             </form>
                         }
+                    </div>
+                }
+                else
+                {
+                    <div class="pt-3 border-top mt-4">
+                        <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light border">
+                            <i class="fa-solid fa-table-columns me-2"></i> Xem trên Kanban
+                        </a>
                     </div>
                 }
             </div>

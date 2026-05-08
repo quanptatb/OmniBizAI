@@ -401,6 +401,76 @@ public class WorkItemListItem
     public DateOnly? DueDate { get; set; }
 }
 
+public class KanbanBoardViewModel
+{
+    public string? SearchTerm { get; set; }
+    public Guid? DepartmentFilter { get; set; }
+    public List<SelectOption> Departments { get; set; } = new();
+    public List<SelectOption> OperationRequests { get; set; } = new();
+    public List<SelectOption> Assignees { get; set; } = new();
+    public List<KanbanColumnViewModel> Columns { get; set; } = new();
+    public WorkItemCreateViewModel CreateForm { get; set; } = new();
+    public int TotalCards => Columns.Sum(c => c.Items.Count);
+    public int BlockedCards => Columns.Where(c => c.Status == WorkItemStatus.Blocked).Sum(c => c.Items.Count);
+    public int OverdueCards => Columns.Sum(c => c.Items.Count(i => i.IsOverdue));
+}
+
+public class KanbanColumnViewModel
+{
+    public WorkItemStatus Status { get; set; }
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string AccentClass { get; set; } = "";
+    public List<KanbanCardViewModel> Items { get; set; } = new();
+}
+
+public class KanbanCardViewModel
+{
+    public Guid Id { get; set; }
+    public Guid OperationRequestId { get; set; }
+    public string RequestNo { get; set; } = "";
+    public string RequestTitle { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string? Description { get; set; }
+    public WorkItemStatus Status { get; set; }
+    public string Department { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public string PriorityClass { get; set; } = "";
+    public string? AssignedTo { get; set; }
+    public DateOnly? DueDate { get; set; }
+    public int ChecklistDone { get; set; }
+    public int ChecklistTotal { get; set; }
+    public bool IsOverdue => DueDate.HasValue
+        && DueDate.Value < DateOnly.FromDateTime(DateTime.Today)
+        && Status is not WorkItemStatus.Done and not WorkItemStatus.Cancelled;
+}
+
+public class WorkItemCreateViewModel
+{
+    [Required(ErrorMessage = "Yêu cầu vận hành không được để trống")]
+    public Guid OperationRequestId { get; set; }
+
+    [Required(ErrorMessage = "Tiêu đề công việc không được để trống")]
+    [StringLength(250, ErrorMessage = "Tiêu đề không quá 250 ký tự")]
+    public string Title { get; set; } = string.Empty;
+
+    [StringLength(2000, ErrorMessage = "Mô tả không quá 2000 ký tự")]
+    public string? Description { get; set; }
+
+    public Guid? OrganizationUnitId { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
+    public DateOnly? DueDate { get; set; }
+}
+
+public class WorkItemMoveViewModel
+{
+    public Guid Id { get; set; }
+    public WorkItemStatus Status { get; set; }
+    public string? Search { get; set; }
+    public Guid? Dept { get; set; }
+}
+
 // ===== REPORTS =====
 public class ReportFilterViewModel
 {

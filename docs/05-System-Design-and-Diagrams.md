@@ -30,10 +30,12 @@ flowchart LR
     Staff --> UpdateTask(("Cập nhật công việc"))
 
     Manager["Department Manager"] --> Approve(("Duyệt yêu cầu"))
+    Manager --> Kanban(("Quản lý Kanban workflow"))
     Manager --> DeptReport(("Xem KPI bộ phận"))
     Manager --> Ai(("Hỏi AI"))
 
     Executive["Executive"] --> Dashboard(("Xem dashboard tổng hợp"))
+    Executive --> Kanban
     Executive --> Approve
     Executive --> Ai
     Executive --> Export(("Xuất báo cáo"))
@@ -59,6 +61,7 @@ flowchart TB
         Controller --> Service["Application Services"]
         Service --> Domain["Domain Entities"]
         Service --> Workflow["Workflow Services"]
+        Service --> KanbanService["Kanban Workflow Service"]
         Service --> AiService["AI Decision Service"]
         Service --> Export["Export Service"]
         Service --> Audit["Audit Logger"]
@@ -117,6 +120,16 @@ classDiagram
         +DateOnly? DueDate
     }
 
+    class WorkItem {
+        +Guid TenantId
+        +Guid OperationRequestId
+        +Guid OrganizationUnitId
+        +string Title
+        +WorkItemStatus Status
+        +PriorityLevel Priority
+        +DateOnly? DueDate
+    }
+
     class ApprovalTask {
         +Guid TenantId
         +string TargetType
@@ -139,6 +152,7 @@ classDiagram
         +DbSet~Tenant~ Tenants
         +DbSet~OrganizationUnit~ OrganizationUnits
         +DbSet~OperationRequest~ OperationRequests
+        +DbSet~WorkItem~ WorkItems
         +DbSet~ApprovalTask~ ApprovalTasks
         +DbSet~AiInsight~ AiInsights
     }
@@ -156,6 +170,12 @@ classDiagram
         +RejectAsync(taskId, reason)
     }
 
+    class WorkKanbanService {
+        +GetBoardAsync(search, dept)
+        +CreateAsync(input)
+        +MoveAsync(workItemId, status)
+    }
+
     class AiDecisionService {
         +AnalyzeDashboardAsync(input)
         +AnalyzeOperationAsync(id, question)
@@ -164,17 +184,21 @@ classDiagram
     BaseEntity <|-- Tenant
     BaseEntity <|-- OrganizationUnit
     BaseEntity <|-- OperationRequest
+    BaseEntity <|-- WorkItem
     BaseEntity <|-- ApprovalTask
     BaseEntity <|-- AiInsight
     Tenant "1" --> "*" OrganizationUnit
     Tenant "1" --> "*" AppUser
     OrganizationUnit "1" --> "*" AppUser
     AppUser "1" --> "*" OperationRequest
+    OperationRequest "1" --> "*" WorkItem
     OperationRequest "1" --> "*" ApprovalTask
     OperationRequest "1" --> "*" AiInsight
     ApplicationDbContext --> Tenant
     ApplicationDbContext --> OperationRequest
+    ApplicationDbContext --> WorkItem
     OperationRequestService --> ApplicationDbContext
+    WorkKanbanService --> ApplicationDbContext
     ApprovalService --> ApplicationDbContext
     AiDecisionService --> ApplicationDbContext
 ```
@@ -232,7 +256,31 @@ sequenceDiagram
     Controller-->>View: Redirect Details
 ```
 
-### 5.3. AI phân tích dashboard
+### 5.3. Cập nhật Kanban workflow
+
+```mermaid
+sequenceDiagram
+    actor Manager as Trưởng bộ phận
+    participant UI as Workflow/Kanban.cshtml
+    participant Controller as WorkflowController
+    participant Kanban as WorkKanbanService
+    participant DB as SQL Server
+    participant Audit as AuditLog
+
+    Manager->>UI: Mở bảng Kanban
+    UI->>Controller: GET /Workflow/Kanban
+    Controller->>Kanban: GetBoardAsync(search, dept)
+    Kanban->>DB: Query WorkItems theo TenantId
+    DB-->>Kanban: Danh sách công việc theo trạng thái
+    Manager->>UI: Tạo thẻ hoặc chuyển trạng thái
+    UI->>Controller: POST /Workflow/Create hoặc /Workflow/Move
+    Controller->>Kanban: CreateAsync/MoveAsync
+    Kanban->>DB: Cập nhật WorkItem.Status
+    Kanban->>Audit: Ghi log thao tác
+    Controller-->>UI: Redirect về Kanban
+```
+
+### 5.4. AI phân tích dashboard
 
 ```mermaid
 sequenceDiagram
@@ -277,7 +325,11 @@ flowchart TB
     NeedExec -->|Không| Work["Thực hiện công việc"]
     ExecReview -->|Từ chối| Reject
     ExecReview -->|Duyệt| Work
-    Work --> Complete["Hoàn thành"]
+    Work --> Board["Theo dõi trên Kanban"]
+    Board --> Blocked{"Bị vướng?"}
+    Blocked -->|Có| Resolve["Gỡ vướng / bổ sung thông tin"]
+    Resolve --> Board
+    Blocked -->|Không| Complete["Hoàn thành"]
     Complete --> Report["Cập nhật báo cáo/KPI"]
     Report --> End([Kết thúc])
 ```
@@ -312,6 +364,7 @@ flowchart TB
     Ops --> OpsCreate["/Operations/Create"]
     Ops --> OpsDetails["/Operations/Details/{id}"]
     OpsDetails --> OpsSubmit["/Operations/{id}/Submit"]
+    Home --> Kanban["/Workflow/Kanban"]
     Home --> Approvals["/Approvals/MyTasks"]
     Approvals --> ApprovalDetails["/Approvals/{id}"]
     Home --> Reports["/Reports/Dashboard"]
@@ -365,6 +418,9 @@ docs/               Project documents and diagrams
 | OperationsController | Create | GET | `/Operations/Create` | None | Create view |
 | OperationsController | Create | POST | `/Operations/Create` | OperationRequestCreateInput | Redirect/Error |
 | OperationsController | Submit | POST | `/Operations/{id}/Submit` | Id | Redirect/Error |
+| WorkflowController | Kanban | GET | `/Workflow/Kanban` | Search, Department | Kanban board |
+| WorkflowController | Create | POST | `/Workflow/Create` | WorkItemCreateViewModel | Redirect/Error |
+| WorkflowController | Move | POST | `/Workflow/Move` | WorkItemMoveViewModel | Redirect/Error |
 | ApprovalsController | MyTasks | GET | `/Approvals/MyTasks` | None | Pending tasks view |
 | ApprovalsController | Approve | POST | `/Approvals/{id}/Approve` | Note | Redirect/Error |
 | AiInsightsController | Ask | POST | `/AiInsights/Ask` | Question, ContextType | JSON result |

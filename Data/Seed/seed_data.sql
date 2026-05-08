@@ -41,6 +41,13 @@ DECLARE @RoleStaff     UNIQUEIDENTIFIER = 'A0000000-0000-0000-0000-000000000005'
 DECLARE @RoleAcct      UNIQUEIDENTIFIER = 'A0000000-0000-0000-0000-000000000006';
 DECLARE @RoleAuditor   UNIQUEIDENTIFIER = 'A0000000-0000-0000-0000-000000000007';
 
+DECLARE @WorkItem001 UNIQUEIDENTIFIER = 'B0000000-0000-0000-0000-000000000001';
+DECLARE @WorkItem002 UNIQUEIDENTIFIER = 'B0000000-0000-0000-0000-000000000002';
+DECLARE @WorkItem003 UNIQUEIDENTIFIER = 'B0000000-0000-0000-0000-000000000003';
+DECLARE @WorkItem004 UNIQUEIDENTIFIER = 'B0000000-0000-0000-0000-000000000004';
+DECLARE @WorkItem005 UNIQUEIDENTIFIER = 'B0000000-0000-0000-0000-000000000005';
+DECLARE @WorkItem006 UNIQUEIDENTIFIER = 'B0000000-0000-0000-0000-000000000006';
+
 DECLARE @Now DATETIMEOFFSET = SYSDATETIMEOFFSET();
 
 -- ============================================================================
@@ -130,6 +137,56 @@ INSERT INTO OperationRequests (Id, TenantId, RequestNo, [Type], Title, Organizat
   (NEWID(), @TenantId, 'OPR-2026-003', 'InternalRequest', N'Triển khai hệ thống monitoring',         @ItDeptId, @ManagerId, 4, 4, DATEADD(DAY,7,GETDATE()),  15000000, N'Setup Grafana + Prometheus cho production', DATEADD(DAY,-10,@Now), 0),
   (NEWID(), @TenantId, 'OPR-2026-004', 'InternalRequest', N'Mua license phần mềm thiết kế',          @ItDeptId, @StaffId,   2, 6, DATEADD(DAY,-3,GETDATE()), 8000000,  N'License Adobe Creative Suite 2026',         DATEADD(DAY,-20,@Now), 0),
   (NEWID(), @TenantId, 'OPR-2026-005', 'ServiceRequest',  N'Yêu cầu sửa chữa văn phòng',            @HrDeptId, @StaffId,   1, 7, DATEADD(DAY,-7,GETDATE()), 3000000,  N'Sơn lại tường khu vực lễ tân',              DATEADD(DAY,-15,@Now), 0);
+
+-- ============================================================================
+-- 8.1) Work Items - Kanban workflow
+-- ============================================================================
+DECLARE @Opr001Id UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM OperationRequests WHERE TenantId = @TenantId AND RequestNo = 'OPR-2026-001');
+DECLARE @Opr002Id UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM OperationRequests WHERE TenantId = @TenantId AND RequestNo = 'OPR-2026-002');
+DECLARE @Opr003Id UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM OperationRequests WHERE TenantId = @TenantId AND RequestNo = 'OPR-2026-003');
+DECLARE @Opr004Id UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM OperationRequests WHERE TenantId = @TenantId AND RequestNo = 'OPR-2026-004');
+
+IF @Opr001Id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem001)
+INSERT INTO WorkItems (Id, TenantId, OperationRequestId, OrganizationUnitId, Title, [Description], [Status], [Priority], DueDate, CreatedAt, CreatedByUserId, IsDeleted) VALUES
+  (@WorkItem001, @TenantId, @Opr001Id, @ItDeptId, N'Khảo sát cấu hình máy chủ dev', N'Kiểm tra CPU, RAM, ổ đĩa và nhu cầu nâng cấp thực tế.', 2, 3, DATEADD(DAY,3,GETDATE()), DATEADD(DAY,-4,@Now), @ManagerId, 0),
+  (@WorkItem002, @TenantId, @Opr001Id, @ItDeptId, N'Lập báo giá RAM và CPU', N'Tổng hợp phương án mua sắm để gửi trưởng bộ phận duyệt.', 1, 3, DATEADD(DAY,6,GETDATE()), DATEADD(DAY,-3,@Now), @StaffId, 0);
+
+IF @Opr002Id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem003)
+INSERT INTO WorkItems (Id, TenantId, OperationRequestId, OrganizationUnitId, Title, [Description], [Status], [Priority], DueDate, CreatedAt, CreatedByUserId, IsDeleted) VALUES
+  (@WorkItem003, @TenantId, @Opr002Id, @HrDeptId, N'Xác nhận lịch training với phòng ban', N'Đang chờ danh sách nhân sự tham gia từ các trưởng bộ phận.', 3, 2, DATEADD(DAY,5,GETDATE()), DATEADD(DAY,-2,@Now), @StaffId, 0);
+
+IF @Opr003Id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem004)
+INSERT INTO WorkItems (Id, TenantId, OperationRequestId, OrganizationUnitId, Title, [Description], [Status], [Priority], DueDate, CreatedAt, CreatedByUserId, IsDeleted) VALUES
+  (@WorkItem004, @TenantId, @Opr003Id, @ItDeptId, N'Cấu hình Grafana dashboard', N'Tạo dashboard giám sát CPU, RAM, request latency và disk usage.', 4, 4, DATEADD(DAY,-1,GETDATE()), DATEADD(DAY,-8,@Now), @ManagerId, 0),
+  (@WorkItem005, @TenantId, @Opr003Id, @ItDeptId, N'Kiểm tra cảnh báo Prometheus', N'Test rule cảnh báo khi CPU vượt ngưỡng và gửi notification nội bộ.', 2, 4, DATEADD(DAY,2,GETDATE()), DATEADD(DAY,-6,@Now), @ManagerId, 0);
+
+IF @Opr004Id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem006)
+INSERT INTO WorkItems (Id, TenantId, OperationRequestId, OrganizationUnitId, Title, [Description], [Status], [Priority], DueDate, CreatedAt, CreatedByUserId, IsDeleted) VALUES
+  (@WorkItem006, @TenantId, @Opr004Id, @ItDeptId, N'Đóng yêu cầu license cũ', N'Không tiếp tục vì đã chuyển sang gói license dùng chung.', 5, 2, DATEADD(DAY,-2,GETDATE()), DATEADD(DAY,-12,@Now), @StaffId, 0);
+
+IF EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem001)
+   AND EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem002)
+   AND EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem003)
+   AND EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem004)
+   AND EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem005)
+   AND EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem006)
+   AND NOT EXISTS (SELECT 1 FROM WorkItemAssignments WHERE WorkItemId = @WorkItem001 AND AssignedToUserId = @ManagerId)
+INSERT INTO WorkItemAssignments (Id, TenantId, WorkItemId, AssignedToUserId, AssignedAt, CompletedAt, CreatedAt, CreatedByUserId, IsDeleted) VALUES
+  (NEWID(), @TenantId, @WorkItem001, @ManagerId, DATEADD(DAY,-4,@Now), NULL, DATEADD(DAY,-4,@Now), @ManagerId, 0),
+  (NEWID(), @TenantId, @WorkItem002, @StaffId,   DATEADD(DAY,-3,@Now), NULL, DATEADD(DAY,-3,@Now), @StaffId, 0),
+  (NEWID(), @TenantId, @WorkItem003, @StaffId,   DATEADD(DAY,-2,@Now), NULL, DATEADD(DAY,-2,@Now), @StaffId, 0),
+  (NEWID(), @TenantId, @WorkItem004, @ManagerId, DATEADD(DAY,-8,@Now), DATEADD(DAY,-1,@Now), DATEADD(DAY,-8,@Now), @ManagerId, 0),
+  (NEWID(), @TenantId, @WorkItem005, @ManagerId, DATEADD(DAY,-6,@Now), NULL, DATEADD(DAY,-6,@Now), @ManagerId, 0),
+  (NEWID(), @TenantId, @WorkItem006, @StaffId,   DATEADD(DAY,-12,@Now), NULL, DATEADD(DAY,-12,@Now), @StaffId, 0);
+
+IF EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem004)
+   AND EXISTS (SELECT 1 FROM WorkItems WHERE Id = @WorkItem005)
+   AND NOT EXISTS (SELECT 1 FROM WorkItemChecklists WHERE WorkItemId = @WorkItem004)
+INSERT INTO WorkItemChecklists (Id, TenantId, WorkItemId, Title, SortOrder, IsCompleted, CompletedByUserId, CompletedAt, CreatedAt, CreatedByUserId, IsDeleted) VALUES
+  (NEWID(), @TenantId, @WorkItem004, N'Tạo dashboard hệ thống', 1, 1, @ManagerId, DATEADD(DAY,-2,@Now), DATEADD(DAY,-8,@Now), @ManagerId, 0),
+  (NEWID(), @TenantId, @WorkItem004, N'Kiểm tra dữ liệu hiển thị', 2, 1, @ManagerId, DATEADD(DAY,-1,@Now), DATEADD(DAY,-8,@Now), @ManagerId, 0),
+  (NEWID(), @TenantId, @WorkItem005, N'Test rule cảnh báo CPU', 1, 1, @ManagerId, DATEADD(DAY,-1,@Now), DATEADD(DAY,-6,@Now), @ManagerId, 0),
+  (NEWID(), @TenantId, @WorkItem005, N'Test rule cảnh báo dung lượng đĩa', 2, 0, NULL, NULL, DATEADD(DAY,-6,@Now), @ManagerId, 0);
 
 -- ============================================================================
 -- 9) Budgets

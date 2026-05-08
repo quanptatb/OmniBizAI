@@ -55,10 +55,15 @@
 <div class="card glass-card">
     <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
         <h5 class="card-title mb-0"><i class="fa-solid fa-list-check me-2 text-primary"></i>Danh sách yêu cầu</h5>
-        @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
-        {
-            <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Tạo yêu cầu mới</a>
-        }
+        <div class="d-flex gap-2">
+            <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light border">
+                <i class="fa-solid fa-table-columns me-2"></i>Kanban
+            </a>
+            @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+            {
+                <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Tạo yêu cầu mới</a>
+            }
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

@@ -53,7 +53,7 @@ Nguyên tắc mở rộng:
 | Auth/RBAC/Security | 8 | Đăng nhập, role, permission, session, phân quyền đa tenant |
 | Tổ chức & nhân sự | 6 | Cây phòng ban, chức danh, hồ sơ nhân sự, phân công phòng ban |
 | CRM, đối tác, danh mục dịch vụ | 7 | Khách hàng, nhà cung cấp, sản phẩm/dịch vụ, đơn vị tính |
-| Vận hành & công việc | 9 | Yêu cầu vận hành, dòng chi tiết, công việc, checklist, bình luận, file |
+| Vận hành & công việc | 9 | Yêu cầu vận hành, dòng chi tiết, Kanban công việc, checklist, bình luận, file |
 | Workflow & phê duyệt | 6 | Quy trình động, trạng thái, lịch sử, việc cần duyệt |
 | Mua hàng & tài chính cơ bản | 8 | Đề nghị mua, đơn mua, thanh toán, ngân sách, chi phí |
 | KPI, báo cáo, dashboard | 6 | KPI, check-in, định nghĩa báo cáo, widget dashboard |
@@ -93,7 +93,7 @@ Nguyên tắc mở rộng:
 | 27 | `UnitsOfMeasure` | Catalog | Đơn vị tính | `TenantId` |
 | 28 | `OperationRequests` | Operation | Yêu cầu vận hành/công việc cấp cao | `TenantId`, `CustomerId`, `OrganizationUnitId` |
 | 29 | `OperationRequestLines` | Operation | Dòng chi tiết yêu cầu | `OperationRequestId`, `ProductServiceId` |
-| 30 | `WorkItems` | Operation | Công việc phát sinh từ yêu cầu | `OperationRequestId`, `OrganizationUnitId` |
+| 30 | `WorkItems` | Operation | Công việc phát sinh từ yêu cầu, hiển thị theo Kanban | `OperationRequestId`, `OrganizationUnitId` |
 | 31 | `WorkItemAssignments` | Operation | Phân công nhân sự xử lý công việc | `WorkItemId`, `AssignedToUserId` |
 | 32 | `WorkItemChecklists` | Operation | Checklist kiểm soát chất lượng/tiến độ | `WorkItemId` |
 | 33 | `WorkItemComments` | Operation | Trao đổi nội bộ trên công việc | `WorkItemId`, `UserId` |
@@ -137,7 +137,7 @@ Nguyên tắc mở rộng:
 | Auth/RBAC | Login, role, quyền, ẩn/hiện menu, session | `AppUsers`, `RoleDefinitions`, `PermissionDefinitions`, `PermissionAssignments`, `UserRoleAssignments` | Permission phải kiểm tra cả UI và controller |
 | Tổ chức đa cấp | Cây phòng ban, chức danh, nhân sự, lịch làm việc | `OrganizationUnits`, `Positions`, `EmployeeProfiles`, `EmployeeDepartmentAssignments` | Dữ liệu nhân sự lọc theo `TenantId` và phòng ban |
 | CRM/Catalog | Khách hàng, site, người liên hệ, sản phẩm/dịch vụ | `Customers`, `CustomerContacts`, `CustomerSites`, `ProductServices` | Là nền cho request, báo cáo, AI context |
-| Vận hành | Tạo yêu cầu, tách công việc, checklist, bình luận, file | `OperationRequests`, `WorkItems`, `WorkItemAssignments`, `Attachments` | Đây là luồng demo chính |
+| Vận hành | Tạo yêu cầu, tách công việc, Kanban workflow, checklist, bình luận, file | `OperationRequests`, `WorkItems`, `WorkItemAssignments`, `Attachments` | Đây là luồng demo chính |
 | Workflow/Approval | Gửi duyệt, duyệt/từ chối, xem lịch sử | `WorkflowDefinitions`, `WorkflowInstances`, `WorkflowHistory`, `ApprovalTasks` | Workflow động để tránh hard-code trạng thái |
 | Mua hàng/Tài chính | Đề nghị mua, PO, đề nghị thanh toán, ngân sách, chi phí | `ProcurementRequests`, `PurchaseOrders`, `PaymentRequests`, `Budgets`, `Expenses` | Đủ cho SME quản lý chi phí cơ bản |
 | KPI/Báo cáo | KPI theo cấp, check-in, dashboard, báo cáo động | `KpiDefinitions`, `KpiTargets`, `KpiResults`, `DashboardWidgets` | Dữ liệu phục vụ lãnh đạo và AI |
@@ -283,6 +283,7 @@ erDiagram
     ProductServices ||--o{ OperationRequestLines : selected
     OperationRequests ||--o{ OperationRequestLines : includes
     OperationRequests ||--o{ ApprovalTasks : requires
+    OperationRequests ||--o{ WorkItems : tracks
     OperationRequests ||--o{ Attachments : has
     OperationRequests ||--o{ AiInsights : analyzed_by
     WorkflowDefinitions ||--o{ WorkflowSteps : has
@@ -371,6 +372,18 @@ erDiagram
         nvarchar Note
     }
 
+    WorkItems {
+        uniqueidentifier Id PK
+        uniqueidentifier TenantId FK
+        uniqueidentifier OperationRequestId FK
+        uniqueidentifier OrganizationUnitId FK
+        nvarchar Title
+        nvarchar Description
+        int Status
+        int Priority
+        date DueDate
+    }
+
     ApprovalTasks {
         uniqueidentifier Id PK
         uniqueidentifier TenantId FK
@@ -418,6 +431,7 @@ erDiagram
     OrganizationUnits ||--o{ OperationRequests : OrganizationUnitId
     AppUsers ||--o{ OperationRequests : CreatedByUserId
     OperationRequests ||--o{ OperationRequestLines : OperationRequestId
+    OperationRequests ||--o{ WorkItems : OperationRequestId
     OperationRequests ||--o{ ApprovalTasks : TargetId
     OperationRequests ||--o{ AiInsights : ContextId
     Tenants ||--o{ AuditLogs : TenantId
@@ -437,6 +451,7 @@ erDiagram
 | `ProductServices` | Sản phẩm/dịch vụ | Operations |
 | `OperationRequests` | Yêu cầu vận hành/công việc chính | Operations |
 | `OperationRequestLines` | Dòng chi tiết của yêu cầu | Operations |
+| `WorkItems` | Thẻ công việc dùng cho Kanban workflow | Operations |
 | `WorkflowDefinitions` | Định nghĩa workflow | Workflow |
 | `WorkflowSteps` | Bước trong workflow | Workflow |
 | `ApprovalTasks` | Việc cần duyệt | Approval |
@@ -503,7 +518,21 @@ erDiagram
 | `TotalAmount` | `decimal(18,2)` | Yes |  | Tổng giá trị |
 | `Description` | `nvarchar(2000)` | Yes |  | Mô tả |
 
-### 10.5. `ApprovalTasks`
+### 10.5. `WorkItems`
+
+| Cột | Kiểu SQL Server | Null | Key | Mô tả |
+| --- | --- | --- | --- | --- |
+| `Id` | `uniqueidentifier` | No | PK | Khóa chính thẻ công việc |
+| `TenantId` | `uniqueidentifier` | No | FK | Doanh nghiệp |
+| `OperationRequestId` | `uniqueidentifier` | No | FK | Yêu cầu vận hành nguồn |
+| `OrganizationUnitId` | `uniqueidentifier` | No | FK | Bộ phận phụ trách |
+| `Title` | `nvarchar(250)` | No |  | Tiêu đề công việc |
+| `Description` | `nvarchar(2000)` | Yes |  | Mô tả xử lý |
+| `Status` | `int` | No | Index | Todo/InProgress/Blocked/Done/Cancelled |
+| `Priority` | `int` | No |  | Low/Normal/High/Critical |
+| `DueDate` | `date` | Yes | Index | Hạn xử lý |
+
+### 10.6. `ApprovalTasks`
 
 | Cột | Kiểu SQL Server | Null | Key | Mô tả |
 | --- | --- | --- | --- | --- |
@@ -518,7 +547,7 @@ erDiagram
 | `DecisionNote` | `nvarchar(1000)` | Yes |  | Ghi chú duyệt/từ chối |
 | `DecidedAt` | `datetimeoffset` | Yes |  | Thời điểm quyết định |
 
-### 10.6. `AiInsights`
+### 10.7. `AiInsights`
 
 | Cột | Kiểu SQL Server | Null | Key | Mô tả |
 | --- | --- | --- | --- | --- |
@@ -542,6 +571,7 @@ erDiagram
 | `AppUsers` | `UX_AppUsers_TenantId_Email` | Không trùng email trong tenant |
 | `OperationRequests` | `UX_OperationRequests_TenantId_RequestNo` | Không trùng số yêu cầu |
 | `OperationRequests` | `IX_OperationRequests_TenantId_Status_DueDate` | Tối ưu dashboard |
+| `WorkItems` | `IX_WorkItems_TenantId_Status_DueDate` | Tối ưu Kanban theo cột trạng thái và hạn xử lý |
 | `ApprovalTasks` | `IX_ApprovalTasks_TenantId_Status_AssignedToUserId` | Tối ưu danh sách cần duyệt |
 | `AiInsights` | `IX_AiInsights_TenantId_ContextType_ContextId` | Tối ưu truy vấn insight |
 | `AuditLogs` | `IX_AuditLogs_TenantId_CreatedAt` | Tối ưu audit theo thời gian |
@@ -619,6 +649,7 @@ ON OperationRequests(TenantId, Status, DueDate);
 | Role | 6 | Tenant Admin, Executive, Manager, Staff, Accountant, Auditor |
 | Permission | 10+ | Theo blueprint kỹ thuật |
 | OperationRequest | 20 | Đủ trạng thái Draft/InReview/Approved/Completed/Rejected |
+| WorkItem | 12 | Đủ cột Kanban Todo/InProgress/Blocked/Done/Cancelled |
 | ApprovalTask | 10 | Có pending và completed |
 | KpiResult | 12 | Theo tháng/phòng ban |
 | AiInsight | 5 | Insight mẫu khi chưa có API key |

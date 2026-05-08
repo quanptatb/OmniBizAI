@@ -99,6 +99,7 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
     public void Configure(EntityTypeBuilder<WorkItem> builder)
     {
         builder.HasKey(e => e.Id);
+        builder.HasIndex(e => new { e.TenantId, e.Status, e.DueDate });
         builder.Property(e => e.Title).HasMaxLength(250).IsRequired();
         builder.Property(e => e.Status).HasConversion<int>();
         builder.Property(e => e.Priority).HasConversion<int>();

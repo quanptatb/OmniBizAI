@@ -198,6 +198,269 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     }
 }
 
+// ─── Work Kanban ─────────────────────────────────────────────────────────────
+public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
+{
+    public async Task<KanbanBoardViewModel> GetBoardAsync(string? search, Guid? departmentId)
+    {
+        var tid = tenant.TenantId;
+        var query = db.WorkItems
+            .AsNoTracking()
+            .Include(w => w.OperationRequest)
+            .Include(w => w.OrganizationUnit)
+            .Include(w => w.Assignments)
+                .ThenInclude(a => a.AssignedToUser)
+            .Include(w => w.Checklists)
+            .Where(w => w.TenantId == tid && !w.IsDeleted);
+
+        if (departmentId.HasValue)
+            query = query.Where(w => w.OrganizationUnitId == departmentId.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(w =>
+                w.Title.Contains(term)
+                || (w.Description != null && w.Description.Contains(term))
+                || (w.OperationRequest != null && (w.OperationRequest.RequestNo.Contains(term) || w.OperationRequest.Title.Contains(term))));
+        }
+
+        var items = await query
+            .OrderBy(w => w.DueDate ?? DateOnly.MaxValue)
+            .ThenByDescending(w => w.Priority)
+            .ThenByDescending(w => w.CreatedAt)
+            .ToListAsync();
+
+        var columns = GetKanbanColumns();
+        var columnsByStatus = columns.ToDictionary(c => c.Status);
+        foreach (var item in items)
+        {
+            if (!columnsByStatus.TryGetValue(item.Status, out var column))
+                continue;
+
+            column.Items.Add(new KanbanCardViewModel
+            {
+                Id = item.Id,
+                OperationRequestId = item.OperationRequestId,
+                RequestNo = item.OperationRequest?.RequestNo ?? "",
+                RequestTitle = item.OperationRequest?.Title ?? "",
+                Title = item.Title,
+                Description = item.Description,
+                Status = item.Status,
+                Department = item.OrganizationUnit?.Name ?? "",
+                Priority = item.Priority.ToString(),
+                PriorityClass = GetPriorityClass(item.Priority),
+                AssignedTo = item.Assignments
+                    .OrderByDescending(a => a.AssignedAt)
+                    .Select(a => a.AssignedToUser?.FullName)
+                    .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)),
+                DueDate = item.DueDate,
+                ChecklistDone = item.Checklists.Count(c => c.IsCompleted && !c.IsDeleted),
+                ChecklistTotal = item.Checklists.Count(c => !c.IsDeleted)
+            });
+        }
+
+        return new KanbanBoardViewModel
+        {
+            SearchTerm = search,
+            DepartmentFilter = departmentId,
+            Columns = columns,
+            Departments = await GetDepartmentOptionsAsync(tid),
+            OperationRequests = await GetOperationRequestOptionsAsync(tid),
+            Assignees = await GetAssigneeOptionsAsync(tid),
+            CreateForm = new WorkItemCreateViewModel { OrganizationUnitId = departmentId }
+        };
+    }
+
+    public async Task<(bool Success, string Message)> CreateAsync(WorkItemCreateViewModel input)
+    {
+        var tid = tenant.TenantId;
+        var request = await db.OperationRequests
+            .FirstOrDefaultAsync(r => r.Id == input.OperationRequestId && r.TenantId == tid && !r.IsDeleted);
+
+        if (request is null)
+            return (false, "Yêu cầu vận hành không tồn tại.");
+
+        if (request.Status is OperationStatus.Rejected or OperationStatus.Cancelled)
+            return (false, "Không thể tạo công việc cho yêu cầu đã từ chối hoặc đã hủy.");
+
+        var departmentId = input.OrganizationUnitId ?? request.OrganizationUnitId;
+        var departmentExists = await db.OrganizationUnits
+            .AnyAsync(o => o.Id == departmentId && o.TenantId == tid && o.IsActive && !o.IsDeleted);
+        if (!departmentExists)
+            return (false, "Phòng ban phụ trách không hợp lệ.");
+
+        if (input.DueDate.HasValue && input.DueDate.Value < DateOnly.FromDateTime(DateTime.Today))
+            return (false, "Hạn xử lý không được nhỏ hơn ngày hôm nay.");
+
+        AppUser? assignee = null;
+        if (input.AssignedToUserId.HasValue)
+        {
+            assignee = await db.AppUsers
+                .FirstOrDefaultAsync(u => u.Id == input.AssignedToUserId.Value && u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted);
+            if (assignee is null)
+                return (false, "Người được giao không hợp lệ.");
+        }
+
+        var workItem = new WorkItem
+        {
+            TenantId = tid,
+            OperationRequestId = request.Id,
+            OrganizationUnitId = departmentId,
+            Title = input.Title.Trim(),
+            Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim(),
+            Priority = input.Priority,
+            Status = WorkItemStatus.Todo,
+            DueDate = input.DueDate,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        db.WorkItems.Add(workItem);
+
+        if (assignee is not null)
+        {
+            db.WorkItemAssignments.Add(new WorkItemAssignment
+            {
+                TenantId = tid,
+                WorkItemId = workItem.Id,
+                AssignedToUserId = assignee.Id,
+                AssignedAt = DateTimeOffset.UtcNow,
+                CreatedByUserId = tenant.UserId,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        if (request.Status is OperationStatus.Approved or OperationStatus.Completed)
+        {
+            request.Status = OperationStatus.InProgress;
+            request.UpdatedAt = DateTimeOffset.UtcNow;
+            request.UpdatedByUserId = tenant.UserId;
+        }
+
+        db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tid,
+            UserId = tenant.UserId,
+            UserName = tenant.UserFullName,
+            Action = "Create",
+            EntityName = "WorkItem",
+            EntityId = workItem.Id,
+            NewValuesJson = $"{{\"Title\":\"{workItem.Title}\",\"Status\":\"{workItem.Status}\"}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+        return (true, "Đã tạo thẻ công việc trên Kanban.");
+    }
+
+    public async Task<(bool Success, string Message)> MoveAsync(Guid workItemId, WorkItemStatus newStatus)
+    {
+        var item = await db.WorkItems
+            .Include(w => w.OperationRequest)
+            .Include(w => w.Assignments)
+            .FirstOrDefaultAsync(w => w.Id == workItemId && w.TenantId == tenant.TenantId && !w.IsDeleted);
+
+        if (item is null)
+            return (false, "Không tìm thấy công việc.");
+
+        if (!Enum.IsDefined(newStatus))
+            return (false, "Trạng thái Kanban không hợp lệ.");
+
+        if (item.Status == newStatus)
+            return (true, "Trạng thái công việc không thay đổi.");
+
+        var oldStatus = item.Status;
+        item.Status = newStatus;
+        item.UpdatedAt = DateTimeOffset.UtcNow;
+        item.UpdatedByUserId = tenant.UserId;
+
+        foreach (var assignment in item.Assignments.Where(a => !a.IsDeleted))
+        {
+            assignment.CompletedAt = newStatus == WorkItemStatus.Done ? DateTimeOffset.UtcNow : null;
+            assignment.UpdatedAt = DateTimeOffset.UtcNow;
+            assignment.UpdatedByUserId = tenant.UserId;
+        }
+
+        await SyncOperationStatusAsync(item);
+
+        db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tenant.TenantId,
+            UserId = tenant.UserId,
+            UserName = tenant.UserFullName,
+            Action = "MoveKanbanCard",
+            EntityName = "WorkItem",
+            EntityId = item.Id,
+            OldValuesJson = $"{{\"Status\":\"{oldStatus}\"}}",
+            NewValuesJson = $"{{\"Status\":\"{newStatus}\"}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+        return (true, "Đã cập nhật trạng thái Kanban.");
+    }
+
+    private async Task SyncOperationStatusAsync(WorkItem item)
+    {
+        var request = item.OperationRequest;
+        if (request is null || request.Status is OperationStatus.Draft or OperationStatus.Submitted or OperationStatus.InReview or OperationStatus.Rejected or OperationStatus.Cancelled)
+            return;
+
+        var remainingActiveItems = await db.WorkItems.CountAsync(w =>
+            w.OperationRequestId == item.OperationRequestId
+            && w.Id != item.Id
+            && !w.IsDeleted
+            && w.Status != WorkItemStatus.Done
+            && w.Status != WorkItemStatus.Cancelled);
+
+        request.Status = item.Status == WorkItemStatus.Done && remainingActiveItems == 0
+            ? OperationStatus.Completed
+            : OperationStatus.InProgress;
+        request.UpdatedAt = DateTimeOffset.UtcNow;
+        request.UpdatedByUserId = tenant.UserId;
+    }
+
+    private static List<KanbanColumnViewModel> GetKanbanColumns() =>
+    [
+        new() { Status = WorkItemStatus.Todo, Title = "Cần làm", Description = "Việc đã được ghi nhận và chờ xử lý.", AccentClass = "todo" },
+        new() { Status = WorkItemStatus.InProgress, Title = "Đang xử lý", Description = "Việc đang được phòng ban phụ trách thực hiện.", AccentClass = "progress" },
+        new() { Status = WorkItemStatus.Blocked, Title = "Đang vướng", Description = "Việc bị chặn bởi thiếu thông tin, nguồn lực hoặc phê duyệt.", AccentClass = "blocked" },
+        new() { Status = WorkItemStatus.Done, Title = "Hoàn thành", Description = "Việc đã hoàn tất và sẵn sàng nghiệm thu/báo cáo.", AccentClass = "done" },
+        new() { Status = WorkItemStatus.Cancelled, Title = "Đã hủy", Description = "Việc không tiếp tục thực hiện.", AccentClass = "cancelled" }
+    ];
+
+    private static string GetPriorityClass(PriorityLevel priority) => priority switch
+    {
+        PriorityLevel.Low => "priority-low",
+        PriorityLevel.Normal => "priority-normal",
+        PriorityLevel.High => "priority-high",
+        PriorityLevel.Critical => "priority-critical",
+        _ => "priority-normal"
+    };
+
+    private Task<List<SelectOption>> GetDepartmentOptionsAsync(Guid tenantId) =>
+        db.OrganizationUnits
+            .Where(o => o.TenantId == tenantId && o.IsActive && !o.IsDeleted)
+            .OrderBy(o => o.Name)
+            .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
+            .ToListAsync();
+
+    private Task<List<SelectOption>> GetAssigneeOptionsAsync(Guid tenantId) =>
+        db.AppUsers
+            .Where(u => u.TenantId == tenantId && u.Status == UserStatus.Active && !u.IsDeleted)
+            .OrderBy(u => u.FullName)
+            .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName })
+            .ToListAsync();
+
+    private Task<List<SelectOption>> GetOperationRequestOptionsAsync(Guid tenantId) =>
+        db.OperationRequests
+            .Where(r => r.TenantId == tenantId && !r.IsDeleted && r.Status != OperationStatus.Rejected && r.Status != OperationStatus.Cancelled)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new SelectOption { Value = r.Id.ToString(), Text = r.RequestNo + " - " + r.Title })
+            .ToListAsync();
+}
+
 // ─── Approval ────────────────────────────────────────────────────────────────
 public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
 {
