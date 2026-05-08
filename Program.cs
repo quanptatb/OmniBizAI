@@ -66,10 +66,19 @@ app.MapControllerRoute(
 
 // ── Database ─────────────────────────────────────────────────────────────────
 // Apply EF Core migrations on startup.
+// After migration, fix NULL passwords for SQL-seeded Identity users.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await db.Database.MigrateAsync();
+
+    // Fix passwords for users seeded via SQL (SQL can't hash ASP.NET Identity passwords)
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser<Guid>>>();
+    var usersWithoutPassword = await db.Users.Where(u => u.PasswordHash == null).ToListAsync();
+    foreach (var user in usersWithoutPassword)
+    {
+        await userManager.AddPasswordAsync(user, "123");
+    }
 }
 
 app.Run();
