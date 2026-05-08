@@ -1,0 +1,62 @@
+@model OmniBizAI.ViewModels.OrgUnitCreateViewModel
+@{
+    ViewData["Title"] = "Thêm Phòng ban";
+    ViewData["Breadcrumb"] = "<span>Tổ chức</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Thêm mới</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card glass-card border-top border-primary border-3">
+            <div class="card-header bg-transparent border-bottom p-4">
+                <h4 class="card-title mb-0"><i class="fa-solid fa-building me-2 text-primary"></i>Thêm phòng ban mới</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label fw-bold">Mã phòng ban <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control bg-light" placeholder="VD: DEPT-HR" />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label fw-bold">Tên phòng ban <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control bg-light" placeholder="VD: Phòng Nhân sự" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ParentId" class="form-label fw-bold">Thuộc đơn vị cha</label>
+                            <select asp-for="ParentId" class="form-select bg-light">
+                                <option value="">-- Cấp cao nhất --</option>
+                                @foreach (var opt in Model.ParentOptions)
+                                {
+                                    <option value="@opt.Value">@opt.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ManagerUserId" class="form-label fw-bold">Trưởng bộ phận</label>
+                            <select asp-for="ManagerUserId" class="form-select bg-light">
+                                <option value="">-- Chưa chỉ định --</option>
+                                @foreach (var opt in Model.UserOptions)
+                                {
+                                    <option value="@opt.Value">@opt.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-4 d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-light border px-4">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i>Tạo phòng ban</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

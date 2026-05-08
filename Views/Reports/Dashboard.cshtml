@@ -1,0 +1,113 @@
+@model OmniBizAI.ViewModels.ReportSummaryViewModel
+@{
+    ViewData["Title"] = "Báo cáo Vận hành";
+    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Dashboard</span>";
+}
+
+<div class="card glass-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Từ ngày</label>
+                <input type="date" name="from" value="@Model.Filter.FromDate.ToString("yyyy-MM-dd")" class="form-control bg-light" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Đến ngày</label>
+                <input type="date" name="to" value="@Model.Filter.ToDate.ToString("yyyy-MM-dd")" class="form-control bg-light" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Phòng ban</label>
+                <select name="dept" class="form-select bg-light">
+                    <option value="">Tất cả</option>
+                    @foreach (var d in Model.Filter.Departments)
+                    {
+                        <option value="@d.Value" selected="@(Model.Filter.OrganizationUnitId?.ToString() == d.Value)">@d.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-chart-bar me-2"></i>Phân tích</button>
+                <a asp-action="Export" asp-route-from="@Model.Filter.FromDate" asp-route-to="@Model.Filter.ToDate" class="btn btn-outline-success" title="Xuất CSV">
+                    <i class="fa-solid fa-file-csv"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card glass-card text-center p-4 border-bottom border-primary border-3">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Tổng yêu cầu</div>
+            <h2 class="fw-bold text-primary mb-0">@Model.TotalRequests</h2>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card glass-card text-center p-4 border-bottom border-success border-3">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Hoàn thành</div>
+            <h2 class="fw-bold text-success mb-0">@Model.CompletedRequests</h2>
+            <span class="small text-muted">(@Model.CompletionRate%)</span>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card glass-card text-center p-4 border-bottom border-warning border-3">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Đang chờ</div>
+            <h2 class="fw-bold text-warning mb-0">@Model.PendingRequests</h2>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card glass-card text-center p-4 border-bottom border-danger border-3">
+            <div class="text-muted small fw-bold text-uppercase mb-1">Từ chối</div>
+            <h2 class="fw-bold text-danger mb-0">@Model.RejectedRequests</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card glass-card h-100">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="card-title mb-0"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Phân bổ theo trạng thái</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="reportStatusChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card glass-card h-100">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="card-title mb-0"><i class="fa-solid fa-list me-2 text-primary"></i>Chi tiết trạng thái</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    @foreach (var s in Model.ByStatus)
+                    {
+                        <li class="list-group-item bg-transparent d-flex justify-content-between px-0 py-3">
+                            <span class="fw-medium">@s.Status</span>
+                            <span class="badge bg-primary rounded-pill px-3">@s.Count</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const statuses = @Json.Serialize(Model.ByStatus.Select(x => x.Status));
+            const counts = @Json.Serialize(Model.ByStatus.Select(x => x.Count));
+            const colors = ['#4f46e5','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899','#64748b'];
+            new Chart(document.getElementById('reportStatusChart'), {
+                type: 'bar',
+                data: {
+                    labels: statuses,
+                    datasets: [{ label: 'Số lượng', data: counts, backgroundColor: colors.slice(0, statuses.length), borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        });
+    </script>
+}

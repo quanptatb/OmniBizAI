@@ -1,0 +1,97 @@
+@model List<OmniBizAI.ViewModels.AiInsightListItem>
+@{
+    ViewData["Title"] = "AI Copilot";
+    ViewData["Breadcrumb"] = "<span>AI</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Copilot</span>";
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="ai-panel">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="icon-shape text-white" style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);">
+                    <i class="fa-solid fa-robot fa-lg"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">AI Copilot</h5>
+                    <p class="text-muted small mb-0">Phân tích dữ liệu vận hành và đưa ra đề xuất thông minh</p>
+                </div>
+            </div>
+
+            <form id="aiAskForm">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Câu hỏi phân tích</label>
+                    <textarea id="aiQuestion" class="form-control" rows="4" placeholder="VD: Phân tích tình hình yêu cầu vận hành trong tháng này. Có rủi ro gì cần chú ý?" maxlength="1000"></textarea>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small class="text-muted">Tối đa 1000 ký tự</small>
+                        <small class="text-muted" id="charCount">0/1000</small>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="background:linear-gradient(135deg,#8b5cf6,#06b6d4);border:none;border-radius:10px;">
+                    <i class="fa-solid fa-paper-plane me-2"></i>Gửi phân tích
+                </button>
+            </form>
+
+            <div id="aiLoading" class="text-center py-4 text-muted" style="display:none;">
+                <div class="ai-spinner me-2"></div>
+                <span>AI đang phân tích dữ liệu...</span>
+            </div>
+
+            <div id="aiAnswerArea"></div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card glass-card">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+                <h5 class="card-title mb-0"><i class="fa-solid fa-history me-2 text-primary"></i>Lịch sử phân tích</h5>
+                <span class="badge bg-primary">@Model.Count kết quả</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-robot fa-4x mb-3 opacity-50"></i>
+                        <h5>Chưa có kết quả phân tích</h5>
+                        <p class="small">Hãy đặt câu hỏi cho AI để bắt đầu.</p>
+                    </div>
+                }
+
+                @foreach (var insight in Model)
+                {
+                    <div class="p-4 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                @{
+                                    var riskCls = insight.RiskLevel.ToLower();
+                                }
+                                <span class="ai-risk-badge @riskCls">
+                                    <i class="fa-solid @(riskCls == "high" ? "fa-fire" : riskCls == "medium" ? "fa-exclamation-triangle" : "fa-shield-halved")"></i>
+                                    @insight.RiskLevel
+                                </span>
+                                <span class="badge bg-light text-dark border">@insight.ContextType</span>
+                            </div>
+                            <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>@insight.CreatedAt.ToString("HH:mm dd/MM/yyyy")</small>
+                        </div>
+                        <p class="fw-medium mb-1 text-primary"><i class="fa-solid fa-question-circle me-1"></i> @insight.Question</p>
+                        <p class="mb-1 text-sm">@insight.Summary</p>
+                        @if (!string.IsNullOrEmpty(insight.Recommendation))
+                        {
+                            <div class="p-2 bg-light rounded border text-sm mt-2" style="white-space:pre-line;">@insight.Recommendation</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const textarea = document.getElementById('aiQuestion');
+        const counter = document.getElementById('charCount');
+        if (textarea && counter) {
+            textarea.addEventListener('input', () => counter.textContent = `${textarea.value.length}/1000`);
+        }
+    </script>
+}

@@ -1,0 +1,57 @@
+@model OmniBizAI.ViewModels.BudgetListViewModel
+@{
+    ViewData["Title"] = "Quản lý Ngân sách";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Ngân sách</span>";
+}
+
+<div class="card glass-card">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="card-title mb-0"><i class="fa-solid fa-wallet me-2 text-primary"></i>Ngân sách theo phòng ban</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th class="ps-4">Tên ngân sách</th>
+                        <th>Phòng ban</th>
+                        <th>Tổng ngân sách</th>
+                        <th>Đã sử dụng</th>
+                        <th>Tiến độ</th>
+                        <th>Trạng thái</th>
+                        <th>Kỳ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Items)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold">@b.Name</td>
+                            <td>@b.Department</td>
+                            <td class="fw-medium">@b.TotalAmount.ToString("N0") ₫</td>
+                            <td class="text-muted">@b.UsedAmount.ToString("N0") ₫</td>
+                            <td style="min-width:140px;">
+                                @{
+                                    var pct = b.UsagePercent;
+                                    var barColor = pct > 90 ? "bg-danger" : pct > 70 ? "bg-warning" : "bg-success";
+                                }
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:8px;border-radius:4px;">
+                                        <div class="progress-bar @barColor progress-bar-animated" style="width:@pct%"></div>
+                                    </div>
+                                    <span class="small fw-bold text-muted">@pct%</span>
+                                </div>
+                            </td>
+                            <td><span class="badge @(b.Status == "Active" ? "bg-success" : "bg-secondary") rounded-pill">@b.Status</span></td>
+                            <td class="text-muted small">@b.PeriodStart.ToString("dd/MM") – @b.PeriodEnd.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-5 text-muted"><i class="fa-solid fa-wallet fa-3x mb-3 d-block opacity-50"></i>Chưa có ngân sách</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

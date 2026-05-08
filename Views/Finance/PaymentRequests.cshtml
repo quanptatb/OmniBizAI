@@ -1,0 +1,49 @@
+@model OmniBizAI.ViewModels.PaymentRequestListViewModel
+@{
+    ViewData["Title"] = "Đề nghị Thanh toán";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Thanh toán</span>";
+}
+
+<div class="card glass-card">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="card-title mb-0"><i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i>Đề nghị thanh toán</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th class="ps-4">Mã ĐN</th>
+                        <th>Tiêu đề</th>
+                        <th>Phòng ban</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Items)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-primary">@p.RequestNo</td>
+                            <td>@p.Title</td>
+                            <td>@p.Department</td>
+                            <td class="fw-medium">@p.TotalAmount.ToString("N0") ₫</td>
+                            <td>
+                                @{
+                                    var cls = p.Status switch { "Approved" => "bg-success", "Rejected" => "bg-danger", "Pending" => "bg-warning text-dark", _ => "bg-secondary" };
+                                }
+                                <span class="badge @cls rounded-pill">@p.Status</span>
+                            </td>
+                            <td class="text-muted small">@p.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-file-invoice fa-3x mb-3 d-block opacity-50"></i>Chưa có đề nghị thanh toán</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

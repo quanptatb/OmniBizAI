@@ -1,0 +1,106 @@
+@model OmniBizAI.ViewModels.OperationRequestCreateViewModel
+@{
+    ViewData["Title"] = "Tạo Yêu cầu Vận hành";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Tạo mới</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card glass-card border-top border-primary border-3">
+            <div class="card-header bg-transparent border-bottom p-4">
+                <h4 class="card-title mb-0"><i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Khởi tạo yêu cầu</h4>
+                <p class="text-muted small mb-0 mt-1">Vui lòng điền đầy đủ thông tin để hệ thống có thể chuyển luồng phê duyệt chính xác.</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 p-3 bg-danger bg-opacity-10 rounded border border-danger"></div>
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-12">
+                            <label asp-for="Title" class="form-label fw-bold">Tiêu đề yêu cầu <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control form-control-lg bg-light" placeholder="Nhập tóm tắt nội dung yêu cầu..." />
+                            <span asp-validation-for="Title" class="text-danger small mt-1"></span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="Type" class="form-label fw-bold">Loại yêu cầu <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select bg-light">
+                                <option value="">-- Chọn loại yêu cầu --</option>
+                                <option value="IT_SUPPORT">Hỗ trợ IT & Thiết bị</option>
+                                <option value="PROCUREMENT">Đề xuất mua sắm</option>
+                                <option value="FACILITY">Bảo trì cơ sở vật chất</option>
+                                <option value="SERVICE">Cung cấp dịch vụ/Sản phẩm</option>
+                                <option value="OTHER">Khác</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger small mt-1"></span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="OrganizationUnitId" class="form-label fw-bold">Phòng ban tiếp nhận <span class="text-danger">*</span></label>
+                            <select asp-for="OrganizationUnitId" class="form-select bg-light">
+                                <option value="">-- Chọn phòng ban --</option>
+                                @foreach (var opt in Model.Departments)
+                                {
+                                    <option value="@opt.Value">@opt.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="OrganizationUnitId" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Priority" class="form-label fw-bold">Mức độ ưu tiên <span class="text-danger">*</span></label>
+                            <select asp-for="Priority" class="form-select bg-light">
+                                @foreach (var pr in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.PriorityLevel)))
+                                {
+                                    <option value="@pr" selected="@(pr == "Normal")">@pr</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Priority" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DueDate" class="form-label fw-bold">Hạn xử lý mong muốn</label>
+                            <input asp-for="DueDate" type="date" class="form-control bg-light" />
+                            <span asp-validation-for="DueDate" class="text-danger small mt-1"></span>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label asp-for="CustomerId" class="form-label fw-bold">Khách hàng liên quan (Nếu có)</label>
+                            <select asp-for="CustomerId" class="form-select bg-light">
+                                <option value="">-- Nội bộ (Không chọn khách hàng) --</option>
+                                @foreach (var opt in Model.Customers)
+                                {
+                                    <option value="@opt.Value">@opt.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="TotalAmount" class="form-label fw-bold">Tổng chi phí dự kiến (VNĐ)</label>
+                            <div class="input-group">
+                                <input asp-for="TotalAmount" type="number" step="1000" class="form-control bg-light" placeholder="0" />
+                                <span class="input-group-text">₫</span>
+                            </div>
+                            <small class="text-muted mt-1 d-block">Điền nếu yêu cầu có phát sinh chi phí mua sắm/dịch vụ.</small>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label asp-for="Description" class="form-label fw-bold">Mô tả chi tiết nội dung</label>
+                            <textarea asp-for="Description" class="form-control bg-light" rows="5" placeholder="Cung cấp đầy đủ thông tin để bộ phận tiếp nhận có thể xử lý dễ dàng..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small mt-1"></span>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-4 d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-light border px-4">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i> Lưu nháp (Draft)</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

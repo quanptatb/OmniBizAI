@@ -1,0 +1,88 @@
+@model OmniBizAI.ViewModels.KpiListViewModel
+@{
+    ViewData["Title"] = "KPI";
+    ViewData["Breadcrumb"] = "<span>Báo cáo & KPI</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">KPI</span>";
+}
+
+<div class="card glass-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold">Phân loại</label>
+                <select name="ownerType" class="form-select bg-light">
+                    <option value="">Tất cả</option>
+                    @foreach (var ot in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.KpiOwnerType)))
+                    {
+                        <option value="@ot" selected="@(Model.OwnerTypeFilter == ot)">@ot</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    @foreach (var kpi in Model.Items)
+    {
+        <div class="col-md-6 col-xl-4">
+            <div class="card glass-card h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-light text-dark border mb-2">@kpi.OwnerType</span>
+                            <h6 class="fw-bold mb-0">@kpi.Name</h6>
+                            <span class="text-muted small">#@kpi.Code</span>
+                        </div>
+                        <div class="icon-shape bg-primary text-white" style="width:44px;height:44px;font-size:.9rem;">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-muted">Tiến độ</span>
+                            <span class="fw-bold">@kpi.Progress%</span>
+                        </div>
+                        @{
+                            var pct = kpi.Progress;
+                            var color = pct >= 80 ? "bg-success" : pct >= 50 ? "bg-warning" : "bg-danger";
+                        }
+                        <div class="progress" style="height:8px;border-radius:4px;">
+                            <div class="progress-bar @color progress-bar-animated" style="width:@Math.Min(pct, 100)%"></div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center border-top pt-3">
+                        <div class="col-4">
+                            <div class="text-muted small">Mục tiêu</div>
+                            <div class="fw-bold text-primary">@kpi.TargetValue</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Thực tế</div>
+                            <div class="fw-bold">@(kpi.ActualValue?.ToString() ?? "—")</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Đơn vị</div>
+                            <div class="fw-bold text-secondary">@kpi.Unit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!Model.Items.Any())
+    {
+        <div class="col-12">
+            <div class="card glass-card text-center py-5">
+                <div class="card-body">
+                    <i class="fa-solid fa-chart-line fa-4x text-muted mb-3 opacity-50"></i>
+                    <h5 class="text-muted">Chưa có chỉ tiêu KPI</h5>
+                </div>
+            </div>
+        </div>
+    }
+</div>

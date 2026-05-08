@@ -1,0 +1,109 @@
+@model OmniBizAI.ViewModels.AuditLogListViewModel
+@{
+    ViewData["Title"] = "Nhật ký Hệ thống";
+    ViewData["Breadcrumb"] = "<span>Kiểm soát</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Nhật ký</span>";
+}
+
+<div class="card glass-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Loại Entity</label>
+                <input type="text" name="entityType" value="@Model.EntityTypeFilter" class="form-control bg-light" placeholder="VD: OperationRequest">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Hành động</label>
+                <select name="action" class="form-select bg-light">
+                    <option value="">Tất cả</option>
+                    <option value="Create" selected="@(Model.ActionFilter == "Create")">Create</option>
+                    <option value="Submit" selected="@(Model.ActionFilter == "Submit")">Submit</option>
+                    <option value="Approve" selected="@(Model.ActionFilter == "Approve")">Approve</option>
+                    <option value="Reject" selected="@(Model.ActionFilter == "Reject")">Reject</option>
+                    <option value="Cancel" selected="@(Model.ActionFilter == "Cancel")">Cancel</option>
+                    <option value="AiQuery" selected="@(Model.ActionFilter == "AiQuery")">AI Query</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Người thực hiện</label>
+                <input type="text" name="user" value="@Model.UserFilter" class="form-control bg-light" placeholder="Tên người dùng">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card glass-card">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="card-title mb-0"><i class="fa-solid fa-shield-halved me-2 text-primary"></i>Nhật ký hoạt động <span class="badge bg-primary ms-2">@Model.TotalCount</span></h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-sm">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th class="ps-4">Thời gian</th>
+                        <th>Người thực hiện</th>
+                        <th>Hành động</th>
+                        <th>Entity</th>
+                        <th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.Items)
+                    {
+                        <tr>
+                            <td class="ps-4 text-nowrap text-muted">
+                                <i class="fa-regular fa-clock me-1"></i>@log.CreatedAt.ToString("HH:mm:ss dd/MM/yyyy")
+                            </td>
+                            <td class="fw-medium">@log.UserName</td>
+                            <td>
+                                @{
+                                    var actionCls = log.Action switch {
+                                        "Create" => "bg-success", "Approve" => "bg-primary",
+                                        "Reject" => "bg-danger", "Submit" => "bg-info",
+                                        "Cancel" => "bg-dark", "AiQuery" => "bg-purple",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @actionCls">@log.Action</span>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@log.EntityType</span></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.NewValues))
+                                {
+                                    <code class="text-sm text-truncate d-inline-block" style="max-width:280px;" title="@log.NewValues">@log.NewValues</code>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted"><i class="fa-solid fa-shield fa-3x mb-3 d-block opacity-50"></i>Không có nhật ký</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.TotalCount > 50)
+    {
+        <div class="card-footer bg-transparent border-top p-3 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Trang @Model.Page / @Math.Ceiling(Model.TotalCount / 50.0)</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-entityType="@Model.EntityTypeFilter" asp-route-action="@Model.ActionFilter" asp-route-user="@Model.UserFilter">Trước</a>
+                </li>
+                <li class="page-item @(Model.Page * 50 >= Model.TotalCount ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-entityType="@Model.EntityTypeFilter" asp-route-action="@Model.ActionFilter" asp-route-user="@Model.UserFilter">Sau</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>

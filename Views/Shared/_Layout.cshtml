@@ -1,49 +1,197 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser<Guid>> SignInManager
+@inject UserManager<IdentityUser<Guid>> UserManager
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="OmniBizAI - Hệ thống vận hành thông minh cho doanh nghiệp vừa và nhỏ" />
     <title>@ViewData["Title"] - OmniBizAI</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OmniBizAI.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">OmniBizAI</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+<body class="app-body">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><i class="fa-solid fa-brain"></i></div>
+                <div class="brand-text">
+                    <span class="brand-name">OmniBizAI</span>
+                    <span class="brand-tagline">Smart Operations</span>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - OmniBizAI - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">TỔNG QUAN</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+                   asp-controller="Dashboard" asp-action="Index">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="nav-section-label">VẬN HÀNH</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Operations" ? "active" : "")"
+                   asp-controller="Operations" asp-action="Index">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Yêu cầu vận hành</span>
+                    <span class="nav-badge" id="pendingBadge" style="display:none"></span>
+                </a>
+
+                @if (User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                {
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Approvals" ? "active" : "")"
+                       asp-controller="Approvals" asp-action="MyTasks">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Phê duyệt</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                {
+                    <div class="nav-section-label">TỔ CHỨC</div>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Organization" ? "active" : "")"
+                       asp-controller="Organization" asp-action="Index">
+                        <i class="fa-solid fa-sitemap"></i>
+                        <span>Phòng ban</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
+                       asp-controller="Users" asp-action="Index">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Người dùng</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("ACCOUNTANT") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("EXECUTIVE"))
+                {
+                    <div class="nav-section-label">TÀI CHÍNH</div>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Budgets" ? "active" : "")"
+                       asp-controller="Finance" asp-action="Budgets">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span>Ngân sách</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "PaymentRequests" ? "active" : "")"
+                       asp-controller="Finance" asp-action="PaymentRequests">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span>Đề nghị thanh toán</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("EXECUTIVE") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                {
+                    <div class="nav-section-label">BÁO CÁO & KPI</div>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Kpi" ? "active" : "")"
+                       asp-controller="Kpi" asp-action="Index">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>KPI</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")"
+                       asp-controller="Reports" asp-action="Dashboard">
+                        <i class="fa-solid fa-chart-bar"></i>
+                        <span>Báo cáo</span>
+                    </a>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "AiInsights" ? "active" : "")"
+                       asp-controller="AiInsights" asp-action="Index">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>AI Copilot</span>
+                        <span class="nav-badge-ai">AI</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("AUDITOR") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("TENANT_ADMIN"))
+                {
+                    <div class="nav-section-label">KIỂM SOÁT</div>
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Audit" ? "active" : "")"
+                       asp-controller="Audit" asp-action="Index">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Nhật ký hệ thống</span>
+                    </a>
+                }
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
+                    <div class="user-details">
+                        <span class="user-email">@User.Identity?.Name</span>
+                        <span class="user-role">@(User.IsInRole("SYSTEM_ADMIN") ? "Sys Admin" : User.IsInRole("TENANT_ADMIN") ? "Admin" : User.IsInRole("EXECUTIVE") ? "Executive" : User.IsInRole("DEPARTMENT_MANAGER") ? "Manager" : User.IsInRole("ACCOUNTANT") ? "Accountant" : "Staff")</span>
+                    </div>
+                </div>
+                <form method="post" asp-controller="Account" asp-action="Logout" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-logout" title="Đăng xuất">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-wrapper">
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="topbar-breadcrumb">
+                    @if (ViewData["Breadcrumb"] is not null)
+                    {
+                        @Html.Raw(ViewData["Breadcrumb"])
+                    }
+                    else
+                    {
+                        <span>@ViewData["Title"]</span>
+                    }
+                </div>
+                <div class="topbar-actions">
+                    <button class="topbar-btn" id="notifBtn" title="Thông báo">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="notif-dot"></span>
+                    </button>
+                    <div class="topbar-user">
+                        <div class="topbar-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ALERT MESSAGES -->
+            @if (TempData["SuccessMessage"] is not null)
+            {
+                <div class="alert-toast success" id="alertToast">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>@TempData["SuccessMessage"]</span>
+                    <button onclick="document.getElementById('alertToast').remove()" class="toast-close">×</button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] is not null)
+            {
+                <div class="alert-toast error" id="alertToast">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span>@TempData["ErrorMessage"]</span>
+                    <button onclick="document.getElementById('alertToast').remove()" class="toast-close">×</button>
+                </div>
+            }
+
+            <main class="page-content">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

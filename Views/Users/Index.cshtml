@@ -1,0 +1,88 @@
+@model OmniBizAI.ViewModels.UserListViewModel
+@{
+    ViewData["Title"] = "Quản lý Người dùng";
+    ViewData["Breadcrumb"] = "<span>Tổ chức</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Người dùng</span>";
+}
+
+<div class="card glass-card mb-4">
+    <div class="card-body p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-search"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light" placeholder="Tên, email...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Trạng thái</label>
+                <select name="status" class="form-select bg-light">
+                    <option value="">Tất cả</option>
+                    <option value="Active" selected="@(Model.StatusFilter == "Active")">Hoạt động</option>
+                    <option value="Locked" selected="@(Model.StatusFilter == "Locked")">Bị khóa</option>
+                    <option value="Inactive" selected="@(Model.StatusFilter == "Inactive")">Ngưng</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card glass-card">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="card-title mb-0"><i class="fa-solid fa-users me-2 text-primary"></i>Danh sách người dùng <span class="badge bg-primary ms-2">@Model.TotalCount</span></h5>
+        <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-user-plus me-2"></i>Thêm người dùng</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th class="ps-4">Người dùng</th>
+                        <th>Phòng ban</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.Items)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="topbar-avatar" style="width:38px;height:38px;font-size:.8rem;">@u.FullName.Substring(0, 1).ToUpper()</div>
+                                    <div>
+                                        <div class="fw-bold">@u.FullName</div>
+                                        <div class="text-muted small">@u.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@u.Department</td>
+                            <td><span class="badge bg-primary-subtle text-primary border">@u.Roles</span></td>
+                            <td>
+                                <span class="badge @(u.Status == "Active" ? "bg-success" : u.Status == "Locked" ? "bg-danger" : "bg-secondary") rounded-pill">@u.Status</span>
+                            </td>
+                            <td class="text-muted small">@u.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end pe-4">
+                                <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm @(u.Status == "Active" ? "btn-outline-warning" : "btn-outline-success")" title="@(u.Status == "Active" ? "Khóa" : "Mở khóa")">
+                                        <i class="fa-solid @(u.Status == "Active" ? "fa-lock" : "fa-unlock")"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fa-solid fa-users fa-3x mb-3 d-block opacity-50"></i>Không tìm thấy người dùng</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
