@@ -1,0 +1,332 @@
+{
+  "DefaultPassword": "Password123!",
+  "Tenant": {
+    "Code": "BIZEN",
+    "Name": "Bizen Catering Services",
+    "Slug": "bizen",
+    "TimeZone": "Asia/Ho_Chi_Minh",
+    "DefaultLocale": "vi-VN",
+    "IsActive": true
+  },
+  "Company": {
+    "Code": "BIZEN_CORP",
+    "Name": "Bizen Catering Services",
+    "Address": "Khu cong nghiep Dong Nam, TP. Ho Chi Minh",
+    "TaxCode": "",
+    "Phone": "02800000000",
+    "Email": "operations@bizen.local",
+    "IsActive": true
+  },
+  "Roles": [
+    { "Code": "ADMIN", "Description": "Quan tri he thong" },
+    { "Code": "DIRECTOR", "Description": "Ban giam doc" },
+    { "Code": "OPS", "Description": "Quan ly van hanh" },
+    { "Code": "DEPARTMENT_MANAGER", "Description": "Quan ly phong ban" },
+    { "Code": "TEAM_LEAD", "Description": "Truong nhom" },
+    { "Code": "EMPLOYEE", "Description": "Nhan vien" },
+    { "Code": "MENU_PLANNER", "Description": "Lap thuc don" },
+    { "Code": "KITCHEN_LEAD", "Description": "Bep truong" },
+    { "Code": "QA_REVIEWER", "Description": "Kiem soat chat luong" },
+    { "Code": "PURCHASING_STAFF", "Description": "Thu mua" },
+    { "Code": "CUSTOMER_SERVICE", "Description": "Cham soc khach hang" }
+  ],
+  "Departments": [
+    { "Code": "BOD", "Name": "Ban giam doc" },
+    { "Code": "OPS", "Name": "Van hanh" },
+    { "Code": "MENU", "Name": "Ke hoach thuc don/R&D" },
+    { "Code": "KITCHEN", "Name": "Bep san xuat" },
+    { "Code": "QA", "Name": "Kiem soat chat luong" },
+    { "Code": "PUR", "Name": "Thu mua" },
+    { "Code": "CS", "Name": "Cham soc khach hang" },
+    { "Code": "ADMIN", "Name": "Quan tri he thong" }
+  ],
+  "Users": [
+    { "Email": "admin@bizen.local", "FullName": "Quan tri Bizen", "RoleCode": "ADMIN", "DepartmentCode": "ADMIN", "PositionName": "System Administrator", "EmployeeCode": "BIZ0001" },
+    { "Email": "director@bizen.local", "FullName": "Giam doc Bizen", "RoleCode": "DIRECTOR", "DepartmentCode": "BOD", "PositionName": "Director", "EmployeeCode": "BIZ0002" },
+    { "Email": "ops@bizen.local", "FullName": "Quan ly Van hanh", "RoleCode": "OPS", "DepartmentCode": "OPS", "PositionName": "Operations Manager", "EmployeeCode": "BIZ0003" },
+    { "Email": "menu@bizen.local", "FullName": "Nhan su Ke hoach thuc don", "RoleCode": "MENU_PLANNER", "DepartmentCode": "MENU", "PositionName": "Menu Planner", "EmployeeCode": "BIZ0004" },
+    { "Email": "kitchen@bizen.local", "FullName": "Bep truong San xuat", "RoleCode": "KITCHEN_LEAD", "DepartmentCode": "KITCHEN", "PositionName": "Kitchen Lead", "EmployeeCode": "BIZ0005" },
+    { "Email": "qa@bizen.local", "FullName": "Nhan su QA", "RoleCode": "QA_REVIEWER", "DepartmentCode": "QA", "PositionName": "QA Reviewer", "EmployeeCode": "BIZ0006" },
+    { "Email": "purchasing@bizen.local", "FullName": "Nhan su Thu mua", "RoleCode": "PURCHASING_STAFF", "DepartmentCode": "PUR", "PositionName": "Purchasing Staff", "EmployeeCode": "BIZ0007" },
+    { "Email": "cs@bizen.local", "FullName": "Nhan su CSKH", "RoleCode": "CUSTOMER_SERVICE", "DepartmentCode": "CS", "PositionName": "Customer Service", "EmployeeCode": "BIZ0008" }
+  ],
+  "Blueprint": {
+    "RoleDefinitions": [
+      { "Code": "ADMIN", "DisplayName": "Quan tri he thong", "Description": "Quan ly toan bo cau hinh, nguoi dung va du lieu nen" },
+      { "Code": "DIRECTOR", "DisplayName": "Ban giam doc", "Description": "Xem dashboard va phe duyet ngoai le" },
+      { "Code": "OPS", "DisplayName": "Quan ly van hanh", "Description": "Dieu phoi menu, so luong va quy trinh van hanh" },
+      { "Code": "DEPARTMENT_MANAGER", "DisplayName": "Quan ly phong ban", "Description": "Quan ly board, workload va task phong ban" },
+      { "Code": "TEAM_LEAD", "DisplayName": "Truong nhom", "Description": "Giao viec va theo doi tien do nhom" },
+      { "Code": "EMPLOYEE", "DisplayName": "Nhan vien", "Description": "Xu ly task duoc giao" },
+      { "Code": "MENU_PLANNER", "DisplayName": "Ke hoach thuc don", "Description": "Tao thuc don, mon an va BOM" },
+      { "Code": "KITCHEN_LEAD", "DisplayName": "Bep truong", "Description": "Kiem tra kha nang san xuat va giay di cho" },
+      { "Code": "QA_REVIEWER", "DisplayName": "Kiem soat chat luong", "Description": "Kiem duyet chat luong thuc don" },
+      { "Code": "PURCHASING_STAFF", "DisplayName": "Thu mua", "Description": "Xu ly giay di cho va mua nguyen lieu" },
+      { "Code": "CUSTOMER_SERVICE", "DisplayName": "Cham soc khach hang", "Description": "Gui menu, theo doi phan hoi va so luong" }
+    ],
+    "PermissionDefinitions": [
+      { "Code": "company.manage", "DisplayName": "Quan ly cong ty", "Module": "Organization" },
+      { "Code": "customer.manage", "DisplayName": "Quan ly khach hang", "Module": "Customers" },
+      { "Code": "config.manage", "DisplayName": "Quan ly cau hinh tenant", "Module": "Configuration" },
+      { "Code": "work.board.manage", "DisplayName": "Quan ly board cong viec", "Module": "Work" },
+      { "Code": "work.task.create", "DisplayName": "Tao task", "Module": "Work" },
+      { "Code": "work.task.edit", "DisplayName": "Sua task", "Module": "Work" },
+      { "Code": "work.task.assign", "DisplayName": "Giao viec", "Module": "Work" },
+      { "Code": "work.task.move", "DisplayName": "Chuyen trang thai task", "Module": "Work" },
+      { "Code": "work.task.view_department", "DisplayName": "Xem task phong ban", "Module": "Work" },
+      { "Code": "menu.edit", "DisplayName": "Tao sua thuc don", "Module": "Menu" },
+      { "Code": "menu.approve_internal", "DisplayName": "Duyet noi bo thuc don", "Module": "Approval" },
+      { "Code": "customer.form.send", "DisplayName": "Gui form khach hang", "Module": "CustomerForms" },
+      { "Code": "quantity.edit", "DisplayName": "Nhap va chot so luong", "Module": "Quantity" },
+      { "Code": "bom.manage", "DisplayName": "Quan ly dinh muc BOM", "Module": "BOM" },
+      { "Code": "procurement.generate", "DisplayName": "Tao giay di cho", "Module": "Procurement" },
+      { "Code": "procurement.issue", "DisplayName": "Phat hanh giay di cho", "Module": "Procurement" },
+      { "Code": "dashboard.view", "DisplayName": "Xem dashboard", "Module": "Dashboard" },
+      { "Code": "ai.ask", "DisplayName": "Hoi tro ly AI", "Module": "AI" },
+      { "Code": "report.view", "DisplayName": "Xem bao cao", "Module": "Reports" },
+      { "Code": "import.manage", "DisplayName": "Quan ly import staging", "Module": "Imports" }
+    ],
+    "RolePermissions": [
+      { "RoleCode": "ADMIN", "PermissionCodes": [ "company.manage", "customer.manage", "config.manage", "work.board.manage", "work.task.create", "work.task.edit", "work.task.assign", "work.task.move", "work.task.view_department", "menu.edit", "menu.approve_internal", "customer.form.send", "quantity.edit", "bom.manage", "procurement.generate", "procurement.issue", "dashboard.view", "ai.ask", "report.view", "import.manage" ] },
+      { "RoleCode": "DIRECTOR", "PermissionCodes": [ "dashboard.view", "report.view", "ai.ask", "menu.approve_internal", "work.task.view_department" ] },
+      { "RoleCode": "OPS", "PermissionCodes": [ "customer.manage", "work.board.manage", "work.task.create", "work.task.edit", "work.task.assign", "work.task.move", "work.task.view_department", "menu.edit", "menu.approve_internal", "customer.form.send", "quantity.edit", "procurement.generate", "dashboard.view", "ai.ask", "report.view", "import.manage" ] },
+      { "RoleCode": "MENU_PLANNER", "PermissionCodes": [ "work.task.create", "work.task.edit", "work.task.move", "work.task.view_department", "menu.edit", "bom.manage", "dashboard.view", "ai.ask" ] },
+      { "RoleCode": "KITCHEN_LEAD", "PermissionCodes": [ "work.task.edit", "work.task.move", "work.task.view_department", "procurement.generate", "dashboard.view", "ai.ask" ] },
+      { "RoleCode": "QA_REVIEWER", "PermissionCodes": [ "work.task.edit", "work.task.move", "work.task.view_department", "menu.approve_internal", "dashboard.view" ] },
+      { "RoleCode": "PURCHASING_STAFF", "PermissionCodes": [ "work.task.create", "work.task.edit", "work.task.assign", "work.task.move", "work.task.view_department", "procurement.generate", "procurement.issue", "dashboard.view", "ai.ask" ] },
+      { "RoleCode": "CUSTOMER_SERVICE", "PermissionCodes": [ "customer.manage", "work.task.create", "work.task.edit", "work.task.move", "work.task.view_department", "customer.form.send", "quantity.edit", "dashboard.view" ] },
+      { "RoleCode": "EMPLOYEE", "PermissionCodes": [ "work.task.edit", "work.task.move", "work.task.view_department", "dashboard.view" ] }
+    ],
+    "UserRoleAssignments": [
+      { "Email": "admin@bizen.local", "RoleCode": "ADMIN" },
+      { "Email": "director@bizen.local", "RoleCode": "DIRECTOR" },
+      { "Email": "ops@bizen.local", "RoleCode": "OPS" },
+      { "Email": "menu@bizen.local", "RoleCode": "MENU_PLANNER" },
+      { "Email": "kitchen@bizen.local", "RoleCode": "KITCHEN_LEAD" },
+      { "Email": "qa@bizen.local", "RoleCode": "QA_REVIEWER" },
+      { "Email": "purchasing@bizen.local", "RoleCode": "PURCHASING_STAFF" },
+      { "Email": "cs@bizen.local", "RoleCode": "CUSTOMER_SERVICE" }
+    ],
+    "Positions": [
+      { "DepartmentCode": "BOD", "Name": "Director", "Level": 90 },
+      { "DepartmentCode": "OPS", "Name": "Operations Manager", "Level": 70 },
+      { "DepartmentCode": "MENU", "Name": "Menu Planner", "Level": 50 },
+      { "DepartmentCode": "KITCHEN", "Name": "Kitchen Lead", "Level": 55 },
+      { "DepartmentCode": "QA", "Name": "QA Reviewer", "Level": 50 },
+      { "DepartmentCode": "PUR", "Name": "Purchasing Staff", "Level": 45 },
+      { "DepartmentCode": "CS", "Name": "Customer Service", "Level": 45 },
+      { "DepartmentCode": "ADMIN", "Name": "System Administrator", "Level": 80 }
+    ],
+    "Teams": [
+      { "DepartmentCode": "MENU", "Code": "MENU_RD", "Name": "Menu R&D", "TeamLeadEmail": "menu@bizen.local" },
+      { "DepartmentCode": "PUR", "Code": "PUR_BUYER", "Name": "Purchasing Buyers", "TeamLeadEmail": "purchasing@bizen.local" },
+      { "DepartmentCode": "CS", "Code": "CS_SUPPORT", "Name": "Customer Support", "TeamLeadEmail": "cs@bizen.local" }
+    ],
+    "Kitchens": [
+      { "Code": "BEP_001", "Name": "Bep trung tam", "Address": "Bizen central hub", "Note": "Hub chinh" },
+      { "Code": "BEP_002", "Name": "Bep 1 - SMC1", "Address": "SMC1", "Note": "Bep tai cho" },
+      { "Code": "BEP_007", "Name": "Bep LIXIL VPC", "Address": "LIXIL VPC", "Note": "Bep tai cho LIXIL" },
+      { "Code": "BEP_013", "Name": "Bep ZAMIL", "Address": "ZAMIL", "Note": "Bep tai cho ZAMIL" },
+      { "Code": "BEP_014", "Name": "Bep OM", "Address": "OM", "Note": "Bep tai cho OM" }
+    ],
+    "MealShifts": [
+      { "Code": "CA_001", "Name": "Ca 1", "AliasNames": "S1,SN,S6", "SortOrder": 1 },
+      { "Code": "CA_003", "Name": "Ca 2", "AliasNames": "S2", "SortOrder": 2 },
+      { "Code": "CA_004", "Name": "Ca 3", "AliasNames": "S3,S7", "SortOrder": 3 },
+      { "Code": "CA_006", "Name": "Ca gay / Ca thoi vu", "AliasNames": "CG,TV", "SortOrder": 4 }
+    ],
+    "MealSlotDefinitions": [
+      { "Code": "MAIN_MEAT_1", "DisplayName": "Mon man 1", "GroupName": "Mon man", "SortOrder": 1, "IsRequiredByDefault": true },
+      { "Code": "MAIN_MEAT_2", "DisplayName": "Mon man 2", "GroupName": "Mon man", "SortOrder": 2 },
+      { "Code": "MAIN_MEAT_3", "DisplayName": "Mon man 3", "GroupName": "Mon man", "SortOrder": 3 },
+      { "Code": "MAIN_MEAT_4", "DisplayName": "Mon man 4", "GroupName": "Mon man", "SortOrder": 4 },
+      { "Code": "MAIN_MEAT_5", "DisplayName": "Mon man 5", "GroupName": "Mon man", "SortOrder": 5 },
+      { "Code": "MAIN_MEAT_6", "DisplayName": "Mon man 6", "GroupName": "Mon man", "SortOrder": 6 },
+      { "Code": "VEGETARIAN_1", "DisplayName": "Mon chay 1", "GroupName": "Mon chay", "SortOrder": 7 },
+      { "Code": "VEGETARIAN_2", "DisplayName": "Mon chay 2", "GroupName": "Mon chay", "SortOrder": 8 },
+      { "Code": "VEGETARIAN_3", "DisplayName": "Mon chay 3", "GroupName": "Mon chay", "SortOrder": 9 },
+      { "Code": "LIQUID_1", "DisplayName": "Mon nuoc 1", "GroupName": "Mon nuoc", "SortOrder": 10 },
+      { "Code": "LIQUID_2", "DisplayName": "Mon nuoc 2", "GroupName": "Mon nuoc", "SortOrder": 11 },
+      { "Code": "LIQUID_3", "DisplayName": "Mon nuoc 3", "GroupName": "Mon nuoc", "SortOrder": 12 },
+      { "Code": "SOUP_1", "DisplayName": "Mon canh 1", "GroupName": "Canh", "SortOrder": 13, "IsRequiredByDefault": true },
+      { "Code": "VEGETABLE_1", "DisplayName": "Mon xao/luoc 1", "GroupName": "Rau", "SortOrder": 14, "IsRequiredByDefault": true },
+      { "Code": "VEGETABLE_2", "DisplayName": "Mon xao/luoc 2", "GroupName": "Rau", "SortOrder": 15 },
+      { "Code": "DESSERT_1", "DisplayName": "Mon trang mieng 1", "GroupName": "Trang mieng", "SortOrder": 16 },
+      { "Code": "BUFFET_1", "DisplayName": "Mon buffet", "GroupName": "Buffet", "SortOrder": 17 },
+      { "Code": "WHITE_RICE_1", "DisplayName": "Com trang", "GroupName": "Com", "SortOrder": 18, "IsRequiredByDefault": true },
+      { "Code": "PORRIDGE_1", "DisplayName": "Mon chao", "GroupName": "Chao", "SortOrder": 19 },
+      { "Code": "BREAKFAST_1", "DisplayName": "Mon an sang", "GroupName": "An sang", "SortOrder": 20 },
+      { "Code": "NOODLE_MILK_1", "DisplayName": "Mon mi/sua", "GroupName": "Mi sua", "SortOrder": 21 }
+    ],
+    "DishCategories": [
+      { "Code": "MAIN", "DisplayName": "Mon man", "SortOrder": 1 },
+      { "Code": "SOUP", "DisplayName": "Canh", "SortOrder": 2 },
+      { "Code": "VEGETABLE", "DisplayName": "Rau xao/luoc", "SortOrder": 3 },
+      { "Code": "DESSERT", "DisplayName": "Trang mieng", "SortOrder": 4 },
+      { "Code": "BREAKFAST", "DisplayName": "An sang", "SortOrder": 5 },
+      { "Code": "STAPLE", "DisplayName": "Tinh bot", "SortOrder": 6 }
+    ],
+    "IngredientCategories": [
+      { "Code": "RICE", "DisplayName": "Gao va tinh bot", "SortOrder": 1 },
+      { "Code": "MEAT", "DisplayName": "Thit", "SortOrder": 2 },
+      { "Code": "SEAFOOD", "DisplayName": "Hai san", "SortOrder": 3 },
+      { "Code": "VEGETABLE", "DisplayName": "Rau cu", "SortOrder": 4 },
+      { "Code": "SOY", "DisplayName": "Dau phu va san pham dau", "SortOrder": 5 },
+      { "Code": "SPICE", "DisplayName": "Gia vi", "SortOrder": 6 },
+      { "Code": "FRUIT", "DisplayName": "Trai cay", "SortOrder": 7 },
+      { "Code": "OIL", "DisplayName": "Dau mo", "SortOrder": 8 }
+    ],
+    "UnitDefinitions": [
+      { "Code": "g", "DisplayName": "gram", "UnitKind": "mass", "DecimalPlaces": 3 },
+      { "Code": "kg", "DisplayName": "kilogram", "UnitKind": "mass", "DecimalPlaces": 3 },
+      { "Code": "piece", "DisplayName": "cai/mieng", "UnitKind": "count", "DecimalPlaces": 2 },
+      { "Code": "liter", "DisplayName": "lit", "UnitKind": "volume", "DecimalPlaces": 3 },
+      { "Code": "pack", "DisplayName": "goi", "UnitKind": "count", "DecimalPlaces": 2 }
+    ],
+    "StateDefinitions": [
+      { "StateMachine": "menu", "Code": "Draft", "DisplayName": "Ban nhap", "Category": "open", "SortOrder": 1 },
+      { "StateMachine": "menu", "Code": "InternalReview", "DisplayName": "Cho duyet noi bo", "Category": "review", "SortOrder": 2 },
+      { "StateMachine": "menu", "Code": "InternalApproved", "DisplayName": "Da duyet noi bo", "Category": "approved", "SortOrder": 3 },
+      { "StateMachine": "menu", "Code": "SentToCustomer", "DisplayName": "Da gui khach", "Category": "customer", "SortOrder": 4 },
+      { "StateMachine": "menu", "Code": "CustomerApproved", "DisplayName": "Khach da duyet", "Category": "approved", "SortOrder": 5 },
+      { "StateMachine": "menu", "Code": "RevisionRequested", "DisplayName": "Yeu cau sua", "Category": "change", "SortOrder": 6 },
+      { "StateMachine": "menu", "Code": "Locked", "DisplayName": "Da khoa", "Category": "terminal", "SortOrder": 7, "IsTerminal": true },
+      { "StateMachine": "menu", "Code": "Cancelled", "DisplayName": "Da huy", "Category": "terminal", "SortOrder": 8, "IsTerminal": true },
+      { "StateMachine": "approval", "Code": "Pending", "DisplayName": "Cho duyet", "Category": "open", "SortOrder": 1 },
+      { "StateMachine": "approval", "Code": "Approved", "DisplayName": "Da duyet", "Category": "done", "SortOrder": 2, "IsTerminal": true },
+      { "StateMachine": "approval", "Code": "NeedRevision", "DisplayName": "Can sua", "Category": "change", "SortOrder": 3 },
+      { "StateMachine": "procurement", "Code": "Draft", "DisplayName": "Ban nhap", "Category": "open", "SortOrder": 1 },
+      { "StateMachine": "procurement", "Code": "Generated", "DisplayName": "Da tinh", "Category": "ready", "SortOrder": 2 },
+      { "StateMachine": "procurement", "Code": "Issued", "DisplayName": "Da phat hanh", "Category": "done", "SortOrder": 3, "IsTerminal": true }
+    ],
+    "StateTransitionConfigs": [
+      { "StateMachine": "menu", "FromStateCode": "Draft", "ActionCode": "submit_internal", "ToStateCode": "InternalReview", "RequiredPermissionCode": "menu.edit" },
+      { "StateMachine": "menu", "FromStateCode": "InternalReview", "ActionCode": "approve_internal", "ToStateCode": "InternalApproved", "RequiredPermissionCode": "menu.approve_internal" },
+      { "StateMachine": "menu", "FromStateCode": "InternalApproved", "ActionCode": "send_customer", "ToStateCode": "SentToCustomer", "RequiredPermissionCode": "customer.form.send" },
+      { "StateMachine": "menu", "FromStateCode": "SentToCustomer", "ActionCode": "customer_approve", "ToStateCode": "CustomerApproved" },
+      { "StateMachine": "procurement", "FromStateCode": "Draft", "ActionCode": "generate", "ToStateCode": "Generated", "RequiredPermissionCode": "procurement.generate" },
+      { "StateMachine": "procurement", "FromStateCode": "Generated", "ActionCode": "issue", "ToStateCode": "Issued", "RequiredPermissionCode": "procurement.issue" }
+    ],
+    "ActionDefinitions": [
+      { "StateMachine": "menu", "Code": "submit_internal", "DisplayName": "Gui duyet noi bo", "ButtonStyle": "primary" },
+      { "StateMachine": "menu", "Code": "approve_internal", "DisplayName": "Duyet noi bo", "ButtonStyle": "success" },
+      { "StateMachine": "menu", "Code": "send_customer", "DisplayName": "Gui khach hang", "ButtonStyle": "info" },
+      { "StateMachine": "procurement", "Code": "generate", "DisplayName": "Tinh giay di cho", "ButtonStyle": "primary" },
+      { "StateMachine": "procurement", "Code": "issue", "DisplayName": "Phat hanh", "ButtonStyle": "success" }
+    ],
+    "QuantitySourceDefinitions": [
+      { "Code": "manual", "DisplayName": "Nhap noi bo" },
+      { "Code": "customer_form", "DisplayName": "Form khach hang" },
+      { "Code": "previous_week", "DisplayName": "Fallback cung ky tuan truoc" },
+      { "Code": "default_contract", "DisplayName": "Mac dinh hop dong" }
+    ],
+    "ExtraQuantityModeDefinitions": [
+      { "Code": "adjust_final", "DisplayName": "Dieu chinh tang/giam so chot", "FormulaJson": "{\"formula\":\"total=final+extra\"}" },
+      { "Code": "override_total", "DisplayName": "Nhap tong moi", "FormulaJson": "{\"formula\":\"total=extra\"}" }
+    ],
+    "FormDefinitions": [
+      { "Code": "menu_feedback", "Name": "Gop y thuc don", "TargetWorkflow": "customer_approval", "IsPublic": true, "Fields": [ { "FieldKey": "comment", "Label": "Gop y", "DataType": "textarea", "IsRequired": true, "SortOrder": 1 } ] },
+      { "Code": "expected_quantity", "Name": "Nhap so luong du kien", "TargetWorkflow": "quantity", "IsPublic": true, "Fields": [ { "FieldKey": "expected_qty", "Label": "So luong du kien", "DataType": "number", "IsRequired": true, "SortOrder": 1 } ] },
+      { "Code": "final_quantity", "Name": "Nhap so luong chot", "TargetWorkflow": "quantity", "IsPublic": true, "Fields": [ { "FieldKey": "final_qty", "Label": "So luong chot", "DataType": "number", "IsRequired": true, "SortOrder": 1 } ] },
+      { "Code": "extra_quantity", "Name": "Nhap so luong phat sinh", "TargetWorkflow": "quantity", "IsPublic": true, "Fields": [ { "FieldKey": "extra_qty", "Label": "So phat sinh/tong moi", "DataType": "number", "IsRequired": true, "SortOrder": 1 }, { "FieldKey": "extra_mode", "Label": "Cach tinh", "DataType": "select", "IsRequired": true, "OptionsJson": "[\"adjust_final\",\"override_total\"]", "SortOrder": 2 } ] }
+    ],
+    "ValidationRuleConfigs": [
+      { "TargetType": "DailyMealOrder", "FieldKey": "ExpectedQty", "RuleType": "min", "RuleJson": "{\"value\":0}", "ErrorMessage": "So luong du kien khong duoc am" },
+      { "TargetType": "DailyMealOrder", "FieldKey": "FinalQty", "RuleType": "min", "RuleJson": "{\"value\":0}", "ErrorMessage": "So luong chot khong duoc am" },
+      { "TargetType": "CustomerApprovalToken", "FieldKey": "ExpiresAt", "RuleType": "future", "RuleJson": "{}", "ErrorMessage": "Token khach hang phai con han" }
+    ],
+    "EmailTemplates": [
+      { "Code": "customer_menu_approval", "SubjectTemplate": "[Bizen] Thuc don can xac nhan ngay {{ServiceDate}}", "BodyTemplate": "Xin chao {{ContactName}}, vui long xem dashboard thuc don va nhap so luong qua link {{ApprovalUrl}}.", "Locale": "vi-VN" }
+    ],
+    "ExportTemplates": [
+      { "Code": "procurement_plan", "OutputType": "html", "TemplateJson": "{\"title\":\"Giay di cho\",\"groupBy\":\"ingredient\"}" },
+      { "Code": "daily_menu", "OutputType": "html", "TemplateJson": "{\"title\":\"Thuc don ngay\",\"showBom\":false}" }
+    ],
+    "DashboardWidgetConfigs": [
+      { "RoleCode": "DIRECTOR", "WidgetCode": "menu_pending_approval", "SettingsJson": "{\"title\":\"Menu cho duyet\"}", "SortOrder": 1 },
+      { "RoleCode": "OPS", "WidgetCode": "quantity_today", "SettingsJson": "{\"title\":\"So luong hom nay\"}", "SortOrder": 2 },
+      { "RoleCode": "PURCHASING_STAFF", "WidgetCode": "procurement_today", "SettingsJson": "{\"title\":\"Giay di cho hom nay\"}", "SortOrder": 3 }
+    ],
+    "AiPromptTemplates": [
+      { "Code": "procurement_anomaly", "SystemPrompt": "Ban la tro ly van hanh Bizen. Chi dua ra canh bao va goi y, khong tu phe duyet hoac thay doi du lieu.", "UserPromptTemplate": "Phan tich menu {{MenuCode}}, so luong {{TotalCookingQty}} va BOM lien quan.", "CitationPolicyJson": "{\"required\":true}" }
+    ],
+    "ImportMappingProfiles": [
+      { "SourceSystem": "Lark", "SourceTable": "customers", "TargetEntity": "CustomerCompany", "MappingJson": "{\"code\":\"Ma khach\",\"name\":\"Ten khach\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "sites", "TargetEntity": "DeliveryLocation", "MappingJson": "{\"code\":\"Ma site\",\"name\":\"Ten site\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "dishes", "TargetEntity": "Dish", "MappingJson": "{\"code\":\"Ma mon\",\"name\":\"Ten mon\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "ingredients", "TargetEntity": "Ingredient", "MappingJson": "{\"code\":\"Ma NL\",\"name\":\"Ten NL\",\"unit\":\"Don vi\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "bom", "TargetEntity": "DishBomItem", "MappingJson": "{\"dish\":\"Mon\",\"ingredient\":\"Nguyen lieu\",\"qty\":\"Dinh muc\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "expected_quantity", "TargetEntity": "DailyMealOrder", "MappingJson": "{\"qty\":\"Du kien\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "final_quantity", "TargetEntity": "DailyMealOrder", "MappingJson": "{\"qty\":\"Chot\"}" },
+      { "SourceSystem": "Lark", "SourceTable": "actual_quantity", "TargetEntity": "QuantitySubmission", "MappingJson": "{\"qty\":\"Phat sinh\"}" }
+    ],
+    "Customers": [
+      { "Code": "WACOAL", "Name": "CONG TY TNHH VIET NAM WACOAL", "DefaultExpectedQty": 520, "Contacts": [ { "FullName": "Dai dien Wacoal", "Email": "wacoal.contact@bizen.local", "RoleTitle": "Hanh chinh", "IsPrimary": true } ], "DeliveryLocations": [ { "Code": "WAC01", "Name": "Wacoal110", "Note": "Kitchen:BEP_001" }, { "Code": "WAC02", "Name": "Wacoal58", "Note": "Kitchen:BEP_001" } ], "ServiceContracts": [ { "Code": "WACOAL-2026", "StartDate": "2026-01-01", "DefaultMealShift": "CA_001", "DefaultExpectedQty": 520 } ], "MealTypes": [ { "Code": "WACOAL_MAN", "Name": "Suat man" }, { "Code": "WACOAL_CHAY", "Name": "Suat chay" } ] },
+      { "Code": "LIXIL", "Name": "CONG TY TNHH SAN XUAT TOAN CAU LIXIL VN", "DefaultExpectedQty": 680, "Contacts": [ { "FullName": "Dai dien LIXIL", "Email": "lixil.contact@bizen.local", "RoleTitle": "Hanh chinh", "IsPrimary": true } ], "DeliveryLocations": [ { "Code": "LIX01", "Name": "LIXVPC", "Note": "Kitchen:BEP_007" }, { "Code": "LIX02", "Name": "LIXFAB1", "Note": "Kitchen:BEP_007" }, { "Code": "LIX03", "Name": "LIXFAB2", "Note": "Kitchen:BEP_007" } ], "ServiceContracts": [ { "Code": "LIXIL-2026", "StartDate": "2026-01-01", "DefaultMealShift": "CA_001", "DefaultExpectedQty": 680 } ], "MealTypes": [ { "Code": "LIXIL_MAN", "Name": "Suat man" }, { "Code": "LIXIL_CHAY", "Name": "Suat chay" }, { "Code": "LIXIL_NUOC", "Name": "Suat nuoc" }, { "Code": "LIXIL_MI_SUA", "Name": "Suat mi sua" } ] },
+      { "Code": "ON_SEMI", "Name": "CONG TY TNHH ON SEMICONDUCTOR VN", "DefaultExpectedQty": 430, "Contacts": [ { "FullName": "Dai dien ON Semiconductor", "Email": "onsemi.contact@bizen.local", "RoleTitle": "Hanh chinh", "IsPrimary": true } ], "DeliveryLocations": [ { "Code": "OSV01", "Name": "OSV", "Note": "Kitchen:BEP_001" } ], "ServiceContracts": [ { "Code": "ONSEMI-2026", "StartDate": "2026-01-01", "DefaultMealShift": "CA_001", "DefaultExpectedQty": 430 } ], "MealTypes": [ { "Code": "ONSEMI_MAN", "Name": "Suat man" }, { "Code": "ONSEMI_NUOC", "Name": "Suat nuoc" } ] },
+      { "Code": "ZAMIL", "Name": "CONG TY TNHH NHA THEP TIEN CHE ZAMIL VN", "DefaultExpectedQty": 360, "Contacts": [ { "FullName": "Dai dien ZAMIL", "Email": "zamil.contact@bizen.local", "RoleTitle": "Hanh chinh", "IsPrimary": true } ], "DeliveryLocations": [ { "Code": "ZAM01", "Name": "ZAMIL", "Note": "Kitchen:BEP_013" } ], "ServiceContracts": [ { "Code": "ZAMIL-2026", "StartDate": "2026-01-01", "DefaultMealShift": "CA_001", "DefaultExpectedQty": 360 } ], "MealTypes": [ { "Code": "ZAMIL_MAN", "Name": "Suat man" }, { "Code": "ZAMIL_CHAY", "Name": "Suat chay" }, { "Code": "ZAMIL_NUOC", "Name": "Suat nuoc" } ] },
+      { "Code": "WATABE", "Name": "CONG TY TNHH WATABE WEDDING VN", "DefaultExpectedQty": 260, "Contacts": [ { "FullName": "Dai dien Watabe", "Email": "watabe.contact@bizen.local", "RoleTitle": "Hanh chinh", "IsPrimary": true } ], "DeliveryLocations": [ { "Code": "WAT01", "Name": "Watabe", "Note": "Kitchen:BEP_001" } ], "ServiceContracts": [ { "Code": "WATABE-2026", "StartDate": "2026-01-01", "DefaultMealShift": "CA_001", "DefaultExpectedQty": 260 } ], "MealTypes": [ { "Code": "WATABE_MAN", "Name": "Suat man" }, { "Code": "WATABE_CHAY", "Name": "Suat chay" } ] }
+    ],
+    "Ingredients": [
+      { "Code": "GAO", "Name": "Gao", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "RICE" },
+      { "Code": "THIT_HEO_VAI", "Name": "Thit heo vai tuoi", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "THIT_XAY", "Name": "Thit xay", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "BO_TAI", "Name": "Bo tai", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "BO_NAM", "Name": "Bo nam", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "CA_BA_SA", "Name": "Ca ba sa", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "SEAFOOD" },
+      { "Code": "CA_SONG", "Name": "Ca song", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "SEAFOOD" },
+      { "Code": "TOM_THE", "Name": "Tom the", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "SEAFOOD" },
+      { "Code": "SUON_NON", "Name": "Suon non", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "CANH_GA", "Name": "Canh ga", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "VIT", "Name": "Vit", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "RAU_CAI", "Name": "Rau cai", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "CAI_THAO", "Name": "Cai thao", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "RAU_MUONG", "Name": "Rau muong", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "SU_SU", "Name": "Su su", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "BI_XANH", "Name": "Bi xanh", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "DU_DU_XANH", "Name": "Du du xanh", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "RAU_DEN", "Name": "Rau den", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "DAU_HU", "Name": "Dau hu", "UnitCode": "piece", "NormalizedUnitCode": "piece", "CategoryCode": "SOY" },
+      { "Code": "CA_CHUA", "Name": "Ca chua", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "HANH", "Name": "Hanh", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "SPICE" },
+      { "Code": "TOI", "Name": "Toi", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "SPICE" },
+      { "Code": "DAU_AN", "Name": "Dau an", "UnitCode": "liter", "NormalizedUnitCode": "liter", "CategoryCode": "OIL" },
+      { "Code": "NUOC_MAM", "Name": "Nuoc mam", "UnitCode": "liter", "NormalizedUnitCode": "liter", "CategoryCode": "SPICE" },
+      { "Code": "CHUOI_CAU", "Name": "Chuoi cau", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "FRUIT" },
+      { "Code": "CA_ROT", "Name": "Ca rot", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "MOC", "Name": "Moc", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "MEAT" },
+      { "Code": "LA_LOT", "Name": "La lot", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" },
+      { "Code": "DUA_CHUA", "Name": "Dua chua", "UnitCode": "g", "NormalizedUnitCode": "g", "CategoryCode": "VEGETABLE" }
+    ],
+    "Dishes": [
+      { "Code": "THIT_KHO_CA_ROT", "Name": "Thit kho ca rot", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "THIT_HEO_VAI", "QuantityPerServing": 65, "WasteRatePercent": 3 }, { "IngredientCode": "CA_ROT", "QuantityPerServing": 50, "WasteRatePercent": 5 } ] },
+      { "Code": "TOM_RIM_MAN", "Name": "Tom rim man", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "TOM_THE", "QuantityPerServing": 40, "WasteRatePercent": 5 } ] },
+      { "Code": "CANH_RAU_DEN", "Name": "Canh rau den", "CategoryCode": "SOUP", "BomItems": [ { "IngredientCode": "RAU_DEN", "QuantityPerServing": 70, "WasteRatePercent": 5 }, { "IngredientCode": "THIT_XAY", "QuantityPerServing": 1.8, "WasteRatePercent": 3 } ] },
+      { "Code": "CHA_CA_THI_LA", "Name": "Cha ca thi la", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "CA_SONG", "QuantityPerServing": 20, "WasteRatePercent": 5 }, { "IngredientCode": "MOC", "QuantityPerServing": 10, "WasteRatePercent": 3 }, { "IngredientCode": "THIT_XAY", "QuantityPerServing": 40, "WasteRatePercent": 3 } ] },
+      { "Code": "CA_BA_SA_KHO_TIEU", "Name": "Ca ba sa kho tieu", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "CA_BA_SA", "QuantityPerServing": 120, "WasteRatePercent": 5 } ] },
+      { "Code": "SU_SU_XAO", "Name": "Su su xao", "CategoryCode": "VEGETABLE", "BomItems": [ { "IngredientCode": "SU_SU", "QuantityPerServing": 100, "WasteRatePercent": 6 } ] },
+      { "Code": "CAI_LUOC", "Name": "Cai luoc", "CategoryCode": "VEGETABLE", "BomItems": [ { "IngredientCode": "RAU_CAI", "QuantityPerServing": 90, "WasteRatePercent": 6 } ] },
+      { "Code": "DAU_HU_TU_XUYEN", "Name": "Dau hu tu xuyen", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "DAU_HU", "QuantityPerServing": 1, "WasteRatePercent": 2 }, { "IngredientCode": "THIT_XAY", "QuantityPerServing": 20, "WasteRatePercent": 3 } ] },
+      { "Code": "CANH_GA_SOT_CHUA_NGOT", "Name": "Canh ga sot chua ngot", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "CANH_GA", "QuantityPerServing": 120, "WasteRatePercent": 5 } ] },
+      { "Code": "BO_XAO_LA_LOT", "Name": "Bo xao la lot", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "BO_TAI", "QuantityPerServing": 40, "WasteRatePercent": 4 }, { "IngredientCode": "LA_LOT", "QuantityPerServing": 1, "WasteRatePercent": 8 } ] },
+      { "Code": "SUON_NON_KHO_DUA", "Name": "Suon non kho dua", "CategoryCode": "MAIN", "BomItems": [ { "IngredientCode": "SUON_NON", "QuantityPerServing": 75, "WasteRatePercent": 5 }, { "IngredientCode": "DUA_CHUA", "QuantityPerServing": 20, "WasteRatePercent": 5 } ] },
+      { "Code": "CANH_DU_DU", "Name": "Canh du du", "CategoryCode": "SOUP", "BomItems": [ { "IngredientCode": "DU_DU_XANH", "QuantityPerServing": 100, "WasteRatePercent": 6 } ] },
+      { "Code": "CANH_CAI_THAO", "Name": "Canh cai thao", "CategoryCode": "SOUP", "BomItems": [ { "IngredientCode": "CAI_THAO", "QuantityPerServing": 80, "WasteRatePercent": 6 }, { "IngredientCode": "THIT_XAY", "QuantityPerServing": 1.8, "WasteRatePercent": 3 } ] },
+      { "Code": "RAU_MUONG_XAO", "Name": "Rau muong xao", "CategoryCode": "VEGETABLE", "BomItems": [ { "IngredientCode": "RAU_MUONG", "QuantityPerServing": 90, "WasteRatePercent": 6 } ] },
+      { "Code": "CHUOI_TRANG_MIENG", "Name": "Chuoi trang mieng", "CategoryCode": "DESSERT", "BomItems": [ { "IngredientCode": "CHUOI_CAU", "QuantityPerServing": 77, "WasteRatePercent": 4 } ] },
+      { "Code": "COM_TRANG", "Name": "Com trang", "CategoryCode": "STAPLE", "BomItems": [ { "IngredientCode": "GAO", "QuantityPerServing": 120, "WasteRatePercent": 3 } ] }
+    ],
+    "WorkBoards": [
+      { "DepartmentCode": "MENU", "TeamCode": "MENU_RD", "OwnerEmail": "menu@bizen.local", "Name": "MENU_WEEKLY_TASKS", "Description": "Board cong viec thuc don tuan", "SortOrder": 1, "Columns": [ { "Name": "Backlog", "StatusCode": "backlog", "SortOrder": 1 }, { "Name": "Dang lam", "StatusCode": "doing", "SortOrder": 2 }, { "Name": "Cho duyet", "StatusCode": "review", "SortOrder": 3 }, { "Name": "Hoan thanh", "StatusCode": "done", "SortOrder": 4, "IsDoneColumn": true } ], "Tasks": [ { "Title": "Lap menu WACOAL 01/05", "ColumnStatusCode": "doing", "PriorityCode": "high", "DueDate": "2026-05-01", "RiskScore": 22, "ReporterEmail": "ops@bizen.local", "AssigneeEmails": [ "menu@bizen.local" ], "Checklist": [ "Chon mon man", "Kiem tra BOM", "Gui QA duyet" ], "Comments": [ "Menu can uu tien mon co BOM day du." ] } ] },
+      { "DepartmentCode": "PUR", "TeamCode": "PUR_BUYER", "OwnerEmail": "purchasing@bizen.local", "Name": "PUR_PROCUREMENT_TASKS", "Description": "Board thu mua", "SortOrder": 2, "Columns": [ { "Name": "Can mua", "StatusCode": "todo", "SortOrder": 1 }, { "Name": "Dang mua", "StatusCode": "buying", "SortOrder": 2 }, { "Name": "Cho xac nhan", "StatusCode": "confirm", "SortOrder": 3 }, { "Name": "Hoan tat", "StatusCode": "done", "SortOrder": 4, "IsDoneColumn": true } ], "Tasks": [ { "Title": "Chuan bi nguyen lieu menu WACOAL", "ColumnStatusCode": "todo", "PriorityCode": "high", "DueDate": "2026-05-01", "RiskScore": 35, "ReporterEmail": "ops@bizen.local", "AssigneeEmails": [ "purchasing@bizen.local" ], "LinkedWorkflowCode": "procurement", "LinkedEntityType": "ProcurementPlan", "Checklist": [ "Kiem tra so luong", "In giay di cho", "Xac nhan nha cung cap" ] } ] },
+      { "DepartmentCode": "CS", "TeamCode": "CS_SUPPORT", "OwnerEmail": "cs@bizen.local", "Name": "CS_CUSTOMER_SUPPORT", "Description": "Board CSKH", "SortOrder": 3, "Columns": [ { "Name": "Ticket moi", "StatusCode": "new", "SortOrder": 1 }, { "Name": "Dang xu ly", "StatusCode": "doing", "SortOrder": 2 }, { "Name": "Cho khach", "StatusCode": "waiting", "SortOrder": 3 }, { "Name": "Dong", "StatusCode": "closed", "SortOrder": 4, "IsDoneColumn": true } ], "Tasks": [ { "Title": "Theo doi WACOAL nhap so luong chot", "ColumnStatusCode": "waiting", "PriorityCode": "normal", "DueDate": "2026-05-01", "RiskScore": 18, "ReporterEmail": "ops@bizen.local", "AssigneeEmails": [ "cs@bizen.local" ], "Checklist": [ "Gui email dashboard", "Nhac khach truoc 09:00" ] } ] }
+    ],
+    "MenuPlans": [
+      { "Code": "MENU-WACOAL-20260501-S1", "CustomerCode": "WACOAL", "ServiceContractCode": "WACOAL-2026", "DeliveryLocationCode": "WAC01", "PrimaryKitchenCode": "BEP_001", "ServiceDate": "2026-05-01", "MealShiftCode": "CA_001", "MealTypeCode": "WACOAL_MAN", "Status": "CustomerApproved", "Items": [ { "SlotCode": "WHITE_RICE_1", "DishCode": "COM_TRANG", "KitchenCode": "BEP_001", "SortOrder": 1 }, { "SlotCode": "MAIN_MEAT_1", "DishCode": "THIT_KHO_CA_ROT", "KitchenCode": "BEP_001", "SortOrder": 2 }, { "SlotCode": "MAIN_MEAT_2", "DishCode": "TOM_RIM_MAN", "KitchenCode": "BEP_001", "SortOrder": 3 }, { "SlotCode": "SOUP_1", "DishCode": "CANH_RAU_DEN", "KitchenCode": "BEP_001", "SortOrder": 4 }, { "SlotCode": "VEGETABLE_1", "DishCode": "SU_SU_XAO", "KitchenCode": "BEP_001", "SortOrder": 5 }, { "SlotCode": "DESSERT_1", "DishCode": "CHUOI_TRANG_MIENG", "KitchenCode": "BEP_001", "SortOrder": 6 } ], "DailyMealOrder": { "ExpectedQty": 520, "ExpectedQtySourceCode": "previous_week", "FinalQty": 520, "FinalQtySourceCode": "customer_form", "ExtraInputQty": 30, "ExtraModeCode": "adjust_final", "TotalCookingQty": 550, "ResolveNote": "Demo: fallback du kien tu cung ky tuan truoc va phat sinh +30", "IsLocked": true }, "InternalApprovals": [ { "SequenceNo": 1, "StepName": "QA kiem tra thuc don", "RequiredRoleCode": "QA_REVIEWER", "StatusCode": "Approved", "AssignedToEmail": "qa@bizen.local", "DecidedByEmail": "qa@bizen.local", "Comment": "Mon an dat yeu cau" }, { "SequenceNo": 2, "StepName": "Ops duyet van hanh", "RequiredRoleCode": "OPS", "StatusCode": "Approved", "AssignedToEmail": "ops@bizen.local", "DecidedByEmail": "ops@bizen.local", "Comment": "Du dieu kien gui khach" } ], "CustomerApprovalToken": { "ContactEmail": "wacoal.contact@bizen.local", "RawToken": "demo-wacoal-20260501-s1", "ExpiresAt": "2026-06-01T00:00:00Z", "StatusCode": "Approved", "CustomerComment": "Khach da xac nhan menu va so luong." }, "ProcurementPlan": { "Code": "PROC-20260501-S1", "StatusCode": "Issued", "GeneratedByEmail": "purchasing@bizen.local", "Note": "Giay di cho demo tinh tu BOM menu WACOAL 550 suat" } }
+    ],
+    "AiDecisionInsights": [
+      { "ContextType": "MenuPlan", "ContextCode": "MENU-WACOAL-20260501-S1", "Severity": "Medium", "Summary": "So luong nau tang do phat sinh +30 sau khi khach chot 520 suat.", "Recommendation": "Kiem tra ton kho tom the, thit heo vai va chuoi cau truoc khi phat hanh mua hang.", "CitationJson": "[\"DailyMealOrder:MENU-WACOAL-20260501-S1\",\"DishBomItem:THIT_KHO_CA_ROT\"]" },
+      { "ContextType": "ProcurementPlan", "ContextCode": "PROC-20260501-S1", "Severity": "Info", "Summary": "Giay di cho da gom BOM cho 6 vi tri mon cua menu WACOAL.", "Recommendation": "Uu tien mua rau den va su su vi co hao hut cao hon nhom thit.", "CitationJson": "[\"ProcurementPlan:PROC-20260501-S1\"]" }
+    ]
+  }
+}
