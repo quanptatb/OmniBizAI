@@ -6,6 +6,21 @@
 -- không thể tạo ASP.NET Identity password hash.
 -- ============================================================================
 
+IF OBJECT_ID(N'dbo.AspNetRoles', N'U') IS NULL
+BEGIN
+    THROW 50001, N'Chưa có bảng dbo.AspNetRoles. Hãy chạy dotnet ef database update hoặc chạy app một lần để áp dụng migration trước khi chạy Data/Seed/seed_data.sql.', 1;
+END;
+
+IF OBJECT_ID(N'dbo.AspNetUsers', N'U') IS NULL OR OBJECT_ID(N'dbo.AspNetUserRoles', N'U') IS NULL
+BEGIN
+    THROW 50002, N'Chưa có đủ bảng ASP.NET Identity. Hãy áp dụng EF Core migration trước rồi chạy lại seed_data.sql.', 1;
+END;
+
+IF OBJECT_ID(N'dbo.Tenants', N'U') IS NULL
+BEGIN
+    THROW 50003, N'Chưa có schema nghiệp vụ OmniBizAI. Hãy áp dụng EF Core migration trước rồi chạy lại seed_data.sql.', 1;
+END;
+
 -- ── Fixed GUIDs ──────────────────────────────────────────────────────────────
 DECLARE @TenantId   UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000001';
 DECLARE @RootOrgId  UNIQUEIDENTIFIER = '00000000-0000-0000-0000-000000000010';

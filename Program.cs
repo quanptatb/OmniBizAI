@@ -5,6 +5,10 @@ using OmniBizAI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 // ── Services ─────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
