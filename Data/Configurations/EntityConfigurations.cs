@@ -100,9 +100,29 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
     {
         builder.HasKey(e => e.Id);
         builder.HasIndex(e => new { e.TenantId, e.Status, e.DueDate });
+        builder.HasIndex(e => new { e.TenantId, e.KanbanColumnId });
         builder.Property(e => e.Title).HasMaxLength(250).IsRequired();
         builder.Property(e => e.Status).HasConversion<int>();
         builder.Property(e => e.Priority).HasConversion<int>();
+
+        builder.HasOne(e => e.KanbanColumn)
+            .WithMany(c => c.WorkItems)
+            .HasForeignKey(e => e.KanbanColumnId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
+    }
+}
+
+public class KanbanColumnConfiguration : IEntityTypeConfiguration<KanbanColumn>
+{
+    public void Configure(EntityTypeBuilder<KanbanColumn> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasIndex(e => new { e.TenantId, e.SortOrder });
+        builder.Property(e => e.Title).HasMaxLength(100).IsRequired();
+        builder.Property(e => e.Description).HasMaxLength(500);
+        builder.Property(e => e.AccentColor).HasMaxLength(50);
 
         builder.HasQueryFilter(e => !e.IsDeleted);
     }

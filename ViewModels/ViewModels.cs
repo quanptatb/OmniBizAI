@@ -407,20 +407,31 @@ public class KanbanBoardViewModel
     public Guid? DepartmentFilter { get; set; }
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> OperationRequests { get; set; } = new();
+    /// <summary>Only subordinates the current user can assign to.</summary>
     public List<SelectOption> Assignees { get; set; } = new();
     public List<KanbanColumnViewModel> Columns { get; set; } = new();
     public WorkItemCreateViewModel CreateForm { get; set; } = new();
     public int TotalCards => Columns.Sum(c => c.Items.Count);
-    public int BlockedCards => Columns.Where(c => c.Status == WorkItemStatus.Blocked).Sum(c => c.Items.Count);
     public int OverdueCards => Columns.Sum(c => c.Items.Count(i => i.IsOverdue));
+    public int BlockedCards => Columns.Where(c => c.Status == WorkItemStatus.Blocked).Sum(c => c.Items.Count);
+    /// <summary>True if the user can manage (add/edit/delete) columns.</summary>
+    public bool CanManageColumns { get; set; }
 }
 
 public class KanbanColumnViewModel
 {
+    /// <summary>Database column Id.</summary>
+    public Guid Id { get; set; }
+    /// <summary>Enum status this column represents (for hard-coded Kanban flow).</summary>
     public WorkItemStatus Status { get; set; }
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
+    public string AccentColor { get; set; } = "#94a3b8";
+    /// <summary>CSS accent class name used in the Kanban UI.</summary>
     public string AccentClass { get; set; } = "";
+    public int SortOrder { get; set; }
+    public bool IsDoneColumn { get; set; }
+    public bool IsCancelledColumn { get; set; }
     public List<KanbanCardViewModel> Items { get; set; } = new();
 }
 
@@ -428,11 +439,13 @@ public class KanbanCardViewModel
 {
     public Guid Id { get; set; }
     public Guid OperationRequestId { get; set; }
+    public Guid KanbanColumnId { get; set; }
+    /// <summary>Current WorkItemStatus of the card.</summary>
+    public WorkItemStatus Status { get; set; }
     public string RequestNo { get; set; } = "";
     public string RequestTitle { get; set; } = "";
     public string Title { get; set; } = "";
     public string? Description { get; set; }
-    public WorkItemStatus Status { get; set; }
     public string Department { get; set; } = "";
     public string Priority { get; set; } = "";
     public string PriorityClass { get; set; } = "";
@@ -442,7 +455,9 @@ public class KanbanCardViewModel
     public int ChecklistTotal { get; set; }
     public bool IsOverdue => DueDate.HasValue
         && DueDate.Value < DateOnly.FromDateTime(DateTime.Today)
-        && Status is not WorkItemStatus.Done and not WorkItemStatus.Cancelled;
+        && !IsDone && !IsCancelled;
+    public bool IsDone { get; set; }
+    public bool IsCancelled { get; set; }
 }
 
 public class WorkItemCreateViewModel
@@ -466,9 +481,52 @@ public class WorkItemCreateViewModel
 public class WorkItemMoveViewModel
 {
     public Guid Id { get; set; }
+    /// <summary>Target column Id (dynamic).</summary>
+    public Guid ColumnId { get; set; }
+    /// <summary>Target WorkItemStatus (for enum-based Kanban flow).</summary>
     public WorkItemStatus Status { get; set; }
     public string? Search { get; set; }
     public Guid? Dept { get; set; }
+}
+
+// ── Column management ────────────────────────────────────────────────────────
+public class KanbanColumnCreateViewModel
+{
+    [Required(ErrorMessage = "Tiêu đề cột không được để trống")]
+    [StringLength(100, ErrorMessage = "Tiêu đề không quá 100 ký tự")]
+    public string Title { get; set; } = string.Empty;
+
+    [StringLength(500)]
+    public string? Description { get; set; }
+
+    [StringLength(50)]
+    public string AccentColor { get; set; } = "#94a3b8";
+
+    public bool IsDoneColumn { get; set; }
+    public bool IsCancelledColumn { get; set; }
+}
+
+public class KanbanColumnEditViewModel
+{
+    public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Tiêu đề cột không được để trống")]
+    [StringLength(100)]
+    public string Title { get; set; } = string.Empty;
+
+    [StringLength(500)]
+    public string? Description { get; set; }
+
+    [StringLength(50)]
+    public string AccentColor { get; set; } = "#94a3b8";
+
+    public bool IsDoneColumn { get; set; }
+    public bool IsCancelledColumn { get; set; }
+}
+
+public class KanbanColumnReorderViewModel
+{
+    public List<Guid> ColumnIds { get; set; } = new();
 }
 
 // ===== REPORTS =====

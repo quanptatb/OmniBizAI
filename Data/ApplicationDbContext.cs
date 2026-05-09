@@ -52,6 +52,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<WorkItemAssignment> WorkItemAssignments => Set<WorkItemAssignment>();
     public DbSet<WorkItemChecklist> WorkItemChecklists => Set<WorkItemChecklist>();
     public DbSet<WorkItemComment> WorkItemComments => Set<WorkItemComment>();
+    public DbSet<KanbanColumn> KanbanColumns => Set<KanbanColumn>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<EntityTag> EntityTags => Set<EntityTag>();

@@ -20,6 +20,10 @@ public class WorkItem : TenantEntity
 
     public WorkItemStatus Status { get; set; } = WorkItemStatus.Todo;
 
+    /// <summary>Dynamic Kanban column — replaces the hardcoded Status enum for board display.</summary>
+    public Guid? KanbanColumnId { get; set; }
+    public KanbanColumn? KanbanColumn { get; set; }
+
     public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
 
     public DateOnly? DueDate { get; set; }
