@@ -29,6 +29,21 @@
                     <input asp-for="Cycle" class="form-control" placeholder="VD: Q2-2026" />
                 </div>
             </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <label asp-for="SelectedDepartmentIds" class="form-label">Phòng ban áp dụng</label>
+                    <select asp-for="SelectedDepartmentIds" class="form-select" multiple size="4">
+                        @foreach (var d in Model.Departments) { <option value="@d.Value">@d.Text</option> }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="SelectedMissionIds" class="form-label">Liên kết sứ mệnh/tầm nhìn</label>
+                    <select asp-for="SelectedMissionIds" class="form-select" multiple size="4">
+                        @foreach (var m in Model.Missions) { <option value="@m.Value">@m.Text</option> }
+                    </select>
+                </div>
+            </div>
+
         </div>
     </div>
 
