@@ -132,6 +132,22 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
             }
         }
 
+
+
+        if (vm.SelectedEmployeeIds.Any())
+        {
+            foreach (var userId in vm.SelectedEmployeeIds.Distinct())
+            {
+                entity.EmployeeAllocations.Add(new OkrEmployeeAllocation
+                {
+                    TenantId = tid,
+                    UserId = userId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
         if (vm.KeyResults?.Any() == true)
         {
             foreach (var kr in vm.KeyResults)
@@ -174,6 +190,11 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
             Missions = await db.MissionVisions
                 .Where(m => m.TenantId == tid && m.IsActive && !m.IsDeleted)
                 .Select(m => new SelectOption { Value = m.Id.ToString(), Text = m.Content ?? "" })
+                .ToListAsync(),
+            Employees = await db.AppUsers
+                .Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .OrderBy(u => u.FullName)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName })
                 .ToListAsync()
         };
     }
@@ -293,6 +314,9 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
     {
         var tid = tenant.TenantId;
         var count = await db.KpiDefinitions.CountAsync(k => k.TenantId == tid);
+
+        if (vm.OkrKeyResultId.HasValue && !vm.OkrObjectiveId.HasValue)
+            throw new InvalidOperationException("Vui lòng chọn OKR Objective trước khi chọn Key Result.");
 
         if (vm.OkrKeyResultId.HasValue && vm.OkrObjectiveId.HasValue)
         {

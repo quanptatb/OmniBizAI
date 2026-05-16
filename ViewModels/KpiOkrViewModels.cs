@@ -71,10 +71,12 @@ public class OkrCreateViewModel
     // Dropdowns
     public List<Guid> SelectedDepartmentIds { get; set; } = new();
     public List<Guid> SelectedMissionIds { get; set; } = new();
+    public List<Guid> SelectedEmployeeIds { get; set; } = new();
 
     // Dropdowns
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> Missions { get; set; } = new();
+    public List<SelectOption> Employees { get; set; } = new();
 }
 
 public class OkrKeyResultCreateItem
