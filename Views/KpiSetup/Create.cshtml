@@ -71,6 +71,7 @@
                     <label asp-for="OkrKeyResultId" class="form-label">Key Result</label>
                     <small id="krHint" class="text-muted d-block mb-1">Bước 2: chọn Key Result thuộc Objective</small>
                     <select asp-for="OkrKeyResultId" id="okrKeyResultSelect" class="form-select" disabled><option value="">-- Chọn OKR trước --</option>@foreach (var kr in Model.OkrKeyResults) { <option value="@kr.Value">@kr.Text</option> }</select>
+                    <select asp-for="OkrKeyResultId" id="okrKeyResultSelect" class="form-select"><option value="">-- Chọn KR --</option>@foreach (var kr in Model.OkrKeyResults) { <option value="@kr.Value">@kr.Text</option> }</select>
                     <span asp-validation-for="OkrKeyResultId" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
@@ -129,6 +130,10 @@ document.getElementById('okrObjectiveSelect')?.addEventListener('change', async 
     }
     krSelect.disabled = false;
     krHint.textContent = `Có ${data.length} KR khả dụng`;
+    krSelect.innerHTML = '<option value="">-- Chọn KR --</option>';
+    if (!objectiveId) return;
+    const res = await fetch(`@Url.Action("KeyResults", "KpiSetup")?okrObjectiveId=${objectiveId}`);
+    const data = await res.json();
     for (const item of data) {
         const opt = document.createElement('option');
         opt.value = item.value;

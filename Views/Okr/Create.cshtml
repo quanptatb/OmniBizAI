@@ -36,6 +36,8 @@
                 <div class="col-md-4">
                     <label asp-for="SelectedDepartmentIds" class="form-label">Phòng ban áp dụng</label>
                     <small class="text-muted d-block mb-1">Có thể chọn nhiều phòng ban bằng Ctrl/⌘ + click</small>
+                <div class="col-md-6">
+                    <label asp-for="SelectedDepartmentIds" class="form-label">Phòng ban áp dụng</label>
                     <select asp-for="SelectedDepartmentIds" class="form-select" multiple size="4">
                         @foreach (var d in Model.Departments) { <option value="@d.Value">@d.Text</option> }
                     </select>
@@ -43,6 +45,8 @@
                 <div class="col-md-4">
                     <label asp-for="SelectedMissionIds" class="form-label">Liên kết sứ mệnh/tầm nhìn</label>
                     <small class="text-muted d-block mb-1">Gắn với định hướng chiến lược liên quan</small>
+                <div class="col-md-6">
+                    <label asp-for="SelectedMissionIds" class="form-label">Liên kết sứ mệnh/tầm nhìn</label>
                     <select asp-for="SelectedMissionIds" class="form-select" multiple size="4">
                         @foreach (var m in Model.Missions) { <option value="@m.Value">@m.Text</option> }
                     </select>
