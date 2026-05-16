@@ -104,6 +104,50 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
             CreatedAt = DateTimeOffset.UtcNow
         };
 
+        if (vm.SelectedMissionIds.Any())
+        {
+            foreach (var missionId in vm.SelectedMissionIds.Distinct())
+            {
+                entity.MissionMappings.Add(new OkrMissionMapping
+                {
+                    TenantId = tid,
+                    MissionVisionId = missionId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
+        if (vm.SelectedDepartmentIds.Any())
+        {
+            foreach (var departmentId in vm.SelectedDepartmentIds.Distinct())
+            {
+                entity.DepartmentAllocations.Add(new OkrDepartmentAllocation
+                {
+                    TenantId = tid,
+                    OrganizationUnitId = departmentId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
+
+
+        if (vm.SelectedEmployeeIds.Any())
+        {
+            foreach (var userId in vm.SelectedEmployeeIds.Distinct())
+            {
+                entity.EmployeeAllocations.Add(new OkrEmployeeAllocation
+                {
+                    TenantId = tid,
+                    UserId = userId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
         if (vm.KeyResults?.Any() == true)
         {
             foreach (var kr in vm.KeyResults)
@@ -146,6 +190,11 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
             Missions = await db.MissionVisions
                 .Where(m => m.TenantId == tid && m.IsActive && !m.IsDeleted)
                 .Select(m => new SelectOption { Value = m.Id.ToString(), Text = m.Content ?? "" })
+                .ToListAsync(),
+            Employees = await db.AppUsers
+                .Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .OrderBy(u => u.FullName)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName })
                 .ToListAsync()
         };
     }
@@ -266,6 +315,15 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
         var tid = tenant.TenantId;
         var count = await db.KpiDefinitions.CountAsync(k => k.TenantId == tid);
 
+        if (vm.OkrKeyResultId.HasValue && !vm.OkrObjectiveId.HasValue)
+            throw new InvalidOperationException("Vui lòng chọn OKR Objective trước khi chọn Key Result.");
+
+        if (vm.OkrKeyResultId.HasValue && vm.OkrObjectiveId.HasValue)
+        {
+            var linked = await db.OkrKeyResults.AnyAsync(kr => kr.Id == vm.OkrKeyResultId && kr.OkrObjectiveId == vm.OkrObjectiveId && !kr.IsDeleted && kr.TenantId == tid);
+            if (!linked) throw new InvalidOperationException("Key Result không thuộc OKR đã chọn.");
+        }
+
         var entity = new KpiDefinition
         {
             TenantId = tid,
@@ -331,6 +389,10 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             OkrObjectives = await db.OkrObjectives
                 .Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted && o.Status == OkrStatus.Active)
                 .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.ObjectiveName }).ToListAsync(),
+            OkrKeyResults = await db.OkrKeyResults
+                .Where(kr => kr.TenantId == tid && !kr.IsDeleted)
+                .OrderBy(kr => kr.KeyResultName)
+                .Select(kr => new SelectOption { Value = kr.Id.ToString(), Text = kr.KeyResultName }).ToListAsync(),
             Periods = await db.EvaluationPeriods
                 .Where(p => p.TenantId == tid && !p.IsDeleted && p.Status != EvaluationPeriodStatus.Closed)
                 .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync()
@@ -378,6 +440,11 @@ public class KpiCheckInService(ApplicationDbContext db, ITenantContext tenant)
         return new KpiCheckInListViewModel
         {
             Items = items,
+            AvailableTargets = await db.KpiTargets
+                .Where(t => t.TenantId == tid && !t.IsDeleted && t.KpiDefinition != null && !t.KpiDefinition.IsDeleted && t.KpiDefinition.Status == KpiStatus.Active)
+                .OrderBy(t => t.KpiDefinition!.Code)
+                .Select(t => new SelectOption { Value = t.Id.ToString(), Text = $"{t.KpiDefinition!.Code} - {t.KpiDefinition.Name}" })
+                .ToListAsync(),
             TotalCount = total,
             Page = page,
             SearchTerm = search,

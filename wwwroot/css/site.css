@@ -577,3 +577,13 @@ a:hover{text-decoration:underline}
     .kanban-toolbar-main{flex-direction:column}
     .kanban-toolbar-main .btn{width:100%}
 }
+
+.nav-group-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:0;color:rgba(255,255,255,.78);padding:9px 12px;border-radius:var(--r-sm);font-size:.82rem;margin-top:4px;cursor:pointer;transition:all var(--ease-fast)}
+.nav-group-toggle .left{display:flex;align-items:center;gap:10px}
+.nav-group-toggle .left i{width:18px;text-align:center;opacity:.75}
+.nav-group-toggle:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-group-toggle .chev{font-size:.7rem;opacity:.7;transition:transform var(--ease-fast)}
+.nav-group-toggle.expanded .chev{transform:rotate(180deg)}
+.nav-group-items{display:none;padding-left:8px}
+.nav-group-items.open{display:block}
+.nav-group-items .nav-item{padding-left:14px;font-size:.8rem}
