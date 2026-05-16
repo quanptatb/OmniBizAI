@@ -69,6 +69,10 @@ public class OkrCreateViewModel
     public List<OkrKeyResultCreateItem>? KeyResults { get; set; }
 
     // Dropdowns
+    public List<Guid> SelectedDepartmentIds { get; set; } = new();
+    public List<Guid> SelectedMissionIds { get; set; } = new();
+
+    // Dropdowns
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> Missions { get; set; } = new();
 }
@@ -195,6 +199,7 @@ public class KpiCreateViewModel
     // Dropdowns
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> OkrObjectives { get; set; } = new();
+    public List<SelectOption> OkrKeyResults { get; set; } = new();
     public List<SelectOption> Periods { get; set; } = new();
 }
 
@@ -205,6 +210,8 @@ public class KpiCreateViewModel
 public class KpiCheckInListViewModel
 {
     public List<KpiCheckInListItem> Items { get; set; } = new();
+    public KpiCheckInSubmitViewModel SubmitForm { get; set; } = new();
+    public List<SelectOption> AvailableTargets { get; set; } = new();
     public int TotalCount { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
