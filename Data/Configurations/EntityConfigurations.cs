@@ -158,20 +158,8 @@ public class AiInsightConfiguration : IEntityTypeConfiguration<AiInsight>
     }
 }
 
-public class KpiDefinitionConfiguration : IEntityTypeConfiguration<KpiDefinition>
-{
-    public void Configure(EntityTypeBuilder<KpiDefinition> builder)
-    {
-        builder.HasKey(e => e.Id);
-        builder.Property(e => e.Code).HasMaxLength(50).IsRequired();
-        builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
-        builder.Property(e => e.Unit).HasMaxLength(50);
-        builder.Property(e => e.OwnerType).HasConversion<int>();
-        builder.Property(e => e.PeriodType).HasConversion<int>();
+// KpiDefinition configuration moved to KpiOkrConfigurations.cs
 
-        builder.HasQueryFilter(e => !e.IsDeleted);
-    }
-}
 
 public class BudgetConfiguration : IEntityTypeConfiguration<Budget>
 {

@@ -1,0 +1,136 @@
+@model OmniBizAI.ViewModels.KpiCheckInListViewModel
+@{ ViewData["Title"] = "KPI Check-In"; }
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
+            <i class="bi bi-clipboard-check me-2" style="color:var(--kpi-primary);"></i>KPI Check-In
+        </h1>
+        <span class="text-muted small">Báo cáo tiến độ và review check-in</span>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert" style="border-radius:var(--kpi-radius); border:1px solid rgba(15,157,88,0.2);">
+        <i class="bi bi-check-circle-fill" style="color:var(--kpi-success);"></i>
+        <span>@TempData["Success"]</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert" style="border-radius:var(--kpi-radius); border:1px solid rgba(217,48,37,0.2);">
+        <i class="bi bi-exclamation-triangle-fill" style="color:var(--kpi-danger);"></i>
+        <span>@TempData["Error"]</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Toolbar -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="toolbar mb-0">
+            <div class="toolbar-left">
+                <div class="toolbar-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" placeholder="Tìm theo KPI hoặc nhân viên..." value="@Model.SearchTerm" />
+                </div>
+                <select name="reviewStatus" class="filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending" selected="@(Model.ReviewStatusFilter == "Pending")">⏳ Chờ duyệt</option>
+                    <option value="Approved" selected="@(Model.ReviewStatusFilter == "Approved")">✅ Đã duyệt</option>
+                    <option value="Rejected" selected="@(Model.ReviewStatusFilter == "Rejected")">❌ Từ chối</option>
+                </select>
+            </div>
+            <div class="toolbar-right">
+                <button type="submit" class="btn-outline-custom"><i class="bi bi-funnel"></i> Lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Check-In Table -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="bi bi-clock-history"></i> Lịch sử Check-In (@Model.TotalCount)</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>KPI</th>
+                    <th>Nhân viên</th>
+                    <th class="text-center">Ngày check-in</th>
+                    <th class="text-end">Giá trị</th>
+                    <th class="text-center">Review</th>
+                    <th class="text-center">Điểm</th>
+                    <th class="text-center" style="width:120px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-clipboard-x me-2" style="font-size:1.5rem;"></i>Chưa có check-in nào.</td></tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <span style="font-weight:600; color:var(--kpi-text-primary);">@item.KpiName</span><br/>
+                            <code style="background:var(--kpi-primary-light); color:var(--kpi-primary-dark); padding:2px 8px; border-radius:4px; font-size:0.75rem;">@item.KpiCode</code>
+                        </td>
+                        <td style="color:var(--kpi-text-secondary);">@item.UserName</td>
+                        <td class="text-center">
+                            <span>@item.CheckInDate.ToString("dd/MM/yyyy")</span>
+                            @if (item.IsLate) { <span class="status-badge-soft badge-late ms-1" style="font-size:0.65rem; padding:3px 8px;"><span class="status-dot"></span> Trễ</span> }
+                        </td>
+                        <td class="text-end" style="font-weight:800; color:var(--kpi-text-primary); font-size:1.05rem;">@item.ProgressValue.ToString("N2")</td>
+                        <td class="text-center">
+                            @{
+                                var (badgeCls, statusTxt) = item.ReviewStatus switch
+                                {
+                                    "Pending" => ("badge-at-risk", "Chờ duyệt"),
+                                    "Approved" => ("badge-on-track", "Đã duyệt"),
+                                    "Rejected" => ("badge-late", "Từ chối"),
+                                    _ => ("", item.ReviewStatus)
+                                };
+                            }
+                            <span class="status-badge-soft @badgeCls"><span class="status-dot"></span> @statusTxt</span>
+                        </td>
+                        <td class="text-center" style="font-weight:700;">@(item.ReviewScore?.ToString("N1") ?? "—")</td>
+                        <td class="text-center">
+                            @if (item.ReviewStatus == "Pending")
+                            {
+                                <div class="action-btns justify-content-center">
+                                    <form asp-action="Review" method="post" class="d-inline">
+                                        <input type="hidden" name="CheckInId" value="@item.Id" />
+                                        <input type="hidden" name="Decision" value="Approved" />
+                                        <button type="submit" class="action-btn" title="Duyệt" style="color:var(--kpi-success);"><i class="bi bi-check-lg"></i></button>
+                                    </form>
+                                    <form asp-action="Review" method="post" class="d-inline">
+                                        <input type="hidden" name="CheckInId" value="@item.Id" />
+                                        <input type="hidden" name="Decision" value="Rejected" />
+                                        <button type="submit" class="action-btn danger" title="Từ chối"><i class="bi bi-x-lg"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-custom">
+            <span>Tổng: <strong>@Model.TotalCount</strong> • Trang @Model.Page/@Model.TotalPages</span>
+            <div class="pagination-pages">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a href="?page=@i&search=@Model.SearchTerm&reviewStatus=@Model.ReviewStatusFilter" class="page-btn @(i == Model.Page ? "active" : "")">@i</a>
+                }
+            </div>
+        </div>
+    }
+</div>

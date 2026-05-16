@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OmniBizAI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9562e13bdc5c122e25132baaa8cddb2c7870c15")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6c0896bd4c1dea1192d7b087468cc7dc07f20c66")]
 [assembly: System.Reflection.AssemblyProductAttribute("OmniBizAI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OmniBizAI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

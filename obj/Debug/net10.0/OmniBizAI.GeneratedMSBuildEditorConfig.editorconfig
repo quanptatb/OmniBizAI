@@ -54,6 +54,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Evaluation/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXZhbHVhdGlvblxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Finance/Budgets.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmluYW5jZVxCdWRnZXRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -70,8 +74,40 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiCheckIn/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpQ2hlY2tJblxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiSetup/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpU2V0dXBcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiSetup/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpU2V0dXBcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiSetup/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpU2V0dXBcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Kpi/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/MissionVision/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWlzc2lvblZpc2lvblxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Okr/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2tyXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Okr/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2tyXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Okr/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2tyXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Operations/Create.cshtml]

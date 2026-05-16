@@ -181,3 +181,85 @@ public enum NotificationDeliveryStatus
     Read = 3,
     Failed = 4
 }
+
+// ── KPI/OKR Module Enums ─────────────────────────────────────────────────────
+
+public enum MissionVisionType
+{
+    Vision = 1,
+    Mission = 2,
+    YearlyGoal = 3
+}
+
+public enum OkrLevel
+{
+    Company = 1,
+    Department = 2,
+    Individual = 3
+}
+
+public enum OkrStatus
+{
+    Draft = 1,
+    Active = 2,
+    Completed = 3,
+    Cancelled = 4
+}
+
+public enum KpiPropertyType
+{
+    Growth = 1,
+    Stability = 2,
+    Reduction = 3
+}
+
+public enum KpiMeasureType
+{
+    Quantitative = 1,
+    Qualitative = 2,
+    Behavioral = 3
+}
+
+public enum KpiStatus
+{
+    Draft = 1,
+    PendingApproval = 2,
+    Active = 3,
+    NearTarget = 4,
+    Completed = 5,
+    Failed = 6,
+    Rejected = 7,
+    Cancelled = 8
+}
+
+public enum CheckInReviewStatus
+{
+    Pending = 1,
+    Approved = 2,
+    Rejected = 3
+}
+
+public enum EvaluationPeriodStatus
+{
+    Open = 1,
+    InProgress = 2,
+    Closed = 3
+}
+
+public enum EvaluationSubmissionStatus
+{
+    Draft = 1,
+    Submitted = 2,
+    DirectorReviewed = 3
+}
+
+public enum GradingRankCode
+{
+    S = 1,
+    APlus = 2,
+    A = 3,
+    BPlus = 4,
+    B = 5,
+    C = 6,
+    D = 7
+}

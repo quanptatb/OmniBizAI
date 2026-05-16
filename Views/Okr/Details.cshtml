@@ -1,0 +1,107 @@
+@model OmniBizAI.ViewModels.OkrDetailViewModel
+@{ ViewData["Title"] = "Chi tiết OKR"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.ObjectiveName</h1>
+        <span class="badge bg-primary me-2">@Model.Level</span>
+        <span class="badge bg-info">@Model.Cycle</span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<!-- Progress Overview -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Tiến độ tổng thể</h5>
+            <span class="h4 mb-0 fw-bold text-primary">@Model.TotalProgress%</span>
+        </div>
+        <div class="progress" style="height: 12px;">
+            <div class="progress-bar @OmniBizAI.Helpers.ProgressHelper.GetProgressColorClass(Model.TotalProgress)"
+                 style="width: @Math.Min(Model.TotalProgress, 100)%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Results -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-transparent">
+        <h5 class="mb-0"><i class="bi bi-key me-2"></i>Key Results (@Model.KeyResults.Count)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Key Result</th>
+                        <th class="text-center">Đơn vị</th>
+                        <th class="text-end">Mục tiêu</th>
+                        <th class="text-end">Thực tế</th>
+                        <th style="width: 200px;">Tiến độ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var kr in Model.KeyResults)
+                    {
+                        <tr>
+                            <td>
+                                @kr.KeyResultName
+                                @if (kr.IsInverse) { <span class="badge bg-warning text-dark ms-1" title="Chỉ số nghịch">↓</span> }
+                            </td>
+                            <td class="text-center">@kr.Unit</td>
+                            <td class="text-end fw-bold">@kr.TargetValue.ToString("N0")</td>
+                            <td class="text-end">@kr.CurrentValue.ToString("N0")</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 6px;">
+                                        <div class="progress-bar @OmniBizAI.Helpers.ProgressHelper.GetProgressColorClass(kr.Progress)"
+                                             style="width: @Math.Min(kr.Progress, 100)%"></div>
+                                    </div>
+                                    <span class="small fw-bold" style="min-width: 45px;">@kr.Progress%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Links -->
+<div class="row g-4">
+    @if (Model.MissionLinks.Any())
+    {
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-star me-2"></i>Sứ mệnh / Tầm nhìn</h6></div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">@foreach (var m in Model.MissionLinks) { <li class="mb-1"><i class="bi bi-check-circle text-success me-1"></i>@m</li> }</ul>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.DepartmentLinks.Any())
+    {
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-building me-2"></i>Phòng ban</h6></div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">@foreach (var d in Model.DepartmentLinks) { <li class="mb-1"><i class="bi bi-diagram-3 text-info me-1"></i>@d</li> }</ul>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.EmployeeLinks.Any())
+    {
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-people me-2"></i>Nhân viên</h6></div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">@foreach (var e in Model.EmployeeLinks) { <li class="mb-1"><i class="bi bi-person text-primary me-1"></i>@e</li> }</ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>

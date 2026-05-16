@@ -1,0 +1,151 @@
+@model OmniBizAI.ViewModels.MissionVisionListViewModel
+@{ ViewData["Title"] = "Sứ mệnh & Tầm nhìn"; }
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
+            <i class="bi bi-stars me-2" style="color:var(--kpi-primary);"></i>Sứ mệnh & Tầm nhìn
+        </h1>
+        <span class="text-muted small">Chiến lược dài hạn và mục tiêu tài chính</span>
+    </div>
+    <button class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="bi bi-plus-lg"></i> Thêm mới
+    </button>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" style="border-radius:var(--kpi-radius);">
+        <i class="bi bi-check-circle-fill" style="color:var(--kpi-success);"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Summary Stats -->
+@{
+    var visions = Model.Items.Count(i => i.Type == "Vision");
+    var missions = Model.Items.Count(i => i.Type == "Mission");
+    var goals = Model.Items.Count(i => i.Type == "YearlyGoal");
+}
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card animate-fade-in">
+            <div class="stat-icon blue"><i class="bi bi-eye"></i></div>
+            <div class="stat-value">@visions</div>
+            <div class="stat-label">Tầm nhìn</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card animate-fade-in" style="animation-delay:.1s">
+            <div class="stat-icon green"><i class="bi bi-heart"></i></div>
+            <div class="stat-value">@missions</div>
+            <div class="stat-label">Sứ mệnh</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card animate-fade-in" style="animation-delay:.2s">
+            <div class="stat-icon orange"><i class="bi bi-flag"></i></div>
+            <div class="stat-value">@goals</div>
+            <div class="stat-label">Mục tiêu chiến lược</div>
+        </div>
+    </div>
+</div>
+
+<!-- Cards Grid -->
+<div class="row g-4">
+    @if (!Model.Items.Any())
+    {
+        <div class="col-12">
+            <div class="content-card">
+                <div class="card-body-custom text-center py-5">
+                    <i class="bi bi-stars" style="font-size:3rem; color:var(--kpi-primary); opacity:0.4;"></i>
+                    <h5 class="mt-3 fw-bold">Chưa có sứ mệnh hoặc tầm nhìn nào</h5>
+                    <p class="text-muted mb-3">Hãy tạo sứ mệnh, tầm nhìn hoặc mục tiêu chiến lược đầu tiên.</p>
+                </div>
+            </div>
+        </div>
+    }
+    @foreach (var item in Model.Items)
+    {
+        <div class="col-md-6 col-lg-4 animate-fade-in">
+            <div class="content-card h-100 @(item.IsActive ? "" : "opacity-50")">
+                <div class="card-body-custom">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        @{
+                            var (typeBg, typeColor, typeIcon) = item.Type switch
+                            {
+                                "Vision" => ("var(--kpi-primary-light)", "var(--kpi-primary)", "bi-eye"),
+                                "Mission" => ("var(--kpi-success-bg)", "var(--kpi-success)", "bi-heart"),
+                                _ => ("var(--kpi-warning-bg)", "var(--kpi-warning)", "bi-flag")
+                            };
+                        }
+                        <span style="background:@typeBg; color:@typeColor; padding:6px 14px; border-radius:20px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+                            <i class="bi @typeIcon"></i> @item.TypeDisplay
+                        </span>
+                        @if (item.TargetYear.HasValue)
+                        {
+                            <span style="background:#f1f5f9; color:var(--kpi-text-muted); padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:700;">📅 @item.TargetYear</span>
+                        }
+                    </div>
+                    <p style="color:var(--kpi-text-primary); line-height:1.6; font-size:0.95rem;">@item.Content</p>
+                    @if (item.FinancialTarget.HasValue)
+                    {
+                        <div class="mt-3 pt-3" style="border-top:1px solid var(--kpi-border);">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-currency-dollar" style="color:var(--kpi-success); font-size:1.2rem;"></i>
+                                <span style="font-weight:800; font-size:1.1rem; color:var(--kpi-success);">@item.FinancialTarget.Value.ToString("N0")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Create" method="post" class="modal-content" style="border-radius:var(--kpi-radius-lg)!important; border:none!important;">
+            <div class="modal-header-soft primary">
+                <h5 class="modal-title-custom"><i class="bi bi-plus-circle" style="color:var(--kpi-primary);"></i> Thêm Sứ mệnh / Tầm nhìn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding:32px;">
+                <div class="form-icon-group">
+                    <label>Loại</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-tag"></i>
+                        <select name="Type" class="form-select" style="padding-left:48px; height:44px;">
+                            <option value="Vision">🔭 Tầm nhìn</option>
+                            <option value="Mission">💖 Sứ mệnh</option>
+                            <option value="YearlyGoal" selected>🎯 Mục tiêu chiến lược</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-icon-group">
+                    <label>Năm mục tiêu</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-calendar3"></i>
+                        <input name="TargetYear" type="number" class="form-control" value="@DateTime.Today.Year" />
+                    </div>
+                </div>
+                <div class="form-icon-group">
+                    <label>Nội dung</label>
+                    <textarea name="Content" class="form-control" rows="4" required placeholder="Mô tả sứ mệnh, tầm nhìn hoặc mục tiêu..." style="padding-left:16px; min-height:100px;"></textarea>
+                </div>
+                <div class="form-icon-group">
+                    <label>Mục tiêu tài chính (tùy chọn)</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-currency-dollar"></i>
+                        <input name="FinancialTarget" type="number" step="0.01" class="form-control" placeholder="VD: 5000000000" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:16px 32px; border-top:1px solid var(--kpi-border);">
+                <button type="button" class="btn-outline-custom" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn-primary-custom"><i class="bi bi-check-lg me-1"></i>Tạo</button>
+            </div>
+        </form>
+    </div>
+</div>

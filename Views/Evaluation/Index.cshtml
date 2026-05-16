@@ -1,0 +1,88 @@
+@model OmniBizAI.ViewModels.EvaluationListViewModel
+@{ ViewData["Title"] = "Đánh giá hiệu suất"; }
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
+            <i class="bi bi-award me-2" style="color:var(--kpi-primary);"></i>Đánh giá hiệu suất
+        </h1>
+        <span class="text-muted small">Kết quả đánh giá theo kỳ</span>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="toolbar mb-0">
+            <div class="toolbar-left">
+                <select name="periodId" class="filter-select" style="min-width:280px;">
+                    <option value="">📅 Tất cả kỳ đánh giá</option>
+                    @foreach (var p in Model.Periods) { <option value="@p.Value">@p.Text</option> }
+                </select>
+            </div>
+            <div class="toolbar-right">
+                <button type="submit" class="btn-outline-custom"><i class="bi bi-funnel"></i> Lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Evaluation Table -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="bi bi-bar-chart-line"></i> Kết quả đánh giá (@Model.Items.Count)</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Kỳ đánh giá</th>
+                    <th class="text-center">Điểm tổng</th>
+                    <th class="text-center">Xếp hạng</th>
+                    <th class="text-center">Phân loại</th>
+                    <th class="text-center">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-clipboard-data me-2" style="font-size:1.5rem;"></i>Chưa có kết quả đánh giá.</td></tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td style="font-weight:600; color:var(--kpi-text-primary);">@item.UserName</td>
+                        <td style="color:var(--kpi-text-secondary);">@item.PeriodName</td>
+                        <td class="text-center">
+                            @if (item.TotalScore.HasValue)
+                            {
+                                <span style="font-size:1.2rem; font-weight:800; color:@(item.TotalScore >= 80 ? "var(--kpi-success)" : item.TotalScore >= 60 ? "var(--kpi-primary)" : item.TotalScore >= 40 ? "var(--kpi-warning)" : "var(--kpi-danger)");">@item.TotalScore.Value.ToString("N1")</span>
+                            }
+                            else { <span class="text-muted">—</span> }
+                        </td>
+                        <td class="text-center">
+                            @if (item.RankName != null)
+                            {
+                                <span class="status-badge-soft badge-on-track" style="font-weight:800;">⭐ @item.RankName</span>
+                            }
+                            else { <span class="text-muted">—</span> }
+                        </td>
+                        <td class="text-center" style="color:var(--kpi-text-secondary);">@(item.Classification ?? "—")</td>
+                        <td class="text-center">
+                            @{
+                                var (cls, txt) = item.SubmissionStatus switch
+                                {
+                                    "DirectorReviewed" => ("badge-on-track", "Đã duyệt"),
+                                    "Submitted" => ("badge-at-risk", "Đã nộp"),
+                                    _ => ("", "Bản nháp")
+                                };
+                            }
+                            <span class="status-badge-soft @cls"><span class="status-dot"></span> @txt</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

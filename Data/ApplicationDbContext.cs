@@ -75,23 +75,50 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<Expense> Expenses => Set<Expense>();
 
-    // KPI & Reports
+    // KPI & OKR (merged from Manage-KPI-or-OKR-System)
     public DbSet<KpiDefinition> KpiDefinitions => Set<KpiDefinition>();
     public DbSet<KpiTarget> KpiTargets => Set<KpiTarget>();
     public DbSet<KpiResult> KpiResults => Set<KpiResult>();
     public DbSet<KpiCheckIn> KpiCheckIns => Set<KpiCheckIn>();
-    public DbSet<ReportDefinition> ReportDefinitions => Set<ReportDefinition>();
-    public DbSet<DashboardWidget> DashboardWidgets => Set<DashboardWidget>();
+    public DbSet<KpiCheckInDetail> KpiCheckInDetails => Set<KpiCheckInDetail>();
+    public DbSet<KpiCheckInHistoryLog> KpiCheckInHistoryLogs => Set<KpiCheckInHistoryLog>();
+    public DbSet<KpiGoalComment> KpiGoalComments => Set<KpiGoalComment>();
+    public DbSet<KpiFailReason> KpiFailReasons => Set<KpiFailReason>();
+    public DbSet<KpiDepartmentAssignment> KpiDepartmentAssignments => Set<KpiDepartmentAssignment>();
+    public DbSet<KpiEmployeeAssignment> KpiEmployeeAssignments => Set<KpiEmployeeAssignment>();
+    public DbSet<KpiAdjustmentHistory> KpiAdjustmentHistories => Set<KpiAdjustmentHistory>();
+    public DbSet<KpiResultComparison> KpiResultComparisons => Set<KpiResultComparison>();
+
+    // OKR & Strategy
+    public DbSet<MissionVision> MissionVisions => Set<MissionVision>();
+    public DbSet<OkrObjective> OkrObjectives => Set<OkrObjective>();
+    public DbSet<OkrKeyResult> OkrKeyResults => Set<OkrKeyResult>();
+    public DbSet<OkrMissionMapping> OkrMissionMappings => Set<OkrMissionMapping>();
+    public DbSet<OkrDepartmentAllocation> OkrDepartmentAllocations => Set<OkrDepartmentAllocation>();
+    public DbSet<OkrEmployeeAllocation> OkrEmployeeAllocations => Set<OkrEmployeeAllocation>();
+
+    // Evaluation & HR
+    public DbSet<EvaluationPeriod> EvaluationPeriods => Set<EvaluationPeriod>();
+    public DbSet<EvaluationResult> EvaluationResults => Set<EvaluationResult>();
+    public DbSet<GradingRank> GradingRanks => Set<GradingRank>();
+    public DbSet<BonusRule> BonusRules => Set<BonusRule>();
+    public DbSet<RealtimeExpectedBonus> RealtimeExpectedBonuses => Set<RealtimeExpectedBonus>();
+    public DbSet<OneOnOneMeeting> OneOnOneMeetings => Set<OneOnOneMeeting>();
 
     // AI / Audit / Import / Notification
     public DbSet<AiPromptTemplate> AiPromptTemplates => Set<AiPromptTemplate>();
     public DbSet<AiProviderConfiguration> AiProviderConfigurations => Set<AiProviderConfiguration>();
     public DbSet<AiInsight> AiInsights => Set<AiInsight>();
+    public DbSet<AiGenerationHistory> AiGenerationHistories => Set<AiGenerationHistory>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<ImportJob> ImportJobs => Set<ImportJob>();
     public DbSet<ImportStagingRow> ImportStagingRows => Set<ImportStagingRow>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationDelivery> NotificationDeliveries => Set<NotificationDelivery>();
+
+    // Reports
+    public DbSet<ReportDefinition> ReportDefinitions => Set<ReportDefinition>();
+    public DbSet<DashboardWidget> DashboardWidgets => Set<DashboardWidget>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

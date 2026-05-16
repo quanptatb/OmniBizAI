@@ -242,3 +242,4 @@ C:\Users\Cua\Desktop\proj\OmniBizAI\bin\Debug\net10.0\runtimes\win\lib\net8.0\Sy
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\OmniBizAI.csproj.Up2Date
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\lhby38vocg-{0}-dv1qst1g6k-dv1qst1g6k.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\xb8xh16tom-{0}-b6cvq63m9d-b6cvq63m9d.gz
+C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\seket66tel-{0}-n5si2xtvyj-n5si2xtvyj.gz

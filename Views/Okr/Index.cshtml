@@ -1,0 +1,188 @@
+@model OmniBizAI.ViewModels.OkrListViewModel
+@{ ViewData["Title"] = "Quản lý OKR"; }
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
+            <i class="bi bi-bullseye me-2" style="color:var(--kpi-primary);"></i>Quản lý OKR
+        </h1>
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <span class="text-muted small">Objectives & Key Results — Mục tiêu chiến lược</span>
+        </div>
+    </div>
+    <a asp-action="Create" class="btn-primary-custom">
+        <i class="bi bi-plus-lg"></i> Tạo OKR mới
+    </a>
+</div>
+
+<!-- Toolbar Filter -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="toolbar mb-0">
+            <div class="toolbar-left">
+                <div class="toolbar-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" placeholder="Tìm kiếm mục tiêu..." value="@Model.SearchTerm" />
+                </div>
+                <select name="level" class="filter-select">
+                    <option value="">Tất cả cấp độ</option>
+                    <option value="Company" selected="@(Model.LevelFilter == "Company")">🏢 Công ty</option>
+                    <option value="Department" selected="@(Model.LevelFilter == "Department")">🏗️ Phòng ban</option>
+                    <option value="Individual" selected="@(Model.LevelFilter == "Individual")">👤 Cá nhân</option>
+                </select>
+                <select name="status" class="filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Draft" selected="@(Model.StatusFilter == "Draft")">📝 Bản nháp</option>
+                    <option value="Active" selected="@(Model.StatusFilter == "Active")">✅ Đang thực hiện</option>
+                    <option value="Completed" selected="@(Model.StatusFilter == "Completed")">🏆 Hoàn thành</option>
+                    <option value="Cancelled" selected="@(Model.StatusFilter == "Cancelled")">🚫 Đã hủy</option>
+                </select>
+            </div>
+            <div class="toolbar-right">
+                <button type="submit" class="btn-outline-custom"><i class="bi bi-funnel"></i> Lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+@{
+    var total = Model.Items.Count;
+    var active = Model.Items.Count(i => i.Status == "Active");
+    var completed = Model.Items.Count(i => i.Status == "Completed");
+    var avgProgress = total > 0 ? Math.Round(Model.Items.Average(i => i.Progress), 1) : 0;
+}
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in">
+            <div class="stat-icon blue"><i class="bi bi-bullseye"></i></div>
+            <div class="stat-value">@total</div>
+            <div class="stat-label">Tổng OKR</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="stat-icon green"><i class="bi bi-play-circle"></i></div>
+            <div class="stat-value">@active</div>
+            <div class="stat-label">Đang thực hiện</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-icon purple"><i class="bi bi-trophy"></i></div>
+            <div class="stat-value">@completed</div>
+            <div class="stat-label">Hoàn thành</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-icon orange"><i class="bi bi-graph-up"></i></div>
+            <div class="stat-value">@avgProgress%</div>
+            <div class="stat-label">Tiến độ TB</div>
+        </div>
+    </div>
+</div>
+
+<!-- OKR Cards -->
+<div class="row g-4">
+    @if (!Model.Items.Any())
+    {
+        <div class="col-12">
+            <div class="content-card">
+                <div class="card-body-custom text-center py-5">
+                    <i class="bi bi-inbox" style="font-size:3rem; color:var(--kpi-primary); opacity:0.4;"></i>
+                    <h5 class="mt-3 fw-bold">Chưa có OKR nào</h5>
+                    <p class="text-muted mb-3">Bấm "Tạo OKR mới" để bắt đầu thiết lập mục tiêu chiến lược.</p>
+                    <a asp-action="Create" class="btn-primary-custom"><i class="bi bi-plus-lg me-1"></i>Tạo OKR đầu tiên</a>
+                </div>
+            </div>
+        </div>
+    }
+    @foreach (var item in Model.Items)
+    {
+        <div class="col-md-6 col-lg-4 animate-fade-in">
+            <div class="okr-card h-100">
+                <div class="card-body-custom">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="status-badge-soft @GetLevelBadge(item.Level)">
+                            <span class="status-dot"></span> @GetLevelName(item.Level)
+                        </span>
+                        <span class="status-badge-soft @GetStatusBadge(item.Status)">
+                            <span class="status-dot"></span> @GetStatusName(item.Status)
+                        </span>
+                    </div>
+                    <h5 class="mb-2" style="font-weight:700; line-height:1.4;">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none" style="color:var(--kpi-text-primary);">
+                            @item.ObjectiveName
+                        </a>
+                    </h5>
+                    <div class="d-flex align-items-center gap-3 text-muted small mb-3">
+                        <span><i class="bi bi-calendar3 me-1"></i>@item.Cycle</span>
+                        <span><i class="bi bi-key me-1"></i>@item.KeyResultCount KR</span>
+                    </div>
+                    <!-- Progress -->
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold" style="color:var(--kpi-text-muted);">Tiến độ</span>
+                            <span class="small fw-bold" style="color:@GetProgressColor(item.Progress);">@item.Progress%</span>
+                        </div>
+                        <div class="progress-kpi progress-animated">
+                            <div class="progress-bar @GetProgressClass(item.Progress)" style="width: @Math.Min(item.Progress, 100)%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center" style="border-color:var(--kpi-border)!important;">
+                    <small class="text-muted"><i class="bi bi-clock me-1"></i>@item.CreatedAt.ToString("dd/MM/yyyy")</small>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="action-btn" title="Xem chi tiết"><i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetLevelBadge(string level) => level switch
+    {
+        "Company" => "badge-on-track",
+        "Department" => "",
+        "Individual" => "badge-at-risk",
+        _ => ""
+    };
+    string GetLevelName(string level) => level switch
+    {
+        "Company" => "Công ty",
+        "Department" => "Phòng ban",
+        "Individual" => "Cá nhân",
+        _ => level
+    };
+    string GetStatusBadge(string status) => status switch
+    {
+        "Draft" => "",
+        "Active" => "badge-on-track",
+        "Completed" => "badge-on-track",
+        "Cancelled" => "badge-late",
+        _ => ""
+    };
+    string GetStatusName(string status) => status switch
+    {
+        "Draft" => "Bản nháp",
+        "Active" => "Đang thực hiện",
+        "Completed" => "Hoàn thành",
+        "Cancelled" => "Đã hủy",
+        _ => status
+    };
+    string GetProgressClass(decimal p) => p switch
+    {
+        >= 100 => "excellent",
+        >= 70 => "good",
+        >= 40 => "warning",
+        _ => "danger"
+    };
+    string GetProgressColor(decimal p) => p switch
+    {
+        >= 100 => "var(--kpi-success)",
+        >= 70 => "var(--kpi-primary)",
+        >= 40 => "var(--kpi-warning)",
+        _ => "var(--kpi-danger)"
+    };
+}

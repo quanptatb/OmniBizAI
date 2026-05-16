@@ -1,0 +1,81 @@
+@model OmniBizAI.ViewModels.KpiDetailViewModel
+@{ ViewData["Title"] = $"KPI: {Model.Code}"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.Name</h1>
+        <code class="me-2">@Model.Code</code>
+        <span class="badge @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusBadgeClass(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(Model.Status))">
+            @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusDisplay(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(Model.Status))
+        </span>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+</div>
+
+<div class="row g-4">
+    <!-- Info Card -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent"><h5 class="mb-0">Thông tin KPI</h5></div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Description)) { <p>@Model.Description</p> }
+                <div class="row g-3">
+                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Đơn vị đo</strong>@Model.Unit</div>
+                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Loại chỉ tiêu</strong>@Model.OwnerType</div>
+                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Phương thức đo</strong>@Model.MeasureType</div>
+                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Tính chất</strong>@Model.PropertyType</div>
+                    @if (Model.Department != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Phòng ban</strong>@Model.Department</div> }
+                    @if (Model.OkrName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">OKR</strong>@Model.OkrName</div> }
+                    @if (Model.PeriodName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Kỳ đánh giá</strong>@Model.PeriodName</div> }
+                    @if (Model.AssignerName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Người giao</strong>@Model.AssignerName</div> }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Targets -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent"><h5 class="mb-0"><i class="bi bi-bullseye me-2"></i>Chỉ tiêu</h5></div>
+            <div class="card-body">
+                @foreach (var t in Model.Targets)
+                {
+                    <div class="mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between"><span class="fw-bold h4 mb-0">@t.TargetValue.ToString("N0")</span><span class="text-muted">@Model.Unit</span></div>
+                        <small class="text-muted">@t.PeriodStart.ToString("dd/MM/yyyy") → @t.PeriodEnd.ToString("dd/MM/yyyy")</small>
+                        @if (t.PassThreshold.HasValue) { <div class="small text-success"><i class="bi bi-check-circle me-1"></i>Đạt: ≥ @t.PassThreshold</div> }
+                        @if (t.FailThreshold.HasValue) { <div class="small text-danger"><i class="bi bi-x-circle me-1"></i>Không đạt: &lt; @t.FailThreshold</div> }
+                        @if (t.CheckInFrequencyDays.HasValue) { <div class="small text-info"><i class="bi bi-clock me-1"></i>Check-in mỗi @t.CheckInFrequencyDays ngày</div> }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignments -->
+@if (Model.DepartmentAssignments.Any() || Model.EmployeeAssignments.Any())
+{
+    <div class="row g-4 mt-2">
+        @if (Model.DepartmentAssignments.Any())
+        {
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-building me-2"></i>Giao cho phòng ban</h6></div>
+                    <ul class="list-group list-group-flush">@foreach (var d in Model.DepartmentAssignments) { <li class="list-group-item">@d</li> }</ul>
+                </div>
+            </div>
+        }
+        @if (Model.EmployeeAssignments.Any())
+        {
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-people me-2"></i>Giao cho nhân viên</h6></div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var e in Model.EmployeeAssignments) { <li class="list-group-item d-flex justify-content-between">@e.UserName <span class="badge bg-primary">@e.Weight%</span></li> }
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
+}

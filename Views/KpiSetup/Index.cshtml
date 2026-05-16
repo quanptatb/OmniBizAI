@@ -1,0 +1,119 @@
+@model OmniBizAI.ViewModels.KpiFullListViewModel
+@{ ViewData["Title"] = "Quản lý KPI"; }
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
+            <i class="bi bi-speedometer2 me-2" style="color:var(--kpi-primary);"></i>Quản lý KPI
+        </h1>
+        <span class="text-muted small">Thiết lập chỉ tiêu đo lường hiệu suất</span>
+    </div>
+    <a asp-action="Create" class="btn-primary-custom">
+        <i class="bi bi-plus-lg"></i> Tạo KPI mới
+    </a>
+</div>
+
+<!-- Summary Stats -->
+@{
+    var total = Model.Items.Count;
+    var activeCount = Model.Items.Count(i => i.Status == "Active");
+    var completedCount = Model.Items.Count(i => i.Status == "Completed");
+    var draftCount = Model.Items.Count(i => i.Status == "Draft");
+}
+<div class="row g-4 mb-4">
+    <div class="col-md-3"><div class="stat-card animate-fade-in"><div class="stat-icon blue"><i class="bi bi-speedometer2"></i></div><div class="stat-value">@total</div><div class="stat-label">Tổng KPI</div></div></div>
+    <div class="col-md-3"><div class="stat-card animate-fade-in" style="animation-delay:.1s"><div class="stat-icon green"><i class="bi bi-check-circle"></i></div><div class="stat-value">@activeCount</div><div class="stat-label">Đang thực hiện</div></div></div>
+    <div class="col-md-3"><div class="stat-card animate-fade-in" style="animation-delay:.2s"><div class="stat-icon purple"><i class="bi bi-trophy"></i></div><div class="stat-value">@completedCount</div><div class="stat-label">Hoàn thành</div></div></div>
+    <div class="col-md-3"><div class="stat-card animate-fade-in" style="animation-delay:.3s"><div class="stat-icon orange"><i class="bi bi-pencil-square"></i></div><div class="stat-value">@draftCount</div><div class="stat-label">Bản nháp</div></div></div>
+</div>
+
+<!-- Toolbar -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="toolbar mb-0">
+            <div class="toolbar-left">
+                <div class="toolbar-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" placeholder="Tìm kiếm KPI..." value="@Model.SearchTerm" />
+                </div>
+                <select name="status" class="filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Draft">📝 Bản nháp</option>
+                    <option value="PendingApproval">⏳ Chờ duyệt</option>
+                    <option value="Active">✅ Đang thực hiện</option>
+                    <option value="Completed">🏆 Hoàn thành</option>
+                    <option value="Failed">❌ Không đạt</option>
+                </select>
+                <select name="periodId" class="filter-select">
+                    <option value="">Tất cả kỳ đánh giá</option>
+                    @foreach (var p in Model.Periods) { <option value="@p.Value">@p.Text</option> }
+                </select>
+                <select name="ownerType" class="filter-select">
+                    <option value="">Tất cả loại</option>
+                    <option value="Company">🏢 Công ty</option>
+                    <option value="Department">🏗️ Phòng ban</option>
+                    <option value="User">👤 Cá nhân</option>
+                </select>
+            </div>
+            <div class="toolbar-right">
+                <button type="submit" class="btn-outline-custom"><i class="bi bi-funnel"></i> Lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- KPI Table -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="bi bi-table"></i> Danh sách KPI (@total)</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Mã KPI</th>
+                    <th>Tên chỉ tiêu</th>
+                    <th class="text-center">Đơn vị</th>
+                    <th class="text-center">Loại</th>
+                    <th class="text-center">Phòng ban</th>
+                    <th class="text-end">Mục tiêu</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center" style="width:80px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox me-2" style="font-size:1.5rem;"></i>Chưa có KPI nào.</td></tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td><code style="background:var(--kpi-primary-light); color:var(--kpi-primary-dark); padding:4px 10px; border-radius:6px; font-weight:700;">@item.Code</code></td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" style="color:var(--kpi-text-primary); font-weight:600;">@item.Name</a>
+                            @if (item.OkrName != null) { <br/><small style="color:var(--kpi-text-muted);"><i class="bi bi-bullseye me-1"></i>@item.OkrName</small> }
+                        </td>
+                        <td class="text-center">@item.Unit</td>
+                        <td class="text-center">
+                            <span class="status-badge-soft" style="font-size:0.7rem;">@item.OwnerType</span>
+                        </td>
+                        <td class="text-center" style="color:var(--kpi-text-secondary);">@item.Department</td>
+                        <td class="text-end" style="font-weight:800; color:var(--kpi-text-primary);">@item.TargetValue.ToString("N0")</td>
+                        <td class="text-center">
+                            <span class="status-badge-soft @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusBadgeClass(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(item.Status)).Replace("bg-","badge-status-")">
+                                <span class="status-dot"></span>
+                                @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusDisplay(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(item.Status))
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="action-btns justify-content-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="action-btn" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
