@@ -1,0 +1,23 @@
+@model OmniBizAI.ViewModels.ExpenseListViewModel
+@{ ViewData["Title"] = "Chi phí"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chi phí</span>"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h4 class="page-title mb-1">Quản lý chi phí</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount khoản chi</p></div>
+    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Ghi nhận chi phí</a>
+</div>
+<div class="content-card"><div class="card-body-custom p-0">
+    <table class="data-table">
+        <thead><tr><th class="ps-3">Mô tả</th><th>Ngân sách</th><th>Ngày chi</th><th>Số tiền</th><th class="pe-3">Trạng thái</th></tr></thead>
+        <tbody>
+            @foreach (var e in Model.Items) {
+                <tr>
+                    <td class="ps-3" style="font-weight:500">@e.Description</td>
+                    <td style="color:var(--text-secondary);font-size:.82rem">@(e.BudgetName ?? "—")</td>
+                    <td style="font-size:.82rem">@e.ExpenseDate.ToString("dd/MM/yyyy")</td>
+                    <td style="font-weight:600">@e.Amount.ToString("N0") ₫</td>
+                    <td class="pe-3"><span class="status-badge-soft @(e.Status == "Approved" ? "badge-on-track" : "badge-at-risk")"><span class="status-dot"></span>@e.Status</span></td>
+                </tr>
+            }
+            @if (!Model.Items.Any()) { <tr><td colspan="5" class="text-center py-4" style="color:var(--text-muted)">Chưa có chi phí</td></tr> }
+        </tbody>
+    </table>
+</div></div>

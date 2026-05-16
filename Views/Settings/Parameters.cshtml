@@ -1,0 +1,34 @@
+@model OmniBizAI.ViewModels.ParameterListViewModel
+@{ ViewData["Title"] = "Tham số hệ thống"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tham số</span>"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h4 class="page-title mb-1">Tham số hệ thống</h4><p class="text-muted mb-0" style="font-size:.82rem">Cấu hình tham số vận hành theo tenant</p></div>
+</div>
+@foreach (var g in Model.Groups) {
+    <div class="content-card mb-3">
+        <div class="card-header-custom"><h5><i class="fa-solid fa-sliders"></i> @g.GroupName</h5></div>
+        <div class="card-body-custom p-0">
+            <table class="data-table">
+                <thead><tr><th class="ps-3">Key</th><th>Giá trị</th><th>Loại</th><th class="pe-3"></th></tr></thead>
+                <tbody>
+                    @foreach (var p in g.Parameters) {
+                        <tr>
+                            <td class="ps-3" style="font-weight:500;font-family:monospace;font-size:.82rem">@p.Key</td>
+                            <td>
+                                @if (p.IsEditable) {
+                                    <form asp-action="UpdateParameter" method="post" class="d-flex gap-2">@Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@p.Id" />
+                                        <input type="text" name="value" value="@p.Value" class="form-input" style="min-width:200px;height:32px;font-size:.82rem" />
+                                        <button type="submit" class="btn-outline-custom btn-sm" style="font-size:.72rem;padding:4px 12px"><i class="fa-solid fa-save"></i></button>
+                                    </form>
+                                } else { <span style="color:var(--text-secondary);font-size:.82rem">@p.Value</span> }
+                            </td>
+                            <td><span class="badge bg-light text-dark" style="font-size:.68rem">@p.ValueType</span></td>
+                            <td class="pe-3">@if(!p.IsEditable){<i class="fa-solid fa-lock" style="color:var(--text-muted);font-size:.72rem" title="Không chỉnh sửa"></i>}</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+@if (!Model.Groups.Any()) { <div class="content-card"><div class="card-body-custom text-center py-4" style="color:var(--text-muted)">Chưa có tham số</div></div> }

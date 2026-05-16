@@ -51,8 +51,9 @@
                     </div>
                     @{
                         var priClass = task.RequestPriority switch { "Critical" => "bg-danger", "High" => "bg-warning text-dark", _ => "bg-light text-dark border" };
+                        var priLabel = task.RequestPriority switch { "Low" => "Thấp", "Normal" => "B.thường", "High" => "Cao", "Critical" => "Nguy cấp", _ => task.RequestPriority };
                     }
-                    <span class="badge @priClass">@task.RequestPriority</span>
+                    <span class="badge @priClass">@priLabel</span>
                 </div>
                 <div class="d-flex gap-2 justify-content-end">
                     <button class="btn btn-success btn-sm px-3" onclick="openApprovalModal('@task.Id', 'Approve')">
@@ -86,7 +87,8 @@
                         <div class="d-flex gap-3 text-muted small">
                             <span><i class="fa-solid fa-code-branch me-1"></i>@task.StepName</span>
                             <span>
-                                <span class="badge @(task.Status == "Approved" ? "bg-success" : "bg-danger")">@task.Status</span>
+                                @{ var stLabel = task.Status switch { "Approved" => "Đã duyệt", "Rejected" => "Từ chối", "Skipped" => "Bỏ qua", "Cancelled" => "Đã hủy", _ => task.Status }; }
+                                <span class="badge @(task.Status == "Approved" ? "bg-success" : "bg-danger")">@stLabel</span>
                             </span>
                             @if (task.DecidedAt.HasValue)
                             {

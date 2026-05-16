@@ -4,6 +4,50 @@
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Danh sách</span>";
 }
 
+@{
+    string StatusLabel(string s) => s switch {
+        "Draft" => "Bản nháp", "Submitted" => "Đã gửi duyệt", "InReview" => "Đang xem xét",
+        "Approved" => "Đã duyệt", "InProgress" => "Đang xử lý", "Completed" => "Hoàn thành",
+        "Rejected" => "Bị từ chối", "Cancelled" => "Đã hủy", _ => s
+    };
+    string PriorityLabel(string p) => p switch {
+        "Low" => "Thấp", "Normal" => "B.thường", "High" => "Cao", "Critical" => "Nguy cấp", _ => p
+    };
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-list-check"></i></div>
+            <div class="stat-value">@Model.TotalCount</div>
+            <div class="stat-label">Tổng yêu cầu</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-value">@Model.Items.Count(i => i.Status is "Draft" or "Submitted" or "InReview")</div>
+            <div class="stat-label">Chờ xử lý</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-check-double"></i></div>
+            <div class="stat-value">@Model.Items.Count(i => i.Status is "Completed" or "Approved")</div>
+            <div class="stat-label">Hoàn thành</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fa-solid fa-exclamation-triangle"></i></div>
+            <div class="stat-value">@Model.Items.Count(i => i.IsOverdue)</div>
+            <div class="stat-label">Quá hạn</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
 <div class="content-card mb-4">
     <div class="card-body-custom py-3">
         <form method="get" class="row g-3 align-items-end">
@@ -15,20 +59,23 @@
                 <label class="form-label">Trạng thái</label>
                 <select name="status" class="form-select">
                     <option value="">Tất cả</option>
-                    @foreach (var st in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.OperationStatus)))
-                    {
-                        <option value="@st" selected="@(Model.StatusFilter == st)">@st</option>
-                    }
+                    <option value="Draft" selected="@(Model.StatusFilter == "Draft")">Bản nháp</option>
+                    <option value="Submitted" selected="@(Model.StatusFilter == "Submitted")">Đã gửi duyệt</option>
+                    <option value="Approved" selected="@(Model.StatusFilter == "Approved")">Đã duyệt</option>
+                    <option value="InProgress" selected="@(Model.StatusFilter == "InProgress")">Đang xử lý</option>
+                    <option value="Completed" selected="@(Model.StatusFilter == "Completed")">Hoàn thành</option>
+                    <option value="Rejected" selected="@(Model.StatusFilter == "Rejected")">Từ chối</option>
+                    <option value="Cancelled" selected="@(Model.StatusFilter == "Cancelled")">Đã hủy</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Mức ưu tiên</label>
                 <select name="priority" class="form-select">
                     <option value="">Tất cả</option>
-                    @foreach (var pr in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.PriorityLevel)))
-                    {
-                        <option value="@pr" selected="@(Model.PriorityFilter == pr)">@pr</option>
-                    }
+                    <option value="Low" selected="@(Model.PriorityFilter == "Low")">Thấp</option>
+                    <option value="Normal" selected="@(Model.PriorityFilter == "Normal")">Bình thường</option>
+                    <option value="High" selected="@(Model.PriorityFilter == "High")">Cao</option>
+                    <option value="Critical" selected="@(Model.PriorityFilter == "Critical")">Nghiêm trọng</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -49,6 +96,7 @@
     </div>
 </div>
 
+<!-- Table -->
 <div class="content-card">
     <div class="card-header-custom">
         <h5><i class="fa-solid fa-list-check"></i> Danh sách yêu cầu</h5>
@@ -79,7 +127,17 @@
                 <tbody>
                     @foreach (var item in Model.Items)
                     {
-                        <tr>
+                        var badge = item.Status switch {
+                            "Completed" => "badge-on-track",
+                            "InProgress" or "Approved" => "badge-on-track",
+                            "Pending" or "Submitted" or "InReview" => "badge-at-risk",
+                            "Rejected" or "Cancelled" => "badge-behind",
+                            _ => ""
+                        };
+                        var pc = item.Priority switch {
+                            "Low" => "var(--info)", "Normal" => "var(--success)", "High" => "var(--warning)", "Critical" => "var(--danger)", _ => "var(--text-muted)"
+                        };
+                        <tr class="@(item.IsOverdue ? "table-row-overdue" : "")">
                             <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.RequestNo</td>
                             <td>
                                 <div style="font-weight:600;margin-bottom:3px">@item.Title</div>
@@ -87,30 +145,16 @@
                             </td>
                             <td>@item.Department</td>
                             <td>
-                                @{
-                                    var statusBadge = item.Status switch {
-                                        "Completed" => "badge-on-track",
-                                        "InProgress" or "Approved" => "badge-on-track",
-                                        "Pending" or "Submitted" or "InReview" => "badge-at-risk",
-                                        "Rejected" or "Cancelled" => "badge-late",
-                                        _ => ""
-                                    };
+                                <span class="status-badge-soft @badge"><span class="status-dot"></span>@StatusLabel(item.Status)</span>
+                                @if (item.IsOverdue)
+                                {
+                                    <div style="margin-top:3px"><span style="font-size:.65rem;color:var(--danger);font-weight:600"><i class="fa-solid fa-exclamation-triangle me-1"></i>Quá hạn</span></div>
                                 }
-                                <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@item.Status</span>
                             </td>
                             <td>
-                                @{
-                                    var priColor = item.Priority switch {
-                                        "Low" => "var(--info)",
-                                        "Normal" => "var(--success)",
-                                        "High" => "var(--warning)",
-                                        "Critical" => "var(--danger)",
-                                        _ => "var(--text-muted)"
-                                    };
-                                }
-                                <span style="color:@priColor;font-weight:500"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:4px"></i>@item.Priority</span>
+                                <span style="color:@pc;font-weight:500"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:4px"></i>@PriorityLabel(item.Priority)</span>
                             </td>
-                            <td style="color:var(--text-muted)">@(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                            <td style="color:@(item.IsOverdue ? "var(--danger)" : "var(--text-muted)")">@(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                             <td class="text-end pe-4">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light">
                                     <i class="fa-solid fa-eye me-1"></i>Chi tiết
@@ -126,15 +170,25 @@
             </table>
         </div>
     </div>
-    
+
     @if (Model.TotalCount > 20)
     {
-        <div class="pagination-custom">
-            <span>Hiển thị trang @Model.Page của @Math.Ceiling(Model.TotalCount / 20.0)</span>
-            <div class="pagination-pages">
-                <a class="page-btn @(Model.Page == 1 ? "disabled" : "")" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">‹</a>
-                <a class="page-btn @(Model.Page * 20 >= Model.TotalCount ? "disabled" : "")" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">›</a>
+        <div style="padding:12px 24px;border-top:1px solid var(--divider);display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--text-muted)">
+            <span>Hiển thị trang @Model.Page / @Math.Ceiling(Model.TotalCount / 20.0)</span>
+            <div class="d-flex gap-2">
+                @if (Model.Page > 1)
+                {
+                    <a class="btn btn-sm btn-light" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">‹ Trước</a>
+                }
+                @if (Model.Page * 20 < Model.TotalCount)
+                {
+                    <a class="btn btn-sm btn-light" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">Sau ›</a>
+                }
             </div>
         </div>
     }
 </div>
+
+<style>
+    .table-row-overdue td { background: rgba(255,59,48,.02) !important; }
+</style>

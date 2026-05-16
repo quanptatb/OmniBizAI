@@ -1,0 +1,31 @@
+@model OmniBizAI.ViewModels.ModuleListViewModel
+@{ ViewData["Title"] = "Quản lý Modules"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Modules</span>"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h4 class="page-title mb-1">Quản lý Modules</h4><p class="text-muted mb-0" style="font-size:.82rem">Bật/tắt các phân hệ theo nhu cầu doanh nghiệp</p></div>
+</div>
+<div class="row g-3">
+    @foreach (var m in Model.Items) {
+        <div class="col-md-4 col-lg-3 fade-in">
+            <div class="content-card h-100" style="border-radius:16px">
+                <div class="card-body-custom text-center" style="padding:24px 16px">
+                    <div style="width:48px;height:48px;border-radius:12px;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:1.2rem;color:var(--apple-blue)">
+                        <i class="fa-solid @m.Icon"></i>
+                    </div>
+                    <h6 style="font-weight:600;margin-bottom:4px;font-size:.88rem">@m.DisplayName</h6>
+                    <p style="font-size:.72rem;color:var(--text-muted);margin-bottom:12px">@m.ModuleCode</p>
+                    <span class="status-badge-soft @m.StatusClass"><span class="status-dot"></span>@m.Status</span>
+                    <div class="mt-3">
+                        <form asp-action="ToggleModule" asp-route-id="@m.Id" method="post">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn-outline-custom btn-sm w-100" style="font-size:.78rem">
+                                @(m.Status == "Enabled" ? "Tắt" : "Bật") module
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    @if (!Model.Items.Any()) {
+        <div class="col-12"><div class="content-card"><div class="card-body-custom text-center py-4" style="color:var(--text-muted)">Chưa có module nào được cấu hình</div></div></div>
+    }
+</div>

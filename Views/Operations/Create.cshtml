@@ -50,10 +50,10 @@
                         <div class="col-md-6">
                             <label asp-for="Priority" class="form-label">Mức độ ưu tiên <span style="color:var(--danger)">*</span></label>
                             <select asp-for="Priority" class="form-select">
-                                @foreach (var pr in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.PriorityLevel)))
-                                {
-                                    <option value="@pr" selected="@(pr == "Normal")">@pr</option>
-                                }
+                                <option value="1">Thấp</option>
+                                <option value="2" selected>Bình thường</option>
+                                <option value="3">Cao</option>
+                                <option value="4">Nghiêm trọng</option>
                             </select>
                             <span asp-validation-for="Priority" class="text-danger small mt-1"></span>
                         </div>

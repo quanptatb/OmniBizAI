@@ -158,4 +158,109 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         new bootstrap.Modal(modal).show();
     };
+
+    // ── Notification bell ────────────────────────────────────────
+    pollNotifCount();
+    setInterval(pollNotifCount, 30000); // Poll every 30s
+
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+        const panel = document.getElementById('notifPanel');
+        const btn = document.getElementById('notifBtn');
+        if (panel && panel.style.display !== 'none' && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+            panel.style.display = 'none';
+        }
+    });
 });
+
+// ═══ NOTIFICATION FUNCTIONS ═════════════════════════════════════════
+
+function toggleNotifPanel() {
+    const panel = document.getElementById('notifPanel');
+    if (!panel) return;
+    const isVisible = panel.style.display !== 'none';
+    panel.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) loadNotifPanel();
+}
+
+async function pollNotifCount() {
+    try {
+        const res = await fetch('/Notifications/UnreadCount');
+        if (!res.ok) return;
+        const data = await res.json();
+        const badge = document.getElementById('notifCountBadge');
+        const dot = document.getElementById('notifDot');
+        if (badge) {
+            if (data.count > 0) {
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        if (dot) dot.style.display = data.count > 0 ? 'block' : 'none';
+    } catch (e) { /* silent */ }
+}
+
+async function loadNotifPanel() {
+    const body = document.getElementById('notifPanelBody');
+    if (!body) return;
+    try {
+        const res = await fetch('/Notifications/Recent');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (!data.items || data.items.length === 0) {
+            body.innerHTML = '<div class="notif-panel-empty"><i class="fa-solid fa-bell-slash" style="font-size:1.4rem;opacity:.4;margin-bottom:8px"></i><div>Chưa có thông báo mới</div></div>';
+            return;
+        }
+        const iconMap = { 'OperationRequest': 'fa-list-check', 'ApprovalTask': 'fa-circle-check', 'Budget': 'fa-piggy-bank', 'Expense': 'fa-receipt', 'ProcurementRequest': 'fa-cart-shopping', 'PurchaseOrder': 'fa-file-invoice', 'Customer': 'fa-building', 'Vendor': 'fa-truck', 'Employee': 'fa-id-badge', 'KpiDefinition': 'fa-gauge-high', 'OkrObjective': 'fa-bullseye', 'PaymentRequest': 'fa-file-invoice-dollar', 'AppUser': 'fa-user' };
+        body.innerHTML = data.items.map(n => {
+            const icon = iconMap[n.entityName] || 'fa-bell';
+            const readCls = n.isRead ? 'read' : 'unread';
+            const ago = formatTimeAgo(n.createdAt);
+            return `<div class="notif-panel-item ${readCls}" onclick="markNotifRead('${n.deliveryId}', this)">
+                <div class="notif-panel-icon ${readCls}"><i class="fa-solid ${icon}"></i></div>
+                <div class="notif-panel-content">
+                    <div class="notif-panel-title ${readCls}">${escNotif(n.title)}</div>
+                    <div class="notif-panel-time">${escNotif(n.senderName)} · ${ago}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        body.innerHTML = '<div class="notif-panel-empty">Không thể tải thông báo</div>';
+    }
+}
+
+async function markNotifRead(id, el) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    try {
+        await fetch('/Notifications/MarkRead?id=' + id, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token }
+        });
+        if (el) { el.classList.remove('unread'); el.classList.add('read'); }
+        pollNotifCount();
+    } catch (e) { /* silent */ }
+}
+
+async function markAllNotifRead() {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    try {
+        await fetch('/Notifications/MarkAllRead', { method: 'POST', headers: { 'RequestVerificationToken': token } });
+        document.querySelectorAll('.notif-panel-item.unread').forEach(el => { el.classList.remove('unread'); el.classList.add('read'); });
+        pollNotifCount();
+    } catch (e) { /* silent */ }
+}
+
+function formatTimeAgo(dateStr) {
+    const d = new Date(dateStr);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return 'Vừa xong';
+    if (diff < 3600) return Math.floor(diff / 60) + ' phút';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' giờ';
+    if (diff < 604800) return Math.floor(diff / 86400) + ' ngày';
+    return d.toLocaleDateString('vi-VN');
+}
+
+function escNotif(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+

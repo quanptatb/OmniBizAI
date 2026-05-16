@@ -1,0 +1,23 @@
+@model OmniBizAI.ViewModels.PositionListViewModel
+@{ ViewData["Title"] = "Chức vụ"; ViewData["Breadcrumb"] = "<span>Nhân sự</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chức vụ</span>"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h4 class="page-title mb-1">Quản lý chức vụ</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount chức vụ</p></div>
+    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Thêm chức vụ</a>
+</div>
+<div class="content-card"><div class="card-body-custom p-0">
+    <table class="data-table">
+        <thead><tr><th class="ps-3">Mã</th><th>Tên chức vụ</th><th>Cấp</th><th>Phòng ban</th><th class="pe-3">Quản lý</th></tr></thead>
+        <tbody>
+            @foreach (var p in Model.Items) {
+                <tr>
+                    <td class="ps-3" style="font-weight:600;color:var(--apple-blue)">@p.Code</td>
+                    <td style="font-weight:500">@p.Name</td>
+                    <td><span class="badge bg-light text-dark">Cấp @p.Level</span></td>
+                    <td style="color:var(--text-secondary);font-size:.82rem">@(p.Department ?? "Toàn công ty")</td>
+                    <td class="pe-3">@if(p.IsManagerial){<span class="badge bg-primary" style="font-size:.68rem"><i class="fa-solid fa-crown me-1"></i>Quản lý</span>}else{<span style="color:var(--text-muted)">—</span>}</td>
+                </tr>
+            }
+            @if (!Model.Items.Any()) { <tr><td colspan="5" class="text-center py-4" style="color:var(--text-muted)">Chưa có chức vụ</td></tr> }
+        </tbody>
+    </table>
+</div></div>

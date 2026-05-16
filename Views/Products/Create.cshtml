@@ -1,0 +1,15 @@
+@model OmniBizAI.ViewModels.ProductCreateViewModel
+@{ ViewData["Title"] = "Thêm SP/DV"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Products' style='color:var(--apple-blue);text-decoration:none'>SP & DV</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm mới</span>"; }
+<div class="content-card" style="max-width:680px"><div class="card-header-custom"><h5><i class="fa-solid fa-box"></i> Thêm sản phẩm / dịch vụ</h5></div><div class="card-body-custom">
+    <form method="post" asp-action="Create">@Html.AntiForgeryToken()
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Mã <span class="text-danger">*</span></label><input asp-for="Code" class="form-input" /><span asp-validation-for="Code" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-8"><label class="form-label">Tên <span class="text-danger">*</span></label><input asp-for="Name" class="form-input" /><span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-4"><label class="form-label">Loại <span class="text-danger">*</span></label><select asp-for="Type" class="form-input"><option value="Service">Dịch vụ</option><option value="Product">Sản phẩm</option></select></div>
+            <div class="col-md-4"><label class="form-label">Danh mục</label><select asp-for="ProductCategoryId" class="form-input"><option value="">-- Chọn --</option>@foreach(var c in Model.Categories){<option value="@c.Value">@c.Text</option>}</select></div>
+            <div class="col-md-4"><label class="form-label">ĐVT</label><select asp-for="UnitOfMeasureId" class="form-input"><option value="">-- Chọn --</option>@foreach(var u in Model.Units){<option value="@u.Value">@u.Text</option>}</select></div>
+            <div class="col-md-4"><label class="form-label">Giá chuẩn (₫)</label><input asp-for="StandardPrice" class="form-input" type="number" step="1000" /><span asp-validation-for="StandardPrice" class="text-danger" style="font-size:.78rem"></span></div>
+        </div>
+        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Tạo</button><a asp-action="Index" class="btn-outline-custom">Hủy</a></div>
+    </form>
+</div></div>

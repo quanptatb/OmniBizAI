@@ -1,0 +1,19 @@
+@model OmniBizAI.ViewModels.PurchaseOrderDetailViewModel
+@{ ViewData["Title"] = Model.OrderNo; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/PurchaseOrders' style='color:var(--apple-blue);text-decoration:none'>PO</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.OrderNo + "</span>"; }
+<div class="content-card mb-4"><div class="card-header-custom"><h5><i class="fa-solid fa-file-invoice"></i> @Model.OrderNo</h5><span class="status-badge-soft badge-on-track"><span class="status-dot"></span>@Model.Status</span></div><div class="card-body-custom">
+    <div class="row g-3">
+        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">NCC</label><div style="font-weight:600">@Model.VendorName</div></div>
+        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Ngày đặt</label><div>@Model.OrderDate.ToString("dd/MM/yyyy")</div></div>
+        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Đề xuất</label><div>@(Model.ProcurementRequestNo ?? "—")</div></div>
+        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Tổng tiền</label><div style="font-weight:600;color:var(--apple-blue)">@(Model.TotalAmount?.ToString("N0") ?? "—") ₫</div></div>
+    </div>
+</div></div>
+<div class="content-card"><div class="card-header-custom"><h5><i class="fa-solid fa-list"></i> Chi tiết</h5></div><div class="card-body-custom p-0">
+    <table class="data-table">
+        <thead><tr><th class="ps-3">#</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th class="pe-3">Thành tiền</th></tr></thead>
+        <tbody>
+            @{ var i = 1; } @foreach (var l in Model.Lines) { <tr><td class="ps-3">@(i++)</td><td>@(l.ProductName ?? l.ItemName ?? "—")</td><td>@l.Quantity</td><td>@l.UnitPrice.ToString("N0") ₫</td><td class="pe-3" style="font-weight:600">@l.LineTotal.ToString("N0") ₫</td></tr> }
+            @if (!Model.Lines.Any()) { <tr><td colspan="5" class="text-center py-3" style="color:var(--text-muted)">Chưa có dòng</td></tr> }
+        </tbody>
+    </table>
+</div></div>

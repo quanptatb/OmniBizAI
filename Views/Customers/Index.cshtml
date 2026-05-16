@@ -1,0 +1,60 @@
+@model OmniBizAI.ViewModels.CustomerListViewModel
+@{ ViewData["Title"] = "Khách hàng"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Khách hàng</span>"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1">Quản lý khách hàng</h4>
+        <p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount khách hàng</p>
+    </div>
+    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Thêm khách hàng</a>
+</div>
+
+<div class="content-card mb-4">
+    <div class="card-body-custom">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo tên hoặc mã khách hàng..." />
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="industry" value="@Model.IndustryFilter" class="form-input" placeholder="Ngành nghề..." />
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm kiếm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-body-custom p-0">
+        <table class="data-table">
+            <thead>
+                <tr><th class="ps-3">Mã</th><th>Tên khách hàng</th><th>Mã số thuế</th><th>Ngành nghề</th><th>Liên hệ</th><th>Trạng thái</th><th class="pe-3"></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td class="ps-3"><span style="font-weight:600;color:var(--apple-blue)">@item.Code</span></td>
+                        <td><a asp-action="Details" asp-route-id="@item.Id" style="font-weight:500;color:var(--text-primary);text-decoration:none">@item.Name</a></td>
+                        <td style="color:var(--text-secondary)">@(item.TaxCode ?? "—")</td>
+                        <td style="color:var(--text-secondary)">@(item.Industry ?? "—")</td>
+                        <td><span class="badge bg-light text-dark">@item.ContactCount liên hệ</span></td>
+                        <td>
+                            <span class="status-badge-soft @(item.IsActive ? "badge-on-track" : "badge-late")">
+                                <span class="status-dot"></span>@(item.IsActive ? "Hoạt động" : "Ngừng")
+                            </span>
+                        </td>
+                        <td class="pe-3 text-end">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn-outline-custom btn-sm" style="font-size:.72rem;padding:4px 12px"><i class="fa-solid fa-eye"></i></a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted)">Chưa có khách hàng nào</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

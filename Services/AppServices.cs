@@ -139,12 +139,27 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             .OrderByDescending(a => a.CreatedAt).Take(3)
             .Select(a => new AiInsightListItem { Id = a.Id, ContextType = a.ContextType, Question = a.Question, Summary = a.Summary, Recommendation = a.Recommendation, RiskLevel = a.RiskLevel.ToString(), Status = a.Status.ToString(), CreatedAt = a.CreatedAt }).ToListAsync();
 
+        // Activity log from AuditLogs
+        var activityLog = await db.AuditLogs
+            .Where(a => a.TenantId == tenant.TenantId && a.EntityId == id &&
+                (a.EntityName == "OperationRequest" || a.EntityName == "ApprovalTask" || a.EntityName == "WorkItem"))
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(20)
+            .Select(a => new ActivityLogItem
+            {
+                UserName = a.UserName,
+                Action = a.Action,
+                Details = a.NewValuesJson,
+                OccurredAt = a.CreatedAt
+            })
+            .ToListAsync();
+
         return new OperationRequestDetailViewModel
         {
             Id = r.Id, RequestNo = r.RequestNo, Title = r.Title, Type = r.Type, Status = r.Status.ToString(), Priority = r.Priority.ToString(),
-            Department = dept?.Name ?? "", Customer = customer?.Name, CreatedBy = creator?.FullName ?? "",
+            Department = dept?.Name ?? "", DepartmentId = r.OrganizationUnitId, Customer = customer?.Name, CreatedBy = creator?.FullName ?? "",
             CreatedAt = r.CreatedAt, DueDate = r.DueDate, TotalAmount = r.TotalAmount, Description = r.Description,
-            ApprovalTasks = approvals, WorkItems = workItems, AiInsights = aiInsights,
+            ApprovalTasks = approvals, WorkItems = workItems, AiInsights = aiInsights, ActivityLog = activityLog,
             CanEdit = r.Status is OperationStatus.Draft or OperationStatus.Rejected,
             CanSubmit = r.Status == OperationStatus.Draft,
             CanCancel = r.Status is OperationStatus.Draft or OperationStatus.Submitted
@@ -163,9 +178,43 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             RequestedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
         };
         db.OperationRequests.Add(entity);
-        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, Action = "Create", EntityName = "OperationRequest", EntityId = entity.Id, NewValuesJson = $"{{\"RequestNo\":\"{entity.RequestNo}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "OperationRequest", EntityId = entity.Id, NewValuesJson = $"{{\"RequestNo\":\"{entity.RequestNo}\",\"Title\":\"{entity.Title}\"}}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
         return entity.Id;
+    }
+
+    public async Task<OperationRequestEditViewModel?> GetEditFormAsync(Guid id)
+    {
+        var r = await db.OperationRequests.FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenant.TenantId && !r.IsDeleted);
+        if (r is null || r.Status is not (OperationStatus.Draft or OperationStatus.Rejected)) return null;
+
+        var tid = tenant.TenantId;
+        return new OperationRequestEditViewModel
+        {
+            Id = r.Id, RequestNo = r.RequestNo, Title = r.Title, Type = r.Type,
+            OrganizationUnitId = r.OrganizationUnitId, CustomerId = r.CustomerId,
+            Priority = r.Priority, DueDate = r.DueDate, Description = r.Description, TotalAmount = r.TotalAmount,
+            Departments = await db.OrganizationUnits.Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted).Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name }).ToListAsync(),
+            Customers = await db.Customers.Where(c => c.TenantId == tid && c.IsActive && !c.IsDeleted).Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Name }).ToListAsync()
+        };
+    }
+
+    public async Task<bool> UpdateAsync(OperationRequestEditViewModel vm)
+    {
+        var r = await db.OperationRequests.FindAsync(vm.Id);
+        if (r is null || r.TenantId != tenant.TenantId || r.Status is not (OperationStatus.Draft or OperationStatus.Rejected)) return false;
+
+        var oldTitle = r.Title;
+        r.Title = vm.Title; r.Type = vm.Type; r.OrganizationUnitId = vm.OrganizationUnitId;
+        r.CustomerId = vm.CustomerId; r.Priority = vm.Priority; r.DueDate = vm.DueDate;
+        r.Description = vm.Description; r.TotalAmount = vm.TotalAmount;
+        r.UpdatedAt = DateTimeOffset.UtcNow; r.UpdatedByUserId = tenant.UserId;
+
+        // If rejected, allow resubmission by resetting to Draft
+        if (r.Status == OperationStatus.Rejected) r.Status = OperationStatus.Draft;
+
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Update", EntityName = "OperationRequest", EntityId = r.Id, OldValuesJson = $"{{\"Title\":\"{oldTitle}\"}}", NewValuesJson = $"{{\"Title\":\"{r.Title}\",\"Priority\":\"{r.Priority}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
     }
 
     public async Task<bool> SubmitAsync(Guid id)
@@ -174,7 +223,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.Draft) return false;
         r.Status = OperationStatus.Submitted; r.UpdatedAt = DateTimeOffset.UtcNow;
         db.ApprovalTasks.Add(new ApprovalTask { TenantId = tenant.TenantId, TargetType = "OperationRequest", TargetId = id, StepCode = "DEPARTMENT_REVIEW", AssignedRole = "DEPARTMENT_MANAGER", Status = ApprovalStatus.Pending, CreatedAt = DateTimeOffset.UtcNow });
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, Action = "Submit", EntityName = "OperationRequest", EntityId = id, OldValuesJson = "{\"Status\":\"Draft\"}", NewValuesJson = "{\"Status\":\"Submitted\"}", CreatedAt = DateTimeOffset.UtcNow });
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Submit", EntityName = "OperationRequest", EntityId = id, OldValuesJson = "{\"Status\":\"Draft\"}", NewValuesJson = "{\"Status\":\"Submitted\"}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync(); return true;
     }
 
@@ -183,7 +232,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         var r = await db.OperationRequests.FindAsync(id);
         if (r is null || r.TenantId != tenant.TenantId || r.Status is not (OperationStatus.Draft or OperationStatus.Submitted)) return false;
         r.Status = OperationStatus.Cancelled; r.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, Action = "Cancel", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"Cancelled\"}", CreatedAt = DateTimeOffset.UtcNow });
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Cancel", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"Cancelled\"}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync(); return true;
     }
 
@@ -197,6 +246,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         };
     }
 }
+
 
 // ─── Work Kanban ─────────────────────────────────────────────────────────────
 public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
@@ -504,31 +554,135 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
     }
 }
 
-// ─── AI Insight ──────────────────────────────────────────────────────────────
-public class AiInsightService(ApplicationDbContext db, ITenantContext tenant)
+// ─── AI Insight — Real Gemini Integration ────────────────────────────────────
+public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini)
 {
     public async Task<List<AiInsightListItem>> GetListAsync() =>
         await db.AiInsights.Where(a => a.TenantId == tenant.TenantId && !a.IsDeleted).OrderByDescending(a => a.CreatedAt)
-            .Select(a => new AiInsightListItem { Id = a.Id, ContextType = a.ContextType, Question = a.Question, Summary = a.Summary, Recommendation = a.Recommendation, RiskLevel = a.RiskLevel.ToString(), Status = a.Status.ToString(), CreatedAt = a.CreatedAt })
+            .Select(a => new AiInsightListItem { Id = a.Id, ContextType = a.ContextType, Question = a.Question, Summary = a.Summary, Recommendation = a.Recommendation, RiskLevel = a.RiskLevel.ToString(), Status = a.Status.ToString(), ModelName = "gemini", CreatedAt = a.CreatedAt })
             .ToListAsync();
 
     public async Task<AiInsightListItem> AnalyzeAsync(AiInsightCreateViewModel vm)
     {
         var tid = tenant.TenantId;
-        var reqCount = await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted);
-        var pendingCount = await db.ApprovalTasks.CountAsync(t => t.TenantId == tid && t.Status == ApprovalStatus.Pending && !t.IsDeleted);
         var today = DateOnly.FromDateTime(DateTime.Today);
-        var overdueCount = await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.DueDate < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled);
+        var ctx = await BuildContextAsync(tid, today);
+        var sysPrompt = SystemPrompt();
+        var userPrompt = UserPrompt(vm, ctx);
 
-        var risk = overdueCount > 3 ? RiskLevel.High : overdueCount > 1 ? RiskLevel.Medium : RiskLevel.Low;
-        var summary = $"Hệ thống hiện có {reqCount} yêu cầu vận hành, {pendingCount} chờ duyệt, {overdueCount} quá hạn. Phân tích dựa trên câu hỏi: \"{vm.Question[..Math.Min(80, vm.Question.Length)]}\".";
-        var rec = overdueCount > 0 ? $"• Ưu tiên xử lý {overdueCount} yêu cầu quá hạn.\n• Xem xét phân bổ nguồn lực hợp lý.\n• Thiết lập cảnh báo tự động." : "• Vận hành đang ổn định. Tiếp tục duy trì chất lượng xử lý yêu cầu.";
+        var result = await gemini.GenerateAsync(sysPrompt, userPrompt, 0.4, 3000);
 
-        var insight = new AiInsight { TenantId = tid, ContextType = vm.ContextType, ContextId = vm.ContextId, Question = vm.Question, Summary = summary, Recommendation = rec, RiskLevel = risk, Status = AiInsightStatus.Draft, AskedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow };
+        string summary; string? recommendation; var risk = RiskLevel.Low; var status = AiInsightStatus.Draft;
+
+        if (result.Success)
+        {
+            var t = result.Text;
+            if (t.Contains("---RISK:HIGH---", StringComparison.OrdinalIgnoreCase)) risk = RiskLevel.High;
+            else if (t.Contains("---RISK:MEDIUM---", StringComparison.OrdinalIgnoreCase)) risk = RiskLevel.Medium;
+            t = t.Replace("---RISK:HIGH---", "").Replace("---RISK:MEDIUM---", "").Replace("---RISK:LOW---", "").Trim();
+            var parts = t.Split("---ACTIONS---", 2, StringSplitOptions.TrimEntries);
+            summary = parts[0]; recommendation = parts.Length > 1 ? parts[1] : null;
+            status = AiInsightStatus.Reviewed;
+        }
+        else
+        {
+            summary = $"[AI không khả dụng] {result.ErrorMessage}\nDữ liệu: {ctx.OpCount} yêu cầu, {ctx.Overdue} quá hạn, {ctx.PendingApproval} chờ duyệt.";
+            recommendation = LocalFallback(ctx); risk = ctx.Overdue > 3 ? RiskLevel.High : ctx.Overdue > 1 ? RiskLevel.Medium : RiskLevel.Low;
+        }
+
+        if (summary.Length > 2000) summary = summary[..2000];
+        if (recommendation?.Length > 4000) recommendation = recommendation[..4000];
+
+        var insight = new AiInsight { TenantId = tid, ContextType = vm.ContextType, ContextId = vm.ContextId, Question = vm.Question, Summary = summary, Recommendation = recommendation, RiskLevel = risk, Status = status, AskedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, RawResponseJson = result.RawJson, CreatedAt = DateTimeOffset.UtcNow };
         db.AiInsights.Add(insight);
-        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, Action = "AiQuery", EntityName = "AiInsight", EntityId = insight.Id, NewValuesJson = $"{{\"RiskLevel\":\"{risk}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "AiQuery", EntityName = "AiInsight", EntityId = insight.Id, NewValuesJson = $"{{\"Model\":\"{result.ModelName ?? "local"}\",\"Tokens\":\"{result.InputTokens}+{result.OutputTokens}\",\"Risk\":\"{risk}\"}}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
 
-        return new AiInsightListItem { Id = insight.Id, ContextType = insight.ContextType, Question = insight.Question, Summary = insight.Summary, Recommendation = insight.Recommendation, RiskLevel = insight.RiskLevel.ToString(), Status = insight.Status.ToString(), CreatedAt = insight.CreatedAt };
+        return new AiInsightListItem { Id = insight.Id, ContextType = insight.ContextType, Question = insight.Question, Summary = summary, Recommendation = recommendation, RiskLevel = risk.ToString(), Status = status.ToString(), ModelName = result.ModelName, CreatedAt = insight.CreatedAt };
+    }
+
+    public async Task<List<AiQuickAction>> GetQuickActionsAsync()
+    {
+        var tid = tenant.TenantId; var today = DateOnly.FromDateTime(DateTime.Today);
+        var actions = new List<AiQuickAction>();
+        var overdue = await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.DueDate < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled);
+        if (overdue > 0) actions.Add(new AiQuickAction { Icon = "fa-fire", Label = $"Phân tích {overdue} yêu cầu quá hạn", Question = $"Phân tích chi tiết {overdue} yêu cầu vận hành quá hạn, nguyên nhân và đề xuất giải pháp", ContextType = "Operations", Urgency = "high" });
+        var budgetUsed = await db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == today.Year).SumAsync(e => e.Amount);
+        var budgetPlan = await db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == today.Year).SumAsync(b => b.PlannedAmount);
+        if (budgetPlan > 0) actions.Add(new AiQuickAction { Icon = "fa-chart-pie", Label = "Phân tích tài chính", Question = "Phân tích sức khỏe tài chính: ngân sách, chi phí, thanh toán. Đề xuất tối ưu chi tiêu", ContextType = "Finance", Urgency = budgetUsed / budgetPlan > 0.8m ? "high" : "normal" });
+        actions.Add(new AiQuickAction { Icon = "fa-users", Label = "Đánh giá nhân sự", Question = "Phân tích cơ cấu nhân sự theo phòng ban và đề xuất tối ưu", ContextType = "HR", Urgency = "normal" });
+        actions.Add(new AiQuickAction { Icon = "fa-bullseye", Label = "Tiến độ KPI/OKR", Question = "Đánh giá tiến độ KPI/OKR, xác định mục tiêu chậm và đề xuất hành động", ContextType = "KPI", Urgency = "normal" });
+        var pending = await db.ApprovalTasks.CountAsync(t => t.TenantId == tid && t.Status == ApprovalStatus.Pending && !t.IsDeleted);
+        if (pending > 3) actions.Add(new AiQuickAction { Icon = "fa-clock", Label = $"Tối ưu {pending} phê duyệt chờ", Question = $"Có {pending} phê duyệt chờ xử lý. Phân tích ảnh hưởng và đề xuất xử lý nhanh hơn", ContextType = "Approval", Urgency = pending > 10 ? "high" : "normal" });
+        actions.Add(new AiQuickAction { Icon = "fa-lightbulb", Label = "Báo cáo tổng quan CEO", Question = "Tạo báo cáo cho Ban GĐ: vận hành, tài chính, nhân sự, KPI/OKR, rủi ro và đề xuất chiến lược", ContextType = "Executive", Urgency = "normal" });
+        return actions;
+    }
+
+    // ── Data collection ──────────────────────────────────────────────────────
+    record BizCtx(int OpCount, int Overdue, int CompletedMonth, int PendingApproval, int Employees, int Depts, List<KeyValuePair<string,int>> DeptHeadcounts, decimal BudgetPlan, decimal BudgetUsed, int ActiveBudgets, decimal ExpenseMonth, int ProcDraft, int ProcPending, int POCount, int Customers, int Vendors, int Products, int KpiCount, int OkrObj, int OkrKR, double OkrAvg, int PendingPay, decimal PendingPayAmt);
+
+    async Task<BizCtx> BuildContextAsync(Guid tid, DateOnly today)
+    {
+        var som = new DateOnly(today.Year, today.Month, 1);
+        return new BizCtx(
+            await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted),
+            await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.DueDate < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled),
+            await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.Status == OperationStatus.Completed && r.UpdatedAt.HasValue && DateOnly.FromDateTime(r.UpdatedAt.Value.DateTime) >= som),
+            await db.ApprovalTasks.CountAsync(t => t.TenantId == tid && t.Status == ApprovalStatus.Pending && !t.IsDeleted),
+            await db.AppUsers.CountAsync(u => u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted),
+            await db.OrganizationUnits.CountAsync(o => o.TenantId == tid && o.IsActive && !o.IsDeleted),
+            await db.AppUsers.Where(u => u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted && u.OrganizationUnitId.HasValue).GroupBy(u => u.OrganizationUnit!.Name).Select(g => new KeyValuePair<string,int>(g.Key, g.Count())).ToListAsync(),
+            await db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == today.Year).SumAsync(b => b.PlannedAmount),
+            await db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == today.Year).SumAsync(e => e.Amount),
+            await db.Budgets.CountAsync(b => b.TenantId == tid && !b.IsDeleted && b.Status == BudgetStatus.Active),
+            await db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate >= som).SumAsync(e => e.Amount),
+            await db.ProcurementRequests.CountAsync(p => p.TenantId == tid && !p.IsDeleted && p.Status == ProcurementStatus.Draft),
+            await db.ProcurementRequests.CountAsync(p => p.TenantId == tid && !p.IsDeleted && p.Status == ProcurementStatus.Submitted),
+            await db.PurchaseOrders.CountAsync(po => po.TenantId == tid && !po.IsDeleted),
+            await db.Customers.CountAsync(c => c.TenantId == tid && c.IsActive && !c.IsDeleted),
+            await db.Vendors.CountAsync(v => v.TenantId == tid && v.IsActive && !v.IsDeleted),
+            await db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted),
+            await db.KpiDefinitions.CountAsync(k => k.TenantId == tid && !k.IsDeleted),
+            await db.OkrObjectives.CountAsync(o => o.TenantId == tid && !o.IsDeleted),
+            await db.OkrKeyResults.CountAsync(k => k.TenantId == tid && !k.IsDeleted),
+            await db.OkrKeyResults.Where(k => k.TenantId == tid && !k.IsDeleted && k.TargetValue > 0).Select(k => (double)(k.CurrentValue / k.TargetValue * 100)).DefaultIfEmpty(0).AverageAsync(),
+            await db.PaymentRequests.CountAsync(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted),
+            await db.PaymentRequests.Where(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted).SumAsync(p => p.TotalAmount)
+        );
+    }
+
+    // ── Prompts ──────────────────────────────────────────────────────────────
+    static string SystemPrompt() => "Bạn là AI Copilot cho hệ thống quản lý doanh nghiệp OmniBizAI. Bạn đóng vai cố vấn quản trị kinh doanh thông minh.\n\nQuy tắc:\n1. Trả lời TIẾNG VIỆT, chuyên nghiệp, thực tiễn\n2. Dựa trên DỮ LIỆU THỰC từ hệ thống, không bịa\n3. Đề xuất CỤ THỂ, KHẢ THI\n4. Dùng emoji: ⚠️📊✅💡🔴🟡🟢\n5. Cảnh báo rủi ro rõ ràng\n\nĐịnh dạng:\nPHẦN 1 (trước ---ACTIONS---): Tóm tắt phân tích\nPHẦN 2 (sau ---ACTIONS---): Đề xuất hành động cụ thể\nCuối: ---RISK:LOW--- hoặc ---RISK:MEDIUM--- hoặc ---RISK:HIGH---";
+
+    static string UserPrompt(AiInsightCreateViewModel vm, BizCtx c)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"## CÂU HỎI: {vm.Question}");
+        sb.AppendLine($"## NGỮ CẢNH: {vm.ContextType}\n");
+        sb.AppendLine("## DỮ LIỆU HỆ THỐNG:");
+        sb.AppendLine($"### VẬN HÀNH: {c.OpCount} yêu cầu, {c.Overdue} quá hạn, {c.CompletedMonth} hoàn thành tháng này, {c.PendingApproval} chờ duyệt");
+        sb.AppendLine($"### NHÂN SỰ: {c.Employees} NV hoạt động, {c.Depts} phòng ban");
+        if (c.DeptHeadcounts.Any()) { sb.AppendLine("Phân bổ: " + string.Join(", ", c.DeptHeadcounts.OrderByDescending(d => d.Value).Take(8).Select(d => $"{d.Key}:{d.Value}"))); }
+        sb.AppendLine($"### TÀI CHÍNH: NS kế hoạch {c.BudgetPlan:N0}₫, đã chi {c.BudgetUsed:N0}₫ ({(c.BudgetPlan > 0 ? c.BudgetUsed/c.BudgetPlan*100 : 0):F1}%), chi tháng {c.ExpenseMonth:N0}₫, {c.ActiveBudgets} NS hoạt động, {c.PendingPay} thanh toán chờ ({c.PendingPayAmt:N0}₫)");
+        sb.AppendLine($"### MUA SẮM: {c.ProcDraft} nháp, {c.ProcPending} chờ duyệt, {c.POCount} PO");
+        sb.AppendLine($"### CRM: {c.Customers} KH, {c.Vendors} NCC, {c.Products} SP/DV");
+        sb.AppendLine($"### KPI/OKR: {c.KpiCount} KPI, {c.OkrObj} mục tiêu OKR, {c.OkrKR} kết quả then chốt, tiến độ TB: {c.OkrAvg:F1}%");
+        return sb.ToString();
+    }
+
+    static string LocalFallback(BizCtx c)
+    {
+        var items = new List<string>();
+        if (c.Overdue > 0) items.Add($"⚠️ Ưu tiên xử lý {c.Overdue} yêu cầu quá hạn");
+        if (c.PendingApproval > 5) items.Add($"📋 {c.PendingApproval} phê duyệt chờ xử lý");
+        if (c.BudgetPlan > 0 && c.BudgetUsed / c.BudgetPlan > 0.8m) items.Add($"💰 Ngân sách đã dùng {c.BudgetUsed/c.BudgetPlan*100:F0}%");
+        if (c.ProcPending > 0) items.Add($"🛒 {c.ProcPending} đề xuất mua sắm chờ duyệt");
+        if (c.PendingPay > 0) items.Add($"💳 {c.PendingPay} thanh toán chờ ({c.PendingPayAmt:N0}₫)");
+        if (c.OkrAvg < 30 && c.OkrKR > 0) items.Add($"🎯 OKR chỉ {c.OkrAvg:F0}%");
+        if (!items.Any()) items.Add("✅ Hệ thống ổn định");
+        return string.Join("\n", items);
     }
 }
+
+public class AiQuickAction { public string Icon { get; set; } = ""; public string Label { get; set; } = ""; public string Question { get; set; } = ""; public string ContextType { get; set; } = ""; public string Urgency { get; set; } = "normal"; }
+

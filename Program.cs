@@ -56,6 +56,21 @@ builder.Services.AddScoped<EvaluationService>();
 builder.Services.AddScoped<MissionVisionService>();
 builder.Services.AddScoped<OkrProgressService>();
 
+// New Business Module Services
+builder.Services.AddScoped<CrmService>();
+builder.Services.AddScoped<ProcurementService>();
+builder.Services.AddScoped<HrService>();
+builder.Services.AddScoped<SettingsService>();
+builder.Services.AddScoped<NotificationService>();
+
+// AI — Gemini
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Services.AddHttpClient<GeminiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+    client.DefaultRequestHeaders.Add("User-Agent", "OmniBizAI/1.0");
+});
+
 // ── Build ─────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 

@@ -7,6 +7,7 @@
 <div class="card content-card">
     <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
         <h5 class="card-title mb-0"><i class="fa-solid fa-wallet me-2 text-primary"></i>Ngân sách theo phòng ban</h5>
+        <a asp-action="BudgetCreate" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Tạo ngân sách</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -26,7 +27,7 @@
                     @foreach (var b in Model.Items)
                     {
                         <tr>
-                            <td class="ps-4 fw-bold">@b.Name</td>
+                            <td class="ps-4 fw-bold"><a asp-action="BudgetDetails" asp-route-id="@b.Id" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@b.Name</a></td>
                             <td>@b.Department</td>
                             <td class="fw-medium">@b.TotalAmount.ToString("N0") ₫</td>
                             <td class="text-muted">@b.UsedAmount.ToString("N0") ₫</td>

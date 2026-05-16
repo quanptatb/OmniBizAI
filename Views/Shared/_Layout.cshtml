@@ -71,31 +71,41 @@
                     </a>
                 }
 
-                @if (User.IsInRole("ACCOUNTANT") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("EXECUTIVE"))
-                {
-                    <div class="nav-section-label">TÀI CHÍNH</div>
-                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Budgets" ? "active" : "")"
-                       asp-controller="Finance" asp-action="Budgets">
-                        <i class="fa-solid fa-wallet"></i>
-                        <span>Ngân sách</span>
-                    </a>
-                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "PaymentRequests" ? "active" : "")"
-                       asp-controller="Finance" asp-action="PaymentRequests">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                        <span>Đề nghị thanh toán</span>
-                    </a>
-                }
-
-                @if (User.IsInRole("EXECUTIVE") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                @if (User.IsInRole("ACCOUNTANT") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("EXECUTIVE") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("STAFF"))
                 {
                     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-                    var hrOpen = currentController == "Organization" || currentController == "Users";
+                    var financeOpen = currentController == "Finance" || currentController == "Expenses" || currentController == "Procurement" || currentController == "PurchaseOrders";
+                    var hrOpen = currentController == "Organization" || currentController == "Users" || currentController == "Employees" || currentController == "Positions";
                     var kpiOkrOpen = currentController == "MissionVision" || currentController == "Okr" || currentController == "KpiSetup" || currentController == "KpiCheckIn" || currentController == "Evaluation";
+                    var crmOpen = currentController == "Customers" || currentController == "Vendors" || currentController == "Products";
+                    var settingsOpen = currentController == "Settings";
 
-                    <div class="nav-section-label">PHÂN HỆ</div>
+                    <div class="nav-section-label">TÀI CHÍNH & MUA SẮM</div>
+                    <button type="button" class="nav-group-toggle @(financeOpen ? "expanded" : "")" data-nav-group-toggle data-target="financeBranch" aria-expanded="@(financeOpen.ToString().ToLower())">
+                        <span class="left"><i class="fa-solid fa-wallet"></i><span>Tài chính</span></span>
+                        <i class="fa-solid fa-chevron-down chev"></i>
+                    </button>
+                    <div id="financeBranch" class="nav-group-items @(financeOpen ? "open" : "")" data-nav-group>
+                        <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Budgets" ? "active" : "")" asp-controller="Finance" asp-action="Budgets">
+                            <i class="fa-solid fa-piggy-bank"></i><span>Ngân sách</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Expenses" ? "active" : "")" asp-controller="Expenses" asp-action="Index">
+                            <i class="fa-solid fa-receipt"></i><span>Chi phí</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "PaymentRequests" ? "active" : "")" asp-controller="Finance" asp-action="PaymentRequests">
+                            <i class="fa-solid fa-file-invoice-dollar"></i><span>Đề nghị thanh toán</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Procurement" ? "active" : "")" asp-controller="Procurement" asp-action="Index">
+                            <i class="fa-solid fa-cart-shopping"></i><span>Đề xuất mua sắm</span>
+                        </a>
+                        <a class="nav-item @(currentController == "PurchaseOrders" ? "active" : "")" asp-controller="PurchaseOrders" asp-action="Index">
+                            <i class="fa-solid fa-file-invoice"></i><span>Đơn mua hàng</span>
+                        </a>
+                    </div>
 
+                    <div class="nav-section-label">NHÂN SỰ & TỔ CHỨC</div>
                     <button type="button" class="nav-group-toggle @(hrOpen ? "expanded" : "")" data-nav-group-toggle data-target="hrBranch" aria-expanded="@(hrOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-users"></i><span>Nhân sự & Tổ chức</span></span>
+                        <span class="left"><i class="fa-solid fa-users"></i><span>Nhân sự</span></span>
                         <i class="fa-solid fa-chevron-down chev"></i>
                     </button>
                     <div id="hrBranch" class="nav-group-items @(hrOpen ? "open" : "")" data-nav-group>
@@ -104,14 +114,41 @@
                             <a class="nav-item @(currentController == "Organization" ? "active" : "")" asp-controller="Organization" asp-action="Index">
                                 <i class="fa-solid fa-sitemap"></i><span>Phòng ban</span>
                             </a>
+                        }
+                        <a class="nav-item @(currentController == "Employees" ? "active" : "")" asp-controller="Employees" asp-action="Index">
+                            <i class="fa-solid fa-id-badge"></i><span>Nhân viên</span>
+                        </a>
+                        @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                        {
+                            <a class="nav-item @(currentController == "Positions" ? "active" : "")" asp-controller="Positions" asp-action="Index">
+                                <i class="fa-solid fa-user-tie"></i><span>Chức vụ</span>
+                            </a>
                             <a class="nav-item @(currentController == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
-                                <i class="fa-solid fa-user-gear"></i><span>Người dùng</span>
+                                <i class="fa-solid fa-user-gear"></i><span>Tài khoản</span>
                             </a>
                         }
                     </div>
 
+                    <div class="nav-section-label">KHÁCH HÀNG & ĐỐI TÁC</div>
+                    <button type="button" class="nav-group-toggle @(crmOpen ? "expanded" : "")" data-nav-group-toggle data-target="crmBranch" aria-expanded="@(crmOpen.ToString().ToLower())">
+                        <span class="left"><i class="fa-solid fa-handshake"></i><span>CRM</span></span>
+                        <i class="fa-solid fa-chevron-down chev"></i>
+                    </button>
+                    <div id="crmBranch" class="nav-group-items @(crmOpen ? "open" : "")" data-nav-group>
+                        <a class="nav-item @(currentController == "Customers" ? "active" : "")" asp-controller="Customers" asp-action="Index">
+                            <i class="fa-solid fa-building"></i><span>Khách hàng</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Vendors" ? "active" : "")" asp-controller="Vendors" asp-action="Index">
+                            <i class="fa-solid fa-truck"></i><span>Nhà cung cấp</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Products" ? "active" : "")" asp-controller="Products" asp-action="Index">
+                            <i class="fa-solid fa-box"></i><span>Sản phẩm & DV</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section-label">KPI / OKR & ĐÁNH GIÁ</div>
                     <button type="button" class="nav-group-toggle @(kpiOkrOpen ? "expanded" : "")" data-nav-group-toggle data-target="kpiOkrBranch" aria-expanded="@(kpiOkrOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-bullseye"></i><span>KPI / OKR & Đánh giá</span></span>
+                        <span class="left"><i class="fa-solid fa-bullseye"></i><span>KPI / OKR</span></span>
                         <i class="fa-solid fa-chevron-down chev"></i>
                     </button>
                     <div id="kpiOkrBranch" class="nav-group-items @(kpiOkrOpen ? "open" : "")" data-nav-group>
@@ -146,13 +183,32 @@
 
                 @if (User.IsInRole("AUDITOR") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("TENANT_ADMIN"))
                 {
-                    <div class="nav-section-label">KIỂM SOÁT</div>
+                    <div class="nav-section-label">HỆ THỐNG</div>
+                    @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                    {
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Company" ? "active" : "")"
+                           asp-controller="Settings" asp-action="Company">
+                            <i class="fa-solid fa-building-columns"></i>
+                            <span>Cài đặt công ty</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Modules" ? "active" : "")"
+                           asp-controller="Settings" asp-action="Modules">
+                            <i class="fa-solid fa-puzzle-piece"></i>
+                            <span>Quản lý modules</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Parameters" ? "active" : "")"
+                           asp-controller="Settings" asp-action="Parameters">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span>Tham số hệ thống</span>
+                        </a>
+                    }
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Audit" ? "active" : "")"
                        asp-controller="Audit" asp-action="Index">
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Nhật ký hệ thống</span>
                     </a>
                 }
+
             </nav>
 
             <div class="sidebar-footer">
@@ -194,13 +250,31 @@
                     </div>
                 </div>
                 <div class="topbar-actions">
-                    <button class="topbar-btn" id="notifBtn" title="Thông báo">
-                        <i class="fa-solid fa-bell"></i>
-                        <span class="notif-dot"></span>
-                    </button>
-                    <div class="topbar-user">
-                        <div class="topbar-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")</div>
+                    <!-- Notification Bell -->
+                    <div class="notif-wrapper" style="position:relative">
+                        <button class="topbar-btn" id="notifBtn" title="Thông báo" onclick="toggleNotifPanel()">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="notif-dot" id="notifDot" style="display:none"></span>
+                            <span class="notif-count-badge" id="notifCountBadge" style="display:none">0</span>
+                        </button>
+                        <!-- Notification Dropdown -->
+                        <div class="notif-panel" id="notifPanel" style="display:none">
+                            <div class="notif-panel-header">
+                                <span style="font-weight:700;font-size:.92rem">Thông báo</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="notif-panel-action" onclick="markAllNotifRead()" title="Đọc tất cả"><i class="fa-solid fa-check-double"></i></button>
+                                    <a href="/Notifications" class="notif-panel-action" title="Xem tất cả"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                </div>
+                            </div>
+                            <div class="notif-panel-body" id="notifPanelBody">
+                                <div class="text-center py-4" style="color:var(--text-muted);font-size:.82rem">Đang tải...</div>
+                            </div>
+                        </div>
                     </div>
+                    <!-- Profile Avatar -->
+                    <a href="/Profile" class="topbar-user" title="Hồ sơ cá nhân" style="text-decoration:none">
+                        <div class="topbar-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")</div>
+                    </a>
                 </div>
             </header>
 

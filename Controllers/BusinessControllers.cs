@@ -390,6 +390,33 @@ public class FinanceController : Controller
 
         return View(new PaymentRequestListViewModel { Items = items });
     }
+
+    public async Task<IActionResult> BudgetCreate([FromServices] ProcurementService svc)
+    {
+        var vm = await svc.GetBudgetCreateFormAsync();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BudgetCreate([FromServices] ProcurementService svc, BudgetCreateViewModel vm)
+    {
+        if (!ModelState.IsValid)
+        {
+            var form = await svc.GetBudgetCreateFormAsync();
+            vm.Departments = form.Departments;
+            return View(vm);
+        }
+        var id = await svc.CreateBudgetAsync(vm);
+        TempData["SuccessMessage"] = "Tạo ngân sách thành công.";
+        return RedirectToAction(nameof(BudgetDetails), new { id });
+    }
+
+    public async Task<IActionResult> BudgetDetails([FromServices] ProcurementService svc, Guid id)
+    {
+        var vm = await svc.GetBudgetDetailAsync(id);
+        if (vm is null) return NotFound();
+        return View(vm);
+    }
 }
 
 [Authorize(Roles = "EXECUTIVE,DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
@@ -570,7 +597,7 @@ public class AuditController : Controller
     }
 }
 
-[Authorize(Roles = "EXECUTIVE,DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
+[Authorize(Roles = "EXECUTIVE,DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN,STAFF")]
 public class AiInsightsController : Controller
 {
     private readonly AiInsightService _service;
@@ -583,6 +610,8 @@ public class AiInsightsController : Controller
     public async Task<IActionResult> Index()
     {
         var insights = await _service.GetListAsync();
+        var quickActions = await _service.GetQuickActionsAsync();
+        ViewBag.QuickActions = quickActions;
         return View(insights);
     }
 
@@ -603,4 +632,12 @@ public class AiInsightsController : Controller
             return StatusCode(500, new { error = "Hệ thống AI tạm thời gặp sự cố. Vui lòng thử lại sau." });
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> QuickActions()
+    {
+        var actions = await _service.GetQuickActionsAsync();
+        return Ok(actions);
+    }
 }
+

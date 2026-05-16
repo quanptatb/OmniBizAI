@@ -1,0 +1,35 @@
+@model OmniBizAI.ViewModels.CustomerCreateViewModel
+@{ ViewData["Title"] = "Thêm khách hàng"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm mới</span>"; }
+
+<div class="content-card" style="max-width:680px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-user-plus"></i> Thêm khách hàng mới</h5></div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="Create">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Mã khách hàng <span class="text-danger">*</span></label>
+                    <input asp-for="Code" class="form-input" placeholder="VD: KH001" />
+                    <span asp-validation-for="Code" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Tên khách hàng <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-input" placeholder="Tên đầy đủ..." />
+                    <span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Mã số thuế</label>
+                    <input asp-for="TaxCode" class="form-input" placeholder="MST..." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngành nghề</label>
+                    <input asp-for="Industry" class="form-input" placeholder="VD: Công nghệ, Sản xuất..." />
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Tạo khách hàng</button>
+                <a asp-action="Index" class="btn-outline-custom">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

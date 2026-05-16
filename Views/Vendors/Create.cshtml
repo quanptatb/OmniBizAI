@@ -1,0 +1,14 @@
+@model OmniBizAI.ViewModels.VendorCreateViewModel
+@{ ViewData["Title"] = "Thêm nhà cung cấp"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Vendors' style='color:var(--apple-blue);text-decoration:none'>NCC</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm mới</span>"; }
+<div class="content-card" style="max-width:680px"><div class="card-header-custom"><h5><i class="fa-solid fa-truck"></i> Thêm nhà cung cấp</h5></div><div class="card-body-custom">
+    <form method="post" asp-action="Create">@Html.AntiForgeryToken()
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Mã NCC <span class="text-danger">*</span></label><input asp-for="Code" class="form-input" /><span asp-validation-for="Code" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-8"><label class="form-label">Tên NCC <span class="text-danger">*</span></label><input asp-for="Name" class="form-input" /><span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-4"><label class="form-label">MST</label><input asp-for="TaxCode" class="form-input" /></div>
+            <div class="col-md-4"><label class="form-label">Email</label><input asp-for="Email" class="form-input" type="email" /><span asp-validation-for="Email" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-4"><label class="form-label">SĐT</label><input asp-for="PhoneNumber" class="form-input" /></div>
+        </div>
+        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Tạo NCC</button><a asp-action="Index" class="btn-outline-custom">Hủy</a></div>
+    </form>
+</div></div>

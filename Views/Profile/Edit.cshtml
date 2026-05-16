@@ -1,0 +1,14 @@
+@model OmniBizAI.ViewModels.ProfileEditViewModel
+@{ ViewData["Title"] = "Sửa hồ sơ"; ViewData["Breadcrumb"] = "<a href='/Profile' style='color:var(--apple-blue);text-decoration:none'>Hồ sơ</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>"; }
+<div class="content-card" style="max-width:580px"><div class="card-header-custom"><h5><i class="fa-solid fa-pen"></i> Chỉnh sửa hồ sơ</h5></div><div class="card-body-custom">
+    <form method="post" asp-action="Edit">@Html.AntiForgeryToken()
+        <div class="row g-3">
+            <div class="col-12"><label class="form-label">Họ và tên <span class="text-danger">*</span></label><input asp-for="FullName" class="form-input" /><span asp-validation-for="FullName" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-6"><label class="form-label">Chức danh</label><input asp-for="JobTitle" class="form-input" placeholder="VD: Trưởng phòng IT" /></div>
+            <div class="col-md-6"><label class="form-label">Số điện thoại</label><input asp-for="PhoneNumber" class="form-input" placeholder="0912 345 678" /></div>
+            <div class="col-md-6"><label class="form-label">Múi giờ</label><select asp-for="TimeZoneId" class="form-input"><option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (UTC+7)</option><option value="Asia/Bangkok">Asia/Bangkok (UTC+7)</option><option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option><option value="Asia/Singapore">Asia/Singapore (UTC+8)</option></select></div>
+            <div class="col-md-6"><label class="form-label">Ngôn ngữ</label><select asp-for="Locale" class="form-input"><option value="vi-VN">Tiếng Việt</option><option value="en-US">English</option></select></div>
+        </div>
+        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Lưu thay đổi</button><a asp-action="Index" class="btn-outline-custom">Hủy</a></div>
+    </form>
+</div></div>

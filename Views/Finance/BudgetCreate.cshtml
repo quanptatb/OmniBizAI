@@ -1,0 +1,13 @@
+@model OmniBizAI.ViewModels.BudgetCreateViewModel
+@{ ViewData["Title"] = "Tạo ngân sách"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Finance/Budgets' style='color:var(--apple-blue);text-decoration:none'>Ngân sách</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>"; }
+<div class="content-card" style="max-width:580px"><div class="card-header-custom"><h5><i class="fa-solid fa-piggy-bank"></i> Tạo ngân sách</h5></div><div class="card-body-custom">
+    <form method="post" asp-action="BudgetCreate">@Html.AntiForgeryToken()
+        <div class="row g-3">
+            <div class="col-12"><label class="form-label">Tên ngân sách <span class="text-danger">*</span></label><input asp-for="Name" class="form-input" /><span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-6"><label class="form-label">Phòng ban <span class="text-danger">*</span></label><select asp-for="OrganizationUnitId" class="form-input"><option value="">-- Chọn --</option>@foreach(var d in Model.Departments){<option value="@d.Value">@d.Text</option>}</select><span asp-validation-for="OrganizationUnitId" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-3"><label class="form-label">Năm <span class="text-danger">*</span></label><input asp-for="FiscalYear" class="form-input" type="number" min="2020" max="2050" /></div>
+            <div class="col-md-3"><label class="form-label">Số tiền <span class="text-danger">*</span></label><input asp-for="PlannedAmount" class="form-input" type="number" step="1000000" /><span asp-validation-for="PlannedAmount" class="text-danger" style="font-size:.78rem"></span></div>
+        </div>
+        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Tạo ngân sách</button><a asp-controller="Finance" asp-action="Budgets" class="btn-outline-custom">Hủy</a></div>
+    </form>
+</div></div>

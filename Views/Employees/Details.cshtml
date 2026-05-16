@@ -1,0 +1,51 @@
+@model OmniBizAI.ViewModels.EmployeeDetailViewModel
+@{ ViewData["Title"] = Model.FullName; ViewData["Breadcrumb"] = "<span>Nhân sự</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Employees' style='color:var(--apple-blue);text-decoration:none'>Nhân viên</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.EmployeeCode + "</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="content-card h-100">
+            <div class="card-body-custom text-center" style="padding:32px 24px">
+                <div class="topbar-avatar mx-auto mb-3" style="width:72px;height:72px;font-size:1.8rem">@Model.FullName[0]</div>
+                <h5 style="font-weight:600;margin-bottom:4px">@Model.FullName</h5>
+                <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:2px">@(Model.JobTitle ?? "—")</p>
+                <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:12px">@(Model.Department ?? "—")</p>
+                <span class="status-badge-soft @(Model.Status == "Active" ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(Model.Status == "Active" ? "Đang làm việc" : "Nghỉ việc")</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-id-card"></i> Thông tin cá nhân</h5></div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Mã NV</label><div style="font-weight:600">@Model.EmployeeCode</div></div>
+                    <div class="col-md-8"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Email</label><div>@Model.Email</div></div>
+                    <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Ngày sinh</label><div>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</div></div>
+                    <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Ngày vào làm</label><div>@(Model.StartDate?.ToString("dd/MM/yyyy") ?? "—")</div></div>
+                    <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Phòng ban</label><div>@(Model.Department ?? "—")</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-file-contract"></i> Lịch sử hợp đồng</h5></div>
+    <div class="card-body-custom p-0">
+        <table class="data-table">
+            <thead><tr><th class="ps-3">Số hợp đồng</th><th>Loại</th><th>Hiệu lực từ</th><th>Đến ngày</th><th class="pe-3">Trạng thái</th></tr></thead>
+            <tbody>
+                @foreach (var c in Model.Contracts) {
+                    <tr>
+                        <td class="ps-3" style="font-weight:600">@c.ContractNo</td>
+                        <td>@c.ContractType</td>
+                        <td style="font-size:.82rem">@c.EffectiveFrom.ToString("dd/MM/yyyy")</td>
+                        <td style="font-size:.82rem">@(c.EffectiveTo?.ToString("dd/MM/yyyy") ?? "Không thời hạn")</td>
+                        <td class="pe-3"><span class="status-badge-soft @(c.IsCurrent ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(c.IsCurrent ? "Hiện tại" : "Hết hạn")</span></td>
+                    </tr>
+                }
+                @if (!Model.Contracts.Any()) { <tr><td colspan="5" class="text-center py-3" style="color:var(--text-muted)">Chưa có hợp đồng</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>

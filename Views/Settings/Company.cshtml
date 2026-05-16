@@ -1,0 +1,14 @@
+@model OmniBizAI.ViewModels.CompanySettingsViewModel
+@{ ViewData["Title"] = "Cài đặt công ty"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Cài đặt công ty</span>"; }
+<div class="content-card" style="max-width:680px"><div class="card-header-custom"><h5><i class="fa-solid fa-building-columns"></i> Thông tin công ty</h5></div><div class="card-body-custom">
+    <form method="post" asp-action="Company">@Html.AntiForgeryToken()
+        <div class="row g-3">
+            <div class="col-md-8"><label class="form-label">Tên công ty <span class="text-danger">*</span></label><input asp-for="CompanyName" class="form-input" /><span asp-validation-for="CompanyName" class="text-danger" style="font-size:.78rem"></span></div>
+            <div class="col-md-4"><label class="form-label">Mã Tenant</label><input asp-for="TenantCode" class="form-input" readonly style="background:var(--bg-tertiary)" /></div>
+            <div class="col-md-6"><label class="form-label">Loại hình DN</label><input asp-for="BusinessType" class="form-input" placeholder="VD: Công ty TNHH..." /></div>
+            <div class="col-md-6"><label class="form-label">Ngành nghề</label><input asp-for="Industry" class="form-input" placeholder="VD: Công nghệ thông tin..." /></div>
+            <div class="col-md-6"><label class="form-label">Mã hồ sơ DN</label><input asp-for="ProfileCode" class="form-input" /></div>
+        </div>
+        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-save me-1"></i>Lưu thay đổi</button></div>
+    </form>
+</div></div>

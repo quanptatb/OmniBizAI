@@ -1,0 +1,86 @@
+@model List<OmniBizAI.ViewModels.NotificationItem>
+@{ ViewData["Title"] = "Thông báo"; ViewData["Breadcrumb"] = "<span>Thông báo</span>"; }
+
+<div class="content-card">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-bell"></i> Thông báo của bạn</h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge" style="background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;font-size:.72rem;padding:4px 10px;border-radius:20px">@Model.Count(n => !n.IsRead) chưa đọc</span>
+            @if (Model.Any(n => !n.IsRead))
+            {
+                <button type="button" class="btn-outline-custom" style="font-size:.76rem;padding:4px 12px" onclick="markAllRead()">
+                    <i class="fa-solid fa-check-double me-1"></i>Đọc tất cả
+                </button>
+            }
+        </div>
+    </div>
+    <div class="card-body-custom p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5" style="color:var(--text-muted)">
+                <div style="width:80px;height:80px;border-radius:20px;background:rgba(0,122,255,.06);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                    <i class="fa-solid fa-bell-slash" style="font-size:2rem;color:var(--apple-blue);opacity:.5"></i>
+                </div>
+                <h5 style="font-weight:600;color:var(--text-secondary)">Chưa có thông báo</h5>
+                <p style="font-size:.85rem">Thông báo sẽ xuất hiện khi đồng nghiệp thực hiện thay đổi liên quan đến bạn.</p>
+            </div>
+        }
+
+        @foreach (var n in Model)
+        {
+            <div class="notif-item @(n.IsRead ? "" : "unread")" id="notif-@n.DeliveryId" data-id="@n.DeliveryId" style="padding:16px 24px;border-bottom:1px solid var(--divider);display:flex;gap:14px;align-items:flex-start;transition:all .2s;cursor:pointer" onclick="markOneRead('@n.DeliveryId')">
+                <div style="width:40px;height:40px;border-radius:12px;background:@(n.IsRead ? "var(--bg-secondary)" : "linear-gradient(135deg,rgba(0,122,255,.1),rgba(88,86,214,.1))");display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="fa-solid @n.Icon" style="color:@(n.IsRead ? "var(--text-muted)" : "var(--apple-blue)");font-size:.9rem"></i>
+                </div>
+                <div style="flex:1;min-width:0">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div style="font-weight:@(n.IsRead ? "400" : "600");font-size:.88rem;color:var(--text-primary)">@n.Title</div>
+                        <small style="color:var(--text-muted);font-size:.7rem;white-space:nowrap;flex-shrink:0">@n.TimeAgo</small>
+                    </div>
+                    <p style="font-size:.82rem;color:var(--text-secondary);margin:4px 0 0;line-height:1.5">@n.Body</p>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span style="font-size:.7rem;color:var(--text-muted)"><i class="fa-solid fa-user me-1"></i>@n.SenderName</span>
+                        @if (!n.IsRead)
+                        {
+                            <span style="width:6px;height:6px;border-radius:50%;background:var(--apple-blue);display:inline-block"></span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .notif-item:hover { background: rgba(0,122,255,.02); }
+    .notif-item.unread { background: rgba(0,122,255,.03); }
+</style>
+
+@section Scripts {
+    <script>
+        const token = document.querySelector('[name=__RequestVerificationToken]')?.value ||
+                      document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        async function markOneRead(id) {
+            const el = document.getElementById('notif-' + id);
+            if (el && el.classList.contains('unread')) {
+                await fetch('/Notifications/MarkRead?id=' + id, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token }
+                });
+                el.classList.remove('unread');
+                el.querySelector('.fa-solid:first-child')?.closest('div')?.setAttribute('style',
+                    el.querySelector('.fa-solid:first-child')?.closest('div')?.getAttribute('style')?.replace('linear-gradient(135deg,rgba(0,122,255,.1),rgba(88,86,214,.1))', 'var(--bg-secondary)'));
+            }
+        }
+
+        async function markAllRead() {
+            await fetch('/Notifications/MarkAllRead', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token }
+            });
+            document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+            location.reload();
+        }
+    </script>
+}

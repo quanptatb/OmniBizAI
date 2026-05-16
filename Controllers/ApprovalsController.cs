@@ -9,10 +9,14 @@ namespace OmniBizAI.Controllers;
 public class ApprovalsController : Controller
 {
     private readonly ApprovalService _service;
+    private readonly NotificationService _notif;
+    private readonly ITenantContext _tenant;
 
-    public ApprovalsController(ApprovalService service)
+    public ApprovalsController(ApprovalService service, NotificationService notif, ITenantContext tenant)
     {
         _service = service;
+        _notif = notif;
+        _tenant = tenant;
     }
 
     public async Task<IActionResult> MyTasks()
@@ -26,6 +30,13 @@ public class ApprovalsController : Controller
     public async Task<IActionResult> Approve(Guid taskId, string? note)
     {
         var success = await _service.ApproveAsync(taskId, note);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"✅ {_tenant.UserFullName} đã phê duyệt yêu cầu",
+                $"{_tenant.UserFullName} đã phê duyệt yêu cầu #{taskId.ToString()[..8]}.{(note != null ? $" Ghi chú: {note}" : "")}",
+                "ApprovalTask", taskId);
+        }
         TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
             ? "Đã phê duyệt thành công."
             : "Không thể phê duyệt yêu cầu này.";
@@ -43,9 +54,17 @@ public class ApprovalsController : Controller
         }
 
         var success = await _service.RejectAsync(taskId, reason);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"❌ {_tenant.UserFullName} từ chối yêu cầu",
+                $"{_tenant.UserFullName} đã từ chối yêu cầu #{taskId.ToString()[..8]}. Lý do: {reason}",
+                "ApprovalTask", taskId);
+        }
         TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
             ? "Đã từ chối yêu cầu."
             : "Không thể từ chối yêu cầu này.";
         return RedirectToAction(nameof(MyTasks));
     }
 }
+

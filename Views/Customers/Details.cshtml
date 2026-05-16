@@ -1,0 +1,73 @@
+@model OmniBizAI.ViewModels.CustomerDetailViewModel
+@{ ViewData["Title"] = Model.Name; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Code + "</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 fade-in">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-address-card"></i></div><div class="stat-value">@Model.Contacts.Count</div><div class="stat-label">Liên hệ</div></div>
+    </div>
+    <div class="col-md-4 fade-in fade-in-delay-1">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-building"></i></div><div class="stat-value">@Model.Sites.Count</div><div class="stat-label">Chi nhánh</div></div>
+    </div>
+    <div class="col-md-4 fade-in fade-in-delay-2">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">@Model.OperationRequestCount</div><div class="stat-label">Yêu cầu vận hành</div></div>
+    </div>
+</div>
+
+<div class="content-card mb-4">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-building"></i> Thông tin khách hàng</h5>
+        <span class="status-badge-soft @(Model.IsActive ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(Model.IsActive ? "Hoạt động" : "Ngừng")</span>
+    </div>
+    <div class="card-body-custom">
+        <div class="row g-3">
+            <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Mã KH</label><div style="font-weight:600">@Model.Code</div></div>
+            <div class="col-md-5"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Tên</label><div style="font-weight:600">@Model.Name</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Mã số thuế</label><div>@(Model.TaxCode ?? "—")</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Ngành nghề</label><div>@(Model.Industry ?? "—")</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Ngày tạo</label><div>@Model.CreatedAt.ToString("dd/MM/yyyy")</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-user-group"></i> Người liên hệ</h5></div>
+            <div class="card-body-custom p-0">
+                <table class="data-table">
+                    <thead><tr><th class="ps-3">Tên</th><th>Chức vụ</th><th>Email</th><th>SĐT</th><th class="pe-3"></th></tr></thead>
+                    <tbody>
+                        @foreach (var c in Model.Contacts)
+                        {
+                            <tr>
+                                <td class="ps-3" style="font-weight:500">@c.FullName @if(c.IsPrimary){<span class="badge bg-primary" style="font-size:.65rem">Chính</span>}</td>
+                                <td style="color:var(--text-secondary);font-size:.82rem">@(c.JobTitle ?? "—")</td>
+                                <td style="font-size:.82rem">@(c.Email ?? "—")</td>
+                                <td style="font-size:.82rem">@(c.PhoneNumber ?? "—")</td>
+                                <td class="pe-3"></td>
+                            </tr>
+                        }
+                        @if (!Model.Contacts.Any()) { <tr><td colspan="5" class="text-center py-3" style="color:var(--text-muted)">Chưa có liên hệ</td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-location-dot"></i> Chi nhánh / Địa điểm</h5></div>
+            <div class="card-body-custom p-0">
+                <table class="data-table">
+                    <thead><tr><th class="ps-3">Tên chi nhánh</th><th>Địa chỉ</th><th>Thành phố</th></tr></thead>
+                    <tbody>
+                        @foreach (var s in Model.Sites)
+                        {
+                            <tr><td class="ps-3" style="font-weight:500">@s.Name</td><td style="font-size:.82rem">@(s.Address ?? "—")</td><td style="font-size:.82rem">@(s.City ?? "—")</td></tr>
+                        }
+                        @if (!Model.Sites.Any()) { <tr><td colspan="3" class="text-center py-3" style="color:var(--text-muted)">Chưa có chi nhánh</td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

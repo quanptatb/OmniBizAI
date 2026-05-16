@@ -1,0 +1,33 @@
+@model OmniBizAI.ViewModels.VendorListViewModel
+@{ ViewData["Title"] = "Nhà cung cấp"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Nhà cung cấp</span>"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h4 class="page-title mb-1">Quản lý nhà cung cấp</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount nhà cung cấp</p></div>
+    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Thêm NCC</a>
+</div>
+<div class="content-card mb-4"><div class="card-body-custom">
+    <form method="get" class="row g-2"><div class="col-md-9"><input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo tên hoặc mã..." /></div><div class="col-md-3"><button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div></form>
+</div></div>
+<div class="content-card"><div class="card-body-custom p-0">
+    <table class="data-table">
+        <thead><tr><th class="ps-3">Mã</th><th>Tên NCC</th><th>MST</th><th>Email</th><th>SĐT</th><th>Đơn hàng</th><th>Trạng thái</th><th class="pe-3"></th></tr></thead>
+        <tbody>
+            @foreach (var v in Model.Items)
+            {
+                <tr>
+                    <td class="ps-3" style="font-weight:600;color:var(--apple-blue)">@v.Code</td>
+                    <td style="font-weight:500">@v.Name</td>
+                    <td style="color:var(--text-secondary);font-size:.82rem">@(v.TaxCode ?? "—")</td>
+                    <td style="font-size:.82rem">@(v.Email ?? "—")</td>
+                    <td style="font-size:.82rem">@(v.PhoneNumber ?? "—")</td>
+                    <td><span class="badge bg-light text-dark">@v.PurchaseOrderCount PO</span></td>
+                    <td><span class="status-badge-soft @(v.IsActive ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(v.IsActive ? "Hoạt động" : "Ngừng")</span></td>
+                    <td class="pe-3 text-end">
+                        <form asp-action="Toggle" asp-route-id="@v.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn-outline-custom btn-sm" style="font-size:.72rem;padding:4px 12px" title="Bật/Tắt"><i class="fa-solid fa-toggle-on"></i></button></form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Items.Any()) { <tr><td colspan="8" class="text-center py-4" style="color:var(--text-muted)">Chưa có nhà cung cấp</td></tr> }
+        </tbody>
+    </table>
+</div></div>

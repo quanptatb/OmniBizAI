@@ -1,154 +1,178 @@
 @model OmniBizAI.ViewModels.OperationRequestDetailViewModel
 @{
-    ViewData["Title"] = "Chi tiết Yêu cầu " + Model.RequestNo;
-    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>" + Model.RequestNo + "</span>";
+    ViewData["Title"] = "Chi tiết " + Model.RequestNo;
+    ViewData["Breadcrumb"] = "<a href='/Operations' style='color:var(--apple-blue);text-decoration:none'>Vận hành</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>" + Model.RequestNo + "</span>";
+    var statusBadge = Model.Status switch {
+        "Completed" or "Approved" or "InProgress" => "badge-on-track",
+        "Submitted" or "InReview" => "badge-at-risk",
+        "Rejected" or "Cancelled" => "badge-behind",
+        _ => ""
+    };
+    var priColor = Model.Priority switch {
+        "Low" => "var(--info)", "Normal" => "var(--success)", "High" => "var(--warning)", "Critical" => "var(--danger)", _ => "var(--text-muted)"
+    };
 }
 
 <div class="row g-4">
+    <!-- MAIN CONTENT -->
     <div class="col-lg-8">
+        <!-- Header Card -->
         <div class="content-card mb-4">
             <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
                 <div>
-                    <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                         <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider)">@Model.Type</span>
-                        @{
-                            var statusBadge = Model.Status switch {
-                                "Completed" or "Approved" or "InProgress" => "badge-on-track",
-                                "Submitted" or "InReview" => "badge-at-risk",
-                                "Rejected" or "Cancelled" => "badge-late",
-                                _ => ""
-                            };
+                        <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@Model.StatusLabel</span>
+                        @if (Model.IsOverdue)
+                        {
+                            <span class="status-badge-soft badge-behind"><span class="status-dot"></span>Quá hạn</span>
                         }
-                        <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@Model.Status</span>
                     </div>
                     <h5 style="font-weight:600;margin:0;letter-spacing:-0.01em">@Model.Title</h5>
                 </div>
                 <div class="text-end">
                     <div style="font-weight:600;color:var(--apple-blue)">@Model.RequestNo</div>
-                    <small style="color:var(--text-muted)">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                    <small style="color:var(--text-muted)">@Model.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
                 </div>
             </div>
             <div class="card-body-custom">
                 <div class="row mb-4 g-4">
                     <div class="col-sm-6">
                         <label class="form-label" style="margin-bottom:4px">Người tạo</label>
-                        <div style="font-weight:500">@Model.CreatedBy</div>
+                        <div style="font-weight:500"><i class="fa-solid fa-user me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.CreatedBy</div>
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label" style="margin-bottom:4px">Phòng ban phụ trách</label>
-                        <div style="font-weight:500">@Model.Department</div>
+                        <div style="font-weight:500"><i class="fa-solid fa-building me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Department</div>
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label" style="margin-bottom:4px">Độ ưu tiên</label>
-                        <div style="font-weight:500">
-                            @if(Model.Priority == "Critical") { <span style="color:var(--danger);font-weight:600"><i class="fa-solid fa-triangle-exclamation me-1"></i>Nghiêm trọng</span> }
-                            else { <span>@Model.Priority</span> }
-                        </div>
+                        <div style="font-weight:600;color:@priColor"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:5px"></i>@Model.PriorityLabel</div>
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label" style="margin-bottom:4px">Hạn xử lý</label>
-                        <div style="font-weight:500">@(Model.DueDate?.ToString("dd/MM/yyyy") ?? "Không có")</div>
+                        <div style="font-weight:500;color:@(Model.IsOverdue ? "var(--danger)" : "var(--text-primary)")">
+                            <i class="fa-regular fa-calendar me-1" style="font-size:.78rem"></i>
+                            @(Model.DueDate?.ToString("dd/MM/yyyy") ?? "Không có")
+                            @if (Model.IsOverdue) { <span style="font-size:.72rem;color:var(--danger);margin-left:4px">(quá hạn)</span> }
+                        </div>
                     </div>
+                    @if (!string.IsNullOrEmpty(Model.Customer))
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Khách hàng</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-handshake me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Customer</div>
+                        </div>
+                    }
+                    @if (Model.TotalAmount.HasValue && Model.TotalAmount > 0)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Ngân sách</label>
+                            <div style="font-weight:600;color:var(--apple-blue)">@Model.TotalAmount?.ToString("N0") VNĐ</div>
+                        </div>
+                    }
                 </div>
 
+                <!-- Description -->
                 <div class="mb-4">
                     <label class="form-label" style="margin-bottom:6px">Mô tả chi tiết</label>
-                    <div style="padding:16px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider);font-size:.88rem;line-height:1.6">
-                        @(string.IsNullOrWhiteSpace(Model.Description) ? "Không có mô tả" : Model.Description)
+                    <div style="padding:16px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider);font-size:.88rem;line-height:1.6;white-space:pre-line">@(string.IsNullOrWhiteSpace(Model.Description) ? "Không có mô tả" : Model.Description)</div>
+                </div>
+
+                <!-- Status Flow -->
+                <div class="mb-4">
+                    <label class="form-label" style="margin-bottom:8px">Tiến trình xử lý</label>
+                    <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:.72rem">
+                        @{
+                            var steps = new[] {
+                                ("Draft", "Bản nháp"), ("Submitted", "Đã gửi"), ("Approved", "Đã duyệt"),
+                                ("InProgress", "Đang xử lý"), ("Completed", "Hoàn thành")
+                            };
+                            var currentIndex = Array.FindIndex(steps, s => s.Item1 == Model.Status);
+                            var isTerminal = Model.Status is "Rejected" or "Cancelled";
+                        }
+                        @for (var i = 0; i < steps.Length; i++)
+                        {
+                            var (key, label) = steps[i];
+                            var isActive = key == Model.Status;
+                            var isPassed = i < currentIndex && !isTerminal;
+                            var bg = isActive ? "var(--apple-blue)" : isPassed ? "var(--success)" : "var(--divider)";
+                            var fg = isActive || isPassed ? "#fff" : "var(--text-muted)";
+                            <span style="padding:4px 10px;border-radius:var(--r-pill);background:@bg;color:@fg;font-weight:@(isActive ? "600" : "400")">@label</span>
+                            @if (i < steps.Length - 1) { <i class="fa-solid fa-chevron-right" style="font-size:.5rem;color:var(--text-muted)"></i> }
+                        }
+                        @if (isTerminal)
+                        {
+                            <i class="fa-solid fa-chevron-right" style="font-size:.5rem;color:var(--text-muted)"></i>
+                            <span style="padding:4px 10px;border-radius:var(--r-pill);background:var(--danger);color:#fff;font-weight:600">@Model.StatusLabel</span>
+                        }
                     </div>
                 </div>
 
-                @if (Model.CanSubmit || Model.CanCancel)
-                {
-                    <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
-                        <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light">
-                            <i class="fa-solid fa-table-columns me-1"></i>Xem Kanban
+                <!-- Actions -->
+                <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                    <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light">
+                        <i class="fa-solid fa-table-columns me-1"></i>Xem Kanban
+                    </a>
+                    @if (Model.CanEdit)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-pen me-1"></i>Chỉnh sửa
                         </a>
-                        @if (Model.CanSubmit)
-                        {
-                            <form asp-action="Submit" asp-route-id="@Model.Id" method="post">
-                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button>
-                            </form>
-                        }
-                        @if (Model.CanCancel)
-                        {
-                            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">
-                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-ban me-1"></i>Hủy</button>
-                            </form>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div style="border-top:1px solid var(--divider);padding-top:16px">
-                        <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light">
-                            <i class="fa-solid fa-table-columns me-1"></i>Xem Kanban
-                        </a>
-                    </div>
-                }
+                    }
+                    @if (Model.CanSubmit)
+                    {
+                        <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button>
+                        </form>
+                    }
+                    @if (Model.CanCancel)
+                    {
+                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">
+                            <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-ban me-1"></i>Hủy yêu cầu</button>
+                        </form>
+                    }
+                </div>
             </div>
         </div>
 
+        <!-- Work Items -->
         @if (Model.WorkItems.Any())
         {
-            <div class="content-card">
+            <div class="content-card mb-4">
                 <div class="card-header-custom">
-                    <h5><i class="fa-solid fa-tasks"></i> Công việc liên quan</h5>
+                    <h5><i class="fa-solid fa-tasks"></i> Công việc liên quan <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.WorkItems.Count</span></h5>
                 </div>
-                <ul class="list-group list-group-flush">
+                <div class="card-body-custom p-0">
                     @foreach (var task in Model.WorkItems)
                     {
-                        <li class="list-group-item p-3 d-flex justify-content-between align-items-center" style="border-color:var(--divider)">
+                        var taskStatusBadge = task.Status switch {
+                            "Done" => "badge-on-track",
+                            "InProgress" => "badge-at-risk",
+                            "Blocked" => "badge-behind",
+                            "Cancelled" => "badge-behind",
+                            _ => ""
+                        };
+                        var taskLabel = task.Status switch {
+                            "Todo" => "Cần làm", "InProgress" => "Đang xử lý", "Blocked" => "Đang vướng", "Done" => "Hoàn thành", "Cancelled" => "Đã hủy", _ => task.Status
+                        };
+                        <div style="padding:14px 24px;border-bottom:1px solid var(--divider);display:flex;justify-content:space-between;align-items:center">
                             <div>
-                                <div style="font-weight:500">@task.Title</div>
-                                <small style="color:var(--text-muted)">Hạn: @(task.DueDate?.ToString("dd/MM") ?? "—")</small>
+                                <div style="font-weight:500;margin-bottom:3px">@task.Title</div>
+                                <small style="color:var(--text-muted)">
+                                    <i class="fa-regular fa-calendar me-1"></i>Hạn: @(task.DueDate?.ToString("dd/MM") ?? "—")
+                                    <span style="margin:0 6px">·</span>
+                                    Ưu tiên: @task.Priority
+                                </small>
                             </div>
-                            <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider)">@task.Status</span>
-                        </li>
+                            <span class="status-badge-soft @taskStatusBadge"><span class="status-dot"></span>@taskLabel</span>
+                        </div>
                     }
-                </ul>
+                </div>
             </div>
         }
-    </div>
 
-    <div class="col-lg-4">
-        <div class="content-card mb-4">
-            <div class="card-header-custom">
-                <h5><i class="fa-solid fa-list-check" style="color:var(--warning)"></i> Tiến trình phê duyệt</h5>
-            </div>
-            <div class="card-body-custom">
-                @if (!Model.ApprovalTasks.Any())
-                {
-                    <div class="text-center py-3" style="color:var(--text-muted)">Chưa có luồng duyệt</div>
-                }
-                else
-                {
-                    <div class="checkin-timeline">
-                        @foreach (var task in Model.ApprovalTasks)
-                        {
-                            <div class="checkin-timeline-item @(task.Status == "Approved" ? "approved" : task.Status == "Rejected" ? "late" : "")">
-                                <div style="font-weight:600;font-size:.85rem;margin-bottom:4px">@task.StepName</div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="status-badge-soft @(task.Status == "Approved" ? "badge-on-track" : task.Status == "Rejected" ? "badge-late" : "badge-at-risk")">
-                                        <span class="status-dot"></span>@task.Status
-                                    </span>
-                                    <small style="color:var(--text-muted)">@task.AssignedRole</small>
-                                </div>
-                                @if (!string.IsNullOrEmpty(task.DecisionNote))
-                                {
-                                    <div style="padding:8px 12px;background:var(--parchment);border-radius:var(--r-sm);font-size:.82rem;margin-top:6px">@task.DecisionNote</div>
-                                }
-                                @if (task.DecidedAt.HasValue)
-                                {
-                                    <small style="color:var(--text-muted);display:block;margin-top:4px"><i class="fa-regular fa-clock me-1"></i>@task.DecidedAt.Value.ToString("HH:mm dd/MM")</small>
-                                }
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-
+        <!-- AI Insights -->
         @if (Model.AiInsights.Any())
         {
             <div class="content-card">
@@ -162,16 +186,93 @@
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="ai-risk-badge @ai.RiskLevel.ToLower()">
                                     @if(ai.RiskLevel == "High") { <i class="fa-solid fa-fire"></i> }
-                                    Risk: @ai.RiskLevel
+                                    Rủi ro: @(ai.RiskLevel == "Low" ? "Thấp" : ai.RiskLevel == "Medium" ? "Trung bình" : "Cao")
                                 </span>
-                                <small style="color:var(--text-muted)">@ai.CreatedAt.ToString("dd/MM")</small>
+                                <small style="color:var(--text-muted)">@ai.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</small>
                             </div>
                             <p style="font-weight:500;font-size:.85rem;margin-bottom:4px">@ai.Summary</p>
-                            <p style="font-size:.82rem;color:var(--text-secondary);margin:0">@ai.Recommendation</p>
+                            @if (!string.IsNullOrEmpty(ai.Recommendation))
+                            {
+                                <p style="font-size:.82rem;color:var(--text-secondary);margin:0">@ai.Recommendation</p>
+                            }
                         </div>
                     }
                 </div>
             </div>
         }
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+        <!-- Approval Timeline -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-clipboard-check" style="color:var(--warning)"></i> Phê duyệt</h5>
+            </div>
+            <div class="card-body-custom">
+                @if (!Model.ApprovalTasks.Any())
+                {
+                    <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem">
+                        <i class="fa-solid fa-clock d-block mb-2" style="font-size:1.2rem;opacity:.5"></i>
+                        Chưa có luồng phê duyệt
+                    </div>
+                }
+                else
+                {
+                    @foreach (var task in Model.ApprovalTasks)
+                    {
+                        var apvBadge = task.Status switch { "Approved" => "badge-on-track", "Rejected" => "badge-behind", _ => "badge-at-risk" };
+                        var apvLabel = task.Status switch { "Approved" => "Đã duyệt", "Rejected" => "Từ chối", "Pending" => "Chờ duyệt", _ => task.Status };
+                        <div style="padding:12px 0;border-bottom:1px solid var(--divider)">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-weight:600;font-size:.85rem">@task.StepName</span>
+                                <span class="status-badge-soft @apvBadge" style="font-size:.68rem"><span class="status-dot"></span>@apvLabel</span>
+                            </div>
+                            <small style="color:var(--text-muted)"><i class="fa-solid fa-shield-halved me-1"></i>@task.AssignedRole</small>
+                            @if (!string.IsNullOrEmpty(task.DecisionNote))
+                            {
+                                <div style="padding:8px 12px;background:var(--parchment);border-radius:var(--r-sm);font-size:.82rem;margin-top:6px;border-left:3px solid @(task.Status == "Rejected" ? "var(--danger)" : "var(--success)")">
+                                    <i class="fa-solid fa-quote-left me-1" style="font-size:.6rem;opacity:.4"></i>@task.DecisionNote
+                                </div>
+                            }
+                            @if (task.DecidedAt.HasValue)
+                            {
+                                <small style="color:var(--text-muted);display:block;margin-top:4px"><i class="fa-regular fa-clock me-1"></i>@task.DecidedAt.Value.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-timeline" style="color:var(--apple-blue)"></i> Lịch sử hoạt động</h5>
+            </div>
+            <div class="card-body-custom">
+                @if (!Model.ActivityLog.Any())
+                {
+                    <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem">Chưa có hoạt động</div>
+                }
+                else
+                {
+                    <div style="position:relative;padding-left:24px">
+                        <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--divider)"></div>
+                        @foreach (var log in Model.ActivityLog)
+                        {
+                            <div style="position:relative;padding-bottom:16px">
+                                <div style="position:absolute;left:-20px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--canvas);border:2px solid @log.ActionColor;display:flex;align-items:center;justify-content:center">
+                                    <i class="fa-solid @log.ActionIcon" style="font-size:.45rem;color:@log.ActionColor"></i>
+                                </div>
+                                <div style="font-weight:600;font-size:.82rem;color:var(--text-primary)">@log.ActionLabel</div>
+                                <div style="font-size:.78rem;color:var(--text-secondary);margin-top:1px">@log.UserName</div>
+                                <small style="color:var(--text-muted);font-size:.7rem">@log.OccurredAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>

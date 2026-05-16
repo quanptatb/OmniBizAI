@@ -1,0 +1,81 @@
+@model OmniBizAI.ViewModels.ProfileViewModel
+@{ ViewData["Title"] = "Hồ sơ cá nhân"; ViewData["Breadcrumb"] = "<span>Hồ sơ cá nhân</span>"; }
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <!-- Profile Card -->
+        <div class="content-card" style="text-align:center;padding:32px 24px">
+            <div style="width:96px;height:96px;border-radius:28px;background:linear-gradient(135deg,#007AFF,#5856D6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2.2rem;font-weight:700;color:#fff;box-shadow:0 8px 24px rgba(0,122,255,.25)">
+                @Model.FullName.Substring(0, 1).ToUpper()
+            </div>
+            <h4 style="font-weight:700;margin:0 0 4px">@Model.FullName</h4>
+            <p style="color:var(--text-secondary);font-size:.88rem;margin:0 0 6px">@Model.Email</p>
+            @if (!string.IsNullOrEmpty(Model.JobTitle))
+            {
+                <p style="color:var(--text-muted);font-size:.82rem;margin:0 0 12px">@Model.JobTitle</p>
+            }
+            <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+                @foreach (var role in Model.Roles)
+                {
+                    <span class="badge" style="background:linear-gradient(135deg,rgba(0,122,255,.1),rgba(88,86,214,.1));color:var(--apple-blue);font-size:.72rem;padding:4px 12px;border-radius:20px;font-weight:600">@role</span>
+                }
+            </div>
+            <div class="d-flex gap-2 justify-content-center">
+                <a asp-action="Edit" class="btn-primary-custom"><i class="fa-solid fa-pen me-1"></i>Sửa hồ sơ</a>
+                <a asp-action="ChangePassword" class="btn-outline-custom"><i class="fa-solid fa-key me-1"></i>Đổi mật khẩu</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <!-- Info Card -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-id-card"></i> Thông tin chi tiết</h5></div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Email</label>
+                        <div style="font-weight:500;margin-top:2px">@Model.Email</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Phòng ban</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.Department ?? "Chưa phân bổ")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Số điện thoại</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.PhoneNumber ?? "—")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Chức danh</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.JobTitle ?? "—")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Múi giờ</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.TimeZoneId ?? "Asia/Ho_Chi_Minh")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ngôn ngữ</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.Locale ?? "vi-VN")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-bell"></i></div>
+                    <div class="stat-value">@Model.TotalNotifications</div>
+                    <div class="stat-label">Tổng thông báo</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon @(Model.UnreadNotifications > 0 ? "orange" : "green")"><i class="fa-solid @(Model.UnreadNotifications > 0 ? "fa-envelope" : "fa-envelope-open")"></i></div>
+                    <div class="stat-value">@Model.UnreadNotifications</div>
+                    <div class="stat-label">Chưa đọc</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

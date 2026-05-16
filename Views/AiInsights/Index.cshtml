@@ -1,83 +1,132 @@
 @model List<OmniBizAI.ViewModels.AiInsightListItem>
 @{
     ViewData["Title"] = "AI Copilot";
-    ViewData["Breadcrumb"] = "<span>AI</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Copilot</span>";
+    ViewData["Breadcrumb"] = "<span>AI</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Copilot</span>";
+    var quickActions = ViewBag.QuickActions as List<OmniBizAI.Services.AiQuickAction> ?? new();
 }
 
 <div class="row g-4">
+    <!-- Left: Chat Panel -->
     <div class="col-lg-5">
-        <div class="ai-panel">
-            <div class="d-flex align-items-center gap-3 mb-4">
-                <div class="icon-shape" style="width:44px;height:44px;border-radius:var(--r-md);background:var(--apple-blue);color:#fff">
-                    <i class="fa-solid fa-robot" style="font-size:1.1rem"></i>
+        <div class="ai-panel" style="position:sticky;top:20px">
+            <!-- Header -->
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#007AFF,#5856D6);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0">
+                    <i class="fa-solid fa-robot" style="font-size:1.2rem"></i>
                 </div>
                 <div>
-                    <h5 style="font-weight:600;margin:0">AI Copilot</h5>
-                    <p style="color:var(--text-secondary);font-size:.82rem;margin:0">Phân tích dữ liệu vận hành và đưa ra đề xuất thông minh</p>
+                    <h5 style="font-weight:700;margin:0;font-size:1.05rem">AI Copilot</h5>
+                    <p style="color:var(--text-secondary);font-size:.78rem;margin:0">Trợ lý quản trị doanh nghiệp thông minh • Gemini AI</p>
                 </div>
             </div>
 
-            <form id="aiAskForm">
-                @Html.AntiForgeryToken()
+            <!-- Quick Actions -->
+            @if (quickActions.Any())
+            {
                 <div class="mb-3">
-                    <label class="form-label">Câu hỏi phân tích</label>
-                    <textarea id="aiQuestion" class="form-control" rows="4" placeholder="VD: Phân tích tình hình yêu cầu vận hành trong tháng này. Có rủi ro gì cần chú ý?" maxlength="1000"></textarea>
-                    <div class="d-flex justify-content-between mt-1">
-                        <small style="color:var(--text-muted)">Tối đa 1000 ký tự</small>
-                        <small style="color:var(--text-muted)" id="charCount">0/1000</small>
+                    <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block">⚡ Phân tích nhanh</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var qa in quickActions)
+                        {
+                            <button type="button" class="ai-quick-btn @(qa.Urgency == "high" ? "urgent" : "")"
+                                    data-question="@qa.Question" data-context="@qa.ContextType"
+                                    onclick="fillQuickAction(this)">
+                                <i class="fa-solid @qa.Icon"></i> @qa.Label
+                            </button>
+                        }
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2" style="font-weight:500">
-                    <i class="fa-solid fa-paper-plane me-1"></i>Gửi phân tích
-                </button>
+            }
+
+            <!-- Chat Input -->
+            <form id="aiAskForm">
+                @Html.AntiForgeryToken()
+                <div style="position:relative">
+                    <textarea id="aiQuestion" class="form-control ai-textarea" rows="3"
+                              placeholder="Hỏi AI bất kỳ điều gì về doanh nghiệp...&#10;VD: Phân tích tài chính Q2, Đánh giá hiệu suất phòng ban, Rủi ro cần lưu ý..."
+                              maxlength="1000"></textarea>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <select id="aiContextType" class="ai-context-select">
+                                <option value="Dashboard">📊 Tổng quan</option>
+                                <option value="Operations">⚙️ Vận hành</option>
+                                <option value="Finance">💰 Tài chính</option>
+                                <option value="HR">👥 Nhân sự</option>
+                                <option value="KPI">🎯 KPI/OKR</option>
+                                <option value="CRM">🤝 CRM</option>
+                                <option value="Executive">🏢 Ban GĐ</option>
+                            </select>
+                            <small style="color:var(--text-muted);font-size:.72rem" id="charCount">0/1000</small>
+                        </div>
+                        <button type="submit" class="ai-send-btn" id="aiSendBtn">
+                            <i class="fa-solid fa-paper-plane"></i> Phân tích
+                        </button>
+                    </div>
+                </div>
             </form>
 
-            <div id="aiLoading" class="text-center py-4" style="display:none;color:var(--text-muted)">
-                <div class="ai-spinner me-2"></div>
-                <span>AI đang phân tích dữ liệu...</span>
+            <!-- Loading -->
+            <div id="aiLoading" style="display:none" class="ai-loading-container">
+                <div class="ai-thinking">
+                    <div class="ai-thinking-dots"><span></span><span></span><span></span></div>
+                    <span>AI đang phân tích dữ liệu doanh nghiệp...</span>
+                </div>
             </div>
 
+            <!-- Answer -->
             <div id="aiAnswerArea"></div>
         </div>
     </div>
 
+    <!-- Right: History -->
     <div class="col-lg-7">
         <div class="content-card">
             <div class="card-header-custom">
-                <h5><i class="fa-solid fa-history"></i> Lịch sử phân tích</h5>
-                <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.Count kết quả</span>
+                <h5><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử phân tích</h5>
+                <span class="badge" style="background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;font-size:.72rem;padding:4px 10px;border-radius:20px">@Model.Count kết quả</span>
             </div>
             <div class="card-body-custom p-0">
                 @if (!Model.Any())
                 {
                     <div class="text-center py-5" style="color:var(--text-muted)">
-                        <i class="fa-solid fa-robot fa-3x mb-3 opacity-50 d-block"></i>
-                        <h5 style="font-weight:600;color:var(--text-secondary)">Chưa có kết quả phân tích</h5>
-                        <p style="font-size:.85rem">Hãy đặt câu hỏi cho AI để bắt đầu.</p>
+                        <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,rgba(0,122,255,0.1),rgba(88,86,214,0.1));display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                            <i class="fa-solid fa-robot" style="font-size:2rem;color:var(--apple-blue)"></i>
+                        </div>
+                        <h5 style="font-weight:600;color:var(--text-secondary)">Chưa có phân tích nào</h5>
+                        <p style="font-size:.85rem;max-width:320px;margin:0 auto">Đặt câu hỏi hoặc chọn phân tích nhanh để bắt đầu sử dụng AI Copilot.</p>
                     </div>
                 }
 
                 @foreach (var insight in Model)
                 {
-                    <div style="padding:20px 24px;border-bottom:1px solid var(--divider)">
+                    var riskCls = insight.RiskLevel?.ToLower() ?? "low";
+                    <div class="ai-history-item" style="padding:20px 24px;border-bottom:1px solid var(--divider)">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div class="d-flex align-items-center gap-2">
-                                @{
-                                    var riskCls = insight.RiskLevel.ToLower();
-                                }
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="ai-risk-badge @riskCls">
                                     <i class="fa-solid @(riskCls == "high" ? "fa-fire" : riskCls == "medium" ? "fa-exclamation-triangle" : "fa-shield-halved")"></i>
                                     @insight.RiskLevel
                                 </span>
-                                <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider)">@insight.ContextType</span>
+                                <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem">@insight.ContextType</span>
+                                @if (insight.Status == "Reviewed")
+                                {
+                                    <span class="badge" style="background:rgba(52,199,89,0.1);color:#34C759;font-size:.68rem">✓ AI</span>
+                                }
+                                @if (!string.IsNullOrEmpty(insight.ModelName))
+                                {
+                                    <span class="badge" style="background:rgba(88,86,214,0.1);color:#5856D6;font-size:.65rem">@insight.ModelName</span>
+                                }
                             </div>
-                            <small style="color:var(--text-muted)"><i class="fa-regular fa-clock me-1"></i>@insight.CreatedAt.ToString("HH:mm dd/MM/yyyy")</small>
+                            <small style="color:var(--text-muted);font-size:.72rem;white-space:nowrap"><i class="fa-regular fa-clock me-1"></i>@insight.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</small>
                         </div>
-                        <p style="font-weight:500;color:var(--apple-blue);margin-bottom:4px;font-size:.88rem"><i class="fa-solid fa-question-circle me-1"></i>@insight.Question</p>
-                        <p style="margin-bottom:4px;font-size:.85rem">@insight.Summary</p>
+                        <p style="font-weight:600;color:var(--apple-blue);margin-bottom:6px;font-size:.88rem"><i class="fa-solid fa-question-circle me-1"></i>@insight.Question</p>
+                        <div class="ai-response-text" style="font-size:.84rem;line-height:1.6;margin-bottom:6px;white-space:pre-line">@insight.Summary</div>
                         @if (!string.IsNullOrEmpty(insight.Recommendation))
                         {
-                            <div style="padding:10px 14px;background:var(--parchment);border-radius:var(--r-sm);font-size:.82rem;margin-top:6px;white-space:pre-line">@insight.Recommendation</div>
+                            <div style="padding:12px 16px;background:linear-gradient(135deg,rgba(0,122,255,0.04),rgba(52,199,89,0.04));border-radius:12px;font-size:.82rem;margin-top:8px;white-space:pre-line;border-left:3px solid var(--apple-blue)">
+                                <div style="font-weight:600;color:var(--text-secondary);font-size:.72rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">💡 Đề xuất hành động</div>
+                                @insight.Recommendation
+                            </div>
                         }
                     </div>
                 }
@@ -86,12 +135,187 @@
     </div>
 </div>
 
+<style>
+    .ai-textarea {
+        border: 1.5px solid var(--divider);
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: .88rem;
+        resize: none;
+        transition: all .2s;
+        background: var(--bg-primary);
+    }
+    .ai-textarea:focus {
+        border-color: var(--apple-blue);
+        box-shadow: 0 0 0 3px rgba(0,122,255,.12);
+        outline: none;
+    }
+    .ai-context-select {
+        border: 1px solid var(--divider);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: .78rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+    .ai-send-btn {
+        background: linear-gradient(135deg, #007AFF, #5856D6);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 20px;
+        font-size: .84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .ai-send-btn:hover { opacity: .9; transform: translateY(-1px); }
+    .ai-send-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .ai-quick-btn {
+        border: 1.5px solid var(--divider);
+        background: var(--bg-primary);
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: .76rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all .2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .ai-quick-btn:hover { border-color: var(--apple-blue); color: var(--apple-blue); background: rgba(0,122,255,.04); }
+    .ai-quick-btn.urgent { border-color: rgba(255,59,48,.3); color: var(--apple-red); }
+    .ai-quick-btn.urgent:hover { border-color: var(--apple-red); background: rgba(255,59,48,.04); }
+
+    .ai-loading-container { margin-top: 16px; }
+    .ai-thinking {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(0,122,255,.04), rgba(88,86,214,.04));
+        border-radius: 14px;
+        font-size: .84rem;
+        color: var(--text-secondary);
+    }
+    .ai-thinking-dots { display: flex; gap: 4px; }
+    .ai-thinking-dots span {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--apple-blue);
+        animation: aiDot 1.4s infinite ease-in-out both;
+    }
+    .ai-thinking-dots span:nth-child(2) { animation-delay: .16s; }
+    .ai-thinking-dots span:nth-child(3) { animation-delay: .32s; }
+    @@keyframes aiDot {
+        0%, 80%, 100% { transform: scale(0.4); opacity: .4; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    .ai-answer-card {
+        margin-top: 16px;
+        padding: 20px;
+        border-radius: 16px;
+        background: var(--bg-primary);
+        border: 1.5px solid var(--divider);
+        animation: aiSlideIn .3s ease;
+    }
+    @@keyframes aiSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .ai-history-item { transition: background .2s; }
+    .ai-history-item:hover { background: rgba(0,122,255,.02); }
+</style>
+
 @section Scripts {
     <script>
         const textarea = document.getElementById('aiQuestion');
         const counter = document.getElementById('charCount');
+        const ctxSelect = document.getElementById('aiContextType');
+        const form = document.getElementById('aiAskForm');
+        const loading = document.getElementById('aiLoading');
+        const answerArea = document.getElementById('aiAnswerArea');
+        const sendBtn = document.getElementById('aiSendBtn');
+
         if (textarea && counter) {
             textarea.addEventListener('input', () => counter.textContent = `${textarea.value.length}/1000`);
+        }
+
+        function fillQuickAction(btn) {
+            textarea.value = btn.dataset.question;
+            ctxSelect.value = btn.dataset.context || 'Dashboard';
+            counter.textContent = `${textarea.value.length}/1000`;
+            textarea.focus();
+        }
+
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const q = textarea.value.trim();
+            if (!q) return;
+
+            sendBtn.disabled = true;
+            loading.style.display = 'block';
+            answerArea.innerHTML = '';
+
+            try {
+                const token = document.querySelector('[name=__RequestVerificationToken]').value;
+                const res = await fetch('/AiInsights/Ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ question: q, contextType: ctxSelect.value })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Lỗi kết nối');
+                }
+
+                const data = await res.json();
+                const riskCls = (data.riskLevel || 'low').toLowerCase();
+                const riskIcon = riskCls === 'high' ? 'fa-fire' : riskCls === 'medium' ? 'fa-exclamation-triangle' : 'fa-shield-halved';
+                const statusBadge = data.status === 'Reviewed'
+                    ? '<span class="badge" style="background:rgba(52,199,89,.1);color:#34C759;font-size:.68rem">✓ Gemini AI</span>'
+                    : '<span class="badge" style="background:rgba(255,149,0,.1);color:#FF9500;font-size:.68rem">Local fallback</span>';
+
+                answerArea.innerHTML = `
+                    <div class="ai-answer-card">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="ai-risk-badge ${riskCls}"><i class="fa-solid ${riskIcon}"></i> ${data.riskLevel}</span>
+                            ${statusBadge}
+                            ${data.modelName ? `<span class="badge" style="background:rgba(88,86,214,.1);color:#5856D6;font-size:.65rem">${data.modelName}</span>` : ''}
+                        </div>
+                        <div style="font-size:.86rem;line-height:1.65;white-space:pre-line;margin-bottom:12px">${escapeHtml(data.summary)}</div>
+                        ${data.recommendation ? `
+                            <div style="padding:14px 18px;background:linear-gradient(135deg,rgba(0,122,255,.04),rgba(52,199,89,.04));border-radius:12px;font-size:.82rem;white-space:pre-line;border-left:3px solid var(--apple-blue)">
+                                <div style="font-weight:600;color:var(--text-secondary);font-size:.72rem;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">💡 Đề xuất hành động</div>
+                                ${escapeHtml(data.recommendation)}
+                            </div>` : ''}
+                    </div>`;
+
+                textarea.value = '';
+                counter.textContent = '0/1000';
+            } catch (err) {
+                answerArea.innerHTML = `
+                    <div class="ai-answer-card" style="border-color:rgba(255,59,48,.3)">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fa-solid fa-circle-exclamation" style="color:var(--apple-red)"></i>
+                            <span style="font-weight:600;color:var(--apple-red)">Không thể phân tích</span>
+                        </div>
+                        <p style="font-size:.84rem;color:var(--text-secondary);margin:0">${escapeHtml(err.message)}</p>
+                    </div>`;
+            } finally {
+                loading.style.display = 'none';
+                sendBtn.disabled = false;
+            }
+        });
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
         }
     </script>
 }

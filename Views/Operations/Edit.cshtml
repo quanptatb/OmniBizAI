@@ -1,0 +1,80 @@
+@model OmniBizAI.ViewModels.OperationRequestEditViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa " + Model.RequestNo;
+    ViewData["Breadcrumb"] = "<a href='/Operations' style='color:var(--apple-blue);text-decoration:none'>Vận hành</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Operations/Details/" + Model.Id + "' style='color:var(--apple-blue);text-decoration:none'>" + Model.RequestNo + "</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>";
+}
+
+<div class="content-card" style="max-width:720px">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-pen"></i> Chỉnh sửa yêu cầu @Model.RequestNo</h5>
+    </div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="Edit">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="RequestNo" />
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Loại yêu cầu <span class="text-danger">*</span></label>
+                    <select asp-for="Type" class="form-select">
+                        <option value="Maintenance">Bảo trì</option>
+                        <option value="Installation">Lắp đặt</option>
+                        <option value="Repair">Sửa chữa</option>
+                        <option value="Inspection">Kiểm tra</option>
+                        <option value="Support">Hỗ trợ</option>
+                        <option value="Other">Khác</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Mức ưu tiên <span class="text-danger">*</span></label>
+                    <select asp-for="Priority" class="form-select">
+                        <option value="1">Thấp</option>
+                        <option value="2">Bình thường</option>
+                        <option value="3">Cao</option>
+                        <option value="4">Nghiêm trọng</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Phòng ban phụ trách <span class="text-danger">*</span></label>
+                    <select asp-for="OrganizationUnitId" class="form-select">
+                        @foreach (var d in Model.Departments)
+                        {
+                            <option value="@d.Value">@d.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Khách hàng</label>
+                    <select asp-for="CustomerId" class="form-select">
+                        <option value="">— Không chọn —</option>
+                        @foreach (var c in Model.Customers)
+                        {
+                            <option value="@c.Value">@c.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Hạn xử lý</label>
+                    <input asp-for="DueDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngân sách (VNĐ)</label>
+                    <input asp-for="TotalAmount" type="number" step="1000" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Mô tả chi tiết</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả yêu cầu vận hành..."></textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Lưu thay đổi</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-light">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
