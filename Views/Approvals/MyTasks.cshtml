@@ -1,7 +1,7 @@
 @model OmniBizAI.ViewModels.ApprovalTaskListViewModel
 @{
     ViewData["Title"] = "Phê duyệt";
-    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Phê duyệt</span>";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Phê duyệt</span>";
 }
 
 <ul class="nav nav-tabs mb-4" role="tablist">
@@ -25,7 +25,7 @@
     <div class="tab-pane fade show active" id="pending">
         @if (!Model.PendingTasks.Any())
         {
-            <div class="card glass-card text-center py-5">
+            <div class="content-card text-center py-5">
                 <div class="card-body">
                     <i class="fa-solid fa-circle-check fa-4x text-success mb-3 opacity-50"></i>
                     <h5 class="text-muted">Không có yêu cầu nào cần duyệt</h5>
@@ -69,7 +69,7 @@
     <div class="tab-pane fade" id="completed">
         @if (!Model.CompletedTasks.Any())
         {
-            <div class="card glass-card text-center py-5">
+            <div class="content-card text-center py-5">
                 <div class="card-body">
                     <i class="fa-solid fa-inbox fa-4x text-muted mb-3 opacity-50"></i>
                     <h5 class="text-muted">Chưa có lịch sử xử lý</h5>

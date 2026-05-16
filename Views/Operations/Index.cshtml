@@ -1,23 +1,20 @@
 @model OmniBizAI.ViewModels.OperationRequestListViewModel
 @{
     ViewData["Title"] = "Yêu cầu vận hành";
-    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span>Danh sách</span>";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Danh sách</span>";
 }
 
-<div class="card glass-card mb-4">
-    <div class="card-body p-3">
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search"></i></span>
-                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-start-0 bg-light" placeholder="Mã, tiêu đề...">
-                </div>
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Mã, tiêu đề...">
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small fw-bold">Trạng thái</label>
-                <select name="status" class="form-select bg-light">
-                    <option value="">Tất cả trạng thái</option>
+                <label class="form-label">Trạng thái</label>
+                <select name="status" class="form-select">
+                    <option value="">Tất cả</option>
                     @foreach (var st in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.OperationStatus)))
                     {
                         <option value="@st" selected="@(Model.StatusFilter == st)">@st</option>
@@ -25,8 +22,8 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small fw-bold">Mức ưu tiên</label>
-                <select name="priority" class="form-select bg-light">
+                <label class="form-label">Mức ưu tiên</label>
+                <select name="priority" class="form-select">
                     <option value="">Tất cả</option>
                     @foreach (var pr in Enum.GetNames(typeof(OmniBizAI.Models.Entities.Enums.PriorityLevel)))
                     {
@@ -35,8 +32,8 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label text-muted small fw-bold">Phòng ban</label>
-                <select name="dept" class="form-select bg-light">
+                <label class="form-label">Phòng ban</label>
+                <select name="dept" class="form-select">
                     <option value="">Tất cả phòng ban</option>
                     @foreach (var d in Model.Departments)
                     {
@@ -45,30 +42,30 @@
                 </select>
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
-                <a asp-action="Index" class="btn btn-light border" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
             </div>
         </form>
     </div>
 </div>
 
-<div class="card glass-card">
-    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
-        <h5 class="card-title mb-0"><i class="fa-solid fa-list-check me-2 text-primary"></i>Danh sách yêu cầu</h5>
+<div class="content-card">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-list-check"></i> Danh sách yêu cầu</h5>
         <div class="d-flex gap-2">
-            <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light border">
-                <i class="fa-solid fa-table-columns me-2"></i>Kanban
+            <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light btn-sm">
+                <i class="fa-solid fa-table-columns me-1"></i>Kanban
             </a>
             @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
             {
-                <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Tạo yêu cầu mới</a>
+                <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i>Tạo mới</a>
             }
         </div>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body-custom p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-muted">
+            <table class="data-table">
+                <thead>
                     <tr>
                         <th class="ps-4">Mã YC</th>
                         <th>Tiêu đề / Loại</th>
@@ -83,51 +80,47 @@
                     @foreach (var item in Model.Items)
                     {
                         <tr>
-                            <td class="ps-4 fw-bold text-primary">@item.RequestNo</td>
+                            <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.RequestNo</td>
                             <td>
-                                <div class="fw-bold mb-1">@item.Title</div>
-                                <span class="badge bg-light text-dark border">@item.Type</span>
+                                <div style="font-weight:600;margin-bottom:3px">@item.Title</div>
+                                <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-weight:500">@item.Type</span>
                             </td>
                             <td>@item.Department</td>
                             <td>
                                 @{
-                                    var bgClass = item.Status switch {
-                                        "Draft" => "bg-secondary",
-                                        "Submitted" => "bg-info",
-                                        "InReview" => "bg-warning",
-                                        "Approved" => "bg-primary",
-                                        "InProgress" => "bg-primary",
-                                        "Completed" => "bg-success",
-                                        "Rejected" => "bg-danger",
-                                        "Cancelled" => "bg-dark",
-                                        _ => "bg-secondary"
-                                    };
-                                }
-                                <span class="badge @bgClass rounded-pill px-3 py-2">@item.Status</span>
-                            </td>
-                            <td>
-                                @{
-                                    var priClass = item.Priority switch {
-                                        "Low" => "text-info",
-                                        "Normal" => "text-success",
-                                        "High" => "text-warning",
-                                        "Critical" => "text-danger fw-bold",
+                                    var statusBadge = item.Status switch {
+                                        "Completed" => "badge-on-track",
+                                        "InProgress" or "Approved" => "badge-on-track",
+                                        "Pending" or "Submitted" or "InReview" => "badge-at-risk",
+                                        "Rejected" or "Cancelled" => "badge-late",
                                         _ => ""
                                     };
                                 }
-                                <span class="@priClass"><i class="fa-solid fa-circle text-xs me-1"></i>@item.Priority</span>
+                                <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@item.Status</span>
                             </td>
-                            <td>@(item.DueDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td>
+                                @{
+                                    var priColor = item.Priority switch {
+                                        "Low" => "var(--info)",
+                                        "Normal" => "var(--success)",
+                                        "High" => "var(--warning)",
+                                        "Critical" => "var(--danger)",
+                                        _ => "var(--text-muted)"
+                                    };
+                                }
+                                <span style="color:@priColor;font-weight:500"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:4px"></i>@item.Priority</span>
+                            </td>
+                            <td style="color:var(--text-muted)">@(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                             <td class="text-end pe-4">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light border text-primary">
-                                    <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light">
+                                    <i class="fa-solid fa-eye me-1"></i>Chi tiết
                                 </a>
                             </td>
                         </tr>
                     }
                     @if (!Model.Items.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5 text-muted"><i class="fa-solid fa-inbox fa-3x mb-3 d-block opacity-50"></i>Không tìm thấy dữ liệu</td></tr>
+                        <tr><td colspan="7" class="text-center py-5" style="color:var(--text-muted)"><i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>Không tìm thấy dữ liệu</td></tr>
                     }
                 </tbody>
             </table>
@@ -136,16 +129,12 @@
     
     @if (Model.TotalCount > 20)
     {
-        <div class="card-footer bg-transparent border-top p-3 d-flex justify-content-between align-items-center">
-            <span class="text-muted small">Hiển thị trang @Model.Page của @Math.Ceiling(Model.TotalCount / 20.0)</span>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">Trước</a>
-                </li>
-                <li class="page-item @(Model.Page * 20 >= Model.TotalCount ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">Sau</a>
-                </li>
-            </ul>
+        <div class="pagination-custom">
+            <span>Hiển thị trang @Model.Page của @Math.Ceiling(Model.TotalCount / 20.0)</span>
+            <div class="pagination-pages">
+                <a class="page-btn @(Model.Page == 1 ? "disabled" : "")" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">‹</a>
+                <a class="page-btn @(Model.Page * 20 >= Model.TotalCount ? "disabled" : "")" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">›</a>
+            </div>
         </div>
     }
 </div>

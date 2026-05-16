@@ -1,4 +1,4 @@
-// ═══ OmniBizAI — Site JavaScript ═══════════════════════════════════
+// ═══ OmniBizAI — Apple Design System JS ═════════════════════════════
 
 document.addEventListener('DOMContentLoaded', function () {
     // ── Sidebar toggle ──────────────────────────────────────────
@@ -14,21 +14,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ── Auto-dismiss toast ──────────────────────────────────────
-    const toast = document.getElementById('alertToast');
-    if (toast) {
+    // ── Auto-dismiss toasts ─────────────────────────────────────
+    document.querySelectorAll('.alert-toast').forEach(toast => {
         setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(60px)';
-            toast.style.transition = '.4s ease';
-            setTimeout(() => toast.remove(), 400);
+            toast.style.transition = '.35s ease';
+            setTimeout(() => toast.remove(), 350);
         }, 5000);
-    }
+    });
+
+    // ── showAppToast (global) ───────────────────────────────────
+    window.showAppToast = function(opts) {
+        const { message, tone = 'info', title } = opts || {};
+        if (!message) return;
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+        const toast = document.createElement('div');
+        toast.className = `alert-toast ${tone}`;
+        toast.innerHTML = `<i class="fa-solid ${icons[tone] || icons.info}"></i><span>${title ? '<strong>' + title + '</strong> — ' : ''}${message}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(60px)';
+            toast.style.transition = '.35s ease';
+            setTimeout(() => toast.remove(), 350);
+        }, 5000);
+    };
 
     // ── Page content fade-in ────────────────────────────────────
-    document.querySelectorAll('.glass-card').forEach((el, i) => {
+    document.querySelectorAll('.glass-card,.content-card,.stat-card').forEach((el, i) => {
         el.classList.add('fade-in');
-        if (i < 8) el.style.animationDelay = `${i * 0.06}s`;
+        if (i < 12) el.style.animationDelay = `${i * 0.05}s`;
+    });
+
+    // ── Button press effect (Apple scale 0.97) ──────────────────
+    document.querySelectorAll('.btn,.btn-primary-custom,.btn-outline-custom,.action-btn').forEach(btn => {
+        btn.addEventListener('mousedown', () => btn.style.transform = 'scale(0.97)');
+        btn.addEventListener('mouseup', () => btn.style.transform = '');
+        btn.addEventListener('mouseleave', () => btn.style.transform = '');
     });
 
     // ── AI Chat panel logic ─────────────────────────────────────
@@ -68,14 +91,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderAiAnswer(data);
             } catch (ex) {
                 if (aiLoading) aiLoading.style.display = 'none';
-                showAiError('Hệ thống AI tạm thời không khả dụng. Vui lòng thử lại sau.');
+                showAiError('Hệ thống AI tạm thời không khả dụng.');
             }
         });
     }
 
     function showAiError(msg) {
         if (aiAnswer) {
-            aiAnswer.innerHTML = `<div class="ai-answer-card border-danger"><div class="d-flex align-items-center gap-2 text-danger"><i class="fa-solid fa-circle-xmark"></i><span>${msg}</span></div></div>`;
+            aiAnswer.innerHTML = `<div class="ai-answer-card" style="border-color:var(--danger)"><div class="d-flex align-items-center gap-2" style="color:var(--danger)"><i class="fa-solid fa-circle-xmark"></i><span>${msg}</span></div></div>`;
         }
     }
 
@@ -86,17 +109,15 @@ document.addEventListener('DOMContentLoaded', function () {
         aiAnswer.innerHTML = `
             <div class="ai-answer-card">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h6 class="fw-bold mb-0"><i class="fa-solid fa-robot text-primary me-2"></i>Kết quả phân tích</h6>
+                    <h6 style="font-weight:600;margin:0"><i class="fa-solid fa-robot me-2" style="color:var(--apple-blue)"></i>Kết quả phân tích</h6>
                     <span class="ai-risk-badge ${riskClass}"><i class="fa-solid fa-shield-halved"></i> Rủi ro: ${riskLabel[riskClass] || data.riskLevel}</span>
                 </div>
                 <div class="mb-3">
-                    <label class="text-muted small text-uppercase fw-bold mb-1">Tóm tắt</label>
-                    <p class="mb-0">${escapeHtml(data.summary || '')}</p>
+                    <label style="font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">Tóm tắt</label>
+                    <p style="margin:4px 0 0">${escapeHtml(data.summary || '')}</p>
                 </div>
-                ${data.recommendation ? `<div class="mb-3"><label class="text-muted small text-uppercase fw-bold mb-1">Đề xuất hành động</label><div class="p-3 bg-light rounded border text-sm" style="white-space:pre-line;">${escapeHtml(data.recommendation)}</div></div>` : ''}
-                <div class="text-end">
-                    <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>${new Date(data.createdAt).toLocaleString('vi-VN')}</small>
-                </div>
+                ${data.recommendation ? `<div class="mb-3"><label style="font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">Đề xuất</label><div style="padding:12px;background:var(--parchment);border-radius:var(--r-sm);margin-top:4px;font-size:.85rem;white-space:pre-line">${escapeHtml(data.recommendation)}</div></div>` : ''}
+                <div class="text-end"><small style="color:var(--text-muted)"><i class="fa-regular fa-clock me-1"></i>${new Date(data.createdAt).toLocaleString('vi-VN')}</small></div>
             </div>`;
     }
 

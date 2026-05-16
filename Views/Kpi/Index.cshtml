@@ -4,7 +4,7 @@
     ViewData["Breadcrumb"] = "<span>Báo cáo & KPI</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">KPI</span>";
 }
 
-<div class="card glass-card mb-4">
+<div class="card content-card mb-4">
     <div class="card-body p-3">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4">
@@ -28,7 +28,7 @@
     @foreach (var kpi in Model.Items)
     {
         <div class="col-md-6 col-xl-4">
-            <div class="card glass-card h-100">
+            <div class="card content-card h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
@@ -77,7 +77,7 @@
     @if (!Model.Items.Any())
     {
         <div class="col-12">
-            <div class="card glass-card text-center py-5">
+            <div class="card content-card text-center py-5">
                 <div class="card-body">
                     <i class="fa-solid fa-chart-line fa-4x text-muted mb-3 opacity-50"></i>
                     <h5 class="text-muted">Chưa có chỉ tiêu KPI</h5>

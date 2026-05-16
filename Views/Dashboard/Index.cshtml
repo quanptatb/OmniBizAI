@@ -1,160 +1,123 @@
 @model OmniBizAI.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Dashboard Tổng Quan";
+    ViewData["Title"] = "Dashboard";
     ViewData["Breadcrumb"] = "<span>Tổng quan</span>";
 }
 
-<div class="row g-4 mb-4">
-    <div class="col-xl-3 col-sm-6">
-        <div class="card glass-card h-100 border-primary border-bottom border-3">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <p class="text-muted mb-1 text-uppercase small font-weight-bold">Tổng yêu cầu</p>
-                    <h2 class="mb-0 text-primary">@Model.TotalOperationRequests</h2>
-                </div>
-                <div class="icon-shape bg-primary text-white rounded-circle p-3">
-                    <i class="fa-solid fa-file-lines fa-lg"></i>
-                </div>
-            </div>
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6 fade-in">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-file-lines"></i></div>
+            <div class="stat-value">@Model.TotalOperationRequests</div>
+            <div class="stat-label">Tổng yêu cầu</div>
         </div>
     </div>
-    
-    <div class="col-xl-3 col-sm-6">
-        <div class="card glass-card h-100 border-warning border-bottom border-3">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <p class="text-muted mb-1 text-uppercase small font-weight-bold">Chờ duyệt</p>
-                    <h2 class="mb-0 text-warning">@Model.PendingApprovals</h2>
-                </div>
-                <div class="icon-shape bg-warning text-white rounded-circle p-3">
-                    <i class="fa-solid fa-clock fa-lg"></i>
-                </div>
-            </div>
+    <div class="col-xl-3 col-sm-6 fade-in fade-in-delay-1">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-value">@Model.PendingApprovals</div>
+            <div class="stat-label">Chờ duyệt</div>
         </div>
     </div>
-
-    <div class="col-xl-3 col-sm-6">
-        <div class="card glass-card h-100 border-danger border-bottom border-3">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <p class="text-muted mb-1 text-uppercase small font-weight-bold">Quá hạn</p>
-                    <h2 class="mb-0 text-danger">@Model.OverdueTasks</h2>
-                </div>
-                <div class="icon-shape bg-danger text-white rounded-circle p-3">
-                    <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
-                </div>
-            </div>
+    <div class="col-xl-3 col-sm-6 fade-in fade-in-delay-2">
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="stat-value">@Model.OverdueTasks</div>
+            <div class="stat-label">Quá hạn</div>
         </div>
     </div>
-
-    <div class="col-xl-3 col-sm-6">
-        <div class="card glass-card h-100 border-success border-bottom border-3">
-            <div class="card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <p class="text-muted mb-1 text-uppercase small font-weight-bold">Nhân sự</p>
-                    <h2 class="mb-0 text-success">@Model.ActiveUsers</h2>
-                </div>
-                <div class="icon-shape bg-success text-white rounded-circle p-3">
-                    <i class="fa-solid fa-users fa-lg"></i>
-                </div>
-            </div>
+    <div class="col-xl-3 col-sm-6 fade-in fade-in-delay-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-value">@Model.ActiveUsers</div>
+            <div class="stat-label">Nhân sự</div>
         </div>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
+<div class="row g-3 mb-4">
     <div class="col-lg-8">
-        <div class="card glass-card h-100">
-            <div class="card-header border-bottom-0 bg-transparent pb-0">
-                <h5 class="card-title mb-0"><i class="fa-solid fa-chart-area me-2 text-primary"></i>Biểu đồ yêu cầu 6 tháng gần đây</h5>
+        <div class="content-card h-100">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-chart-area"></i> Biểu đồ yêu cầu 6 tháng</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body-custom">
                 <canvas id="trendChart" height="100"></canvas>
             </div>
         </div>
     </div>
-    
     <div class="col-lg-4">
-        <div class="card glass-card h-100">
-            <div class="card-header border-bottom-0 bg-transparent pb-0">
-                <h5 class="card-title mb-0"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Trạng thái yêu cầu</h5>
+        <div class="content-card h-100">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-chart-pie"></i> Trạng thái yêu cầu</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body-custom">
                 <canvas id="statusChart" height="200"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     <div class="col-lg-6">
-        <div class="card glass-card h-100">
-            <div class="card-header border-bottom bg-transparent d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="fa-solid fa-list-check me-2 text-primary"></i>Yêu cầu gần đây</h5>
-                <a asp-controller="Operations" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+        <div class="content-card h-100">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-list-check"></i> Yêu cầu gần đây</h5>
+                <a asp-controller="Operations" asp-action="Index" class="btn-outline-custom btn-sm" style="font-size:.75rem;padding:5px 14px;">Xem tất cả</a>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0 text-sm">
-                        <thead class="table-light text-muted">
+            <div class="card-body-custom p-0">
+                <table class="data-table">
+                    <thead><tr><th class="ps-3">Mã</th><th>Tiêu đề</th><th>Trạng thái</th><th class="pe-3">Ngày tạo</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in Model.RecentRequests)
+                        {
                             <tr>
-                                <th class="ps-3">Mã</th>
-                                <th>Tiêu đề</th>
-                                <th>Trạng thái</th>
-                                <th class="pe-3">Ngày tạo</th>
+                                <td class="ps-3" style="font-weight:600;color:var(--apple-blue)">@item.RequestNo</td>
+                                <td><div class="text-truncate" style="max-width:200px;" title="@item.Title">@item.Title</div></td>
+                                <td>
+                                    <span class="status-badge-soft @(item.Status == "Completed" ? "badge-on-track" : item.Status == "Pending" ? "badge-at-risk" : "badge-late")">
+                                        <span class="status-dot"></span>@item.Status
+                                    </span>
+                                </td>
+                                <td class="pe-3" style="color:var(--text-muted)">@item.CreatedAt.ToString("dd/MM/yyyy")</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.RecentRequests)
-                            {
-                                <tr>
-                                    <td class="ps-3 fw-bold text-primary">@item.RequestNo</td>
-                                    <td>
-                                        <div class="text-truncate" style="max-width: 200px;" title="@item.Title">@item.Title</div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-@(item.Status == "Completed" ? "success" : item.Status == "Pending" ? "warning" : "info") rounded-pill">@item.Status</span>
-                                    </td>
-                                    <td class="pe-3 text-muted">@item.CreatedAt.ToString("dd/MM/yyyy")</td>
-                                </tr>
-                            }
-                            @if (!Model.RecentRequests.Any())
-                            {
-                                <tr><td colspan="4" class="text-center py-4 text-muted">Chưa có dữ liệu</td></tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                        @if (!Model.RecentRequests.Any())
+                        {
+                            <tr><td colspan="4" class="text-center py-4" style="color:var(--text-muted)">Chưa có dữ liệu</td></tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <div class="col-lg-6">
-        <div class="card glass-card h-100">
-            <div class="card-header border-bottom bg-transparent d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="fa-solid fa-shield-halved me-2 text-primary"></i>Nhật ký hệ thống</h5>
-                <a asp-controller="Audit" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+        <div class="content-card h-100">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-shield-halved"></i> Nhật ký hệ thống</h5>
+                <a asp-controller="Audit" asp-action="Index" class="btn-outline-custom btn-sm" style="font-size:.75rem;padding:5px 14px;">Xem tất cả</a>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body-custom p-0">
                 <ul class="list-group list-group-flush">
                     @foreach (var audit in Model.RecentAudits)
                     {
-                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-3 py-3">
+                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-4 py-3" style="border-color:var(--divider)">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 bg-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                                    <i class="fa-solid fa-history"></i>
+                                <div style="width:32px;height:32px;background:rgba(0,102,204,.06);color:var(--apple-blue);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0">
+                                    <i class="fa-solid fa-history" style="font-size:.82rem"></i>
                                 </div>
                                 <div>
-                                    <h6 class="mb-0 text-sm fw-bold">@audit.UserName <span class="text-muted fw-normal">đã @audit.Action</span></h6>
-                                    <small class="text-muted">@audit.EntityType</small>
+                                    <div style="font-size:.85rem;font-weight:600">@audit.UserName <span style="font-weight:400;color:var(--text-secondary)">đã @audit.Action</span></div>
+                                    <small style="color:var(--text-muted)">@audit.EntityType</small>
                                 </div>
                             </div>
-                            <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>@audit.OccurredAt.ToString("HH:mm dd/MM")</small>
+                            <small style="color:var(--text-muted);white-space:nowrap"><i class="fa-regular fa-clock me-1"></i>@audit.OccurredAt.ToString("HH:mm dd/MM")</small>
                         </li>
                     }
                     @if (!Model.RecentAudits.Any())
                     {
-                        <li class="list-group-item bg-transparent text-center py-4 text-muted">Chưa có nhật ký</li>
+                        <li class="list-group-item bg-transparent text-center py-4" style="color:var(--text-muted)">Chưa có nhật ký</li>
                     }
                 </ul>
             </div>
@@ -165,7 +128,6 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Chart configuration
             const months = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Month));
             const created = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Created));
             const completed = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Completed));
@@ -175,16 +137,16 @@
                 data: {
                     labels: months,
                     datasets: [
-                        { label: 'Tạo mới', data: created, borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.1)', fill: true, tension: 0.4 },
-                        { label: 'Hoàn thành', data: completed, borderColor: '#198754', backgroundColor: 'transparent', tension: 0.4 }
+                        { label: 'Tạo mới', data: created, borderColor: '#0066cc', backgroundColor: 'rgba(0,102,204,0.06)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 3 },
+                        { label: 'Hoàn thành', data: completed, borderColor: '#34c759', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, pointRadius: 3 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { family: 'Inter', size: 12 }, usePointStyle: true } } }, scales: { y: { beginAtZero: true, grid: { color: '#f0f0f0' } }, x: { grid: { display: false } } } }
             });
 
             const statuses = @Json.Serialize(Model.RequestsByStatus.Select(x => x.Status));
             const counts = @Json.Serialize(Model.RequestsByStatus.Select(x => x.Count));
-            const bgColors = statuses.map(s => s === 'Completed' ? '#198754' : s === 'Pending' ? '#ffc107' : s === 'Cancelled' ? '#dc3545' : '#0dcaf0');
+            const bgColors = statuses.map(s => s === 'Completed' ? '#34c759' : s === 'Pending' ? '#ff9f0a' : s === 'Cancelled' ? '#ff3b30' : '#0066cc');
 
             new Chart(document.getElementById('statusChart'), {
                 type: 'doughnut',
@@ -192,7 +154,7 @@
                     labels: statuses,
                     datasets: [{ data: counts, backgroundColor: bgColors, borderWidth: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 12 }, usePointStyle: true, padding: 16 } } }, cutout: '72%' }
             });
         });
     </script>
