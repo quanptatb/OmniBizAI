@@ -10,6 +10,9 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-transparent"><h5 class="mb-0">Thông tin mục tiêu</h5></div>
         <div class="card-body">
+            <div class="alert alert-light border mb-3 small">
+                <strong>Thiết lập theo bước:</strong> 1) Mục tiêu 2) Phạm vi áp dụng (phòng ban/mission/nhân sự) 3) Key Results đo lường.
+            </div>
             <div class="row g-3">
                 <div class="col-md-8">
                     <label asp-for="ObjectiveName" class="form-label">Tên mục tiêu <span class="text-danger">*</span></label>
@@ -29,6 +32,30 @@
                     <input asp-for="Cycle" class="form-control" placeholder="VD: Q2-2026" />
                 </div>
             </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-4">
+                    <label asp-for="SelectedDepartmentIds" class="form-label">Phòng ban áp dụng</label>
+                    <small class="text-muted d-block mb-1">Có thể chọn nhiều phòng ban bằng Ctrl/⌘ + click</small>
+                    <select asp-for="SelectedDepartmentIds" class="form-select" multiple size="4">
+                        @foreach (var d in Model.Departments) { <option value="@d.Value">@d.Text</option> }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="SelectedMissionIds" class="form-label">Liên kết sứ mệnh/tầm nhìn</label>
+                    <small class="text-muted d-block mb-1">Gắn với định hướng chiến lược liên quan</small>
+                    <select asp-for="SelectedMissionIds" class="form-select" multiple size="4">
+                        @foreach (var m in Model.Missions) { <option value="@m.Value">@m.Text</option> }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="SelectedEmployeeIds" class="form-label">Nhân sự phụ trách</label>
+                    <small class="text-muted d-block mb-1">Chọn các cá nhân chịu trách nhiệm chính</small>
+                    <select asp-for="SelectedEmployeeIds" class="form-select" multiple size="4">
+                        @foreach (var e in Model.Employees) { <option value="@e.Value">@e.Text</option> }
+                    </select>
+                </div>
+            </div>
+
         </div>
     </div>
 
