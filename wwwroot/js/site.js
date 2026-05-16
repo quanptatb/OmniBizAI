@@ -14,6 +14,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+
+    // ── Sidebar nav group toggles ──────────────────────────────
+    document.querySelectorAll('[data-nav-group-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            const panel = document.getElementById(targetId);
+            if (!panel) return;
+            const isOpen = panel.classList.toggle('open');
+            btn.classList.toggle('expanded', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+    });
+
     // ── Auto-dismiss toasts ─────────────────────────────────────
     document.querySelectorAll('.alert-toast').forEach(toast => {
         setTimeout(() => {
