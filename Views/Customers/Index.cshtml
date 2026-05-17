@@ -1,45 +1,117 @@
 @model OmniBizAI.ViewModels.CustomerListViewModel
-@{ ViewData["Title"] = "Khách hàng"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Khách hàng</span>"; }
+@{
+    ViewData["Title"] = "Khách hàng";
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Khách hàng</span>";
+}
 
-@{ var activeCount = Model.Items.Count(c => c.IsActive); var totalContacts = Model.Items.Sum(c => c.ContactCount); }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stats -->
+@{
+    var activeCount = Model.Items.Count(c => c.IsActive);
+    var totalContacts = Model.Items.Sum(c => c.ContactCount);
+    var totalSites = Model.Items.Sum(c => c.SiteCount);
+}
 <div class="row g-3 mb-4">
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-building"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng khách hàng</div></div></div>
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div><div class="stat-value">@activeCount</div><div class="stat-label">Hoạt động</div></div></div>
-    <div class="col-md-3"><div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-circle-xmark"></i></div><div class="stat-value">@(Model.TotalCount - activeCount)</div><div class="stat-label">Ngừng</div></div></div>
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-address-book"></i></div><div class="stat-value">@totalContacts</div><div class="stat-label">Liên hệ</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-location-dot"></i></div><div class="stat-value">@totalSites</div><div class="stat-label">Chi nhánh</div></div></div>
 </div>
 
-<div class="content-card mb-4"><div class="card-body-custom">
-    <form method="get" class="row g-2 align-items-end">
-        <div class="col-md-5"><input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Tìm theo tên hoặc mã khách hàng..." /></div>
-        <div class="col-md-2"><input type="text" name="industry" value="@Model.IndustryFilter" class="form-control" placeholder="Ngành nghề..." /></div>
-        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div>
-        <div class="col-md-3 text-end"><a asp-action="Create" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-2"></i>Thêm KH</a></div>
-    </form>
-</div></div>
+<!-- Toolbar -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="d-flex gap-3 align-items-end flex-wrap">
+            <div class="flex-grow-1" style="min-width:220px">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Tên hoặc mã khách hàng..." style="border-radius:0 8px 8px 0" />
+                </div>
+            </div>
+            <div style="min-width:160px">
+                <label class="form-label text-muted small fw-bold">Ngành nghề</label>
+                <input type="text" name="industry" value="@Model.IndustryFilter" class="form-control" placeholder="VD: Công nghệ..." style="border-radius:8px" />
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border" style="border-radius:8px"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+            <div class="ms-auto">
+                <a asp-action="Create" class="btn btn-primary" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-plus me-2"></i>Thêm KH</a>
+            </div>
+        </form>
+    </div>
+</div>
 
-<div class="content-card"><div class="card-body-custom p-0">
-    <table class="data-table">
-        <thead><tr><th class="ps-3">Mã</th><th>Tên khách hàng</th><th>MST</th><th>Ngành nghề</th><th>Liên hệ</th><th>Trạng thái</th><th class="pe-3">Thao tác</th></tr></thead>
-        <tbody>
-            @foreach (var item in Model.Items)
-            {
+<!-- Table -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-building"></i> Danh sách khách hàng <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.TotalCount</span></h5>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <td class="ps-3"><span style="font-weight:600;color:var(--apple-blue)">@item.Code</span></td>
-                    <td><a asp-action="Details" asp-route-id="@item.Id" style="font-weight:500;color:var(--text-primary);text-decoration:none">@item.Name</a></td>
-                    <td style="color:var(--text-secondary)">@(item.TaxCode ?? "—")</td>
-                    <td style="color:var(--text-secondary)">@(item.Industry ?? "—")</td>
-                    <td><span class="badge bg-light text-dark">@item.ContactCount liên hệ</span></td>
-                    <td><span class="status-badge-soft @(item.IsActive ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(item.IsActive ? "Hoạt động" : "Ngừng")</span></td>
-                    <td class="pe-3">
-                        <div class="d-flex gap-1">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm" style="font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-eye"></i></a>
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm" style="font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-pen"></i></a>
-                        </div>
-                    </td>
+                    <th class="ps-4">Mã</th>
+                    <th>Tên khách hàng</th>
+                    <th>MST</th>
+                    <th>Ngành nghề</th>
+                    <th class="text-center">Liên hệ</th>
+                    <th class="text-center">Chi nhánh</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center pe-4" style="width:120px">Thao tác</th>
                 </tr>
-            }
-            @if (!Model.Items.Any()) { <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted)">Chưa có khách hàng nào</td></tr> }
-        </tbody>
-    </table>
-</div></div>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="8" class="text-center py-5 text-muted"><i class="fa-solid fa-building fa-2x mb-2 opacity-25"></i><br/>Chưa có khách hàng nào</td></tr>
+                }
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td class="ps-4"><code style="background:rgba(0,122,255,.06);color:var(--apple-blue);padding:2px 8px;border-radius:4px;font-weight:600;font-size:.78rem">@item.Code</code></td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" style="font-weight:600;color:var(--text-primary);text-decoration:none">@item.Name</a>
+                            <div class="text-muted" style="font-size:.72rem">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                        </td>
+                        <td style="color:var(--text-secondary);font-size:.85rem">@(item.TaxCode ?? "—")</td>
+                        <td>
+                            @if (item.Industry != null)
+                            {
+                                <span class="badge bg-light text-dark border" style="font-size:.7rem">@item.Industry</span>
+                            }
+                            else { <span class="text-muted">—</span> }
+                        </td>
+                        <td class="text-center"><span class="badge rounded-pill" style="background:rgba(0,122,255,.08);color:var(--apple-blue);font-size:.72rem">@item.ContactCount</span></td>
+                        <td class="text-center"><span class="badge rounded-pill" style="background:rgba(52,199,89,.08);color:#34c759;font-size:.72rem">@item.SiteCount</span></td>
+                        <td class="text-center">
+                            <span class="status-badge-soft @(item.IsActive ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(item.IsActive ? "Hoạt động" : "Ngừng")</span>
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" style="border-radius:6px" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" style="border-radius:6px" title="Sửa"><i class="fa-solid fa-pen"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

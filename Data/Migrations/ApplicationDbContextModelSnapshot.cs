@@ -867,6 +867,204 @@ namespace OmniBizAI.Data.Migrations
                     b.ToTable("BusinessProfiles");
                 });
 
+            modelBuilder.Entity("OmniBizAI.Models.Entities.CashTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("ApprovedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BudgetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid?>("OrganizationUnitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("RecordedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReferenceNo")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("TransactionDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("TransactionNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("VendorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("BudgetId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrganizationUnitId");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("CashTransactions");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.CrmInteraction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CompletedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CustomerContactId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NextAction")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTimeOffset?>("NextActionDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTimeOffset?>("ScheduledAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedToUserId");
+
+                    b.HasIndex("CustomerContactId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("CrmInteractions");
+                });
+
             modelBuilder.Entity("OmniBizAI.Models.Entities.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1474,6 +1672,270 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("Expenses");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsIssue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Destination")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("IssueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("IssueNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("IssueType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("IssuedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid?>("OperationRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("OrganizationUnitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WarehouseLocation")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("IssuedByUserId");
+
+                    b.HasIndex("OperationRequestId");
+
+                    b.HasIndex("OrganizationUnitId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("GoodsIssues");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsIssueLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GoodsIssueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("IssuedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ItemName")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("ProductServiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("RequestedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UnitOfMeasure")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoodsIssueId");
+
+                    b.HasIndex("ProductServiceId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("GoodsIssueLines");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsReceipt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("PurchaseOrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("ReceiptDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ReceiptNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("ReceivedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WarehouseLocation")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.HasIndex("ReceivedByUserId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("GoodsReceipts");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsReceiptLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GoodsReceiptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ItemName")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("OrderedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("ProductServiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PurchaseOrderLineId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("QualityPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("ReceivedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("RejectedQuantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoodsReceiptId");
+
+                    b.HasIndex("ProductServiceId");
+
+                    b.HasIndex("PurchaseOrderLineId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("GoodsReceiptLines");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.GradingRank", b =>
@@ -3590,6 +4052,9 @@ namespace OmniBizAI.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("MaxStock")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(250)
@@ -3597,6 +4062,12 @@ namespace OmniBizAI.Data.Migrations
 
                     b.Property<Guid?>("ProductCategoryId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ReorderPoint")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("SafetyStock")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("StandardPrice")
                         .HasColumnType("decimal(18,2)");
@@ -3891,6 +4362,169 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("RoleDefinitions");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOpportunity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly?>("ActualCloseDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CustomerContactId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<decimal>("EstimatedValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly?>("ExpectedCloseDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LostReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("Probability")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductsJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Temperature")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WonNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedToUserId");
+
+                    b.HasIndex("CustomerContactId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("SalesOpportunities");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.StockAlert", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("AcknowledgedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("AcknowledgedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AlertType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("CurrentStock")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("ProductServiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Threshold")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcknowledgedByUserId");
+
+                    b.HasIndex("ProductServiceId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("StockAlerts");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.SystemParameter", b =>
@@ -5246,6 +5880,93 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("OmniBizAI.Models.Entities.CashTransaction", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Budget", "Budget")
+                        .WithMany()
+                        .HasForeignKey("BudgetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.OrganizationUnit", "OrganizationUnit")
+                        .WithMany()
+                        .HasForeignKey("OrganizationUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.Vendor", "Vendor")
+                        .WithMany()
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApprovedByUser");
+
+                    b.Navigation("Budget");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("OrganizationUnit");
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.CrmInteraction", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "AssignedToUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedToUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.CustomerContact", "CustomerContact")
+                        .WithMany()
+                        .HasForeignKey("CustomerContactId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedToUser");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("CustomerContact");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("OmniBizAI.Models.Entities.Customer", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
@@ -5491,6 +6212,132 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Budget");
 
                     b.Navigation("PaymentRequest");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsIssue", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "IssuedByUser")
+                        .WithMany()
+                        .HasForeignKey("IssuedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.OperationRequest", "OperationRequest")
+                        .WithMany()
+                        .HasForeignKey("OperationRequestId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.OrganizationUnit", "OrganizationUnit")
+                        .WithMany()
+                        .HasForeignKey("OrganizationUnitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("IssuedByUser");
+
+                    b.Navigation("OperationRequest");
+
+                    b.Navigation("OrganizationUnit");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsIssueLine", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.GoodsIssue", "GoodsIssue")
+                        .WithMany("Lines")
+                        .HasForeignKey("GoodsIssueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.ProductService", "ProductService")
+                        .WithMany()
+                        .HasForeignKey("ProductServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GoodsIssue");
+
+                    b.Navigation("ProductService");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsReceipt", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.PurchaseOrder", "PurchaseOrder")
+                        .WithMany("GoodsReceipts")
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "ReceivedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReceivedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PurchaseOrder");
+
+                    b.Navigation("ReceivedByUser");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsReceiptLine", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.GoodsReceipt", "GoodsReceipt")
+                        .WithMany("Lines")
+                        .HasForeignKey("GoodsReceiptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.ProductService", "ProductService")
+                        .WithMany()
+                        .HasForeignKey("ProductServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.PurchaseOrderLine", "PurchaseOrderLine")
+                        .WithMany()
+                        .HasForeignKey("PurchaseOrderLineId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GoodsReceipt");
+
+                    b.Navigation("ProductService");
+
+                    b.Navigation("PurchaseOrderLine");
 
                     b.Navigation("Tenant");
                 });
@@ -6529,6 +7376,65 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOpportunity", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "AssignedToUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedToUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.CustomerContact", "CustomerContact")
+                        .WithMany()
+                        .HasForeignKey("CustomerContactId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedToUser");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("CustomerContact");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.StockAlert", b =>
+                {
+                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "AcknowledgedByUser")
+                        .WithMany()
+                        .HasForeignKey("AcknowledgedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OmniBizAI.Models.Entities.ProductService", "ProductService")
+                        .WithMany()
+                        .HasForeignKey("ProductServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcknowledgedByUser");
+
+                    b.Navigation("ProductService");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("OmniBizAI.Models.Entities.SystemParameter", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
@@ -6984,6 +7890,16 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("DepartmentAssignments");
                 });
 
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsIssue", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("OmniBizAI.Models.Entities.GoodsReceipt", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
             modelBuilder.Entity("OmniBizAI.Models.Entities.ImportJob", b =>
                 {
                     b.Navigation("StagingRows");
@@ -7079,6 +7995,8 @@ namespace OmniBizAI.Data.Migrations
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PurchaseOrder", b =>
                 {
+                    b.Navigation("GoodsReceipts");
+
                     b.Navigation("Lines");
 
                     b.Navigation("PaymentRequests");

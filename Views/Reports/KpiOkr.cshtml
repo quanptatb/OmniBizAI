@@ -1,6 +1,9 @@
 @model OmniBizAI.ViewModels.KpiOkrReportViewModel
 @{ ViewData["Title"] = "Báo cáo KPI/OKR"; ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>KPI/OKR</span>"; }
 
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="ExportKpiOkr" class="btn btn-sm btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-file-csv me-1"></i>Xuất CSV</a>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-bullseye"></i></div><div class="stat-value">@Model.TotalOkr</div><div class="stat-label">Tổng OKR</div></div></div>
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-play"></i></div><div class="stat-value">@Model.ActiveOkr</div><div class="stat-label">OKR hoạt động</div></div></div>

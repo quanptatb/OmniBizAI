@@ -1,0 +1,133 @@
+@model OmniBizAI.ViewModels.GoodsIssueListViewModel
+@{
+    ViewData["Title"] = "Phiếu xuất kho";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Xuất kho</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-dolly"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng phiếu</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(148,163,184,.08);color:#94a3b8"><i class="fa-solid fa-file-pen"></i></div><div class="stat-value">@Model.DraftCount</div><div class="stat-label">Nháp</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value">@Model.ConfirmedCount</div><div class="stat-label">Đã xác nhận</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-box-open"></i></div><div class="stat-value">@Model.Items.Sum(i => i.TotalIssuedQty).ToString("N0")</div><div class="stat-label">Tổng SL xuất</div></div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Mã phiếu, mã yêu cầu..." style="border-radius:0 8px 8px 0">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">Trạng thái</label>
+                <select name="status" class="form-select" style="border-radius:8px">
+                    @foreach (var s in EnumHelper.GetSelectList<GoodsIssueStatus>(Model.StatusFilter, includeAll: true))
+                    { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">Loại xuất</label>
+                <select name="type" class="form-select" style="border-radius:8px">
+                    <option value="">-- Tất cả --</option>
+                    <option value="Internal" selected="@(Model.TypeFilter == "Internal")">Nội bộ</option>
+                    <option value="CustomerDelivery" selected="@(Model.TypeFilter == "CustomerDelivery")">Giao khách</option>
+                    <option value="Transfer" selected="@(Model.TypeFilter == "Transfer")">Điều chuyển</option>
+                    <option value="Adjustment" selected="@(Model.TypeFilter == "Adjustment")">Điều chỉnh</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border" style="border-radius:8px" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
+                <a asp-action="Create" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-plus me-1"></i>Tạo phiếu</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-dolly" style="color:var(--apple-blue)"></i> Danh sách phiếu xuất kho</h5>
+    </div>
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Mã phiếu</th>
+                        <th>Loại</th>
+                        <th>Liên kết</th>
+                        <th>Phòng ban</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày xuất</th>
+                        <th class="text-end">Mục</th>
+                        <th class="text-end">SL xuất</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        var badge = item.Status switch {
+                            "Confirmed" => "badge-on-track",
+                            "Draft" => "badge-at-risk",
+                            "Cancelled" => "badge-behind",
+                            _ => ""
+                        };
+                        <tr>
+                            <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.IssueNo</td>
+                            <td><span style="font-size:.78rem;padding:3px 8px;border-radius:6px;background:rgba(0,122,255,.06);color:var(--apple-blue)"><i class="fa-solid @item.IssueTypeIcon me-1"></i>@item.IssueTypeLabel</span></td>
+                            <td style="font-size:.82rem">
+                                @if (item.OperationRequestNo != null)
+                                { <span style="font-weight:500">@item.OperationRequestNo</span> }
+                                else if (item.CustomerName != null)
+                                { <span style="color:var(--text-secondary)"><i class="fa-solid fa-building me-1" style="font-size:.7rem"></i>@item.CustomerName</span> }
+                                else { <span style="color:var(--text-muted)">—</span> }
+                            </td>
+                            <td style="color:var(--text-secondary);font-size:.82rem">@(item.Department ?? "—")</td>
+                            <td><span class="status-badge-soft @badge"><span class="status-dot"></span>@(EnumHelper.Label<GoodsIssueStatus>(item.Status))</span></td>
+                            <td style="color:var(--text-muted);font-size:.82rem">@item.IssueDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end" style="font-weight:500">@item.LineCount</td>
+                            <td class="text-end" style="font-weight:600">@item.TotalIssuedQty.ToString("N2")</td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light" style="border-radius:8px"><i class="fa-solid fa-eye me-1"></i>Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="9" class="text-center py-5" style="color:var(--text-muted)"><i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>Chưa có phiếu xuất kho</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

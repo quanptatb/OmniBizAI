@@ -1,0 +1,241 @@
+@model OmniBizAI.ViewModels.WorkItemDetailViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["Breadcrumb"] = "<a href='/Workflow/Kanban' style='color:var(--apple-blue);text-decoration:none'>Kanban</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chi tiết</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left: Info Card -->
+    <div class="col-lg-4">
+        <div class="content-card animate-fade-in" style="padding:28px 24px">
+            <!-- Status + Priority -->
+            <div class="d-flex gap-2 mb-3 flex-wrap">
+                @{
+                    var statusColor = Model.Status switch { "Todo" => "#94a3b8", "InProgress" => "#007AFF", "Blocked" => "#ff9500", "Done" => "#34c759", "Cancelled" => "#8e8e93", _ => "#94a3b8" };
+                    var statusIcon = Model.Status switch { "Todo" => "fa-circle-dot", "InProgress" => "fa-spinner", "Blocked" => "fa-ban", "Done" => "fa-circle-check", "Cancelled" => "fa-circle-xmark", _ => "fa-circle" };
+                }
+                <span class="badge rounded-pill" style="background:@(statusColor);color:#fff;font-size:.75rem;padding:5px 12px">
+                    <i class="fa-solid @statusIcon me-1"></i>@Model.StatusLabel
+                </span>
+                <span class="badge rounded-pill @Model.PriorityClass" style="font-size:.75rem;padding:5px 12px">@Model.Priority</span>
+                @if (Model.IsOverdue)
+                {
+                    <span class="badge bg-danger rounded-pill" style="font-size:.72rem;padding:5px 12px"><i class="fa-solid fa-clock me-1"></i>Quá hạn</span>
+                }
+            </div>
+
+            <h4 style="font-weight:700;margin:0 0 8px;line-height:1.4">@Model.Title</h4>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p style="color:var(--text-secondary);font-size:.88rem;line-height:1.6;margin:0 0 16px">@Model.Description</p>
+            }
+
+            <hr style="border-color:var(--divider);margin:16px 0" />
+
+            <!-- Meta -->
+            <div class="row g-3">
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Yêu cầu VH</label>
+                    <div style="margin-top:2px"><a asp-controller="Operations" asp-action="Details" asp-route-id="@Model.OperationRequestId" style="color:var(--apple-blue);text-decoration:none;font-weight:600;font-size:.85rem">@Model.RequestNo</a></div>
+                </div>
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Phòng ban</label>
+                    <div style="margin-top:2px">
+                        <a asp-controller="Organization" asp-action="Details" asp-route-id="@Model.DepartmentId" style="color:var(--apple-blue);text-decoration:none;font-size:.85rem">@Model.Department</a>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Người phụ trách</label>
+                    <div style="font-weight:500;margin-top:2px;font-size:.85rem">
+                        @if (Model.AssignedToUserId.HasValue)
+                        {
+                            <a asp-controller="Users" asp-action="Details" asp-route-id="@Model.AssignedToUserId" style="color:var(--apple-blue);text-decoration:none">
+                                <i class="fa-solid fa-user-check me-1"></i>@Model.AssignedTo
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Chưa giao</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Hạn xử lý</label>
+                    <div style="font-weight:500;margin-top:2px;font-size:.85rem;color:@(Model.IsOverdue ? "var(--danger)" : "var(--text-primary)")">
+                        @(Model.DueDate?.ToString("dd/MM/yyyy") ?? "Không hạn")
+                    </div>
+                </div>
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ngày tạo</label>
+                    <div style="font-size:.82rem;margin-top:2px">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Tạo bởi</label>
+                    <div style="font-size:.82rem;margin-top:2px">@Model.CreatedByName</div>
+                </div>
+            </div>
+
+            <hr style="border-color:var(--divider);margin:16px 0" />
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm" style="border-radius:8px;font-size:.78rem">
+                    <i class="fa-solid fa-pen me-1"></i>Chỉnh sửa
+                </a>
+                <a asp-action="Kanban" class="btn btn-light border btn-sm" style="border-radius:8px;font-size:.78rem">
+                    <i class="fa-solid fa-columns me-1"></i>Kanban
+                </a>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa công việc này?')">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius:8px;font-size:.78rem">
+                        <i class="fa-solid fa-trash me-1"></i>Xóa
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Assignment History -->
+        @if (Model.AssignmentHistory.Any())
+        {
+            <div class="content-card mt-3 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử giao việc</h5></div>
+                <div class="card-body-custom">
+                    @foreach (var a in Model.AssignmentHistory)
+                    {
+                        <div class="d-flex gap-3 align-items-start mb-3">
+                            <div class="topbar-avatar" style="width:30px;height:30px;font-size:.65rem;flex-shrink:0">@a.UserName.Substring(0, 1).ToUpper()</div>
+                            <div>
+                                <div class="fw-bold" style="font-size:.82rem">@a.UserName</div>
+                                <div class="text-muted" style="font-size:.72rem">Giao lúc @a.AssignedAt.ToLocalTime().ToString("dd/MM HH:mm")</div>
+                                @if (a.CompletedAt.HasValue)
+                                {
+                                    <div style="font-size:.72rem;color:var(--success)"><i class="fa-solid fa-check me-1"></i>Hoàn thành @a.CompletedAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Right -->
+    <div class="col-lg-8">
+        <!-- Checklist -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom">
+                <h5>
+                    <i class="fa-solid fa-list-check"></i> Checklist
+                    @if (Model.Checklists.Any())
+                    {
+                        var done = Model.Checklists.Count(c => c.IsCompleted);
+                        var total = Model.Checklists.Count;
+                        <span class="badge" style="background:var(--apple-blue);color:#fff">@done/@total</span>
+                    }
+                </h5>
+            </div>
+            <div class="card-body-custom">
+                @if (Model.Checklists.Any())
+                {
+                    var done = Model.Checklists.Count(c => c.IsCompleted);
+                    var total = Model.Checklists.Count;
+                    var pct = total > 0 ? Math.Round((decimal)done / total * 100) : 0;
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1" style="font-size:.75rem;color:var(--text-muted)">
+                            <span>Tiến độ</span><span>@pct%</span>
+                        </div>
+                        <div class="progress" style="height:6px;border-radius:3px">
+                            <div class="progress-bar" style="width:@pct%;background:var(--apple-blue);border-radius:3px"></div>
+                        </div>
+                    </div>
+
+                    @foreach (var cl in Model.Checklists)
+                    {
+                        <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--divider)">
+                            <form asp-action="ToggleChecklist" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="checklistId" value="@cl.Id" />
+                                <input type="hidden" name="workItemId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-sm p-0" style="border:none;background:none;font-size:1.1rem;color:@(cl.IsCompleted ? "var(--success)" : "var(--text-muted)")">
+                                    <i class="fa-solid @(cl.IsCompleted ? "fa-circle-check" : "fa-circle")"></i>
+                                </button>
+                            </form>
+                            <div class="flex-grow-1" style="text-decoration:@(cl.IsCompleted ? "line-through" : "none");color:@(cl.IsCompleted ? "var(--text-muted)" : "var(--text-primary)");font-size:.88rem">
+                                @cl.Title
+                                @if (cl.IsCompleted && cl.CompletedByName != null)
+                                {
+                                    <span style="font-size:.7rem;color:var(--text-muted);margin-left:8px">— @cl.CompletedByName</span>
+                                }
+                            </div>
+                            <form asp-action="DeleteChecklist" method="post" class="d-inline" onsubmit="return confirm('Xóa mục này?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="checklistId" value="@cl.Id" />
+                                <input type="hidden" name="workItemId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-sm text-muted p-0" style="border:none;background:none;font-size:.75rem"><i class="fa-solid fa-xmark"></i></button>
+                            </form>
+                        </div>
+                    }
+                }
+
+                <!-- Add checklist item -->
+                <form asp-action="AddChecklist" method="post" class="d-flex gap-2 mt-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="workItemId" value="@Model.Id" />
+                    <input type="text" name="title" class="form-control form-control-sm" placeholder="Thêm mục checklist..." required maxlength="250" style="border-radius:8px" />
+                    <button type="submit" class="btn btn-sm btn-primary" style="border-radius:8px;white-space:nowrap"><i class="fa-solid fa-plus me-1"></i>Thêm</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-comments"></i> Bình luận <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.Comments.Count</span></h5>
+            </div>
+            <div class="card-body-custom">
+                <!-- Add comment form -->
+                <form asp-action="AddComment" method="post" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="workItemId" value="@Model.Id" />
+                    <textarea name="content" class="form-control mb-2" rows="3" placeholder="Viết bình luận..." required maxlength="2000" style="border-radius:10px;resize:vertical"></textarea>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-paper-plane me-2"></i>Gửi</button>
+                    </div>
+                </form>
+
+                @if (Model.Comments.Any())
+                {
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <div class="d-flex gap-3 mb-3 pb-3" style="border-bottom:1px solid var(--divider)">
+                            <div class="topbar-avatar" style="width:34px;height:34px;font-size:.72rem;flex-shrink:0">@comment.UserName.Substring(0, 1).ToUpper()</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold" style="font-size:.85rem">@comment.UserName</span>
+                                    <span class="text-muted" style="font-size:.72rem">@comment.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                <p style="font-size:.88rem;color:var(--text-secondary);margin:0;line-height:1.6;white-space:pre-wrap">@comment.Content</p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3 text-muted">
+                        <i class="fa-regular fa-comment-dots fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0">Chưa có bình luận nào</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,200 @@
+@model OmniBizAI.ViewModels.AnomalyDashboardViewModel
+@{
+    ViewData["Title"] = "Cảnh báo bất thường";
+    ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Cảnh báo</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-shield-halved me-2" style="color:var(--apple-blue)"></i>Trung tâm cảnh báo bất thường</h4>
+        <span style="color:var(--text-muted);font-size:.82rem"><i class="fa-regular fa-clock me-1"></i>Quét lúc: @Model.ScanTime.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</span>
+    </div>
+    <div class="d-flex gap-2">
+        <form asp-action="RefreshAlerts" method="post" class="d-inline">@Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-primary" style="border-radius:10px"><i class="fa-solid fa-rotate me-1"></i>Quét lại</button>
+        </form>
+        <a asp-controller="AiInsights" asp-action="Recommendations" class="btn btn-sm btn-outline-primary" style="border-radius:10px"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>AI Khuyến nghị</a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto" style="background:rgba(255,59,48,.08);color:#FF3B30"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <div class="stat-value" style="color:#FF3B30">@Model.CriticalCount</div>
+            <div class="stat-label">Critical</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto" style="background:rgba(255,149,0,.08);color:#FF9500"><i class="fa-solid fa-exclamation-triangle"></i></div>
+            <div class="stat-value" style="color:#FF9500">@Model.WarningCount</div>
+            <div class="stat-label">Warning</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon blue mx-auto"><i class="fa-solid fa-info-circle"></i></div>
+            <div class="stat-value">@Model.InfoCount</div>
+            <div class="stat-label">Info</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon green mx-auto"><i class="fa-solid fa-cubes"></i></div>
+            <div class="stat-value">@Model.ActiveStockAlerts</div>
+            <div class="stat-label">Cảnh báo tồn kho</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- LEFT: Cross-module anomalies -->
+    <div class="col-lg-8">
+        <!-- Filters -->
+        <div class="content-card mb-3">
+            <div class="card-body-custom py-3">
+                <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
+                    <select name="module" class="form-select form-select-sm" style="width:auto;min-width:130px;border-radius:8px;font-size:.8rem">
+                        <option value="">📁 Tất cả module</option>
+                        @foreach (var m in new[] { "Operations", "Finance", "CashFlow", "Inventory", "CRM", "HR", "KPI" })
+                        { <option value="@m" selected="@(Model.ModuleFilter == m)">@m</option> }
+                    </select>
+                    <select name="severity" class="form-select form-select-sm" style="width:auto;min-width:120px;border-radius:8px;font-size:.8rem">
+                        <option value="">🔎 Tất cả mức</option>
+                        <option value="Critical" selected="@(Model.SeverityFilter == "Critical")">🔴 Critical</option>
+                        <option value="Warning" selected="@(Model.SeverityFilter == "Warning")">🟡 Warning</option>
+                        <option value="Info" selected="@(Model.SeverityFilter == "Info")">🔵 Info</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary" style="border-radius:8px;font-size:.8rem"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                    @if (!string.IsNullOrEmpty(Model.ModuleFilter) || !string.IsNullOrEmpty(Model.SeverityFilter))
+                    { <a asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:.8rem"><i class="fa-solid fa-times me-1"></i>Xóa lọc</a> }
+                </form>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-radar" style="color:var(--apple-blue)"></i> Phát hiện bất thường (@Model.Alerts.Count)</h5>
+            </div>
+            <div class="card-body-custom p-0">
+                @if (!Model.Alerts.Any())
+                {
+                    <div class="text-center py-5" style="color:var(--text-muted)">
+                        <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,rgba(52,199,89,.1),rgba(0,122,255,.1));display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                            <i class="fa-solid fa-shield-check" style="font-size:2rem;color:var(--success)"></i>
+                        </div>
+                        <h5 style="font-weight:600;color:var(--text-secondary)">Hệ thống hoạt động bình thường</h5>
+                        <p style="font-size:.85rem;max-width:360px;margin:0 auto">Không phát hiện bất thường nào trong các module.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var alert in Model.Alerts)
+                    {
+                        var sevBg = alert.Severity switch { "Critical" => "rgba(255,59,48,.05)", "Warning" => "rgba(255,149,0,.03)", _ => "transparent" };
+                        var sevColor = alert.Severity switch { "Critical" => "#FF3B30", "Warning" => "#FF9500", _ => "var(--apple-blue)" };
+                        var sevBadgeBg = alert.Severity switch { "Critical" => "rgba(255,59,48,.1)", "Warning" => "rgba(255,149,0,.1)", _ => "rgba(0,122,255,.08)" };
+                        <div style="padding:16px 24px;border-bottom:1px solid var(--divider);background:@sevBg;transition:background .2s" class="anomaly-row">
+                            <div class="d-flex gap-3 align-items-start">
+                                <div style="width:40px;height:40px;border-radius:10px;background:@sevBadgeBg;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                    <i class="fa-solid @alert.Icon" style="color:@sevColor;font-size:.95rem"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                        <span class="anomaly-severity" style="background:@sevBadgeBg;color:@sevColor">@alert.Severity</span>
+                                        <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.62rem;padding:2px 8px;border-radius:10px">@alert.Module</span>
+                                        @if (alert.MetricValue != null && alert.ThresholdValue != null)
+                                        {
+                                            <span style="font-size:.65rem;color:var(--text-muted)">Giá trị: <strong style="color:@sevColor">@alert.MetricValue</strong> / Ngưỡng: @alert.ThresholdValue</span>
+                                        }
+                                    </div>
+                                    <h6 style="font-weight:600;margin:0 0 4px;font-size:.88rem">@alert.Title</h6>
+                                    <p style="font-size:.8rem;color:var(--text-secondary);margin:0;line-height:1.45">@alert.Description</p>
+                                </div>
+                                @if (!string.IsNullOrEmpty(alert.ActionUrl))
+                                {
+                                    <a href="@alert.ActionUrl" class="btn btn-sm btn-outline-primary anomaly-action-btn"><i class="fa-solid fa-arrow-right me-1"></i>Xử lý</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Stock alerts from DB -->
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-bell" style="color:var(--danger)"></i> Cảnh báo tồn kho</h5>
+                @if (Model.ActiveStockAlerts > 0)
+                { <span class="badge" style="background:var(--danger);color:white;border-radius:20px;font-size:.68rem;padding:3px 10px">@Model.ActiveStockAlerts</span> }
+            </div>
+            <div class="card-body-custom" style="max-height:700px;overflow-y:auto">
+                @if (!Model.StockAlerts.Any())
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted)">
+                        <i class="fa-solid fa-shield-check fa-2x d-block mb-2" style="color:var(--success);opacity:.5"></i>
+                        <p style="font-size:.82rem">Không có cảnh báo tồn kho</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var sa in Model.StockAlerts)
+                    {
+                        var isActive = sa.Status == "Active";
+                        var aBg = sa.AlertType switch { "Critical" => "rgba(255,59,48,.04)", "Low" => "rgba(255,149,0,.04)", "Overstock" => "rgba(88,86,214,.04)", _ => "transparent" };
+                        var aBorder = sa.AlertType switch { "Critical" => "rgba(255,59,48,.15)", "Low" => "rgba(255,149,0,.15)", "Overstock" => "rgba(88,86,214,.15)", _ => "var(--divider)" };
+                        <div style="padding:12px;margin-bottom:8px;border-radius:10px;background:@aBg;border:1px solid @aBorder;@(isActive ? "" : "opacity:.6")">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid @sa.AlertTypeIcon" style="color:@sa.AlertTypeColor;font-size:.85rem;margin-top:3px"></i>
+                                <div style="flex:1;min-width:0">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span style="font-weight:600;font-size:.78rem;color:@sa.AlertTypeColor">@sa.AlertTypeLabel</span>
+                                        <span class="badge" style="font-size:.58rem;background:@(isActive ? "var(--danger)" : sa.Status == "Acknowledged" ? "var(--warning)" : "var(--success)");color:white;border-radius:10px;padding:2px 6px">@sa.Status</span>
+                                    </div>
+                                    <div style="font-weight:500;font-size:.78rem">@sa.ProductCode — @sa.ProductName</div>
+                                    <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px">Tồn: <strong style="color:@sa.AlertTypeColor">@sa.CurrentStock.ToString("N0")</strong> / Ngưỡng: @sa.Threshold.ToString("N0")</div>
+                                    <small style="font-size:.65rem;color:var(--text-muted)">@sa.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</small>
+                                    @if (isActive)
+                                    {
+                                        <div class="d-flex gap-1 mt-2">
+                                            <form asp-action="AcknowledgeAlert" asp-route-id="@sa.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius:6px;font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-eye me-1"></i>Ghi nhận</button>
+                                            </form>
+                                            <form asp-action="ResolveAlert" asp-route-id="@sa.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius:6px;font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-check me-1"></i>Xử lý</button>
+                                            </form>
+                                        </div>
+                                    }
+                                    @if (sa.AcknowledgedBy != null)
+                                    {
+                                        <small style="font-size:.62rem;color:var(--text-muted);display:block;margin-top:4px"><i class="fa-solid fa-user-check me-1"></i>@sa.AcknowledgedBy — @sa.AcknowledgedAt?.ToLocalTime().ToString("HH:mm dd/MM")</small>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .anomaly-row:hover { background: rgba(0,122,255,.02) !important; }
+    .anomaly-severity { display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px; }
+    .anomaly-action-btn { border-radius:10px;font-size:.76rem;padding:6px 14px;white-space:nowrap;flex-shrink:0;align-self:center; }
+    .anomaly-action-btn:hover { transform:translateY(-1px); }
+</style>

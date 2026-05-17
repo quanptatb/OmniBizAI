@@ -1,6 +1,9 @@
 @model OmniBizAI.ViewModels.FinanceReportViewModel
 @{ ViewData["Title"] = "Báo cáo Tài chính"; ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tài chính</span>"; }
 
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="ExportFinance" class="btn btn-sm btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-file-csv me-1"></i>Xuất CSV</a>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-wallet"></i></div><div class="stat-value">@Model.TotalBudget.ToString("N0")</div><div class="stat-label">NS kế hoạch (₫)</div></div></div>
     <div class="col-md-3"><div class="stat-card"><div class="stat-icon @(Model.BudgetUtilization > 80 ? "red" : Model.BudgetUtilization > 60 ? "orange" : "green")"><i class="fa-solid fa-chart-pie"></i></div><div class="stat-value">@Model.BudgetUtilization%</div><div class="stat-label">Sử dụng NS</div></div></div>

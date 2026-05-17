@@ -181,6 +181,31 @@ public static class EnumLabels
             [(int)RiskLevel.Low] = "Thấp",
             [(int)RiskLevel.Medium] = "Trung bình",
             [(int)RiskLevel.High] = "Cao"
+        },
+        [typeof(GoodsReceiptStatus)] = new()
+        {
+            [(int)GoodsReceiptStatus.Draft] = "Nháp",
+            [(int)GoodsReceiptStatus.Confirmed] = "Đã xác nhận",
+            [(int)GoodsReceiptStatus.Cancelled] = "Đã hủy"
+        },
+        [typeof(GoodsIssueStatus)] = new()
+        {
+            [(int)GoodsIssueStatus.Draft] = "Nháp",
+            [(int)GoodsIssueStatus.Confirmed] = "Đã xác nhận",
+            [(int)GoodsIssueStatus.Cancelled] = "Đã hủy"
+        },
+        [typeof(StockAlertStatus)] = new()
+        {
+            [(int)StockAlertStatus.Active] = "Đang cảnh báo",
+            [(int)StockAlertStatus.Acknowledged] = "Đã ghi nhận",
+            [(int)StockAlertStatus.Resolved] = "Đã xử lý"
+        },
+        [typeof(CashTransactionStatus)] = new()
+        {
+            [(int)CashTransactionStatus.Recorded] = "Đã ghi nhận",
+            [(int)CashTransactionStatus.Approved] = "Đã duyệt",
+            [(int)CashTransactionStatus.Rejected] = "Từ chối",
+            [(int)CashTransactionStatus.Voided] = "Đã hủy"
         }
     };
 
@@ -287,6 +312,10 @@ public static class EnumLabels
         "MissionVisionType" => "Loại sứ mệnh/tầm nhìn",
         "ModuleStatus" => "Trạng thái module",
         "RiskLevel" => "Mức rủi ro",
+        "GoodsReceiptStatus" => "Trạng thái phiếu nhập kho",
+        "GoodsIssueStatus" => "Trạng thái phiếu xuất kho",
+        "StockAlertStatus" => "Trạng thái cảnh báo tồn kho",
+        "CashTransactionStatus" => "Trạng thái giao dịch thu chi",
         _ => enumTypeName
     };
 }

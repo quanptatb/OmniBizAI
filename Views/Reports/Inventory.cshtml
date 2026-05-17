@@ -1,0 +1,45 @@
+@model OmniBizAI.ViewModels.InventoryReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo Kho vận";
+    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Kho vận</span>";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="ExportInventory" class="btn btn-sm btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-file-csv me-1"></i>Xuất CSV</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon blue mx-auto"><i class="fa-solid fa-box"></i></div><div class="stat-value">@Model.TotalProducts</div><div class="stat-label">Sản phẩm</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon orange mx-auto"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-value">@Model.ActiveAlertCount</div><div class="stat-label">Cảnh báo tồn kho</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon green mx-auto"><i class="fa-solid fa-warehouse"></i></div><div class="stat-value">@Model.TotalReceipts</div><div class="stat-label">Phiếu nhập (@Model.ConfirmedReceipts xác nhận)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon red mx-auto"><i class="fa-solid fa-dolly"></i></div><div class="stat-value">@Model.TotalIssues</div><div class="stat-label">Phiếu xuất (@Model.ConfirmedIssues xác nhận)</div></div></div>
+</div>
+
+<!-- Trend -->
+<div class="content-card mb-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-chart-bar"></i> Xu hướng Nhập / Xuất kho (6 tháng)</h5></div>
+    <div class="card-body-custom"><canvas id="riTrendChart" height="200"></canvas></div>
+</div>
+
+<!-- Quick links -->
+<div class="row g-3">
+    <div class="col-lg-4"><a asp-controller="GoodsReceipt" asp-action="Index" class="content-card h-100 d-block text-decoration-none" style="color:inherit"><div class="card-body-custom text-center py-4"><i class="fa-solid fa-warehouse" style="font-size:2rem;color:var(--success);margin-bottom:8px"></i><div style="font-weight:600">Nhập kho</div><small style="color:var(--text-muted)">Quản lý phiếu nhập</small></div></a></div>
+    <div class="col-lg-4"><a asp-controller="GoodsIssue" asp-action="Index" class="content-card h-100 d-block text-decoration-none" style="color:inherit"><div class="card-body-custom text-center py-4"><i class="fa-solid fa-dolly" style="font-size:2rem;color:var(--danger);margin-bottom:8px"></i><div style="font-weight:600">Xuất kho</div><small style="color:var(--text-muted)">Quản lý phiếu xuất</small></div></a></div>
+    <div class="col-lg-4"><a asp-controller="Inventory" asp-action="Index" class="content-card h-100 d-block text-decoration-none" style="color:inherit"><div class="card-body-custom text-center py-4"><i class="fa-solid fa-cubes" style="font-size:2rem;color:var(--apple-blue);margin-bottom:8px"></i><div style="font-weight:600">Tồn kho</div><small style="color:var(--text-muted)">Cảnh báo & Tồn kho</small></div></a></div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const months = @Json.Serialize(Model.ReceiptIssueTrend.Select(x => x.Month));
+            const rcpt = @Json.Serialize(Model.ReceiptIssueTrend.Select(x => x.Created));
+            const iss = @Json.Serialize(Model.ReceiptIssueTrend.Select(x => x.Completed));
+            new Chart(document.getElementById('riTrendChart'), {
+                type: 'bar', data: { labels: months, datasets: [
+                    { label: 'Nhập kho', data: rcpt, backgroundColor: 'rgba(52,199,89,.7)', borderRadius: 6 },
+                    { label: 'Xuất kho', data: iss, backgroundColor: 'rgba(255,59,48,.7)', borderRadius: 6 }
+                ]}, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } } }
+            });
+        });
+    </script>
+}

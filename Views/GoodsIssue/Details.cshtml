@@ -1,0 +1,258 @@
+@model OmniBizAI.ViewModels.GoodsIssueDetailViewModel
+@{
+    ViewData["Title"] = "Chi tiết " + Model.IssueNo;
+    ViewData["Breadcrumb"] = "<a href='/GoodsIssue' style='color:var(--apple-blue);text-decoration:none'>Xuất kho</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>" + Model.IssueNo + "</span>";
+    var statusBadge = Model.Status switch {
+        "Confirmed" => "badge-on-track",
+        "Draft" => "badge-at-risk",
+        "Cancelled" => "badge-behind",
+        _ => ""
+    };
+    var typeIcon = Model.IssueType switch {
+        "Internal" => "fa-building",
+        "CustomerDelivery" => "fa-truck-fast",
+        "Transfer" => "fa-arrows-rotate",
+        "Adjustment" => "fa-sliders",
+        _ => "fa-box"
+    };
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- MAIN -->
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                        <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@Model.StatusLabel</span>
+                        <span class="badge" style="background:rgba(0,122,255,.06);color:var(--apple-blue);border:1px solid rgba(0,122,255,.15)"><i class="fa-solid @typeIcon me-1"></i>@Model.IssueTypeLabel</span>
+                    </div>
+                    <h5 style="font-weight:600;margin:0;letter-spacing:-0.01em">@Model.IssueNo</h5>
+                </div>
+                <div class="text-end">
+                    <div style="font-size:.82rem;color:var(--text-muted)"><i class="fa-regular fa-calendar me-1"></i>@Model.IssueDate.ToString("dd/MM/yyyy")</div>
+                    <small style="color:var(--text-muted)">Tạo lúc @Model.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
+                </div>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-4 mb-4">
+                    @if (Model.OperationRequestNo != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Yêu cầu vận hành</label>
+                            <div style="font-weight:600;color:var(--apple-blue)"><i class="fa-solid fa-list-check me-1" style="font-size:.78rem"></i>@Model.OperationRequestNo</div>
+                        </div>
+                    }
+                    @if (Model.CustomerName != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Khách hàng</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-building me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.CustomerName</div>
+                        </div>
+                    }
+                    @if (Model.Department != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Phòng ban</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-sitemap me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Department</div>
+                        </div>
+                    }
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Người xuất kho</label>
+                        <div style="font-weight:500"><i class="fa-solid fa-user me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.IssuedBy</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.WarehouseLocation))
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Kho xuất</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-warehouse me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.WarehouseLocation</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Destination))
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Nơi nhận / Điểm giao</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-location-dot me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Destination</div>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Note))
+                {
+                    <div class="mb-4">
+                        <label class="form-label" style="margin-bottom:6px">Ghi chú</label>
+                        <div style="padding:14px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider);font-size:.88rem;line-height:1.6;white-space:pre-line">@Model.Note</div>
+                    </div>
+                }
+
+                <!-- Actions -->
+                <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                    @if (Model.OperationRequestId.HasValue)
+                    {
+                        <a asp-controller="Operations" asp-action="Details" asp-route-id="@Model.OperationRequestId" class="btn btn-light" style="border-radius:8px"><i class="fa-solid fa-list-check me-1"></i>Xem yêu cầu</a>
+                    }
+                    @if (Model.CanConfirm)
+                    {
+                        <form asp-action="Confirm" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xác nhận xuất kho? Hàng sẽ được trừ khỏi tồn kho.');">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-check-double me-1"></i>Xác nhận xuất kho</button>
+                        </form>
+                    }
+                    @if (Model.CanCancel)
+                    {
+                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Hủy phiếu xuất kho này?');">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Hủy phiếu</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Lines -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-boxes-stacked" style="color:var(--apple-blue)"></i> Chi tiết hàng xuất <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.Lines.Count</span></h5>
+            </div>
+            <div class="card-body-custom p-0">
+                @if (Model.Lines.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="data-table" style="font-size:.85rem">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">#</th>
+                                    <th>SP / Dịch vụ</th>
+                                    <th class="text-end">SL yêu cầu</th>
+                                    <th class="text-end">SL xuất</th>
+                                    <th>ĐVT</th>
+                                    <th>Tỷ lệ</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ var idx = 1; }
+                                @foreach (var line in Model.Lines)
+                                {
+                                    var pct = line.FulfillRate;
+                                    <tr>
+                                        <td class="ps-4" style="color:var(--text-muted)">@(idx++)</td>
+                                        <td>
+                                            @if (line.ProductCode != null)
+                                            {
+                                                <code style="font-size:.7rem;background:rgba(0,122,255,.06);color:var(--apple-blue);padding:1px 6px;border-radius:4px;margin-right:4px">@line.ProductCode</code>
+                                            }
+                                            @(line.ProductName ?? line.ItemName ?? "—")
+                                        </td>
+                                        <td class="text-end" style="color:var(--text-muted)">@line.RequestedQuantity.ToString("N2")</td>
+                                        <td class="text-end" style="font-weight:600;color:var(--apple-blue)">@line.IssuedQuantity.ToString("N2")</td>
+                                        <td style="color:var(--text-muted);font-size:.78rem">@(line.UnitOfMeasure ?? "—")</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div style="width:60px;height:6px;background:var(--divider);border-radius:3px;overflow:hidden">
+                                                    <div style="height:100%;background:@(pct >= 100 ? "var(--success)" : pct >= 50 ? "var(--warning)" : "var(--danger)");width:@Math.Min(100, pct)%;border-radius:3px;transition:width .5s ease"></div>
+                                                </div>
+                                                <span style="font-size:.72rem;font-weight:600;color:@(pct >= 100 ? "var(--success)" : pct >= 50 ? "var(--warning)" : "var(--danger)")">@pct.ToString("N0")%</span>
+                                            </div>
+                                        </td>
+                                        <td style="color:var(--text-muted);font-size:.78rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@(line.Note ?? "")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr style="font-weight:700;border-top:2px solid var(--divider)">
+                                    <td class="ps-4" colspan="2">Tổng</td>
+                                    <td class="text-end">@Model.Lines.Sum(l => l.RequestedQuantity).ToString("N2")</td>
+                                    <td class="text-end" style="color:var(--apple-blue)">@Model.Lines.Sum(l => l.IssuedQuantity).ToString("N2")</td>
+                                    <td></td><td></td><td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted)"><i class="fa-solid fa-box-open d-block mb-2" style="font-size:1.5rem;opacity:.3"></i>Không có hàng xuất</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+        <!-- Summary -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-pie" style="color:var(--apple-blue)"></i> Tổng quan</h5></div>
+            <div class="card-body-custom">
+                @{
+                    var totalRequested = Model.Lines.Sum(l => l.RequestedQuantity);
+                    var totalIssued = Model.Lines.Sum(l => l.IssuedQuantity);
+                    var fulfillPct = totalRequested > 0 ? totalIssued / totalRequested * 100 : (totalIssued > 0 ? 100 : 0);
+                }
+                <div class="d-flex justify-content-between mb-3">
+                    <span style="color:var(--text-secondary)">Tỷ lệ thực hiện</span>
+                    <span style="font-weight:700;color:@(fulfillPct >= 100 ? "var(--success)" : "var(--warning)")">@fulfillPct.ToString("N1")%</span>
+                </div>
+                <div style="height:8px;background:var(--divider);border-radius:4px;margin-bottom:16px;overflow:hidden">
+                    <div style="height:100%;background:linear-gradient(90deg, var(--apple-blue), #5ac8fa);width:@Math.Min(100, fulfillPct)%;border-radius:4px;transition:width .5s ease"></div>
+                </div>
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary)">@Model.Lines.Count</div>
+                        <div style="font-size:.7rem;color:var(--text-muted)">Mục hàng</div>
+                    </div>
+                    <div class="col-4">
+                        <div style="font-size:1.2rem;font-weight:700;color:var(--text-muted)">@totalRequested.ToString("N0")</div>
+                        <div style="font-size:.7rem;color:var(--text-muted)">Yêu cầu</div>
+                    </div>
+                    <div class="col-4">
+                        <div style="font-size:1.2rem;font-weight:700;color:var(--apple-blue)">@totalIssued.ToString("N0")</div>
+                        <div style="font-size:.7rem;color:var(--text-muted)">Đã xuất</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-timeline" style="color:var(--apple-blue)"></i> Lịch sử</h5></div>
+            <div class="card-body-custom">
+                @if (!Model.ActivityLog.Any())
+                {
+                    <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem">Chưa có hoạt động</div>
+                }
+                else
+                {
+                    <div style="position:relative;padding-left:24px">
+                        <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--divider)"></div>
+                        @foreach (var log in Model.ActivityLog)
+                        {
+                            <div style="position:relative;padding-bottom:16px">
+                                <div style="position:absolute;left:-20px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--canvas);border:2px solid @log.ActionColor;display:flex;align-items:center;justify-content:center">
+                                    <i class="fa-solid @log.ActionIcon" style="font-size:.45rem;color:@log.ActionColor"></i>
+                                </div>
+                                <div style="font-weight:600;font-size:.82rem">@log.ActionLabel</div>
+                                <div style="font-size:.78rem;color:var(--text-secondary)">@log.UserName</div>
+                                <small style="color:var(--text-muted);font-size:.7rem">@log.OccurredAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

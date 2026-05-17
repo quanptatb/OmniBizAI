@@ -159,5 +159,61 @@ public class OperationsController : Controller
             : "Không thể xóa yêu cầu này.";
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> StartWork(Guid id)
+    {
+        var success = await _service.StartWorkAsync(id);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"🔧 {_tenant.UserFullName} bắt đầu xử lý",
+                $"{_tenant.UserFullName} đã bắt đầu xử lý yêu cầu #{id.ToString()[..8]}.",
+                "OperationRequest", id);
+        }
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+            ? "Đã bắt đầu xử lý yêu cầu."
+            : "Không thể bắt đầu xử lý.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> Complete(Guid id)
+    {
+        var success = await _service.CompleteAsync(id);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"✅ {_tenant.UserFullName} hoàn thành yêu cầu",
+                $"{_tenant.UserFullName} đã hoàn thành yêu cầu #{id.ToString()[..8]}.",
+                "OperationRequest", id);
+        }
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+            ? "Đã hoàn thành yêu cầu."
+            : "Không thể hoàn thành.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddLine(Guid requestId, OrderLineInputViewModel input)
+    {
+        await _service.AddLineAsync(requestId, input);
+        TempData["SuccessMessage"] = "Đã thêm mục hàng.";
+        return RedirectToAction(nameof(Details), new { id = requestId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveLine(Guid lineId, Guid requestId)
+    {
+        await _service.RemoveLineAsync(lineId);
+        TempData["SuccessMessage"] = "Đã xóa mục hàng.";
+        return RedirectToAction(nameof(Details), new { id = requestId });
+    }
 }
 

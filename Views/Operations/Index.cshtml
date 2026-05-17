@@ -9,35 +9,40 @@
     string PriorityLabel(string p) => EnumHelper.Label<PriorityLevel>(p);
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <!-- Stats -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon blue"><i class="fa-solid fa-list-check"></i></div>
-            <div class="stat-value">@Model.TotalCount</div>
-            <div class="stat-label">Tổng yêu cầu</div>
-        </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-list-check"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng yêu cầu</div></div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
-            <div class="stat-value">@Model.Items.Count(i => i.Status is "Draft" or "Submitted" or "InReview")</div>
-            <div class="stat-label">Chờ xử lý</div>
-        </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(148,163,184,.08);color:#94a3b8"><i class="fa-solid fa-file-pen"></i></div><div class="stat-value">@Model.DraftCount</div><div class="stat-label">Nháp</div></div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon green"><i class="fa-solid fa-check-double"></i></div>
-            <div class="stat-value">@Model.Items.Count(i => i.Status is "Completed" or "Approved")</div>
-            <div class="stat-label">Hoàn thành</div>
-        </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-paper-plane"></i></div><div class="stat-value">@Model.SubmittedCount</div><div class="stat-label">Chờ duyệt</div></div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="stat-icon red"><i class="fa-solid fa-exclamation-triangle"></i></div>
-            <div class="stat-value">@Model.Items.Count(i => i.IsOverdue)</div>
-            <div class="stat-label">Quá hạn</div>
-        </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-spinner"></i></div><div class="stat-value">@Model.InProgressCount</div><div class="stat-label">Đang xử lý</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-double"></i></div><div class="stat-value">@Model.CompletedCount</div><div class="stat-label">Hoàn thành</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-exclamation-triangle"></i></div><div class="stat-value">@Model.OverdueCount</div><div class="stat-label">Quá hạn</div></div>
     </div>
 </div>
 
@@ -46,52 +51,50 @@
     <div class="card-body-custom py-3">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label">Tìm kiếm</label>
-                <input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Mã, tiêu đề...">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Mã, tiêu đề..." style="border-radius:0 8px 8px 0">
+                </div>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Trạng thái</label>
-                <select name="status" class="form-select">
+                <label class="form-label text-muted small fw-bold">Trạng thái</label>
+                <select name="status" class="form-select" style="border-radius:8px">
                     @foreach (var s in EnumHelper.GetSelectList<OperationStatus>(Model.StatusFilter, includeAll: true))
                     { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Mức ưu tiên</label>
-                <select name="priority" class="form-select">
+                <label class="form-label text-muted small fw-bold">Mức ưu tiên</label>
+                <select name="priority" class="form-select" style="border-radius:8px">
                     @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>(Model.PriorityFilter, includeAll: true))
                     { <option value="@p.Value" selected="@p.Selected">@p.Text</option> }
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Phòng ban</label>
-                <select name="dept" class="form-select">
+                <label class="form-label text-muted small fw-bold">Phòng ban</label>
+                <select name="dept" class="form-select" style="border-radius:8px">
                     <option value="">Tất cả phòng ban</option>
-                    @foreach (var d in Model.Departments)
-                    {
-                        <option value="@d.Value" selected="@(Model.DeptFilter?.ToString() == d.Value)">@d.Text</option>
-                    }
+                    @foreach (var d in Model.Departments) { <option value="@d.Value" selected="@(Model.DeptFilter?.ToString() == d.Value)">@d.Text</option> }
                 </select>
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
-                <a asp-action="Index" class="btn btn-light" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
+                <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border" style="border-radius:8px" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Table -->
-<div class="content-card">
+<div class="content-card animate-fade-in">
     <div class="card-header-custom">
         <h5><i class="fa-solid fa-list-check"></i> Danh sách yêu cầu</h5>
         <div class="d-flex gap-2">
-            <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light btn-sm">
-                <i class="fa-solid fa-table-columns me-1"></i>Kanban
-            </a>
+            <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light btn-sm" style="border-radius:8px"><i class="fa-solid fa-table-columns me-1"></i>Kanban</a>
             @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
             {
-                <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i>Tạo mới</a>
+                <a asp-action="Create" class="btn btn-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-plus me-1"></i>Tạo mới</a>
             }
         </div>
     </div>
@@ -105,6 +108,7 @@
                         <th>Phòng ban</th>
                         <th>Trạng thái</th>
                         <th>Ưu tiên</th>
+                        <th>Giá trị</th>
                         <th>Hạn xử lý</th>
                         <th class="text-end pe-4">Thao tác</th>
                     </tr>
@@ -131,17 +135,13 @@
                             <td>@item.Department</td>
                             <td>
                                 <span class="status-badge-soft @badge"><span class="status-dot"></span>@StatusLabel(item.Status)</span>
-                                @if (item.IsOverdue)
-                                {
-                                    <div style="margin-top:3px"><span style="font-size:.65rem;color:var(--danger);font-weight:600"><i class="fa-solid fa-exclamation-triangle me-1"></i>Quá hạn</span></div>
-                                }
+                                @if (item.IsOverdue) { <div style="margin-top:3px"><span style="font-size:.65rem;color:var(--danger);font-weight:600"><i class="fa-solid fa-exclamation-triangle me-1"></i>Quá hạn</span></div> }
                             </td>
-                            <td>
-                                <span style="color:@pc;font-weight:500"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:4px"></i>@PriorityLabel(item.Priority)</span>
-                            </td>
+                            <td><span style="color:@pc;font-weight:500"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:4px"></i>@PriorityLabel(item.Priority)</span></td>
+                            <td style="font-weight:500">@(item.TotalAmount.HasValue && item.TotalAmount > 0 ? item.TotalAmount.Value.ToString("N0") + " ₫" : "—")</td>
                             <td style="color:@(item.IsOverdue ? "var(--danger)" : "var(--text-muted)")">@(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                             <td class="text-end pe-4">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light" style="border-radius:8px">
                                     <i class="fa-solid fa-eye me-1"></i>Chi tiết
                                 </a>
                             </td>
@@ -149,7 +149,7 @@
                     }
                     @if (!Model.Items.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5" style="color:var(--text-muted)"><i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>Không tìm thấy dữ liệu</td></tr>
+                        <tr><td colspan="8" class="text-center py-5" style="color:var(--text-muted)"><i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>Không tìm thấy dữ liệu</td></tr>
                     }
                 </tbody>
             </table>
@@ -161,19 +161,11 @@
         <div style="padding:12px 24px;border-top:1px solid var(--divider);display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--text-muted)">
             <span>Hiển thị trang @Model.Page / @Math.Ceiling(Model.TotalCount / 20.0)</span>
             <div class="d-flex gap-2">
-                @if (Model.Page > 1)
-                {
-                    <a class="btn btn-sm btn-light" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">‹ Trước</a>
-                }
-                @if (Model.Page * 20 < Model.TotalCount)
-                {
-                    <a class="btn btn-sm btn-light" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter">Sau ›</a>
-                }
+                @if (Model.Page > 1) { <a class="btn btn-sm btn-light" asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter" style="border-radius:8px">‹ Trước</a> }
+                @if (Model.Page * 20 < Model.TotalCount) { <a class="btn btn-sm btn-light" asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.StatusFilter" asp-route-priority="@Model.PriorityFilter" asp-route-dept="@Model.DeptFilter" style="border-radius:8px">Sau ›</a> }
             </div>
         </div>
     }
 </div>
 
-<style>
-    .table-row-overdue td { background: rgba(255,59,48,.02) !important; }
-</style>
+<style>.table-row-overdue td { background: rgba(255,59,48,.02) !important; }</style>

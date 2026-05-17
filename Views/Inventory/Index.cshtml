@@ -1,0 +1,215 @@
+@model OmniBizAI.ViewModels.StockDashboardViewModel
+@{
+    ViewData["Title"] = "Tồn kho & Cảnh báo";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tồn kho</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Alert Banner -->
+@if (Model.ActiveAlertCount > 0)
+{
+    <div class="mb-4" style="background:linear-gradient(135deg, rgba(255,59,48,.08), rgba(255,149,0,.08));border:1px solid rgba(255,59,48,.2);border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,59,48,.12);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);font-size:1.2rem"></i></div>
+            <div>
+                <div style="font-weight:700;font-size:.95rem">@Model.ActiveAlertCount cảnh báo tồn kho đang hoạt động</div>
+                <small style="color:var(--text-secondary)">Cần kiểm tra và xử lý kịp thời</small>
+            </div>
+        </div>
+        <form asp-action="RefreshAlerts" method="post" class="d-inline">@Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:8px"><i class="fa-solid fa-rotate me-1"></i>Quét lại</button>
+        </form>
+    </div>
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-2-4 col-md-4">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div><div class="stat-value">@Model.TotalProducts</div><div class="stat-label">Tổng SP</div></div>
+    </div>
+    <div class="col-6 col-lg-2-4 col-md-4">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value">@Model.HealthyCount</div><div class="stat-label">Bình thường</div></div>
+    </div>
+    <div class="col-6 col-lg-2-4 col-md-4">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-arrow-down"></i></div><div class="stat-value">@Model.LowStockCount</div><div class="stat-label">Tồn thấp</div></div>
+    </div>
+    <div class="col-6 col-lg-2-4 col-md-4">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(255,59,48,.08);color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-value">@Model.CriticalStockCount</div><div class="stat-label">Nguy hiểm</div></div>
+    </div>
+    <div class="col-6 col-lg-2-4 col-md-4">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(88,86,214,.08);color:#5856d6"><i class="fa-solid fa-arrow-up"></i></div><div class="stat-value">@Model.OverstockCount</div><div class="stat-label">Vượt mức</div></div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- MAIN: Stock Table -->
+    <div class="col-lg-8">
+        <!-- Filters -->
+        <div class="content-card mb-4">
+            <div class="card-body-custom py-3">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                            <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Mã SP, tên..." style="border-radius:0 8px 8px 0">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Trạng thái tồn</label>
+                        <select name="stockFilter" class="form-select" style="border-radius:8px">
+                            <option value="All" selected="@(Model.StockFilter == "All" || string.IsNullOrEmpty(Model.StockFilter))">Tất cả</option>
+                            <option value="Critical" selected="@(Model.StockFilter == "Critical")">🔴 Nguy hiểm</option>
+                            <option value="Low" selected="@(Model.StockFilter == "Low")">🟡 Thấp</option>
+                            <option value="Overstock" selected="@(Model.StockFilter == "Overstock")">🟣 Vượt mức</option>
+                            <option value="Healthy" selected="@(Model.StockFilter == "Healthy")">🟢 Bình thường</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Danh mục</label>
+                        <select name="categoryFilter" class="form-select" style="border-radius:8px">
+                            <option value="">-- Tất cả --</option>
+                            @foreach (var c in Model.Categories)
+                            { <option value="@c.Value" selected="@(Model.CategoryFilter == c.Value)">@c.Text</option> }
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                        <a asp-action="Index" class="btn btn-light border" style="border-radius:8px"><i class="fa-solid fa-rotate-left"></i></a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-boxes-stacked" style="color:var(--apple-blue)"></i> Mức tồn kho sản phẩm</h5>
+                <form asp-action="RefreshAlerts" method="post" class="d-inline">@Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-rotate me-1"></i>Quét cảnh báo</button>
+                </form>
+            </div>
+            <div class="card-body-custom p-0">
+                <div class="table-responsive">
+                    <table class="data-table" style="font-size:.85rem">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Sản phẩm</th>
+                                <th class="text-end">Tồn kho</th>
+                                <th>Trạng thái</th>
+                                <th>Mức tồn</th>
+                                <th class="text-end">Giá trị</th>
+                                <th class="text-end pe-4">Ngưỡng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <code style="font-size:.7rem;background:rgba(0,122,255,.06);color:var(--apple-blue);padding:1px 6px;border-radius:4px;margin-right:4px">@item.Code</code>
+                                        <span style="font-weight:500">@item.Name</span>
+                                        @if (item.CategoryName != null)
+                                        { <div style="font-size:.7rem;color:var(--text-muted);margin-top:2px">@item.CategoryName</div> }
+                                    </td>
+                                    <td class="text-end" style="font-weight:700;font-size:1rem;color:@item.StockStatusColor">@item.CurrentStock.ToString("N0")</td>
+                                    <td>
+                                        <span class="status-badge-soft @item.StockStatusBadge"><span class="status-dot"></span>@item.StockStatusLabel</span>
+                                    </td>
+                                    <td style="min-width:120px">
+                                        <div style="display:flex;align-items:center;gap:6px">
+                                            <div style="flex:1;height:8px;background:var(--divider);border-radius:4px;overflow:hidden;position:relative">
+                                                @if (item.ReorderPoint > 0)
+                                                {
+                                                    <div style="position:absolute;left:@(Math.Min(95, 50))%;top:0;bottom:0;width:2px;background:var(--warning);z-index:2" title="Điểm đặt hàng: @item.ReorderPoint.ToString("N0")"></div>
+                                                }
+                                                <div style="height:100%;background:@item.StockStatusColor;width:@Math.Min(100, item.StockPercent)%;border-radius:4px;transition:width .5s ease"></div>
+                                            </div>
+                                            <span style="font-size:.68rem;font-weight:600;color:@item.StockStatusColor;min-width:32px;text-align:right">@item.StockPercent.ToString("N0")%</span>
+                                        </div>
+                                        <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-muted);margin-top:2px">
+                                            <span>An toàn: @item.SafetyStock.ToString("N0")</span>
+                                            <span>ĐĐH: @item.ReorderPoint.ToString("N0")</span>
+                                            @if (item.MaxStock > 0) { <span>Max: @item.MaxStock.ToString("N0")</span> }
+                                        </div>
+                                    </td>
+                                    <td class="text-end" style="font-weight:500;font-size:.82rem">@item.StockValue.ToString("N0") ₫</td>
+                                    <td class="text-end pe-4">
+                                        <a asp-action="SetThresholds" asp-route-id="@item.Id" class="btn btn-sm btn-light" style="border-radius:8px" title="Cài đặt ngưỡng"><i class="fa-solid fa-sliders"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!Model.Items.Any())
+                            {
+                                <tr><td colspan="6" class="text-center py-5" style="color:var(--text-muted)"><i class="fa-solid fa-box-open fa-2x d-block mb-2 opacity-50"></i>Không có sản phẩm nào phù hợp</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR: Alerts -->
+    <div class="col-lg-4">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-bell" style="color:var(--danger)"></i> Cảnh báo gần đây</h5>
+                @if (Model.ActiveAlertCount > 0)
+                {
+                    <span class="badge" style="background:var(--danger);color:white;border-radius:20px;font-size:.68rem;padding:3px 10px">@Model.ActiveAlertCount</span>
+                }
+            </div>
+            <div class="card-body-custom" style="max-height:600px;overflow-y:auto">
+                @if (!Model.RecentAlerts.Any())
+                {
+                    <div class="text-center py-5" style="color:var(--text-muted)">
+                        <i class="fa-solid fa-shield-check fa-2x d-block mb-2" style="color:var(--success);opacity:.5"></i>
+                        <p style="font-size:.85rem">Không có cảnh báo nào</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var alert in Model.RecentAlerts)
+                    {
+                        var isActive = alert.Status == "Active";
+                        var bgColor = alert.AlertType switch { "Critical" => "rgba(255,59,48,.04)", "Low" => "rgba(255,149,0,.04)", "Overstock" => "rgba(88,86,214,.04)", _ => "transparent" };
+                        var borderColor = alert.AlertType switch { "Critical" => "rgba(255,59,48,.15)", "Low" => "rgba(255,149,0,.15)", "Overstock" => "rgba(88,86,214,.15)", _ => "var(--divider)" };
+                        <div style="padding:12px;margin-bottom:10px;border-radius:10px;background:@bgColor;border:1px solid @borderColor;@(isActive ? "" : "opacity:.6")">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid @alert.AlertTypeIcon" style="color:@alert.AlertTypeColor;font-size:.85rem;margin-top:3px"></i>
+                                <div style="flex:1;min-width:0">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span style="font-weight:600;font-size:.8rem;color:@alert.AlertTypeColor">@alert.AlertTypeLabel</span>
+                                        <span class="badge" style="font-size:.58rem;background:@(isActive ? "var(--danger)" : alert.Status == "Acknowledged" ? "var(--warning)" : "var(--success)");color:white;border-radius:10px;padding:2px 6px">@(EnumHelper.Label<StockAlertStatus>(alert.Status))</span>
+                                    </div>
+                                    <div style="font-weight:500;font-size:.78rem">@alert.ProductCode — @alert.ProductName</div>
+                                    <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px">Tồn: <strong style="color:@alert.AlertTypeColor">@alert.CurrentStock.ToString("N0")</strong> / Ngưỡng: @alert.Threshold.ToString("N0")</div>
+                                    <small style="font-size:.65rem;color:var(--text-muted)">@alert.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</small>
+                                    @if (isActive)
+                                    {
+                                        <div class="d-flex gap-1 mt-2">
+                                            <form asp-action="AcknowledgeAlert" asp-route-id="@alert.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius:6px;font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-eye me-1"></i>Ghi nhận</button>
+                                            </form>
+                                            <form asp-action="ResolveAlert" asp-route-id="@alert.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius:6px;font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-check me-1"></i>Xử lý</button>
+                                            </form>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

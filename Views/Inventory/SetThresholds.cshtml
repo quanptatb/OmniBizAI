@@ -1,0 +1,135 @@
+@model OmniBizAI.ViewModels.SetStockThresholdsViewModel
+@{
+    ViewData["Title"] = "Cài đặt ngưỡng tồn kho";
+    ViewData["Breadcrumb"] = "<a href='/Inventory' style='color:var(--apple-blue);text-decoration:none'>Tồn kho</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Cài đặt ngưỡng</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-sliders" style="color:var(--apple-blue)"></i> Cài đặt ngưỡng tồn kho</h5>
+            </div>
+            <div class="card-body-custom">
+                <!-- Product Info -->
+                <div style="padding:16px;background:var(--parchment);border-radius:12px;border:1px solid var(--divider);margin-bottom:24px">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:50px;height:50px;border-radius:12px;background:rgba(0,122,255,.08);display:flex;align-items:center;justify-content:center">
+                            <i class="fa-solid fa-box" style="color:var(--apple-blue);font-size:1.2rem"></i>
+                        </div>
+                        <div>
+                            <code style="font-size:.72rem;background:rgba(0,122,255,.06);color:var(--apple-blue);padding:2px 8px;border-radius:4px">@Model.ProductCode</code>
+                            <div style="font-weight:600;font-size:1rem;margin-top:4px">@Model.ProductName</div>
+                        </div>
+                        <div class="ms-auto text-end">
+                            <div style="font-size:.72rem;color:var(--text-muted)">Tồn kho hiện tại</div>
+                            <div style="font-size:1.5rem;font-weight:700;color:var(--apple-blue)">@Model.CurrentStock.ToString("N0")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="SetThresholds" method="post">
+                    <input type="hidden" asp-for="ProductId" />
+                    <input type="hidden" asp-for="ProductCode" />
+                    <input type="hidden" asp-for="ProductName" />
+                    <input type="hidden" asp-for="CurrentStock" />
+
+                    <div class="row g-4 mb-4">
+                        <!-- Safety Stock -->
+                        <div class="col-md-4">
+                            <div style="padding:16px;border-radius:12px;border:1px solid rgba(255,59,48,.2);background:rgba(255,59,48,.02)">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div style="width:32px;height:32px;border-radius:8px;background:rgba(255,59,48,.1);display:flex;align-items:center;justify-content:center">
+                                        <i class="fa-solid fa-shield-halved" style="color:var(--danger);font-size:.8rem"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:.82rem">Tồn kho an toàn</div>
+                                        <div style="font-size:.68rem;color:var(--text-muted)">Mức tối thiểu bắt buộc</div>
+                                    </div>
+                                </div>
+                                <input asp-for="SafetyStock" type="number" step="1" min="0" class="form-control text-center" style="font-size:1.1rem;font-weight:700;border-radius:8px" />
+                                <small class="text-muted d-block mt-2" style="font-size:.68rem">Dưới mức này = <strong style="color:var(--danger)">Nguy hiểm</strong></small>
+                            </div>
+                        </div>
+
+                        <!-- Reorder Point -->
+                        <div class="col-md-4">
+                            <div style="padding:16px;border-radius:12px;border:1px solid rgba(255,149,0,.2);background:rgba(255,149,0,.02)">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div style="width:32px;height:32px;border-radius:8px;background:rgba(255,149,0,.1);display:flex;align-items:center;justify-content:center">
+                                        <i class="fa-solid fa-cart-shopping" style="color:var(--warning);font-size:.8rem"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:.82rem">Điểm đặt hàng</div>
+                                        <div style="font-size:.68rem;color:var(--text-muted)">Mức cần bổ sung</div>
+                                    </div>
+                                </div>
+                                <input asp-for="ReorderPoint" type="number" step="1" min="0" class="form-control text-center" style="font-size:1.1rem;font-weight:700;border-radius:8px" />
+                                <small class="text-muted d-block mt-2" style="font-size:.68rem">Dưới mức này = <strong style="color:var(--warning)">Tồn thấp</strong></small>
+                            </div>
+                        </div>
+
+                        <!-- Max Stock -->
+                        <div class="col-md-4">
+                            <div style="padding:16px;border-radius:12px;border:1px solid rgba(88,86,214,.2);background:rgba(88,86,214,.02)">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div style="width:32px;height:32px;border-radius:8px;background:rgba(88,86,214,.1);display:flex;align-items:center;justify-content:center">
+                                        <i class="fa-solid fa-warehouse" style="color:#5856d6;font-size:.8rem"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:.82rem">Tồn kho tối đa</div>
+                                        <div style="font-size:.68rem;color:var(--text-muted)">Sức chứa kho</div>
+                                    </div>
+                                </div>
+                                <input asp-for="MaxStock" type="number" step="1" min="0" class="form-control text-center" style="font-size:1.1rem;font-weight:700;border-radius:8px" />
+                                <small class="text-muted d-block mt-2" style="font-size:.68rem">Trên mức này = <strong style="color:#5856d6">Vượt mức</strong></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Range -->
+                    <div style="padding:16px;border-radius:12px;background:var(--parchment);border:1px solid var(--divider);margin-bottom:20px">
+                        <div style="font-weight:600;font-size:.82rem;margin-bottom:12px"><i class="fa-solid fa-chart-bar me-1" style="color:var(--apple-blue)"></i> Biểu đồ ngưỡng</div>
+                        <div style="height:24px;background:var(--divider);border-radius:12px;position:relative;overflow:visible">
+                            <div id="safetyBar" style="position:absolute;left:0;top:0;height:100%;background:var(--danger);opacity:.3;border-radius:12px 0 0 12px"></div>
+                            <div id="reorderBar" style="position:absolute;left:0;top:0;height:100%;background:var(--warning);opacity:.3"></div>
+                            <div id="healthyBar" style="position:absolute;left:0;top:0;height:100%;background:var(--success);opacity:.3"></div>
+                            <div id="currentMarker" style="position:absolute;top:-4px;width:4px;height:32px;background:var(--apple-blue);border-radius:2px;z-index:10"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1" style="font-size:.62rem;color:var(--text-muted)">
+                            <span>0</span>
+                            <span id="maxLabel"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                        <a asp-action="Index" class="btn btn-light" style="border-radius:8px">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-save me-1"></i>Lưu ngưỡng</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function updateChart() {
+            var safety = parseFloat(document.getElementById('SafetyStock').value) || 0;
+            var reorder = parseFloat(document.getElementById('ReorderPoint').value) || 0;
+            var max = parseFloat(document.getElementById('MaxStock').value) || 0;
+            var current = @Model.CurrentStock;
+            var ceiling = Math.max(safety, reorder, max, current) * 1.2 || 100;
+            document.getElementById('safetyBar').style.width = (safety / ceiling * 100) + '%';
+            document.getElementById('reorderBar').style.width = (reorder / ceiling * 100) + '%';
+            document.getElementById('healthyBar').style.width = (max > 0 ? max / ceiling * 100 : 80) + '%';
+            document.getElementById('currentMarker').style.left = Math.min(98, current / ceiling * 100) + '%';
+            document.getElementById('maxLabel').textContent = ceiling.toFixed(0);
+        }
+        document.getElementById('SafetyStock').addEventListener('input', updateChart);
+        document.getElementById('ReorderPoint').addEventListener('input', updateChart);
+        document.getElementById('MaxStock').addEventListener('input', updateChart);
+        updateChart();
+    </script>
+}

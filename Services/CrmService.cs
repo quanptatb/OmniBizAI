@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
 using OmniBizAI.Models.Entities;
+using OmniBizAI.Models.Entities.Enums;
 using OmniBizAI.ViewModels;
 
 namespace OmniBizAI.Services;
@@ -244,6 +245,31 @@ public class CrmService(ApplicationDbContext db, ITenantContext tenant)
         await db.SaveChangesAsync(); return true;
     }
 
+    public async Task<bool> DeleteContactAsync(Guid contactId)
+    {
+        var c = await db.CustomerContacts.FirstOrDefaultAsync(cc => cc.Id == contactId && cc.TenantId == tenant.TenantId && !cc.IsDeleted);
+        if (c is null) return false;
+        c.IsDeleted = true; c.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "DeleteContact", EntityName = "CustomerContact", EntityId = contactId, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> TogglePrimaryContactAsync(Guid contactId, Guid customerId)
+    {
+        var contacts = await db.CustomerContacts.Where(cc => cc.CustomerId == customerId && cc.TenantId == tenant.TenantId && !cc.IsDeleted).ToListAsync();
+        foreach (var cc in contacts) cc.IsPrimary = cc.Id == contactId;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> DeleteSiteAsync(Guid siteId)
+    {
+        var s = await db.CustomerSites.FirstOrDefaultAsync(cs => cs.Id == siteId && cs.TenantId == tenant.TenantId && !cs.IsDeleted);
+        if (s is null) return false;
+        s.IsDeleted = true; s.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "DeleteSite", EntityName = "CustomerSite", EntityId = siteId, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
     // ── Vendor Edit & Detail ────────────────────────────────────────────────
     public async Task<VendorDetailViewModel?> GetVendorDetailAsync(Guid id)
     {
@@ -336,6 +362,357 @@ public class CrmService(ApplicationDbContext db, ITenantContext tenant)
                 Id = v.Id, Code = v.Code, Name = v.Name, Email = v.Email, IsActive = v.IsActive, CreatedAt = v.CreatedAt
             }).ToList()
         };
+    }
+
+    // ── Customer Care (Interactions) ────────────────────────────────────────
+    private static string TypeLabel(string t) => t switch { "Call" => "Cuộc gọi", "Email" => "Email", "Meeting" => "Cuộc họp", "Visit" => "Thăm viếng", "Note" => "Ghi chú", "Complaint" => "Khiếu nại", "Feedback" => "Phản hồi", _ => t };
+    private static string StatusLabel(string s) => s switch { "Planned" => "Kế hoạch", "InProgress" => "Đang thực hiện", "Completed" => "Hoàn thành", "Cancelled" => "Đã hủy", _ => s };
+    private static string PriorityLabel(string p) => p switch { "Low" => "Thấp", "Normal" => "Bình thường", "High" => "Cao", "Urgent" => "Khẩn cấp", _ => p };
+
+    public async Task<CustomerCareListViewModel> GetInteractionsAsync(string? search, string? type, string? status, Guid? customerId)
+    {
+        var tid = tenant.TenantId;
+        IQueryable<CrmInteraction> q = db.CrmInteractions.Where(i => i.TenantId == tid && !i.IsDeleted)
+            .Include(i => i.Customer).Include(i => i.CustomerContact).Include(i => i.AssignedToUser);
+
+        var plannedCount = await q.CountAsync(i => i.Status == "Planned");
+        var inProgressCount = await q.CountAsync(i => i.Status == "InProgress");
+        var completedCount = await q.CountAsync(i => i.Status == "Completed");
+        var overdueCount = await q.CountAsync(i => i.Status == "Planned" && i.ScheduledAt.HasValue && i.ScheduledAt < DateTimeOffset.UtcNow);
+        var totalCount = await q.CountAsync();
+
+        if (!string.IsNullOrWhiteSpace(search))
+            q = q.Where(i => i.Subject.Contains(search) || (i.Customer != null && i.Customer.Name.Contains(search)));
+        if (!string.IsNullOrWhiteSpace(type)) q = q.Where(i => i.Type == type);
+        if (!string.IsNullOrWhiteSpace(status)) q = q.Where(i => i.Status == status);
+        if (customerId.HasValue) q = q.Where(i => i.CustomerId == customerId);
+
+        var items = await q.OrderByDescending(i => i.CreatedAt).Take(200)
+            .Select(i => new CrmInteractionItem
+            {
+                Id = i.Id, Type = i.Type, Subject = i.Subject, Description = i.Description,
+                Status = i.Status, Priority = i.Priority,
+                CustomerName = i.Customer != null ? i.Customer.Name : "",
+                ContactName = i.CustomerContact != null ? i.CustomerContact.FullName : null,
+                AssignedToName = i.AssignedToUser != null ? i.AssignedToUser.FullName : null,
+                ScheduledAt = i.ScheduledAt, DurationMinutes = i.DurationMinutes,
+                Outcome = i.Outcome, NextAction = i.NextAction, NextActionDate = i.NextActionDate,
+                CompletedAt = i.CompletedAt, CreatedAt = i.CreatedAt
+            }).ToListAsync();
+
+        var customerOpts = await db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted && c.IsActive)
+            .OrderBy(c => c.Name).Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+
+        return new CustomerCareListViewModel
+        {
+            Items = items, TotalCount = totalCount, PlannedCount = plannedCount,
+            InProgressCount = inProgressCount, CompletedCount = completedCount, OverdueCount = overdueCount,
+            SearchTerm = search, TypeFilter = type, StatusFilter = status, CustomerFilter = customerId,
+            Customers = customerOpts
+        };
+    }
+
+    public async Task<CustomerCareCreateViewModel> GetInteractionCreateFormAsync(Guid? customerId = null)
+    {
+        var tid = tenant.TenantId;
+        var vm = new CustomerCareCreateViewModel
+        {
+            PreselectedCustomerId = customerId,
+            CustomerId = customerId ?? Guid.Empty,
+            Customers = await db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted && c.IsActive).OrderBy(c => c.Name)
+                .Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Code + " — " + c.Name }).ToListAsync(),
+            Users = await db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active).OrderBy(u => u.FullName)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName }).ToListAsync()
+        };
+        if (customerId.HasValue)
+        {
+            vm.Contacts = await db.CustomerContacts.Where(cc => cc.CustomerId == customerId && cc.TenantId == tid && !cc.IsDeleted)
+                .OrderBy(cc => cc.FullName).Select(cc => new SelectOption { Value = cc.Id.ToString(), Text = cc.FullName + (cc.JobTitle != null ? " (" + cc.JobTitle + ")" : "") }).ToListAsync();
+        }
+        return vm;
+    }
+
+    public async Task<Guid> CreateInteractionAsync(CustomerCareCreateViewModel vm)
+    {
+        var entity = new CrmInteraction
+        {
+            TenantId = tenant.TenantId, CustomerId = vm.CustomerId, CustomerContactId = vm.CustomerContactId,
+            Type = vm.Type, Subject = vm.Subject, Description = vm.Description, Priority = vm.Priority,
+            Status = vm.ScheduledAt.HasValue ? "Planned" : "InProgress",
+            ScheduledAt = vm.ScheduledAt, DurationMinutes = vm.DurationMinutes,
+            AssignedToUserId = vm.AssignedToUserId ?? tenant.UserId,
+            CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.CrmInteractions.Add(entity);
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "CrmInteraction", EntityId = entity.Id, NewValuesJson = $"{{\"Type\":\"{vm.Type}\",\"Subject\":\"{vm.Subject}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync();
+        return entity.Id;
+    }
+
+    public async Task<CustomerCareDetailViewModel?> GetInteractionDetailAsync(Guid id)
+    {
+        var i = await db.CrmInteractions.Include(x => x.Customer).Include(x => x.CustomerContact)
+            .Include(x => x.AssignedToUser)
+            .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (i is null) return null;
+
+        var createdByName = i.CreatedByUserId.HasValue ? await db.AppUsers.Where(u => u.Id == i.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+        var completedByName = i.CompletedByUserId.HasValue ? await db.AppUsers.Where(u => u.Id == i.CompletedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+
+        return new CustomerCareDetailViewModel
+        {
+            Id = i.Id, Type = i.Type, TypeLabel = TypeLabel(i.Type), Subject = i.Subject, Description = i.Description,
+            Status = i.Status, StatusLabel = StatusLabel(i.Status), Priority = i.Priority, PriorityLabel = PriorityLabel(i.Priority),
+            CustomerId = i.CustomerId, CustomerName = i.Customer?.Name ?? "",
+            ContactName = i.CustomerContact?.FullName, AssignedToName = i.AssignedToUser?.FullName,
+            AssignedToUserId = i.AssignedToUserId,
+            ScheduledAt = i.ScheduledAt, DurationMinutes = i.DurationMinutes,
+            Outcome = i.Outcome, NextAction = i.NextAction, NextActionDate = i.NextActionDate,
+            CompletedAt = i.CompletedAt, CompletedByName = completedByName,
+            CreatedAt = i.CreatedAt, CreatedByName = createdByName
+        };
+    }
+
+    public async Task<CustomerCareEditViewModel?> GetInteractionEditFormAsync(Guid id)
+    {
+        var i = await db.CrmInteractions.Include(x => x.Customer).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (i is null) return null;
+        var tid = tenant.TenantId;
+        return new CustomerCareEditViewModel
+        {
+            Id = i.Id, CustomerId = i.CustomerId, CustomerContactId = i.CustomerContactId,
+            Type = i.Type, Subject = i.Subject, Description = i.Description, Priority = i.Priority,
+            ScheduledAt = i.ScheduledAt, DurationMinutes = i.DurationMinutes,
+            AssignedToUserId = i.AssignedToUserId, CustomerName = i.Customer?.Name ?? "",
+            Contacts = await db.CustomerContacts.Where(cc => cc.CustomerId == i.CustomerId && cc.TenantId == tid && !cc.IsDeleted)
+                .Select(cc => new SelectOption { Value = cc.Id.ToString(), Text = cc.FullName }).ToListAsync(),
+            Users = await db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName }).ToListAsync()
+        };
+    }
+
+    public async Task<bool> UpdateInteractionAsync(CustomerCareEditViewModel vm)
+    {
+        var i = await db.CrmInteractions.FindAsync(vm.Id);
+        if (i is null || i.TenantId != tenant.TenantId || i.Status == "Completed" || i.Status == "Cancelled") return false;
+        i.Type = vm.Type; i.Subject = vm.Subject; i.Description = vm.Description; i.Priority = vm.Priority;
+        i.ScheduledAt = vm.ScheduledAt; i.DurationMinutes = vm.DurationMinutes;
+        i.CustomerContactId = vm.CustomerContactId; i.AssignedToUserId = vm.AssignedToUserId;
+        i.UpdatedAt = DateTimeOffset.UtcNow; i.UpdatedByUserId = tenant.UserId;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Update", EntityName = "CrmInteraction", EntityId = i.Id, NewValuesJson = $"{{\"Subject\":\"{vm.Subject}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> CompleteInteractionAsync(CompleteInteractionViewModel vm)
+    {
+        var i = await db.CrmInteractions.FindAsync(vm.Id);
+        if (i is null || i.TenantId != tenant.TenantId || i.Status == "Completed" || i.Status == "Cancelled") return false;
+        i.Status = "Completed"; i.Outcome = vm.Outcome; i.NextAction = vm.NextAction; i.NextActionDate = vm.NextActionDate;
+        i.CompletedAt = DateTimeOffset.UtcNow; i.CompletedByUserId = tenant.UserId;
+        i.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Complete", EntityName = "CrmInteraction", EntityId = i.Id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> StartInteractionAsync(Guid id)
+    {
+        var i = await db.CrmInteractions.FindAsync(id);
+        if (i is null || i.TenantId != tenant.TenantId || i.Status != "Planned") return false;
+        i.Status = "InProgress"; i.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> CancelInteractionAsync(Guid id)
+    {
+        var i = await db.CrmInteractions.FindAsync(id);
+        if (i is null || i.TenantId != tenant.TenantId || i.Status == "Completed") return false;
+        i.Status = "Cancelled"; i.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Cancel", EntityName = "CrmInteraction", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> DeleteInteractionAsync(Guid id)
+    {
+        var i = await db.CrmInteractions.FindAsync(id);
+        if (i is null || i.TenantId != tenant.TenantId) return false;
+        i.IsDeleted = true; i.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "CrmInteraction", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<List<SelectOption>> GetContactsForCustomerAsync(Guid customerId)
+    {
+        return await db.CustomerContacts.Where(cc => cc.CustomerId == customerId && cc.TenantId == tenant.TenantId && !cc.IsDeleted)
+            .OrderBy(cc => cc.FullName)
+            .Select(cc => new SelectOption { Value = cc.Id.ToString(), Text = cc.FullName + (cc.JobTitle != null ? " (" + cc.JobTitle + ")" : "") })
+            .ToListAsync();
+    }
+
+    // ── Sales Opportunities ──────────────────────────────────────────────────
+    private static string StageLabel(string s) => s switch { "Lead" => "Tiềm năng", "Qualified" => "Đủ điều kiện", "Proposal" => "Đề xuất", "Negotiation" => "Đàm phán", "ClosedWon" => "Thắng", "ClosedLost" => "Thua", _ => s };
+    private static string TempLabel(string t) => t switch { "Hot" => "Nóng", "Warm" => "Ấm", "Cold" => "Lạnh", _ => t };
+
+    public async Task<SalesOpportunityListViewModel> GetOpportunitiesAsync(string? search, string? stage, string? temp, Guid? customerId)
+    {
+        var tid = tenant.TenantId;
+        IQueryable<SalesOpportunity> q = db.SalesOpportunities.Where(o => o.TenantId == tid && !o.IsDeleted)
+            .Include(o => o.Customer).Include(o => o.AssignedToUser);
+
+        var leadCount = await q.CountAsync(o => o.Stage == "Lead");
+        var qualifiedCount = await q.CountAsync(o => o.Stage == "Qualified");
+        var proposalCount = await q.CountAsync(o => o.Stage == "Proposal");
+        var negotiationCount = await q.CountAsync(o => o.Stage == "Negotiation");
+        var closedWonCount = await q.CountAsync(o => o.Stage == "ClosedWon");
+        var closedLostCount = await q.CountAsync(o => o.Stage == "ClosedLost");
+        var totalCount = await q.CountAsync();
+        var pipelineValue = await q.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").SumAsync(o => o.EstimatedValue);
+        var weightedValue = await q.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").SumAsync(o => o.EstimatedValue * o.Probability / 100m);
+
+        if (!string.IsNullOrWhiteSpace(search)) q = q.Where(o => o.Title.Contains(search) || o.Code.Contains(search) || (o.Customer != null && o.Customer.Name.Contains(search)));
+        if (!string.IsNullOrWhiteSpace(stage)) q = q.Where(o => o.Stage == stage);
+        if (!string.IsNullOrWhiteSpace(temp)) q = q.Where(o => o.Temperature == temp);
+        if (customerId.HasValue) q = q.Where(o => o.CustomerId == customerId);
+
+        var items = await q.OrderByDescending(o => o.CreatedAt).Take(200)
+            .Select(o => new SalesOpportunityItem
+            {
+                Id = o.Id, Code = o.Code, Title = o.Title, Stage = o.Stage,
+                EstimatedValue = o.EstimatedValue, Probability = o.Probability, Temperature = o.Temperature,
+                CustomerName = o.Customer != null ? o.Customer.Name : "",
+                AssignedToName = o.AssignedToUser != null ? o.AssignedToUser.FullName : null,
+                Source = o.Source, ExpectedCloseDate = o.ExpectedCloseDate, CreatedAt = o.CreatedAt
+            }).ToListAsync();
+
+        var customers = await db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted && c.IsActive).OrderBy(c => c.Name)
+            .Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+
+        return new SalesOpportunityListViewModel
+        {
+            Items = items, TotalCount = totalCount,
+            LeadCount = leadCount, QualifiedCount = qualifiedCount, ProposalCount = proposalCount,
+            NegotiationCount = negotiationCount, ClosedWonCount = closedWonCount, ClosedLostCount = closedLostCount,
+            TotalPipelineValue = pipelineValue, WeightedValue = weightedValue,
+            SearchTerm = search, StageFilter = stage, TempFilter = temp, CustomerFilter = customerId,
+            Customers = customers
+        };
+    }
+
+    public async Task<SalesOpportunityCreateViewModel> GetOpportunityCreateFormAsync(Guid? customerId = null)
+    {
+        var tid = tenant.TenantId;
+        var vm = new SalesOpportunityCreateViewModel
+        {
+            CustomerId = customerId ?? Guid.Empty,
+            Customers = await db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted && c.IsActive).OrderBy(c => c.Name)
+                .Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Code + " — " + c.Name }).ToListAsync(),
+            Users = await db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active).OrderBy(u => u.FullName)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName }).ToListAsync()
+        };
+        if (customerId.HasValue)
+            vm.Contacts = await GetContactsForCustomerAsync(customerId.Value);
+        return vm;
+    }
+
+    public async Task<Guid> CreateOpportunityAsync(SalesOpportunityCreateViewModel vm)
+    {
+        var tid = tenant.TenantId;
+        var seq = await db.SalesOpportunities.CountAsync(o => o.TenantId == tid) + 1;
+        var entity = new SalesOpportunity
+        {
+            TenantId = tid, Code = $"OPP-{seq:D4}", Title = vm.Title, Description = vm.Description,
+            CustomerId = vm.CustomerId, CustomerContactId = vm.CustomerContactId,
+            EstimatedValue = vm.EstimatedValue, Probability = vm.Probability, Temperature = vm.Temperature,
+            Source = vm.Source, Stage = "Lead",
+            ExpectedCloseDate = vm.ExpectedCloseDate,
+            AssignedToUserId = vm.AssignedToUserId ?? tenant.UserId,
+            CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.SalesOpportunities.Add(entity);
+        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "SalesOpportunity", EntityId = entity.Id, NewValuesJson = $"{{\"Code\":\"{entity.Code}\",\"Title\":\"{vm.Title}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync();
+        return entity.Id;
+    }
+
+    public async Task<SalesOpportunityDetailViewModel?> GetOpportunityDetailAsync(Guid id)
+    {
+        var o = await db.SalesOpportunities.Include(x => x.Customer).Include(x => x.CustomerContact).Include(x => x.AssignedToUser)
+            .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (o is null) return null;
+        var createdByName = o.CreatedByUserId.HasValue ? await db.AppUsers.Where(u => u.Id == o.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+        return new SalesOpportunityDetailViewModel
+        {
+            Id = o.Id, Code = o.Code, Title = o.Title, Description = o.Description,
+            Stage = o.Stage, StageLabel = StageLabel(o.Stage),
+            EstimatedValue = o.EstimatedValue, Probability = o.Probability,
+            Temperature = o.Temperature, TemperatureLabel = TempLabel(o.Temperature),
+            Source = o.Source, ExpectedCloseDate = o.ExpectedCloseDate, ActualCloseDate = o.ActualCloseDate,
+            LostReason = o.LostReason, WonNote = o.WonNote,
+            CustomerId = o.CustomerId, CustomerName = o.Customer?.Name ?? "",
+            ContactName = o.CustomerContact?.FullName, AssignedToName = o.AssignedToUser?.FullName,
+            AssignedToUserId = o.AssignedToUserId, CreatedAt = o.CreatedAt, CreatedByName = createdByName
+        };
+    }
+
+    public async Task<SalesOpportunityEditViewModel?> GetOpportunityEditFormAsync(Guid id)
+    {
+        var o = await db.SalesOpportunities.Include(x => x.Customer).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (o is null) return null;
+        var tid = tenant.TenantId;
+        return new SalesOpportunityEditViewModel
+        {
+            Id = o.Id, Title = o.Title, Description = o.Description,
+            CustomerId = o.CustomerId, CustomerContactId = o.CustomerContactId,
+            EstimatedValue = o.EstimatedValue, Probability = o.Probability, Temperature = o.Temperature,
+            Source = o.Source, ExpectedCloseDate = o.ExpectedCloseDate,
+            AssignedToUserId = o.AssignedToUserId, CustomerName = o.Customer?.Name ?? "",
+            Contacts = await GetContactsForCustomerAsync(o.CustomerId),
+            Users = await db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName }).ToListAsync()
+        };
+    }
+
+    public async Task<bool> UpdateOpportunityAsync(SalesOpportunityEditViewModel vm)
+    {
+        var o = await db.SalesOpportunities.FindAsync(vm.Id);
+        if (o is null || o.TenantId != tenant.TenantId || o.Stage == "ClosedWon" || o.Stage == "ClosedLost") return false;
+        o.Title = vm.Title; o.Description = vm.Description;
+        o.CustomerContactId = vm.CustomerContactId;
+        o.EstimatedValue = vm.EstimatedValue; o.Probability = vm.Probability; o.Temperature = vm.Temperature;
+        o.Source = vm.Source; o.ExpectedCloseDate = vm.ExpectedCloseDate;
+        o.AssignedToUserId = vm.AssignedToUserId;
+        o.UpdatedAt = DateTimeOffset.UtcNow; o.UpdatedByUserId = tenant.UserId;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Update", EntityName = "SalesOpportunity", EntityId = o.Id, NewValuesJson = $"{{\"Title\":\"{vm.Title}\",\"Stage\":\"{o.Stage}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<(bool Success, string Message)> ChangeStageAsync(ChangeStageViewModel vm)
+    {
+        var o = await db.SalesOpportunities.FindAsync(vm.Id);
+        if (o is null || o.TenantId != tenant.TenantId) return (false, "Không tìm thấy cơ hội.");
+        if (o.Stage == "ClosedWon" || o.Stage == "ClosedLost") return (false, "Cơ hội đã đóng.");
+
+        var oldStage = o.Stage;
+        o.Stage = vm.NewStage;
+        o.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Set probability based on stage
+        o.Probability = vm.NewStage switch { "Lead" => 10, "Qualified" => 25, "Proposal" => 50, "Negotiation" => 75, "ClosedWon" => 100, "ClosedLost" => 0, _ => o.Probability };
+
+        if (vm.NewStage == "ClosedWon") { o.WonNote = vm.Note; o.ActualCloseDate = DateOnly.FromDateTime(DateTime.Today); }
+        if (vm.NewStage == "ClosedLost") { o.LostReason = vm.Note; o.ActualCloseDate = DateOnly.FromDateTime(DateTime.Today); }
+
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "ChangeStage", EntityName = "SalesOpportunity", EntityId = o.Id, OldValuesJson = $"{{\"Stage\":\"{oldStage}\"}}", NewValuesJson = $"{{\"Stage\":\"{vm.NewStage}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync();
+        return (true, $"Đã chuyển sang giai đoạn: {StageLabel(vm.NewStage)}");
+    }
+
+    public async Task<bool> DeleteOpportunityAsync(Guid id)
+    {
+        var o = await db.SalesOpportunities.FindAsync(id);
+        if (o is null || o.TenantId != tenant.TenantId) return false;
+        o.IsDeleted = true; o.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "SalesOpportunity", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
     }
 }
 

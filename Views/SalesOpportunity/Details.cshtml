@@ -1,0 +1,218 @@
+@model OmniBizAI.ViewModels.SalesOpportunityDetailViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <a href='/SalesOpportunity' style='color:var(--apple-blue);text-decoration:none'>Cơ hội BH</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>@Model.Code</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@{
+    var stages = new[] { "Lead", "Qualified", "Proposal", "Negotiation", "ClosedWon", "ClosedLost" };
+    var stageLabels = new Dictionary<string, string> { {"Lead","Tiềm năng"},{"Qualified","Đủ ĐK"},{"Proposal","Đề xuất"},{"Negotiation","Đàm phán"},{"ClosedWon","Thắng ✓"},{"ClosedLost","Thua ✗"} };
+    var stageColors = new Dictionary<string, string> { {"Lead","#94a3b8"},{"Qualified","#007AFF"},{"Proposal","#5856d6"},{"Negotiation","#ff9500"},{"ClosedWon","#34c759"},{"ClosedLost","#ff3b30"} };
+    var currentIdx = Array.IndexOf(stages, Model.Stage);
+    var isClosed = Model.Stage == "ClosedWon" || Model.Stage == "ClosedLost";
+    var tempIcon = Model.Temperature switch { "Hot" => "🔥", "Warm" => "☀️", "Cold" => "❄️", _ => "" };
+    var sColor = stageColors[Model.Stage];
+}
+
+<!-- Pipeline Progress -->
+<div class="content-card mb-4 animate-fade-in">
+    <div class="card-body-custom py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            @for (int i = 0; i < 4; i++)
+            {
+                var s = stages[i];
+                var passed = currentIdx >= i;
+                var active = currentIdx == i;
+                <div style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;@(active ? $"background:{stageColors[s]}12;border:2px solid {stageColors[s]}" : passed ? $"background:{stageColors[s]}08" : "opacity:.4")">
+                    <div style="font-weight:700;font-size:.82rem;color:@(passed ? stageColors[s] : "var(--text-muted)")">@stageLabels[s]</div>
+                </div>
+                @if (i < 3) { <i class="fa-solid fa-chevron-right mx-1" style="color:var(--text-muted);font-size:.5rem;opacity:.4"></i> }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left sidebar -->
+    <div class="col-lg-4">
+        <!-- Value Card -->
+        <div class="content-card animate-fade-in" style="padding:24px;text-align:center;background:linear-gradient(135deg,@(sColor)08,@(sColor)15)">
+            <div style="font-size:2rem">@tempIcon</div>
+            <div style="font-size:1.8rem;font-weight:800;color:@sColor;font-family:monospace">@Model.EstimatedValue.ToString("N0") ₫</div>
+            <div class="text-muted small" style="margin-top:4px">Giá trị ước tính</div>
+            <div class="d-flex justify-content-center gap-3 mt-3">
+                <div><span style="font-weight:700;color:var(--apple-blue)">@Model.Probability%</span><br/><span class="text-muted" style="font-size:.68rem">Xác suất</span></div>
+                <div style="width:1px;background:var(--divider)"></div>
+                <div><span style="font-weight:700;color:var(--text-primary)">@Model.WeightedValue.ToString("N0") ₫</span><br/><span class="text-muted" style="font-size:.68rem">Trọng số</span></div>
+            </div>
+            <div class="mt-3"><span class="badge rounded-pill" style="background:@(sColor)18;color:@sColor;font-size:.82rem;padding:6px 16px">@Model.StageLabel</span></div>
+        </div>
+
+        <!-- Meta -->
+        <div class="content-card mt-3 animate-fade-in">
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Mã cơ hội</label>
+                        <div style="font-weight:700;font-family:monospace;color:var(--apple-blue)">@Model.Code</div>
+                    </div>
+                    <div class="col-12">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Khách hàng</label>
+                        <div><a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@Model.CustomerName</a></div>
+                    </div>
+                    @if (Model.ContactName != null)
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Liên hệ</label>
+                            <div>@Model.ContactName</div>
+                        </div>
+                    }
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Nhiệt độ</label>
+                        <div style="font-weight:500">@tempIcon @Model.TemperatureLabel</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Nguồn</label>
+                        <div>@(Model.Source ?? "—")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Phụ trách</label>
+                        <div>@(Model.AssignedToName ?? "—")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày tạo</label>
+                        <div style="font-size:.82rem">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                    </div>
+                    @if (Model.ExpectedCloseDate.HasValue)
+                    {
+                        <div class="col-6">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Dự kiến chốt</label>
+                            <div style="font-weight:600">@Model.ExpectedCloseDate.Value.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    }
+                    @if (Model.ActualCloseDate.HasValue)
+                    {
+                        <div class="col-6">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Đóng thực tế</label>
+                            <div style="font-weight:600">@Model.ActualCloseDate.Value.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="content-card mt-3 animate-fade-in" style="padding:20px 24px">
+            <a asp-action="Index" class="btn btn-light border w-100 mb-2" style="border-radius:10px"><i class="fa-solid fa-list me-2"></i>Danh sách</a>
+            @if (!isClosed)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2" style="border-radius:10px"><i class="fa-solid fa-pen me-2"></i>Sửa</a>
+            }
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="mt-2" onsubmit="return confirm('Xóa cơ hội này?')">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100" style="border-radius:10px"><i class="fa-solid fa-trash me-2"></i>Xóa</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right content -->
+    <div class="col-lg-8">
+        <!-- Title & Description -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-handshake-angle" style="color:@sColor"></i> @Model.Title</h5></div>
+            <div class="card-body-custom">
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div style="background:var(--bg-secondary);padding:16px;border-radius:10px;font-size:.88rem;line-height:1.7;white-space:pre-wrap;color:var(--text-secondary)">@Model.Description</div>
+                }
+                else
+                {
+                    <div class="text-muted text-center py-3" style="font-size:.85rem">Không có mô tả</div>
+                }
+            </div>
+        </div>
+
+        <!-- Stage Change (if not closed) -->
+        @if (!isClosed)
+        {
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-diagram-next text-primary"></i> Chuyển giai đoạn</h5></div>
+                <div class="card-body-custom">
+                    <div class="row g-2">
+                        @foreach (var s in stages.Where(s => s != Model.Stage))
+                        {
+                            var c = stageColors[s];
+                            var needsNote = s == "ClosedWon" || s == "ClosedLost";
+                            @if (!needsNote)
+                            {
+                                <div class="col-auto">
+                                    <form asp-action="ChangeStage" method="post" class="d-inline">@Html.AntiForgeryToken()
+                                        <input type="hidden" name="Id" value="@Model.Id" />
+                                        <input type="hidden" name="NewStage" value="@s" />
+                                        <button type="submit" class="btn btn-sm" style="background:@(c)12;color:@c;border-radius:8px;font-weight:600;border:1px solid @(c)30">@stageLabels[s]</button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <hr style="border-color:var(--divider)"/>
+                    <!-- ClosedWon / ClosedLost with note -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <form asp-action="ChangeStage" method="post">@Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@Model.Id" />
+                                <input type="hidden" name="NewStage" value="ClosedWon" />
+                                <label class="form-label fw-bold text-success">🏆 Đóng — Thắng</label>
+                                <textarea name="Note" class="form-control mb-2" rows="2" placeholder="Ghi chú thắng..." style="border-radius:8px;font-size:.85rem"></textarea>
+                                <button type="submit" class="btn btn-success w-100" style="border-radius:8px"><i class="fa-solid fa-trophy me-1"></i>Đóng thắng</button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form asp-action="ChangeStage" method="post">@Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@Model.Id" />
+                                <input type="hidden" name="NewStage" value="ClosedLost" />
+                                <label class="form-label fw-bold text-danger">❌ Đóng — Thua</label>
+                                <textarea name="Note" class="form-control mb-2" rows="2" placeholder="Lý do thua..." style="border-radius:8px;font-size:.85rem"></textarea>
+                                <button type="submit" class="btn btn-outline-danger w-100" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Đóng thua</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Won/Lost result -->
+        @if (Model.Stage == "ClosedWon" && !string.IsNullOrWhiteSpace(Model.WonNote))
+        {
+            <div class="content-card mb-4 animate-fade-in" style="border-left:3px solid #34c759">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-trophy text-success"></i> Kết quả — Thắng</h5></div>
+                <div class="card-body-custom">
+                    <div style="background:rgba(52,199,89,.04);padding:14px;border-radius:8px;font-size:.88rem;white-space:pre-wrap">@Model.WonNote</div>
+                </div>
+            </div>
+        }
+        @if (Model.Stage == "ClosedLost" && !string.IsNullOrWhiteSpace(Model.LostReason))
+        {
+            <div class="content-card mb-4 animate-fade-in" style="border-left:3px solid #ff3b30">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-circle-xmark text-danger"></i> Lý do thua</h5></div>
+                <div class="card-body-custom">
+                    <div style="background:rgba(255,59,48,.04);padding:14px;border-radius:8px;font-size:.88rem;white-space:pre-wrap">@Model.LostReason</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

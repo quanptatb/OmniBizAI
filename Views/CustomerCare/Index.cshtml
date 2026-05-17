@@ -1,0 +1,162 @@
+@model OmniBizAI.ViewModels.CustomerCareListViewModel
+@{
+    ViewData["Title"] = "Chăm sóc khách hàng";
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chăm sóc KH</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div><div class="stat-value">@Model.PlannedCount</div><div class="stat-label">Kế hoạch</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-spinner"></i></div><div class="stat-value">@Model.InProgressCount</div><div class="stat-label">Đang thực hiện</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value">@Model.CompletedCount</div><div class="stat-label">Hoàn thành</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(255,59,48,.08);color:#ff3b30"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.OverdueCount</div><div class="stat-label">Quá hạn</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-layer-group"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng cộng</div></div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="d-flex gap-3 align-items-end flex-wrap">
+            <div class="flex-grow-1" style="min-width:180px">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Tiêu đề, khách hàng..." style="border-radius:0 8px 8px 0" />
+                </div>
+            </div>
+            <div style="min-width:130px">
+                <label class="form-label text-muted small fw-bold">Loại</label>
+                <select name="type" class="form-select" style="border-radius:8px">
+                    <option value="">Tất cả</option>
+                    @foreach (var t in new[] { ("Call","📞 Cuộc gọi"), ("Email","📧 Email"), ("Meeting","🤝 Cuộc họp"), ("Visit","🏢 Thăm viếng"), ("Note","📝 Ghi chú"), ("Complaint","⚠️ Khiếu nại"), ("Feedback","💬 Phản hồi") })
+                    {
+                        <option value="@t.Item1" selected="@(Model.TypeFilter == t.Item1)">@t.Item2</option>
+                    }
+                </select>
+            </div>
+            <div style="min-width:130px">
+                <label class="form-label text-muted small fw-bold">Trạng thái</label>
+                <select name="status" class="form-select" style="border-radius:8px">
+                    <option value="">Tất cả</option>
+                    @foreach (var s in new[] { ("Planned","Kế hoạch"), ("InProgress","Đang thực hiện"), ("Completed","Hoàn thành"), ("Cancelled","Đã hủy") })
+                    {
+                        <option value="@s.Item1" selected="@(Model.StatusFilter == s.Item1)">@s.Item2</option>
+                    }
+                </select>
+            </div>
+            <div style="min-width:160px">
+                <label class="form-label text-muted small fw-bold">Khách hàng</label>
+                <select name="customer" class="form-select" style="border-radius:8px">
+                    <option value="">Tất cả</option>
+                    @foreach (var c in Model.Customers)
+                    {
+                        <option value="@c.Value" selected="@(Model.CustomerFilter?.ToString() == c.Value)">@c.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border" style="border-radius:8px"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+            <div class="ms-auto">
+                <a asp-action="Create" class="btn btn-primary" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-plus me-2"></i>Tạo tương tác</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- List -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-headset"></i> Danh sách tương tác <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.Items.Count</span></h5>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fa-solid fa-headset fa-3x mb-3 opacity-25"></i>
+            <h5 class="text-muted" style="font-weight:600">Chưa có tương tác nào</h5>
+            <p class="text-muted small">Bắt đầu bằng cách tạo tương tác chăm sóc khách hàng đầu tiên.</p>
+            <a asp-action="Create" class="btn btn-primary" style="border-radius:10px"><i class="fa-solid fa-plus me-2"></i>Tạo tương tác</a>
+        </div>
+    }
+
+    @foreach (var item in Model.Items)
+    {
+        var (typeIcon, typeColor) = item.Type switch
+        {
+            "Call" => ("fa-phone", "#007AFF"),
+            "Email" => ("fa-envelope", "#5856d6"),
+            "Meeting" => ("fa-handshake", "#ff9500"),
+            "Visit" => ("fa-building", "#34c759"),
+            "Note" => ("fa-sticky-note", "#94a3b8"),
+            "Complaint" => ("fa-triangle-exclamation", "#ff3b30"),
+            "Feedback" => ("fa-comment-dots", "#00c7be"),
+            _ => ("fa-circle", "#94a3b8")
+        };
+        var (statusColor, statusLabel) = item.Status switch
+        {
+            "Planned" => ("#007AFF", "Kế hoạch"),
+            "InProgress" => ("#ff9500", "Đang thực hiện"),
+            "Completed" => ("#34c759", "Hoàn thành"),
+            "Cancelled" => ("#8e8e93", "Đã hủy"),
+            _ => ("#94a3b8", item.Status)
+        };
+        var priColor = item.Priority switch { "Urgent" => "#ff3b30", "High" => "#ff9500", "Normal" => "#007AFF", "Low" => "#34c759", _ => "#94a3b8" };
+        var isOverdue = item.Status == "Planned" && item.ScheduledAt.HasValue && item.ScheduledAt < DateTimeOffset.UtcNow;
+
+        <div class="d-flex gap-3 align-items-start px-4 py-3" style="border-bottom:1px solid var(--divider);@(isOverdue ? "background:rgba(255,59,48,.03)" : "")">
+            <div style="width:40px;height:40px;border-radius:50%;background:@(typeColor)15;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fa-solid @typeIcon" style="font-size:.82rem;color:@typeColor"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <a asp-action="Details" asp-route-id="@item.Id" style="font-weight:600;font-size:.9rem;color:var(--text-primary);text-decoration:none">@item.Subject</a>
+                        @if (isOverdue) { <span class="badge rounded-pill" style="background:rgba(255,59,48,.1);color:#ff3b30;font-size:.6rem;padding:2px 6px;margin-left:4px">Quá hạn</span> }
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge rounded-pill" style="background:@(statusColor)15;color:@statusColor;font-size:.65rem;padding:3px 10px">@statusLabel</span>
+                        <span class="badge rounded-pill" style="background:@(priColor)15;color:@priColor;font-size:.65rem;padding:3px 10px">@(item.Priority switch { "Urgent" => "Khẩn", "High" => "Cao", "Normal" => "BT", "Low" => "Thấp", _ => item.Priority })</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mt-1 text-muted" style="font-size:.78rem;flex-wrap:wrap">
+                    <span><i class="fa-solid fa-building me-1"></i>@item.CustomerName</span>
+                    @if (item.ContactName != null) { <span><i class="fa-solid fa-user me-1"></i>@item.ContactName</span> }
+                    @if (item.AssignedToName != null) { <span><i class="fa-solid fa-user-check me-1"></i>@item.AssignedToName</span> }
+                    @if (item.ScheduledAt.HasValue) { <span><i class="fa-regular fa-calendar me-1"></i>@item.ScheduledAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</span> }
+                    @if (item.DurationMinutes.HasValue) { <span><i class="fa-regular fa-clock me-1"></i>@item.DurationMinutes phút</span> }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(item.Description))
+                {
+                    <p style="font-size:.8rem;color:var(--text-secondary);margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">@item.Description</p>
+                }
+            </div>
+        </div>
+    }
+</div>

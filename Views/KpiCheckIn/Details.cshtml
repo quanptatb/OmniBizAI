@@ -1,0 +1,274 @@
+@model OmniBizAI.ViewModels.KpiCheckInDetailViewModel
+@{
+    ViewData["Title"] = "Check-In: " + Model.KpiName;
+    ViewData["Breadcrumb"] = "<a href='/KpiCheckIn' style='color:var(--apple-blue);text-decoration:none'>Check-In</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chi tiết</span>";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left: Progress Card -->
+    <div class="col-lg-4">
+        <div class="content-card animate-fade-in" style="padding:28px 24px;text-align:center">
+            @{
+                var pct = Model.TargetValue.HasValue && Model.TargetValue.Value > 0
+                    ? Math.Min(100, Math.Round(Model.ProgressValue / Model.TargetValue.Value * 100, 1))
+                    : 0m;
+                var ringColor = Model.ReviewStatus == "Approved" ? "#34c759" : Model.ReviewStatus == "Rejected" ? "#ff3b30" : "#007AFF";
+            }
+            <!-- Circular Progress -->
+            <div style="position:relative;width:120px;height:120px;margin:0 auto 16px">
+                <svg viewBox="0 0 36 36" style="transform:rotate(-90deg);width:120px;height:120px">
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="var(--divider)" stroke-width="2.5" />
+                    <circle cx="18" cy="18" r="15.9155" fill="none" stroke="@ringColor" stroke-width="2.5"
+                        stroke-dasharray="@pct, 100" stroke-linecap="round" style="transition:stroke-dasharray .8s ease" />
+                </svg>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.4rem;font-weight:800;color:var(--text-primary)">@pct%</div>
+            </div>
+
+            <h5 style="font-weight:700;margin:0 0 4px">@Model.ProgressValue.ToString("N2") <span style="font-size:.7rem;color:var(--text-muted)">/ @(Model.TargetValue?.ToString("N2") ?? "—") @Model.Unit</span></h5>
+            <p style="color:var(--text-muted);font-size:.82rem;margin:0 0 16px">@Model.KpiName</p>
+
+            <!-- Status Badges -->
+            <div class="d-flex gap-2 justify-content-center flex-wrap mb-3">
+                @{
+                    var (badgeBg, badgeText, badgeIcon) = Model.ReviewStatus switch
+                    {
+                        "Pending" => ("#ff9500", "Chờ duyệt", "fa-hourglass-half"),
+                        "Approved" => ("#34c759", "Đã duyệt", "fa-circle-check"),
+                        "Rejected" => ("#ff3b30", "Từ chối", "fa-circle-xmark"),
+                        _ => ("#94a3b8", Model.ReviewStatus, "fa-circle")
+                    };
+                }
+                <span class="badge rounded-pill" style="background:@badgeBg;color:#fff;font-size:.75rem;padding:5px 12px">
+                    <i class="fa-solid @badgeIcon me-1"></i>@badgeText
+                </span>
+                @if (Model.IsLate)
+                {
+                    <span class="badge bg-danger rounded-pill" style="font-size:.72rem;padding:5px 12px"><i class="fa-solid fa-clock me-1"></i>Trễ hạn</span>
+                }
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                @if (Model.ReviewStatus == "Pending")
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm" style="border-radius:8px;font-size:.78rem">
+                        <i class="fa-solid fa-pen me-1"></i>Sửa
+                    </a>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xóa check-in này?')">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius:8px;font-size:.78rem">
+                            <i class="fa-solid fa-trash me-1"></i>Xóa
+                        </button>
+                    </form>
+                }
+                <a asp-action="Index" class="btn btn-light border btn-sm" style="border-radius:8px;font-size:.78rem">
+                    <i class="fa-solid fa-list me-1"></i>Danh sách
+                </a>
+            </div>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="content-card mt-3 animate-fade-in">
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Nhân viên</label>
+                        <div style="font-weight:500;font-size:.85rem">@Model.UserName</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày check-in</label>
+                        <div style="font-weight:500;font-size:.85rem">@Model.CheckInDate.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Mã KPI</label>
+                        <div style="font-weight:600;font-family:monospace;font-size:.85rem">@Model.KpiCode</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Gửi bởi</label>
+                        <div style="font-size:.85rem">@(Model.SubmittedByName ?? "—")</div>
+                    </div>
+                    @if (Model.DeadlineAt.HasValue)
+                    {
+                        <div class="col-6">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Deadline</label>
+                            <div style="font-size:.82rem;color:@(Model.IsLate ? "var(--danger)" : "var(--text-primary)")">@Model.DeadlineAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</div>
+                        </div>
+                    }
+                    @if (Model.FailReasonName != null)
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Lý do thất bại</label>
+                            <div style="font-size:.85rem;color:var(--danger)"><i class="fa-solid fa-triangle-exclamation me-1"></i>@Model.FailReasonName</div>
+                        </div>
+                    }
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày tạo</label>
+                        <div style="font-size:.8rem">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Cập nhật</label>
+                        <div style="font-size:.8rem">@(Model.UpdatedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right -->
+    <div class="col-lg-8">
+        <!-- Comment from employee -->
+        @if (!string.IsNullOrWhiteSpace(Model.Comment))
+        {
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-message"></i> Ghi chú check-in</h5></div>
+                <div class="card-body-custom">
+                    <p style="font-size:.88rem;line-height:1.6;color:var(--text-secondary);margin:0;white-space:pre-wrap">@Model.Comment</p>
+                </div>
+            </div>
+        }
+
+        <!-- Detail Items (metrics) -->
+        @if (Model.DetailItems.Any())
+        {
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-chart-bar"></i> Chi tiết chỉ số</h5></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Chỉ số</th>
+                                    <th class="text-end">Mục tiêu</th>
+                                    <th class="text-end">Đạt được</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in Model.DetailItems)
+                                {
+                                    var achieved = d.AchievedValue ?? 0;
+                                    var target = d.TargetValue ?? 1;
+                                    var dpct = target > 0 ? Math.Round(achieved / target * 100, 1) : 0;
+                                    <tr>
+                                        <td class="ps-4 fw-bold">@(d.MetricName ?? "—")</td>
+                                        <td class="text-end">@(d.TargetValue?.ToString("N2") ?? "—")</td>
+                                        <td class="text-end fw-bold" style="color:@(dpct >= 100 ? "var(--success)" : dpct >= 70 ? "var(--apple-blue)" : "var(--danger)")">@(d.AchievedValue?.ToString("N2") ?? "—") <span class="text-muted small">(@dpct%)</span></td>
+                                        <td style="font-size:.82rem;color:var(--text-secondary)">@(d.Note ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Review Section -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-clipboard-check"></i> Review</h5></div>
+            <div class="card-body-custom">
+                @if (Model.ReviewStatus == "Pending")
+                {
+                    <div style="background:rgba(255,149,0,.06);border:1px solid rgba(255,149,0,.15);border-radius:10px;padding:16px;margin-bottom:16px">
+                        <i class="fa-solid fa-hourglass-half me-2" style="color:#ff9500"></i>
+                        <span style="font-size:.88rem;color:#b86e00">Check-in này đang chờ được review.</span>
+                    </div>
+                    <form asp-action="Review" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="CheckInId" value="@Model.Id" />
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Quyết định</label>
+                                <select name="Decision" class="form-select" required>
+                                    <option value="Approved">✅ Duyệt</option>
+                                    <option value="Rejected">❌ Từ chối</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Điểm đánh giá</label>
+                                <input name="Score" type="number" step="0.1" min="0" max="100" class="form-control" placeholder="0 – 100" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Nhận xét</label>
+                                <textarea name="Comment" class="form-control" rows="3" maxlength="2000" placeholder="Ghi nhận xét cho nhân viên..." style="resize:vertical"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="border-radius:10px;font-weight:600">
+                            <i class="fa-solid fa-check me-2"></i>Gửi Review
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Kết quả</label>
+                            <div>
+                                <span class="badge rounded-pill" style="background:@(Model.ReviewStatus == "Approved" ? "#34c759" : "#ff3b30");color:#fff">
+                                    @(Model.ReviewStatus == "Approved" ? "✅ Đã duyệt" : "❌ Từ chối")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Điểm</label>
+                            <div style="font-weight:800;font-size:1.2rem;color:var(--apple-blue)">@(Model.ReviewScore?.ToString("N1") ?? "—")</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Người review</label>
+                            <div style="font-size:.85rem">@(Model.ReviewedByName ?? "—")</div>
+                            <div style="font-size:.72rem;color:var(--text-muted)">@(Model.ReviewedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "")</div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.ReviewComment))
+                        {
+                            <div class="col-12">
+                                <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Nhận xét</label>
+                                <div style="font-size:.88rem;line-height:1.6;color:var(--text-secondary);white-space:pre-wrap;background:var(--bg-secondary);padding:12px;border-radius:8px">@Model.ReviewComment</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- History Log -->
+        @if (Model.HistoryLogs.Any())
+        {
+            <div class="content-card animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử thay đổi</h5></div>
+                <div class="card-body-custom">
+                    @foreach (var h in Model.HistoryLogs)
+                    {
+                        <div class="d-flex gap-3 align-items-start mb-3 pb-3" style="border-bottom:1px solid var(--divider)">
+                            <div style="width:28px;height:28px;border-radius:50%;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="fa-solid fa-clock-rotate-left" style="font-size:.65rem;color:var(--text-muted)"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" style="font-size:.82rem">@h.Action</div>
+                                @if (!string.IsNullOrWhiteSpace(h.Details))
+                                {
+                                    <div style="font-size:.8rem;color:var(--text-secondary)">@h.Details</div>
+                                }
+                                <div class="text-muted" style="font-size:.72rem">@h.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

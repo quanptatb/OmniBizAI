@@ -1,0 +1,78 @@
+@model OmniBizAI.ViewModels.KpiCheckInEditViewModel
+@{
+    ViewData["Title"] = "Sửa Check-In";
+    ViewData["Breadcrumb"] = "<a href='/KpiCheckIn' style='color:var(--apple-blue);text-decoration:none'>Check-In</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <a href='/KpiCheckIn/Details/" + Model.Id + "' style='color:var(--apple-blue);text-decoration:none'>Chi tiết</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Sửa</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-pen-to-square"></i> Sửa Check-In</h5>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-light border" style="border-radius:8px">
+                    <i class="fa-solid fa-eye me-1"></i>Chi tiết
+                </a>
+            </div>
+            <div class="card-body-custom">
+                <!-- Read-only context -->
+                <div class="row g-3 mb-4" style="background:var(--bg-secondary);border-radius:10px;padding:16px;margin:0">
+                    <div class="col-md-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">KPI</label>
+                        <div style="font-weight:600">@Model.KpiName</div>
+                        <code style="font-size:.72rem;background:rgba(0,122,255,.08);color:var(--apple-blue);padding:2px 6px;border-radius:4px">@Model.KpiCode</code>
+                    </div>
+                    <div class="col-md-3">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Nhân viên</label>
+                        <div style="font-size:.88rem">@Model.UserName</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày</label>
+                        <div style="font-size:.88rem">@Model.CheckInDate.ToString("dd/MM/yyyy")</div>
+                    </div>
+                </div>
+
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="ProgressValue" class="form-label fw-bold">Giá trị tiến độ <span class="text-danger">*</span></label>
+                            <input asp-for="ProgressValue" type="number" step="0.01" class="form-control" required />
+                            <span asp-validation-for="ProgressValue" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="KpiFailReasonId" class="form-label fw-bold">Lý do thất bại</label>
+                            <select asp-for="KpiFailReasonId" class="form-select">
+                                <option value="">— Không có —</option>
+                                @foreach (var r in Model.FailReasons)
+                                {
+                                    <option value="@r.Value" selected="@(r.Value == Model.KpiFailReasonId?.ToString())">@r.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="Comment" class="form-label fw-bold">Ghi chú</label>
+                            <textarea asp-for="Comment" class="form-control" rows="3" maxlength="1000" style="resize:vertical"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-between pt-3" style="border-top:1px solid var(--divider)">
+                        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xóa check-in này?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius:8px">
+                                <i class="fa-solid fa-trash me-1"></i>Xóa
+                            </button>
+                        </form>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-light border px-4" style="border-radius:10px">Hủy</a>
+                            <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600">
+                                <i class="fa-solid fa-check me-2"></i>Lưu
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

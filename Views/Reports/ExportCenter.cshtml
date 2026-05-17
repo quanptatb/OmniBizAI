@@ -1,0 +1,142 @@
+@{
+    ViewData["Title"] = "Trung tâm xuất báo cáo";
+    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Xuất file</span>";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-file-export me-2" style="color:var(--apple-blue)"></i>Trung tâm xuất báo cáo</h4>
+        <span style="color:var(--text-muted);font-size:.82rem">Tải xuống dữ liệu CSV để phân tích trong Excel, Google Sheets</span>
+    </div>
+</div>
+
+<!-- Date range for Operations & CashFlow -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form id="dateFilterForm" class="row g-3 align-items-end">
+            <div class="col-auto">
+                <label class="form-label text-muted small fw-bold">Từ ngày</label>
+                <input type="date" id="fromDate" value="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")" class="form-control" style="border-radius:8px;max-width:180px">
+            </div>
+            <div class="col-auto">
+                <label class="form-label text-muted small fw-bold">Đến ngày</label>
+                <input type="date" id="toDate" value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:8px;max-width:180px">
+            </div>
+            <div class="col-auto" style="color:var(--text-muted);font-size:.78rem;padding-bottom:6px">
+                <i class="fa-solid fa-info-circle me-1"></i>Áp dụng cho báo cáo Vận hành & Thu chi
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Operations -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(0,122,255,.08);color:var(--apple-blue)"><i class="fa-solid fa-gears"></i></div>
+                <h6 class="export-title">Vận hành</h6>
+                <p class="export-desc">Yêu cầu vận hành, trạng thái, ưu tiên, phòng ban</p>
+                <a id="exportOps" href="#" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Flow -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(52,199,89,.08);color:var(--success)"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                <h6 class="export-title">Thu chi</h6>
+                <p class="export-desc">Giao dịch thu chi, danh mục, phương thức, KH/NCC</p>
+                <a id="exportCash" href="#" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finance -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(255,149,0,.08);color:#FF9500"><i class="fa-solid fa-chart-pie"></i></div>
+                <h6 class="export-title">Tài chính</h6>
+                <p class="export-desc">Chi phí, ngân sách, phòng ban — năm @DateTime.Today.Year</p>
+                <a asp-action="ExportFinance" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HR -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(88,86,214,.08);color:#5856d6"><i class="fa-solid fa-users"></i></div>
+                <h6 class="export-title">Nhân sự</h6>
+                <p class="export-desc">Danh sách nhân viên, phòng ban, chức danh, trạng thái</p>
+                <a asp-action="ExportHr" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI/OKR -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(255,45,85,.08);color:#FF2D55"><i class="fa-solid fa-bullseye"></i></div>
+                <h6 class="export-title">KPI / OKR</h6>
+                <p class="export-desc">Mục tiêu OKR, KPI, tiến độ, trạng thái</p>
+                <a asp-action="ExportKpiOkr" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(255,159,10,.08);color:#FF9F0A"><i class="fa-solid fa-warehouse"></i></div>
+                <h6 class="export-title">Tồn kho</h6>
+                <p class="export-desc">Sản phẩm, tồn kho, ngưỡng, giá trị tồn</p>
+                <a asp-action="ExportInventory" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRM -->
+    <div class="col-md-6 col-lg-4">
+        <div class="content-card export-card h-100">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="export-icon" style="background:rgba(48,209,88,.08);color:#30D158"><i class="fa-solid fa-handshake"></i></div>
+                <h6 class="export-title">CRM / Bán hàng</h6>
+                <p class="export-desc">Khách hàng, cơ hội bán hàng, pipeline</p>
+                <a asp-action="ExportCrm" class="btn btn-primary btn-sm export-btn"><i class="fa-solid fa-download me-1"></i>Tải CSV</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .export-card { transition: all .2s; cursor: default; }
+    .export-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.06); }
+    .export-icon {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 12px; font-size: 1.3rem;
+    }
+    .export-title { font-weight: 700; font-size: .95rem; margin-bottom: 6px; }
+    .export-desc { font-size: .78rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
+    .export-btn { border-radius: 10px; padding: 8px 20px; font-size: .8rem; font-weight: 600; }
+</style>
+
+<script>
+    // Dynamic URLs for date-filtered exports
+    function updateExportLinks() {
+        const from = document.getElementById('fromDate').value;
+        const to = document.getElementById('toDate').value;
+        document.getElementById('exportOps').href = `@Url.Action("Export")?from=${from}&to=${to}`;
+        document.getElementById('exportCash').href = `@Url.Action("ExportCashFlow")?from=${from}&to=${to}`;
+    }
+    document.getElementById('fromDate').addEventListener('change', updateExportLinks);
+    document.getElementById('toDate').addEventListener('change', updateExportLinks);
+    updateExportLinks();
+</script>

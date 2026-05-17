@@ -1,0 +1,128 @@
+@model OmniBizAI.ViewModels.GoodsReceiptCreateViewModel
+@{
+    ViewData["Title"] = "Tạo phiếu nhập kho";
+    ViewData["Breadcrumb"] = "<a href='/GoodsReceipt' style='color:var(--apple-blue);text-decoration:none'>Nhập kho</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-warehouse" style="color:var(--apple-blue)"></i> Tạo phiếu nhập kho</h5>
+            </div>
+            <div class="card-body-custom">
+                <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:24px">Chọn đơn hàng mua và nhập số lượng hàng thực tế nhận được tại kho.</p>
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 p-3 rounded" style="background:var(--danger-bg);border:1px solid rgba(255,59,48,.2);border-radius:var(--r-sm)"></div>
+
+                    <div class="row g-4 mb-4">
+                        <!-- PO selection -->
+                        <div class="col-md-6">
+                            <label asp-for="PurchaseOrderId" class="form-label">Đơn hàng mua <span style="color:var(--danger)">*</span></label>
+                            @if (Model.SelectedPONo != null)
+                            {
+                                <input type="hidden" asp-for="PurchaseOrderId" />
+                                <div style="padding:10px 14px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider)">
+                                    <span style="font-weight:600;color:var(--apple-blue)">@Model.SelectedPONo</span>
+                                    @if (Model.SelectedVendor != null) { <span style="color:var(--text-muted);margin-left:8px">— @Model.SelectedVendor</span> }
+                                </div>
+                            }
+                            else
+                            {
+                                <select asp-for="PurchaseOrderId" class="form-select" id="poSelect" onchange="window.location.href='/GoodsReceipt/Create?poId='+this.value">
+                                    <option value="">-- Chọn đơn hàng mua --</option>
+                                    @foreach (var opt in Model.PurchaseOrders)
+                                    { <option value="@opt.Value">@opt.Text</option> }
+                                </select>
+                            }
+                            <span asp-validation-for="PurchaseOrderId" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="ReceiptDate" class="form-label">Ngày nhận hàng <span style="color:var(--danger)">*</span></label>
+                            <input asp-for="ReceiptDate" type="date" class="form-control" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="WarehouseLocation" class="form-label">Vị trí kho</label>
+                            <input asp-for="WarehouseLocation" class="form-control" placeholder="VD: Kho A, Kệ 3..." />
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Note" class="form-label">Ghi chú</label>
+                            <textarea asp-for="Note" class="form-control" rows="2" placeholder="Ghi chú thêm khi nhận hàng..."></textarea>
+                        </div>
+                    </div>
+
+                    @if (Model.Lines.Any())
+                    {
+                        <!-- Lines Table -->
+                        <div style="border-top:1px solid var(--divider);padding-top:20px;margin-bottom:20px">
+                            <h6 style="font-weight:600;margin-bottom:12px"><i class="fa-solid fa-boxes-stacked me-1" style="color:var(--apple-blue)"></i> Danh mục hàng nhận</h6>
+                            <div class="table-responsive">
+                                <table class="data-table" style="font-size:.85rem">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-3">#</th>
+                                            <th>SP / Dịch vụ</th>
+                                            <th class="text-end">SL đặt</th>
+                                            <th class="text-end">SL nhận <span style="color:var(--danger)">*</span></th>
+                                            <th class="text-end">SL loại</th>
+                                            <th class="text-center">Đạt CL</th>
+                                            <th>Ghi chú</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Model.Lines.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="ps-3" style="color:var(--text-muted)">@(i + 1)</td>
+                                                <td>
+                                                    <input type="hidden" name="Lines[@i].PurchaseOrderLineId" value="@Model.Lines[i].PurchaseOrderLineId" />
+                                                    <input type="hidden" name="Lines[@i].ProductServiceId" value="@Model.Lines[i].ProductServiceId" />
+                                                    <input type="hidden" name="Lines[@i].OrderedQuantity" value="@Model.Lines[i].OrderedQuantity" />
+                                                    <div style="font-weight:500">@(Model.Lines[i].ItemName ?? "Mục #" + (i+1))</div>
+                                                    <input type="hidden" name="Lines[@i].ItemName" value="@Model.Lines[i].ItemName" />
+                                                </td>
+                                                <td class="text-end" style="font-weight:500;color:var(--text-muted)">@Model.Lines[i].OrderedQuantity.ToString("N2")</td>
+                                                <td class="text-end">
+                                                    <input type="number" name="Lines[@i].ReceivedQuantity" value="@Model.Lines[i].ReceivedQuantity" step="0.01" min="0" max="@Model.Lines[i].OrderedQuantity" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" required />
+                                                </td>
+                                                <td class="text-end">
+                                                    <input type="number" name="Lines[@i].RejectedQuantity" value="@(Model.Lines[i].RejectedQuantity ?? 0)" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:80px;display:inline-block;border-radius:8px" />
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="Lines[@i].QualityPassed" value="true" checked="@Model.Lines[i].QualityPassed" class="form-check-input" style="width:20px;height:20px" />
+                                                    <input type="hidden" name="Lines[@i].QualityPassed" value="false" />
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="Lines[@i].Note" value="@Model.Lines[i].Note" class="form-control form-control-sm" placeholder="..." style="border-radius:8px;max-width:150px" />
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                            <a asp-action="Index" class="btn btn-light" style="border-radius:8px">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-save me-1"></i>Lưu nháp phiếu nhập kho</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5" style="color:var(--text-muted)">
+                            <i class="fa-solid fa-hand-pointer fa-2x d-block mb-3" style="opacity:.4"></i>
+                            <p>Vui lòng chọn một <strong>Đơn hàng mua</strong> ở trên để hiển thị danh sách hàng cần nhận.</p>
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

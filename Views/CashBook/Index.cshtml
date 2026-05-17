@@ -1,0 +1,155 @@
+@model OmniBizAI.ViewModels.CashBookDashboardViewModel
+@{
+    ViewData["Title"] = "Sổ thu chi";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Thu chi</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-arrow-down"></i></div><div class="stat-value" style="color:var(--success)">@Model.TotalIncome.ToString("N0") ₫</div><div class="stat-label">Tổng thu</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon" style="background:rgba(255,59,48,.08);color:var(--danger)"><i class="fa-solid fa-arrow-up"></i></div><div class="stat-value" style="color:var(--danger)">@Model.TotalExpense.ToString("N0") ₫</div><div class="stat-label">Tổng chi</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-scale-balanced"></i></div><div class="stat-value" style="color:@(Model.Balance >= 0 ? "var(--success)" : "var(--danger)")">@Model.Balance.ToString("N0") ₫</div><div class="stat-label">Số dư</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.RecordedCount</div><div class="stat-label">Chờ duyệt</div></div>
+    </div>
+</div>
+
+<!-- Monthly Chart -->
+@if (Model.MonthlySummary.Any())
+{
+    <div class="content-card mb-4 animate-fade-in">
+        <div class="card-header-custom"><h5><i class="fa-solid fa-chart-bar" style="color:var(--apple-blue)"></i> Biểu đồ thu chi 6 tháng</h5></div>
+        <div class="card-body-custom">
+            <div class="d-flex align-items-end gap-2" style="height:120px">
+                @{ var maxVal = Model.MonthlySummary.Max(m => Math.Max(m.Income, m.Expense)); if (maxVal == 0) maxVal = 1; }
+                @foreach (var m in Model.MonthlySummary)
+                {
+                    var incH = maxVal > 0 ? m.Income / maxVal * 100 : 0;
+                    var expH = maxVal > 0 ? m.Expense / maxVal * 100 : 0;
+                    <div class="text-center flex-grow-1" style="min-width:0">
+                        <div class="d-flex align-items-end justify-content-center gap-1" style="height:100px">
+                            <div style="width:14px;background:var(--success);border-radius:4px 4px 0 0;height:@Math.Max(4, incH)%;opacity:.7" title="Thu: @m.Income.ToString("N0") ₫"></div>
+                            <div style="width:14px;background:var(--danger);border-radius:4px 4px 0 0;height:@Math.Max(4, expH)%;opacity:.7" title="Chi: @m.Expense.ToString("N0") ₫"></div>
+                        </div>
+                        <div style="font-size:.6rem;color:var(--text-muted);margin-top:4px">@m.Month.Substring(5)</div>
+                    </div>
+                }
+            </div>
+            <div class="d-flex justify-content-center gap-4 mt-2" style="font-size:.7rem">
+                <span><span style="display:inline-block;width:10px;height:10px;background:var(--success);border-radius:2px;margin-right:4px"></span>Thu</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:var(--danger);border-radius:2px;margin-right:4px"></span>Chi</span>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Filters -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Mã, mô tả..." style="border-radius:0 8px 8px 0">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">Loại</label>
+                <select name="type" class="form-select" style="border-radius:8px">
+                    <option value="">Tất cả</option>
+                    <option value="Income" selected="@(Model.TypeFilter == "Income")">📥 Thu</option>
+                    <option value="Expense" selected="@(Model.TypeFilter == "Expense")">📤 Chi</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">Trạng thái</label>
+                <select name="status" class="form-select" style="border-radius:8px">
+                    @foreach (var s in EnumHelper.GetSelectList<CashTransactionStatus>(Model.StatusFilter, includeAll: true))
+                    { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small fw-bold">Từ ngày</label>
+                <input type="date" name="from" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:8px" />
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border" style="border-radius:8px"><i class="fa-solid fa-rotate-left"></i></a>
+                <div class="dropdown">
+                    <button type="button" class="btn btn-success dropdown-toggle" style="border-radius:8px" data-bs-toggle="dropdown"><i class="fa-solid fa-plus me-1"></i>Ghi nhận</button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" asp-action="Create" asp-route-type="Income"><i class="fa-solid fa-arrow-down text-success me-2"></i>Ghi nhận thu</a></li>
+                        <li><a class="dropdown-item" asp-action="Create" asp-route-type="Expense"><i class="fa-solid fa-arrow-up text-danger me-2"></i>Ghi nhận chi</a></li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="content-card animate-fade-in">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-book-open" style="color:var(--apple-blue)"></i> Sổ thu chi <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.TotalCount</span></h5>
+    </div>
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="data-table" style="font-size:.85rem">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Mã</th>
+                        <th>Loại</th>
+                        <th>Danh mục</th>
+                        <th>Mô tả</th>
+                        <th class="text-end">Số tiền</th>
+                        <th>Ngày</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        var badge = item.Status switch { "Approved" => "badge-on-track", "Recorded" => "badge-at-risk", "Rejected" => "badge-behind", "Voided" => "badge-behind", _ => "" };
+                        <tr>
+                            <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.TransactionNo</td>
+                            <td>
+                                @if (item.IsIncome)
+                                { <span style="font-size:.78rem;padding:3px 8px;border-radius:6px;background:rgba(52,199,89,.08);color:var(--success)"><i class="fa-solid fa-arrow-down me-1"></i>Thu</span> }
+                                else
+                                { <span style="font-size:.78rem;padding:3px 8px;border-radius:6px;background:rgba(255,59,48,.06);color:var(--danger)"><i class="fa-solid fa-arrow-up me-1"></i>Chi</span> }
+                            </td>
+                            <td style="font-size:.8rem;color:var(--text-secondary)">@item.Category</td>
+                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="@item.Description">@item.Description</td>
+                            <td class="text-end" style="font-weight:700;color:@(item.IsIncome ? "var(--success)" : "var(--danger)")">@(item.IsIncome ? "+" : "−")@item.Amount.ToString("N0") ₫</td>
+                            <td style="color:var(--text-muted);font-size:.82rem">@item.TransactionDate.ToString("dd/MM/yyyy")</td>
+                            <td><span class="status-badge-soft @badge"><span class="status-dot"></span>@(EnumHelper.Label<CashTransactionStatus>(item.Status))</span></td>
+                            <td class="text-end pe-4">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light" style="border-radius:8px"><i class="fa-solid fa-eye me-1"></i>Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-5" style="color:var(--text-muted)"><i class="fa-solid fa-book-open fa-2x d-block mb-2 opacity-50"></i>Chưa có giao dịch thu chi</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

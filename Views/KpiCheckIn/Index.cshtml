@@ -1,55 +1,80 @@
 @model OmniBizAI.ViewModels.KpiCheckInListViewModel
-@{ ViewData["Title"] = "KPI Check-In"; }
-
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
-            <i class="bi bi-clipboard-check me-2" style="color:var(--kpi-primary);"></i>KPI Check-In
-        </h1>
-        <span class="text-muted small">Báo cáo tiến độ và review check-in</span>
-    </div>
-</div>
+@{
+    ViewData["Title"] = "KPI Check-In";
+    ViewData["Breadcrumb"] = "<span>KPI</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Check-In</span>";
+}
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert" style="border-radius:var(--kpi-radius); border:1px solid rgba(15,157,88,0.2);">
-        <i class="bi bi-check-circle-fill" style="color:var(--kpi-success);"></i>
-        <span>@TempData["Success"]</span>
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["Success"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert" style="border-radius:var(--kpi-radius); border:1px solid rgba(217,48,37,0.2);">
-        <i class="bi bi-exclamation-triangle-fill" style="color:var(--kpi-danger);"></i>
-        <span>@TempData["Error"]</span>
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["Error"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="stat-value">@Model.PendingCount</div>
+            <div class="stat-label">Chờ duyệt</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-value">@Model.ApprovedCount</div>
+            <div class="stat-label">Đã duyệt</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(255,59,48,.08);color:#ff3b30"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="stat-value">@Model.RejectedCount</div>
+            <div class="stat-label">Từ chối</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(255,149,0,.08);color:#ff9500"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-value">@Model.LateCount</div>
+            <div class="stat-label">Trễ hạn</div>
+        </div>
+    </div>
+</div>
 
+<!-- Submit Form -->
 <div class="content-card mb-4">
-    <div class="card-header-custom"><h5><i class="bi bi-plus-circle"></i> Tạo Check-In mới</h5></div>
+    <div class="card-header-custom"><h5><i class="fa-solid fa-plus-circle"></i> Tạo Check-In mới</h5></div>
     <div class="card-body-custom">
         <div class="small text-muted mb-3">Chọn KPI cần cập nhật, nhập giá trị mới nhất và thêm ghi chú ngắn (nếu có).</div>
         <form asp-action="Submit" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
             <div class="col-md-5">
-                <label class="form-label">KPI Target</label>
+                <label class="form-label fw-bold">KPI Target</label>
                 <select name="KpiTargetId" class="form-select" required>
                     <option value="">-- Chọn KPI --</option>
                     @foreach (var t in Model.AvailableTargets) { <option value="@t.Value">@t.Text</option> }
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Giá trị tiến độ</label>
+                <label class="form-label fw-bold">Giá trị tiến độ</label>
                 <input name="ProgressValue" type="number" step="0.01" class="form-control" required />
             </div>
             <div class="col-md-4">
-                <label class="form-label">Ghi chú</label>
-                <input name="Comment" class="form-control" />
+                <label class="form-label fw-bold">Ghi chú</label>
+                <input name="Comment" class="form-control" maxlength="1000" />
             </div>
             <div class="col-12">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Gửi check-in</button>
+                <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-paper-plane me-2"></i>Gửi check-in</button>
             </div>
         </form>
     </div>
@@ -58,91 +83,84 @@
 <!-- Toolbar -->
 <div class="content-card mb-4">
     <div class="card-body-custom py-3">
-        <form method="get" class="toolbar mb-0">
-            <div class="toolbar-left">
-                <div class="toolbar-search">
-                    <i class="bi bi-search"></i>
-                    <input type="text" name="search" placeholder="Tìm theo KPI hoặc nhân viên..." value="@Model.SearchTerm" />
+        <form method="get" class="d-flex gap-3 align-items-end flex-wrap">
+            <div class="flex-grow-1" style="min-width:200px">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="KPI hoặc nhân viên..." style="border-radius:0 8px 8px 0" />
                 </div>
-                <select name="reviewStatus" class="filter-select">
-                    <option value="">Tất cả trạng thái</option>
+            </div>
+            <div style="min-width:160px">
+                <label class="form-label text-muted small fw-bold">Trạng thái</label>
+                <select name="reviewStatus" class="form-select">
+                    <option value="">Tất cả</option>
                     <option value="Pending" selected="@(Model.ReviewStatusFilter == "Pending")">⏳ Chờ duyệt</option>
                     <option value="Approved" selected="@(Model.ReviewStatusFilter == "Approved")">✅ Đã duyệt</option>
                     <option value="Rejected" selected="@(Model.ReviewStatusFilter == "Rejected")">❌ Từ chối</option>
                 </select>
             </div>
-            <div class="toolbar-right">
-                <button type="submit" class="btn-outline-custom"><i class="bi bi-funnel"></i> Lọc</button>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Index" class="btn btn-light border" style="border-radius:8px" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Check-In Table -->
+<!-- Table -->
 <div class="content-card animate-fade-in">
     <div class="card-header-custom">
-        <h5><i class="bi bi-clock-history"></i> Lịch sử Check-In (@Model.TotalCount)</h5>
+        <h5><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử Check-In <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.TotalCount</span></h5>
     </div>
     <div class="table-responsive">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>KPI</th>
+                    <th class="ps-4">KPI</th>
                     <th>Nhân viên</th>
-                    <th class="text-center">Ngày check-in</th>
+                    <th class="text-center">Ngày</th>
                     <th class="text-end">Giá trị</th>
                     <th class="text-center">Review</th>
                     <th class="text-center">Điểm</th>
-                    <th class="text-center" style="width:120px;">Thao tác</th>
+                    <th class="text-center pe-4" style="width:140px">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Items.Any())
                 {
-                    <tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-clipboard-x me-2" style="font-size:1.5rem;"></i>Chưa có check-in nào.</td></tr>
+                    <tr><td colspan="7" class="text-center py-5 text-muted"><i class="fa-solid fa-clipboard-list fa-2x mb-2 opacity-50"></i><br/>Chưa có check-in nào.</td></tr>
                 }
                 @foreach (var item in Model.Items)
                 {
+                    var (badgeCls, statusTxt) = item.ReviewStatus switch
+                    {
+                        "Pending" => ("bg-warning-subtle text-warning border", "⏳ Chờ duyệt"),
+                        "Approved" => ("bg-success-subtle text-success border", "✅ Đã duyệt"),
+                        "Rejected" => ("bg-danger-subtle text-danger border", "❌ Từ chối"),
+                        _ => ("", item.ReviewStatus)
+                    };
                     <tr>
-                        <td>
-                            <span style="font-weight:600; color:var(--kpi-text-primary);">@item.KpiName</span><br/>
-                            <code style="background:var(--kpi-primary-light); color:var(--kpi-primary-dark); padding:2px 8px; border-radius:4px; font-size:0.75rem;">@item.KpiCode</code>
+                        <td class="ps-4">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="fw-bold" style="color:var(--text-primary);text-decoration:none">@item.KpiName</a>
+                            <div><code style="background:rgba(0,122,255,.06);color:var(--apple-blue);padding:1px 6px;border-radius:4px;font-size:.7rem">@item.KpiCode</code></div>
                         </td>
-                        <td style="color:var(--kpi-text-secondary);">@item.UserName</td>
-                        <td class="text-center">
-                            <span>@item.CheckInDate.ToString("dd/MM/yyyy")</span>
-                            @if (item.IsLate) { <span class="status-badge-soft badge-late ms-1" style="font-size:0.65rem; padding:3px 8px;"><span class="status-dot"></span> Trễ</span> }
+                        <td style="font-size:.85rem">@item.UserName</td>
+                        <td class="text-center" style="font-size:.85rem">
+                            @item.CheckInDate.ToString("dd/MM/yyyy")
+                            @if (item.IsLate) { <span class="badge bg-danger rounded-pill" style="font-size:.6rem;margin-left:4px">Trễ</span> }
                         </td>
-                        <td class="text-end" style="font-weight:800; color:var(--kpi-text-primary); font-size:1.05rem;">@item.ProgressValue.ToString("N2")</td>
-                        <td class="text-center">
-                            @{
-                                var (badgeCls, statusTxt) = item.ReviewStatus switch
+                        <td class="text-end fw-bold" style="font-size:1rem">@item.ProgressValue.ToString("N2")</td>
+                        <td class="text-center"><span class="badge @badgeCls rounded-pill" style="font-size:.68rem">@statusTxt</span></td>
+                        <td class="text-center fw-bold" style="color:var(--apple-blue)">@(item.ReviewScore?.ToString("N1") ?? "—")</td>
+                        <td class="text-center pe-4">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" style="border-radius:6px" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+                                @if (item.ReviewStatus == "Pending")
                                 {
-                                    "Pending" => ("badge-at-risk", "Chờ duyệt"),
-                                    "Approved" => ("badge-on-track", "Đã duyệt"),
-                                    "Rejected" => ("badge-late", "Từ chối"),
-                                    _ => ("", item.ReviewStatus)
-                                };
-                            }
-                            <span class="status-badge-soft @badgeCls"><span class="status-dot"></span> @statusTxt</span>
-                        </td>
-                        <td class="text-center" style="font-weight:700;">@(item.ReviewScore?.ToString("N1") ?? "—")</td>
-                        <td class="text-center">
-                            @if (item.ReviewStatus == "Pending")
-                            {
-                                <div class="action-btns justify-content-center">
-                                    <form asp-action="Review" method="post" class="d-inline">
-                                        <input type="hidden" name="CheckInId" value="@item.Id" />
-                                        <input type="hidden" name="Decision" value="Approved" />
-                                        <button type="submit" class="action-btn" title="Duyệt" style="color:var(--kpi-success);"><i class="bi bi-check-lg"></i></button>
-                                    </form>
-                                    <form asp-action="Review" method="post" class="d-inline">
-                                        <input type="hidden" name="CheckInId" value="@item.Id" />
-                                        <input type="hidden" name="Decision" value="Rejected" />
-                                        <button type="submit" class="action-btn danger" title="Từ chối"><i class="bi bi-x-lg"></i></button>
-                                    </form>
-                                </div>
-                            }
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" style="border-radius:6px" title="Sửa"><i class="fa-solid fa-pen"></i></a>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
@@ -151,12 +169,13 @@
     </div>
     @if (Model.TotalPages > 1)
     {
-        <div class="pagination-custom">
-            <span>Tổng: <strong>@Model.TotalCount</strong> • Trang @Model.Page/@Model.TotalPages</span>
-            <div class="pagination-pages">
+        <div style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--divider)">
+            <span style="font-size:.82rem;color:var(--text-muted)">Tổng: <strong>@Model.TotalCount</strong> • Trang @Model.Page/@Model.TotalPages</span>
+            <div class="d-flex gap-1">
                 @for (int i = 1; i <= Model.TotalPages; i++)
                 {
-                    <a href="?page=@i&search=@Model.SearchTerm&reviewStatus=@Model.ReviewStatusFilter" class="page-btn @(i == Model.Page ? "active" : "")">@i</a>
+                    <a href="?page=@i&search=@Model.SearchTerm&reviewStatus=@Model.ReviewStatusFilter"
+                       class="btn btn-sm @(i == Model.Page ? "btn-primary" : "btn-light border")" style="border-radius:6px;min-width:32px">@i</a>
                 }
             </div>
         </div>

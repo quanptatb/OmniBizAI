@@ -1,0 +1,94 @@
+@model OmniBizAI.ViewModels.CrmReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo CRM";
+    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>CRM</span>";
+}
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="ExportCrm" class="btn btn-sm btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-file-csv me-1"></i>Xuất CSV</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon blue mx-auto"><i class="fa-solid fa-building"></i></div><div class="stat-value">@Model.TotalCustomers</div><div class="stat-label">Khách hàng (@Model.ActiveCustomers hoạt động)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon green mx-auto"><i class="fa-solid fa-handshake"></i></div><div class="stat-value">@Model.TotalOpportunities</div><div class="stat-label">Cơ hội (Win rate: @Model.WinRate%)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon orange mx-auto"><i class="fa-solid fa-funnel-dollar"></i></div><div class="stat-value">@((Model.PipelineValue / 1000000).ToString("N0"))M</div><div class="stat-label">Pipeline value (VNĐ)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon purple mx-auto" style="background:rgba(175,82,222,.08);color:#AF52DE"><i class="fa-solid fa-comments"></i></div><div class="stat-value">@Model.TotalInteractions</div><div class="stat-label">Tương tác KH</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-pie"></i> Cơ hội theo giai đoạn</h5></div>
+            <div class="card-body-custom"><canvas id="stageChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-line"></i> Tương tác KH theo tháng</h5></div>
+            <div class="card-body-custom"><canvas id="interactionChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-trophy"></i> Top khách hàng theo doanh thu (triệu VNĐ)</h5></div>
+            <div class="card-body-custom p-0">
+                @if (!Model.TopCustomersByRevenue.Any())
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted)"><i class="fa-solid fa-inbox me-1"></i> Chưa có dữ liệu</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @{ var rank = 0; }
+                        @foreach (var c in Model.TopCustomersByRevenue)
+                        {
+                            rank++;
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-4 py-3" style="border-color:var(--divider)">
+                                <span><span class="badge me-2" style="background:var(--apple-blue);color:#fff;min-width:24px">@rank</span><span style="font-weight:500">@c.Dept</span></span>
+                                <span class="badge" style="background:rgba(52,199,89,.08);color:var(--success)">@c.Count M</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-bar"></i> Tổng quan nhanh</h5></div>
+            <div class="card-body-custom">
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--divider)"><span style="color:var(--text-muted)">Tổng KH</span><span style="font-weight:600">@Model.TotalCustomers</span></div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--divider)"><span style="color:var(--text-muted)">Nhà cung cấp</span><span style="font-weight:600">@Model.TotalVendors</span></div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--divider)"><span style="color:var(--text-muted)">Thắng</span><span style="font-weight:600;color:var(--success)">@Model.WonOpportunities</span></div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--divider)"><span style="color:var(--text-muted)">Thua</span><span style="font-weight:600;color:var(--danger)">@Model.LostOpportunities</span></div>
+                <div class="d-flex justify-content-between py-2"><span style="color:var(--text-muted)">Doanh thu Won</span><span style="font-weight:600;color:var(--success)">@((Model.WonValue / 1000000).ToString("N0"))M</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const colors = ['#007AFF','#34C759','#FF9500','#FF3B30','#5AC8FA','#AF52DE','#FF2D55','#86868B'];
+            // Stage chart
+            const stages = @Json.Serialize(Model.OpportunityByStage.Select(x => x.Status));
+            const stageCounts = @Json.Serialize(Model.OpportunityByStage.Select(x => x.Count));
+            new Chart(document.getElementById('stageChart'), {
+                type: 'doughnut', data: { labels: stages, datasets: [{ data: stageCounts, backgroundColor: colors.slice(0, stages.length) }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+            // Interaction trend
+            const months = @Json.Serialize(Model.InteractionTrend.Select(x => x.Month));
+            const intData = @Json.Serialize(Model.InteractionTrend.Select(x => x.Created));
+            new Chart(document.getElementById('interactionChart'), {
+                type: 'line', data: { labels: months, datasets: [
+                    { label: 'Tương tác', data: intData, borderColor: '#007AFF', backgroundColor: 'rgba(0,122,255,.1)', fill: true, tension: .4 }
+                ]}, options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        });
+    </script>
+}

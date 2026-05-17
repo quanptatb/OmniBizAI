@@ -24,5 +24,15 @@ public class ProductService : TenantEntity
     [Column(TypeName = "decimal(18,2)")]
     public decimal? StandardPrice { get; set; }
 
+    // Inventory management
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal ReorderPoint { get; set; } = 0; // Điểm đặt hàng lại (mức tồn kho tối thiểu trước khi cần bổ sung)
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal SafetyStock { get; set; } = 0; // Tồn kho an toàn (mức dự trữ bảo hiểm)
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MaxStock { get; set; } = 0; // Tồn kho tối đa
+
     public bool IsActive { get; set; } = true;
 }

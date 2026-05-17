@@ -1,0 +1,73 @@
+@model OmniBizAI.ViewModels.CashFlowReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo Thu Chi";
+    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Thu Chi</span>";
+    var balColor = Model.Balance >= 0 ? "var(--success)" : "var(--danger)";
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon green mx-auto"><i class="fa-solid fa-arrow-down"></i></div><div class="stat-value" style="color:var(--success)">@Model.TotalIncome.ToString("N0")</div><div class="stat-label">Tổng thu (VNĐ)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon red mx-auto"><i class="fa-solid fa-arrow-up"></i></div><div class="stat-value" style="color:var(--danger)">@Model.TotalExpense.ToString("N0")</div><div class="stat-label">Tổng chi (VNĐ)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon blue mx-auto"><i class="fa-solid fa-scale-balanced"></i></div><div class="stat-value" style="color:@balColor">@Model.Balance.ToString("N0")</div><div class="stat-label">Số dư (VNĐ)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon orange mx-auto"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.PendingApproval</div><div class="stat-label">Chờ duyệt / @Model.TotalTransactions GD</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Monthly trend -->
+    <div class="col-lg-7">
+        <div class="content-card h-100">
+            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                <h5><i class="fa-solid fa-chart-area"></i> Xu hướng Thu Chi (6 tháng)</h5>
+                <a asp-action="ExportCashFlow" class="btn btn-sm btn-light" title="Xuất CSV"><i class="fa-solid fa-file-csv me-1"></i>CSV</a>
+            </div>
+            <div class="card-body-custom"><canvas id="cfTrendChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <!-- By payment method -->
+    <div class="col-lg-5">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-credit-card"></i> Phương thức thanh toán</h5></div>
+            <div class="card-body-custom"><canvas id="pmChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-tags"></i> Phân bổ theo Danh mục (triệu VNĐ)</h5></div>
+    <div class="card-body-custom p-0">
+        <ul class="list-group list-group-flush">
+            @foreach (var c in Model.ByCategory)
+            {
+                var isPos = c.Count >= 0;
+                <li class="list-group-item bg-transparent d-flex justify-content-between px-4 py-3" style="border-color:var(--divider)">
+                    <span style="font-weight:500">@c.Status</span>
+                    <span class="badge" style="background:@(isPos ? "rgba(52,199,89,.1)" : "rgba(255,59,48,.08)");color:@(isPos ? "var(--success)" : "var(--danger)")">@(isPos ? "+" : "")@c.Count M</span>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const months = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Month));
+            const inc = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Income / 1000000));
+            const exp = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Expense / 1000000));
+            new Chart(document.getElementById('cfTrendChart'), {
+                type: 'bar', data: { labels: months, datasets: [
+                    { label: 'Thu (M)', data: inc, backgroundColor: 'rgba(52,199,89,.7)', borderRadius: 6 },
+                    { label: 'Chi (M)', data: exp, backgroundColor: 'rgba(255,59,48,.7)', borderRadius: 6 }
+                ]}, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'top' } } }
+            });
+            // Payment method pie
+            const pmLabels = @Json.Serialize(Model.ByPaymentMethod.Select(x => x.Status));
+            const pmData = @Json.Serialize(Model.ByPaymentMethod.Select(x => x.Count));
+            const colors = ['#007AFF','#34C759','#FF9500','#FF3B30','#5AC8FA','#AF52DE'];
+            new Chart(document.getElementById('pmChart'), {
+                type: 'doughnut', data: { labels: pmLabels, datasets: [{ data: pmData, backgroundColor: colors.slice(0, pmLabels.length) }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        });
+    </script>
+}

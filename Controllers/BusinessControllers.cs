@@ -1142,16 +1142,104 @@ public class ReportsController : Controller
         return View(vm);
     }
 
+    // ── Inventory / Warehouse Report ──────────────────────────────────────────
+    public async Task<IActionResult> Inventory()
+    {
+        var tid = _tenant.TenantId;
+        var receipts = await _db.GoodsReceipts.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
+        var issues = await _db.GoodsIssues.Where(i => i.TenantId == tid && !i.IsDeleted).ToListAsync();
+        var alerts = await _db.StockAlerts.CountAsync(a => a.TenantId == tid && !a.IsDeleted && a.Status == StockAlertStatus.Active);
+
+        var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
+        var receiptsByMonth = receipts.Where(r => r.ReceiptDate >= sixMonthsAgo).GroupBy(r => r.ReceiptDate.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
+        var issuesByMonth = issues.Where(i => i.IssueDate >= sixMonthsAgo).GroupBy(i => i.IssueDate.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
+        var months = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i).ToString("yyyy-MM")).ToList();
+        var trend = months.Select(m => new MonthlyTrendItem { Month = m, Created = receiptsByMonth.GetValueOrDefault(m), Completed = issuesByMonth.GetValueOrDefault(m) }).ToList();
+
+        var vm = new InventoryReportViewModel
+        {
+            TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted && p.Type == "Product"),
+            ActiveAlertCount = alerts,
+            TotalReceipts = receipts.Count, ConfirmedReceipts = receipts.Count(r => r.Status == GoodsReceiptStatus.Confirmed),
+            TotalIssues = issues.Count, ConfirmedIssues = issues.Count(i => i.Status == GoodsIssueStatus.Confirmed),
+            ReceiptIssueTrend = trend
+        };
+        return View(vm);
+    }
+
+    // ── Cash Flow Report ──────────────────────────────────────────────────────
+    public async Task<IActionResult> CashFlow()
+    {
+        var tid = _tenant.TenantId;
+        var txns = await _db.CashTransactions.Where(t => t.TenantId == tid && !t.IsDeleted).ToListAsync();
+        var valid = txns.Where(t => t.Status != CashTransactionStatus.Voided && t.Status != CashTransactionStatus.Rejected).ToList();
+
+        var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
+        var monthly = valid.Where(t => t.TransactionDate >= sixMonthsAgo).GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month, t.TransactionType }).ToList();
+        var mList = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i)).ToList();
+        var trend = mList.Select(d => new CashMonthSummary
+        {
+            Month = d.ToString("yyyy-MM"),
+            Income = monthly.Where(m => m.Key.Year == d.Year && m.Key.Month == d.Month && m.Key.TransactionType == "Income").Sum(m => m.Sum(t => t.Amount)),
+            Expense = monthly.Where(m => m.Key.Year == d.Year && m.Key.Month == d.Month && m.Key.TransactionType == "Expense").Sum(m => m.Sum(t => t.Amount))
+        }).ToList();
+
+        var vm = new CashFlowReportViewModel
+        {
+            TotalIncome = valid.Where(t => t.TransactionType == "Income").Sum(t => t.Amount),
+            TotalExpense = valid.Where(t => t.TransactionType == "Expense").Sum(t => t.Amount),
+            TotalTransactions = txns.Count, PendingApproval = txns.Count(t => t.Status == CashTransactionStatus.Recorded),
+            ByCategory = valid.GroupBy(t => t.Category).Select(g => new StatusCountItem { Status = g.Key, Count = (int)(g.Sum(t => t.TransactionType == "Income" ? t.Amount : -t.Amount) / 1000000) }).OrderByDescending(x => Math.Abs(x.Count)).Take(10).ToList(),
+            ByPaymentMethod = valid.Where(t => t.PaymentMethod != null).GroupBy(t => t.PaymentMethod!).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+            MonthlyTrend = trend
+        };
+        return View(vm);
+    }
+
+    // ── CRM Report ────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Crm()
+    {
+        var tid = _tenant.TenantId;
+        var customers = await _db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted).ToListAsync();
+        var opps = await _db.SalesOpportunities.Include(o => o.Customer).Where(o => o.TenantId == tid && !o.IsDeleted).ToListAsync();
+        var interactions = await _db.CrmInteractions.Where(i => i.TenantId == tid && !i.IsDeleted).ToListAsync();
+
+        var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
+        var interactionTrend = interactions.Where(i => DateOnly.FromDateTime(i.CreatedAt.DateTime) >= sixMonthsAgo)
+            .GroupBy(i => i.CreatedAt.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
+        var months = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i).ToString("yyyy-MM")).ToList();
+        var trend = months.Select(m => new MonthlyTrendItem { Month = m, Created = interactionTrend.GetValueOrDefault(m) }).ToList();
+
+        var vm = new CrmReportViewModel
+        {
+            TotalCustomers = customers.Count, ActiveCustomers = customers.Count(c => c.IsActive),
+            TotalVendors = await _db.Vendors.CountAsync(v => v.TenantId == tid && !v.IsDeleted),
+            TotalOpportunities = opps.Count, WonOpportunities = opps.Count(o => o.Stage == "ClosedWon"),
+            LostOpportunities = opps.Count(o => o.Stage == "ClosedLost"),
+            PipelineValue = opps.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").Sum(o => o.EstimatedValue),
+            WonValue = opps.Where(o => o.Stage == "ClosedWon").Sum(o => o.EstimatedValue),
+            TotalInteractions = interactions.Count,
+            OpportunityByStage = opps.GroupBy(o => o.Stage).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+            TopCustomersByRevenue = opps.Where(o => o.Stage == "ClosedWon" && o.Customer != null).GroupBy(o => o.Customer!.Name)
+                .Select(g => new DeptWorkloadItem { Dept = g.Key, Count = (int)(g.Sum(o => o.EstimatedValue) / 1000000) }).OrderByDescending(x => x.Count).Take(10).ToList(),
+            InteractionTrend = trend
+        };
+        return View(vm);
+    }
+
+    // ── Enhanced Executive ────────────────────────────────────────────────────
     public async Task<IActionResult> Executive()
     {
         var tid = _tenant.TenantId;
-        // Quick summary data for executive overview
         var requests = await _db.OperationRequests.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
         var budgets = await _db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == DateTime.Today.Year).ToListAsync();
         var expenses = await _db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == DateTime.Today.Year).ToListAsync();
         var users = await _db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted).ToListAsync();
         var okrs = await _db.OkrObjectives.Where(o => o.TenantId == tid && !o.IsDeleted).Include(o => o.KeyResults.Where(kr => !kr.IsDeleted)).ToListAsync();
         var kpis = await _db.KpiDefinitions.Where(k => k.TenantId == tid && !k.IsDeleted).ToListAsync();
+        var cashTxns = await _db.CashTransactions.Where(t => t.TenantId == tid && !t.IsDeleted && t.Status != CashTransactionStatus.Voided && t.Status != CashTransactionStatus.Rejected).ToListAsync();
+        var opps = await _db.SalesOpportunities.Where(o => o.TenantId == tid && !o.IsDeleted).ToListAsync();
+        var alerts = await _db.StockAlerts.CountAsync(a => a.TenantId == tid && !a.IsDeleted && a.Status == StockAlertStatus.Active);
 
         var vm = new ExecutiveReportViewModel
         {
@@ -1179,13 +1267,29 @@ public class ReportsController : Controller
                 TotalKpi = kpis.Count, ActiveKpi = kpis.Count(k => k.Status == KpiStatus.Active),
                 AvgOkrProgress = okrs.Any() ? Math.Round((decimal)okrs.Average(o => o.KeyResults.Any() ? (double)o.KeyResults.Average(kr => kr.TargetValue == 0 ? 0 : (double)(kr.CurrentValue / kr.TargetValue * 100)) : 0), 1) : 0
             },
+            Inventory = new InventoryReportViewModel
+            {
+                TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted && p.Type == "Product"),
+                ActiveAlertCount = alerts,
+                TotalReceipts = await _db.GoodsReceipts.CountAsync(r => r.TenantId == tid && !r.IsDeleted),
+                TotalIssues = await _db.GoodsIssues.CountAsync(i => i.TenantId == tid && !i.IsDeleted)
+            },
+            CashFlow = new CashFlowReportViewModel
+            {
+                TotalIncome = cashTxns.Where(t => t.TransactionType == "Income").Sum(t => t.Amount),
+                TotalExpense = cashTxns.Where(t => t.TransactionType == "Expense").Sum(t => t.Amount),
+                TotalTransactions = cashTxns.Count
+            },
             TotalCustomers = await _db.Customers.CountAsync(c => c.TenantId == tid && c.IsActive && !c.IsDeleted),
             TotalVendors = await _db.Vendors.CountAsync(v => v.TenantId == tid && v.IsActive && !v.IsDeleted),
-            TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted)
+            TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted),
+            TotalOpportunities = opps.Count,
+            OpportunityPipelineValue = opps.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").Sum(o => o.EstimatedValue)
         };
         return View(vm);
     }
 
+    // ── Export Operations ─────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> Export(DateOnly? from, DateOnly? to)
     {
@@ -1212,7 +1316,139 @@ public class ReportsController : Controller
         var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
         return File(bytes, "text/csv", $"BaoCaoVanHanh_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.csv");
     }
+
+    // ── Export Cash Flow ──────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> ExportCashFlow(DateOnly? from, DateOnly? to)
+    {
+        var tid = _tenant.TenantId;
+        var fromDate = from ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(-3));
+        var toDate = to ?? DateOnly.FromDateTime(DateTime.Today);
+        var txns = await _db.CashTransactions.Include(t => t.Customer).Include(t => t.Vendor).Include(t => t.OrganizationUnit).Include(t => t.RecordedByUser)
+            .Where(t => t.TenantId == tid && !t.IsDeleted && t.TransactionDate >= fromDate && t.TransactionDate <= toDate).OrderBy(t => t.TransactionDate).ToListAsync();
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Mã GD,Loại,Danh mục,Mô tả,Số tiền,Ngày,Phương thức,KH/NCC,Phòng ban,Trạng thái,Người ghi");
+        foreach (var t in txns)
+        {
+            var partner = t.TransactionType == "Income" ? t.Customer?.Name : t.Vendor?.Name;
+            csv.AppendLine($"\"{t.TransactionNo}\",\"{(t.TransactionType == "Income" ? "Thu" : "Chi")}\",\"{t.Category}\",\"{t.Description}\",\"{t.Amount}\",\"{t.TransactionDate:dd/MM/yyyy}\",\"{t.PaymentMethod}\",\"{partner}\",\"{t.OrganizationUnit?.Name}\",\"{t.Status}\",\"{t.RecordedByUser?.FullName}\"");
+        }
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return File(bytes, "text/csv", $"BaoCaoThuChi_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.csv");
+    }
+
+    // ── Export Finance ────────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> ExportFinance()
+    {
+        var tid = _tenant.TenantId; var year = DateTime.Today.Year;
+        var expenses = await _db.Expenses.Include(e => e.Budget).ThenInclude(b => b!.OrganizationUnit)
+            .Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == year).OrderBy(e => e.ExpenseDate).ToListAsync();
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("ID,Mô tả,Số tiền,Ngày chi,Ngân sách,Phòng ban,Trạng thái");
+        foreach (var e in expenses)
+            csv.AppendLine($"\"{e.Id}\",\"{e.Description}\",\"{e.Amount}\",\"{e.ExpenseDate:dd/MM/yyyy}\",\"{e.Budget?.Name}\",\"{e.Budget?.OrganizationUnit?.Name}\",\"{e.Status}\"");
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return File(bytes, "text/csv", $"BaoCaoTaiChinh_{year}.csv");
+    }
+
+    // ── Export HR ─────────────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> ExportHr()
+    {
+        var tid = _tenant.TenantId;
+        var users = await _db.AppUsers.Include(u => u.OrganizationUnit)
+            .Where(u => u.TenantId == tid && !u.IsDeleted).OrderBy(u => u.FullName).ToListAsync();
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("ID,Họ tên,Email,Phòng ban,Chức danh,Trạng thái,Ngày tạo");
+        foreach (var u in users)
+            csv.AppendLine($"\"{u.Id}\",\"{u.FullName}\",\"{u.Email}\",\"{u.OrganizationUnit?.Name}\",\"{u.JobTitle}\",\"{u.Status}\",\"{u.CreatedAt:dd/MM/yyyy}\"");
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return File(bytes, "text/csv", $"BaoCaoNhanSu_{DateTime.Today:yyyyMMdd}.csv");
+    }
+
+    // ── Export KPI/OKR ───────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> ExportKpiOkr()
+    {
+        var tid = _tenant.TenantId;
+        var okrs = await _db.OkrObjectives.Include(o => o.KeyResults.Where(kr => !kr.IsDeleted))
+            .Where(o => o.TenantId == tid && !o.IsDeleted).OrderBy(o => o.ObjectiveName).ToListAsync();
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Mục tiêu,Cấp độ,Chu kỳ,Trạng thái,Số KR,Tiến độ TB (%)");
+        foreach (var o in okrs)
+        {
+            var avg = o.KeyResults.Any() ? (double)o.KeyResults.Average(kr => kr.TargetValue == 0 ? 0 : (double)(kr.CurrentValue / kr.TargetValue * 100)) : 0;
+            csv.AppendLine($"\"{o.ObjectiveName}\",\"{o.Level}\",\"{o.Cycle}\",\"{o.Status}\",\"{o.KeyResults.Count}\",\"{avg:F1}\"");
+        }
+        csv.AppendLine();
+        var kpis = await _db.KpiDefinitions.Include(k => k.OrganizationUnit)
+            .Where(k => k.TenantId == tid && !k.IsDeleted).OrderBy(k => k.Name).ToListAsync();
+        csv.AppendLine("Mã KPI,Tên KPI,Đơn vị,Loại đo,Phòng ban,Trạng thái");
+        foreach (var k in kpis)
+            csv.AppendLine($"\"{k.Code}\",\"{k.Name}\",\"{k.Unit}\",\"{k.MeasureType}\",\"{k.OrganizationUnit?.Name}\",\"{k.Status}\"");
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return File(bytes, "text/csv", $"BaoCaoKPI_OKR_{DateTime.Today:yyyyMMdd}.csv");
+    }
+
+    // ── Export Inventory ─────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> ExportInventory()
+    {
+        var tid = _tenant.TenantId;
+        var products = await _db.ProductServices.Include(p => p.ProductCategory)
+            .Where(p => p.TenantId == tid && p.IsActive && !p.IsDeleted && p.Type == "Product").OrderBy(p => p.Code).ToListAsync();
+
+        var productIds = products.Select(p => p.Id).ToList();
+        var receivedMap = await _db.GoodsReceiptLines
+            .Where(l => productIds.Contains(l.ProductServiceId!.Value) && !l.IsDeleted && l.GoodsReceipt!.TenantId == tid && l.GoodsReceipt.Status == GoodsReceiptStatus.Confirmed)
+            .GroupBy(l => l.ProductServiceId).Select(g => new { PId = g.Key, T = g.Sum(l => l.ReceivedQuantity - (l.RejectedQuantity ?? 0)) }).ToListAsync();
+        var issuedMap = await _db.GoodsIssueLines
+            .Where(l => productIds.Contains(l.ProductServiceId!.Value) && !l.IsDeleted && l.GoodsIssue!.TenantId == tid && l.GoodsIssue.Status == GoodsIssueStatus.Confirmed)
+            .GroupBy(l => l.ProductServiceId).Select(g => new { PId = g.Key, T = g.Sum(l => l.IssuedQuantity) }).ToListAsync();
+
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Mã SP,Tên SP,Danh mục,Tồn kho,Điểm ĐH,Mức an toàn,Tồn tối đa,Đơn giá,Giá trị tồn");
+        foreach (var p in products)
+        {
+            var recv = receivedMap.FirstOrDefault(r => r.PId == p.Id)?.T ?? 0;
+            var iss = issuedMap.FirstOrDefault(i => i.PId == p.Id)?.T ?? 0;
+            var stock = recv - iss;
+            csv.AppendLine($"\"{p.Code}\",\"{p.Name}\",\"{p.ProductCategory?.Name}\",\"{stock}\",\"{p.ReorderPoint}\",\"{p.SafetyStock}\",\"{p.MaxStock}\",\"{p.StandardPrice}\",\"{stock * (p.StandardPrice ?? 0)}\"");
+        }
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return File(bytes, "text/csv", $"BaoCaoTonKho_{DateTime.Today:yyyyMMdd}.csv");
+    }
+
+    // ── Export CRM ───────────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> ExportCrm()
+    {
+        var tid = _tenant.TenantId;
+        // Customers
+        var csv = new System.Text.StringBuilder();
+        var customers = await _db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted).OrderBy(c => c.Code).ToListAsync();
+        csv.AppendLine("=== KHÁCH HÀNG ===");
+        csv.AppendLine("Mã KH,Tên,Mã thuế,Ngành,Trạng thái");
+        foreach (var c in customers)
+            csv.AppendLine($"\"{c.Code}\",\"{c.Name}\",\"{c.TaxCode}\",\"{c.Industry}\",\"{(c.IsActive ? "Hoạt động" : "Ngừng")}\"");
+
+        // Opportunities
+        csv.AppendLine();
+        var opps = await _db.SalesOpportunities.Include(o => o.Customer).Where(o => o.TenantId == tid && !o.IsDeleted).OrderByDescending(o => o.CreatedAt).ToListAsync();
+        csv.AppendLine("=== CƠ HỘI BÁN HÀNG ===");
+        csv.AppendLine("Mã,Tiêu đề,Khách hàng,Giai đoạn,Giá trị,Xác suất (%),Nguồn,Ngày tạo");
+        foreach (var o in opps)
+            csv.AppendLine($"\"{o.Code}\",\"{o.Title}\",\"{o.Customer?.Name}\",\"{o.Stage}\",\"{o.EstimatedValue}\",\"{o.Probability}\",\"{o.Source}\",\"{o.CreatedAt:dd/MM/yyyy}\"");
+
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray();
+        return File(bytes, "text/csv", $"BaoCaoCRM_{DateTime.Today:yyyyMMdd}.csv");
+    }
+
+    // ── Export Center ────────────────────────────────────────────────────────
+    public IActionResult ExportCenter() => View();
 }
+
 
 [Authorize]
 public class AuditController : Controller
@@ -1276,12 +1512,51 @@ public class AiInsightsController : Controller
         _service = service;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? contextType, string? riskLevel, string? search, int page = 1)
     {
-        var insights = await _service.GetListAsync();
+        var vm = await _service.GetFilteredListAsync(contextType, riskLevel, search, page);
         var quickActions = await _service.GetQuickActionsAsync();
         ViewBag.QuickActions = quickActions;
-        return View(insights);
+        return View(vm);
+    }
+
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var vm = await _service.GetDetailAsync(id);
+        if (vm == null) return NotFound();
+        return View(vm);
+    }
+
+    public async Task<IActionResult> Recommendations()
+    {
+        var vm = await _service.GenerateRecommendationsAsync();
+        return View(vm);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportInsight(Guid id)
+    {
+        var vm = await _service.GetDetailAsync(id);
+        if (vm == null) return NotFound();
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"# AI Phân tích - {vm.ContextType}");
+        sb.AppendLine($"Ngày: {vm.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}");
+        sb.AppendLine($"Mức rủi ro: {vm.RiskLevel}");
+        sb.AppendLine($"Người hỏi: {vm.AskedByName ?? "N/A"}");
+        sb.AppendLine();
+        sb.AppendLine($"## Câu hỏi");
+        sb.AppendLine(vm.Question);
+        sb.AppendLine();
+        sb.AppendLine($"## Phân tích");
+        sb.AppendLine(vm.Summary);
+        if (!string.IsNullOrEmpty(vm.Recommendation))
+        {
+            sb.AppendLine();
+            sb.AppendLine($"## Đề xuất hành động");
+            sb.AppendLine(vm.Recommendation);
+        }
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        return File(bytes, "text/markdown", $"AiInsight_{vm.ContextType}_{vm.CreatedAt:yyyyMMdd_HHmm}.md");
     }
 
     [HttpPost]
@@ -1314,6 +1589,53 @@ public class AiInsightsController : Controller
     {
         await _service.DeleteAsync(id);
         TempData["Success"] = "Đã xóa phân tích.";
+        return RedirectToAction(nameof(Index));
+    }
+}
+
+[Authorize(Roles = "EXECUTIVE,DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN,STAFF")]
+public class AnomalyAlertsController : Controller
+{
+    private readonly AnomalyDetectionService _anomaly;
+    private readonly InventoryService _inventory;
+    private readonly NotificationService _notif;
+
+    public AnomalyAlertsController(AnomalyDetectionService anomaly, InventoryService inventory, NotificationService notif)
+    {
+        _anomaly = anomaly; _inventory = inventory; _notif = notif;
+    }
+
+    public async Task<IActionResult> Index(string? module, string? severity)
+    {
+        // Auto-refresh stock alerts
+        await _inventory.GenerateStockAlertsAsync();
+        var vm = await _anomaly.ScanAsync(module, severity);
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RefreshAlerts()
+    {
+        var newAlerts = await _inventory.GenerateStockAlertsAsync();
+        if (newAlerts > 0)
+            await _notif.SendToManagersAsync($"⚠️ {newAlerts} cảnh báo tồn kho mới", $"Hệ thống phát hiện {newAlerts} sản phẩm cần chú ý.", "StockAlert", null);
+        TempData["SuccessMessage"] = newAlerts > 0 ? $"Phát hiện {newAlerts} cảnh báo mới." : "Không có cảnh báo mới.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AcknowledgeAlert(Guid id)
+    {
+        await _inventory.AcknowledgeAlertAsync(id);
+        TempData["SuccessMessage"] = "Đã ghi nhận cảnh báo.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResolveAlert(Guid id)
+    {
+        await _inventory.ResolveAlertAsync(id);
+        TempData["SuccessMessage"] = "Đã xử lý cảnh báo.";
         return RedirectToAction(nameof(Index));
     }
 }

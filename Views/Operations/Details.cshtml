@@ -13,20 +13,32 @@
     };
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row g-4">
     <!-- MAIN CONTENT -->
     <div class="col-lg-8">
         <!-- Header Card -->
-        <div class="content-card mb-4">
+        <div class="content-card mb-4 animate-fade-in">
             <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                         <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider)">@Model.Type</span>
                         <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@Model.StatusLabel</span>
-                        @if (Model.IsOverdue)
-                        {
-                            <span class="status-badge-soft badge-behind"><span class="status-dot"></span>Quá hạn</span>
-                        }
+                        @if (Model.IsOverdue) { <span class="status-badge-soft badge-behind"><span class="status-dot"></span>Quá hạn</span> }
                     </div>
                     <h5 style="font-weight:600;margin:0;letter-spacing:-0.01em">@Model.Title</h5>
                 </div>
@@ -37,39 +49,27 @@
             </div>
             <div class="card-body-custom">
                 <div class="row mb-4 g-4">
-                    <div class="col-sm-6">
-                        <label class="form-label" style="margin-bottom:4px">Người tạo</label>
-                        <div style="font-weight:500"><i class="fa-solid fa-user me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.CreatedBy</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label" style="margin-bottom:4px">Phòng ban phụ trách</label>
-                        <div style="font-weight:500"><i class="fa-solid fa-building me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Department</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label" style="margin-bottom:4px">Độ ưu tiên</label>
-                        <div style="font-weight:600;color:@priColor"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:5px"></i>@Model.PriorityLabel</div>
-                    </div>
+                    <div class="col-sm-6"><label class="form-label" style="margin-bottom:4px">Người tạo</label><div style="font-weight:500"><i class="fa-solid fa-user me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.CreatedBy</div></div>
+                    <div class="col-sm-6"><label class="form-label" style="margin-bottom:4px">Phòng ban phụ trách</label><div style="font-weight:500"><i class="fa-solid fa-building me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Department</div></div>
+                    <div class="col-sm-6"><label class="form-label" style="margin-bottom:4px">Độ ưu tiên</label><div style="font-weight:600;color:@priColor"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:5px"></i>@Model.PriorityLabel</div></div>
                     <div class="col-sm-6">
                         <label class="form-label" style="margin-bottom:4px">Hạn xử lý</label>
                         <div style="font-weight:500;color:@(Model.IsOverdue ? "var(--danger)" : "var(--text-primary)")">
-                            <i class="fa-regular fa-calendar me-1" style="font-size:.78rem"></i>
-                            @(Model.DueDate?.ToString("dd/MM/yyyy") ?? "Không có")
+                            <i class="fa-regular fa-calendar me-1" style="font-size:.78rem"></i>@(Model.DueDate?.ToString("dd/MM/yyyy") ?? "Không có")
                             @if (Model.IsOverdue) { <span style="font-size:.72rem;color:var(--danger);margin-left:4px">(quá hạn)</span> }
                         </div>
                     </div>
                     @if (!string.IsNullOrEmpty(Model.Customer))
                     {
-                        <div class="col-sm-6">
-                            <label class="form-label" style="margin-bottom:4px">Khách hàng</label>
-                            <div style="font-weight:500"><i class="fa-solid fa-handshake me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Customer</div>
-                        </div>
+                        <div class="col-sm-6"><label class="form-label" style="margin-bottom:4px">Khách hàng</label><div style="font-weight:500"><i class="fa-solid fa-handshake me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Customer</div></div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.CustomerSiteName))
+                    {
+                        <div class="col-sm-6"><label class="form-label" style="margin-bottom:4px">Chi nhánh KH</label><div style="font-weight:500"><i class="fa-solid fa-location-dot me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.CustomerSiteName</div></div>
                     }
                     @if (Model.TotalAmount.HasValue && Model.TotalAmount > 0)
                     {
-                        <div class="col-sm-6">
-                            <label class="form-label" style="margin-bottom:4px">Ngân sách</label>
-                            <div style="font-weight:600;color:var(--apple-blue)">@Model.TotalAmount?.ToString("N0") VNĐ</div>
-                        </div>
+                        <div class="col-sm-6"><label class="form-label" style="margin-bottom:4px">Tổng giá trị</label><div style="font-weight:700;color:var(--apple-blue);font-size:1.1rem">@Model.TotalAmount?.ToString("N0") ₫</div></div>
                     }
                 </div>
 
@@ -111,57 +111,122 @@
 
                 <!-- Actions -->
                 <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
-                    <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light">
-                        <i class="fa-solid fa-table-columns me-1"></i>Xem Kanban
-                    </a>
-                    @if (Model.CanEdit)
+                    <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light" style="border-radius:8px"><i class="fa-solid fa-table-columns me-1"></i>Xem Kanban</a>
+                    @if (Model.CanEdit) { <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-pen me-1"></i>Chỉnh sửa</a> }
+                    @if (Model.CanSubmit) { <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button></form> }
+                    @if (Model.CanStartWork)
                     {
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
-                            <i class="fa-solid fa-pen me-1"></i>Chỉnh sửa
-                        </a>
-                    }
-                    @if (Model.CanSubmit)
-                    {
-                        <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button>
+                        <form asp-action="StartWork" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-play me-1"></i>Bắt đầu xử lý</button>
                         </form>
                     }
-                    @if (Model.CanCancel)
+                    @if (Model.CanComplete)
                     {
-                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">
-                            <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-ban me-1"></i>Hủy yêu cầu</button>
+                        <form asp-action="Complete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hoàn thành yêu cầu này?')">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-check-double me-1"></i>Hoàn thành</button>
                         </form>
                     }
+                    @if (Model.CanCancel) { <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Hủy yêu cầu</button></form> }
                 </div>
             </div>
+        </div>
+
+        <!-- Order Lines -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-receipt" style="color:var(--apple-blue)"></i> Danh mục hàng hóa / dịch vụ <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.Lines.Count</span></h5>
+            </div>
+            <div class="card-body-custom p-0">
+                @if (Model.Lines.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="data-table" style="font-size:.85rem">
+                            <thead><tr><th class="ps-4">#</th><th>SP/DV</th><th class="text-end">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th><th>Ghi chú</th>@if (Model.CanEdit) { <th class="text-end pe-4"></th> }</tr></thead>
+                            <tbody>
+                                @{ var idx = 1; }
+                                @foreach (var line in Model.Lines)
+                                {
+                                    <tr>
+                                        <td class="ps-4" style="color:var(--text-muted)">@(idx++)</td>
+                                        <td>
+                                            @if (line.ProductCode != null) { <code style="font-size:.7rem;background:rgba(0,122,255,.06);color:var(--apple-blue);padding:1px 6px;border-radius:4px;margin-right:4px">@line.ProductCode</code> }
+                                            @(line.ProductName ?? "Mục thủ công")
+                                        </td>
+                                        <td class="text-end" style="font-weight:500">@line.Quantity.ToString("N2")</td>
+                                        <td class="text-end">@(line.UnitPrice?.ToString("N0") ?? "—") ₫</td>
+                                        <td class="text-end" style="font-weight:600;color:var(--text-primary)">@(line.LineAmount?.ToString("N0") ?? "—") ₫</td>
+                                        <td style="color:var(--text-muted);font-size:.78rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@(line.Note ?? "")</td>
+                                        @if (Model.CanEdit)
+                                        {
+                                            <td class="text-end pe-4">
+                                                <form asp-action="RemoveLine" method="post" class="d-inline" onsubmit="return confirm('Xóa mục này?')">@Html.AntiForgeryToken()
+                                                    <input type="hidden" name="lineId" value="@line.Id" /><input type="hidden" name="requestId" value="@Model.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:6px;padding:2px 8px"><i class="fa-solid fa-trash" style="font-size:.7rem"></i></button>
+                                                </form>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr style="font-weight:700;border-top:2px solid var(--divider)">
+                                    <td class="ps-4" colspan="4" class="text-end">Tổng cộng:</td>
+                                    <td class="text-end" style="font-size:1rem;color:var(--apple-blue)">@Model.Lines.Sum(l => l.LineAmount ?? 0).ToString("N0") ₫</td>
+                                    <td></td>
+                                    @if (Model.CanEdit) { <td></td> }
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted);font-size:.85rem"><i class="fa-solid fa-box-open d-block mb-2" style="font-size:1.5rem;opacity:.3"></i>Chưa có mục hàng</div>
+                }
+            </div>
+
+            @if (Model.CanEdit)
+            {
+                <div style="border-top:1px solid var(--divider);padding:16px 24px">
+                    <h6 style="font-weight:600;margin-bottom:12px;font-size:.82rem;color:var(--text-muted)"><i class="fa-solid fa-plus-circle me-1"></i>Thêm mục hàng</h6>
+                    <form asp-action="AddLine" method="post" class="row g-2 align-items-end">@Html.AntiForgeryToken()
+                        <input type="hidden" name="requestId" value="@Model.Id" />
+                        <div class="col-md-4">
+                            <label class="form-label small">SP/DV (tùy chọn)</label>
+                            <input type="text" name="input.ProductName" class="form-control form-control-sm" placeholder="Tên sản phẩm/dịch vụ..." style="border-radius:8px">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Số lượng</label>
+                            <input type="number" name="input.Quantity" value="1" min="0.01" step="0.01" class="form-control form-control-sm" style="border-radius:8px" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Đơn giá (₫)</label>
+                            <input type="number" name="input.UnitPrice" min="0" step="1000" class="form-control form-control-sm" style="border-radius:8px">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Ghi chú</label>
+                            <input type="text" name="input.Note" class="form-control form-control-sm" placeholder="..." style="border-radius:8px">
+                        </div>
+                        <div class="col-md-1"><button type="submit" class="btn btn-primary btn-sm w-100" style="border-radius:8px"><i class="fa-solid fa-plus"></i></button></div>
+                    </form>
+                </div>
+            }
         </div>
 
         <!-- Work Items -->
         @if (Model.WorkItems.Any())
         {
-            <div class="content-card mb-4">
-                <div class="card-header-custom">
-                    <h5><i class="fa-solid fa-tasks"></i> Công việc liên quan <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.WorkItems.Count</span></h5>
-                </div>
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-tasks"></i> Công việc liên quan <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.WorkItems.Count</span></h5></div>
                 <div class="card-body-custom p-0">
                     @foreach (var task in Model.WorkItems)
                     {
-                        var taskStatusBadge = task.Status switch {
-                            "Done" => "badge-on-track",
-                            "InProgress" => "badge-at-risk",
-                            "Blocked" => "badge-behind",
-                            "Cancelled" => "badge-behind",
-                            _ => ""
-                        };
+                        var taskStatusBadge = task.Status switch { "Done" => "badge-on-track", "InProgress" => "badge-at-risk", "Blocked" or "Cancelled" => "badge-behind", _ => "" };
                         var taskLabel = EnumHelper.Label<WorkItemStatus>(task.Status);
                         <div style="padding:14px 24px;border-bottom:1px solid var(--divider);display:flex;justify-content:space-between;align-items:center">
                             <div>
                                 <div style="font-weight:500;margin-bottom:3px">@task.Title</div>
-                                <small style="color:var(--text-muted)">
-                                    <i class="fa-regular fa-calendar me-1"></i>Hạn: @(task.DueDate?.ToString("dd/MM") ?? "—")
-                                    <span style="margin:0 6px">·</span>
-                                    Ưu tiên: @task.Priority
-                                </small>
+                                <small style="color:var(--text-muted)"><i class="fa-regular fa-calendar me-1"></i>Hạn: @(task.DueDate?.ToString("dd/MM") ?? "—") <span style="margin:0 6px">·</span> Ưu tiên: @task.Priority</small>
                             </div>
                             <span class="status-badge-soft @taskStatusBadge"><span class="status-dot"></span>@taskLabel</span>
                         </div>
@@ -173,26 +238,20 @@
         <!-- AI Insights -->
         @if (Model.AiInsights.Any())
         {
-            <div class="content-card">
-                <div class="card-header-custom">
-                    <h5><i class="fa-solid fa-robot" style="color:var(--apple-blue)"></i> AI Insights</h5>
-                </div>
+            <div class="content-card animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-robot" style="color:var(--apple-blue)"></i> AI Insights</h5></div>
                 <div class="card-body-custom">
                     @foreach (var ai in Model.AiInsights)
                     {
                         <div class="mb-3 pb-3" style="border-bottom:1px solid var(--divider)">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="ai-risk-badge @ai.RiskLevel.ToLower()">
-                                    @if(ai.RiskLevel == "High") { <i class="fa-solid fa-fire"></i> }
-                                    Rủi ro: @(ai.RiskLevel == "Low" ? "Thấp" : ai.RiskLevel == "Medium" ? "Trung bình" : "Cao")
+                                    @if(ai.RiskLevel == "High") { <i class="fa-solid fa-fire"></i> } Rủi ro: @(ai.RiskLevel == "Low" ? "Thấp" : ai.RiskLevel == "Medium" ? "Trung bình" : "Cao")
                                 </span>
                                 <small style="color:var(--text-muted)">@ai.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</small>
                             </div>
                             <p style="font-weight:500;font-size:.85rem;margin-bottom:4px">@ai.Summary</p>
-                            @if (!string.IsNullOrEmpty(ai.Recommendation))
-                            {
-                                <p style="font-size:.82rem;color:var(--text-secondary);margin:0">@ai.Recommendation</p>
-                            }
+                            @if (!string.IsNullOrEmpty(ai.Recommendation)) { <p style="font-size:.82rem;color:var(--text-secondary);margin:0">@ai.Recommendation</p> }
                         </div>
                     }
                 </div>
@@ -203,17 +262,12 @@
     <!-- SIDEBAR -->
     <div class="col-lg-4">
         <!-- Approval Timeline -->
-        <div class="content-card mb-4">
-            <div class="card-header-custom">
-                <h5><i class="fa-solid fa-clipboard-check" style="color:var(--warning)"></i> Phê duyệt</h5>
-            </div>
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-clipboard-check" style="color:var(--warning)"></i> Phê duyệt</h5></div>
             <div class="card-body-custom">
                 @if (!Model.ApprovalTasks.Any())
                 {
-                    <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem">
-                        <i class="fa-solid fa-clock d-block mb-2" style="font-size:1.2rem;opacity:.5"></i>
-                        Chưa có luồng phê duyệt
-                    </div>
+                    <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem"><i class="fa-solid fa-clock d-block mb-2" style="font-size:1.2rem;opacity:.5"></i>Chưa có luồng phê duyệt</div>
                 }
                 else
                 {
@@ -229,14 +283,9 @@
                             <small style="color:var(--text-muted)"><i class="fa-solid fa-shield-halved me-1"></i>@task.AssignedRole</small>
                             @if (!string.IsNullOrEmpty(task.DecisionNote))
                             {
-                                <div style="padding:8px 12px;background:var(--parchment);border-radius:var(--r-sm);font-size:.82rem;margin-top:6px;border-left:3px solid @(task.Status == "Rejected" ? "var(--danger)" : "var(--success)")">
-                                    <i class="fa-solid fa-quote-left me-1" style="font-size:.6rem;opacity:.4"></i>@task.DecisionNote
-                                </div>
+                                <div style="padding:8px 12px;background:var(--parchment);border-radius:var(--r-sm);font-size:.82rem;margin-top:6px;border-left:3px solid @(task.Status == "Rejected" ? "var(--danger)" : "var(--success)")"><i class="fa-solid fa-quote-left me-1" style="font-size:.6rem;opacity:.4"></i>@task.DecisionNote</div>
                             }
-                            @if (task.DecidedAt.HasValue)
-                            {
-                                <small style="color:var(--text-muted);display:block;margin-top:4px"><i class="fa-regular fa-clock me-1"></i>@task.DecidedAt.Value.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
-                            }
+                            @if (task.DecidedAt.HasValue) { <small style="color:var(--text-muted);display:block;margin-top:4px"><i class="fa-regular fa-clock me-1"></i>@task.DecidedAt.Value.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small> }
                         </div>
                     }
                 }
@@ -244,10 +293,8 @@
         </div>
 
         <!-- Activity Timeline -->
-        <div class="content-card">
-            <div class="card-header-custom">
-                <h5><i class="fa-solid fa-timeline" style="color:var(--apple-blue)"></i> Lịch sử hoạt động</h5>
-            </div>
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-timeline" style="color:var(--apple-blue)"></i> Lịch sử hoạt động</h5></div>
             <div class="card-body-custom">
                 @if (!Model.ActivityLog.Any())
                 {

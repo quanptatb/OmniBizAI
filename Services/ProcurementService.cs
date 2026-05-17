@@ -515,5 +515,201 @@ public class ProcurementService(ApplicationDbContext db, ITenantContext tenant)
             AlertBudgets = alertItems, RecentPayments = recentPay, MonthlyExpenses = monthlyExpenses
         };
     }
-}
 
+    // ── Goods Receipt (Nhập kho) ─────────────────────────────────────────────
+    public async Task<GoodsReceiptListViewModel> GetGoodsReceiptsAsync(string? search, string? status)
+    {
+        var tid = tenant.TenantId;
+        var baseQ = db.GoodsReceipts.Where(gr => gr.TenantId == tid && !gr.IsDeleted);
+
+        var draftCount = await baseQ.CountAsync(gr => gr.Status == GoodsReceiptStatus.Draft);
+        var confirmedCount = await baseQ.CountAsync(gr => gr.Status == GoodsReceiptStatus.Confirmed);
+
+        var q = baseQ;
+        if (!string.IsNullOrWhiteSpace(search))
+            q = q.Where(gr => gr.ReceiptNo.Contains(search) || gr.PurchaseOrder!.OrderNo.Contains(search));
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<GoodsReceiptStatus>(status, out var st))
+            q = q.Where(gr => gr.Status == st);
+
+        var items = await q.OrderByDescending(gr => gr.CreatedAt)
+            .Select(gr => new GoodsReceiptListItem
+            {
+                Id = gr.Id, ReceiptNo = gr.ReceiptNo,
+                PurchaseOrderNo = gr.PurchaseOrder != null ? gr.PurchaseOrder.OrderNo : "",
+                VendorName = gr.PurchaseOrder != null && gr.PurchaseOrder.Vendor != null ? gr.PurchaseOrder.Vendor.Name : "",
+                Status = gr.Status.ToString(), ReceiptDate = gr.ReceiptDate,
+                WarehouseLocation = gr.WarehouseLocation,
+                ReceivedBy = gr.ReceivedByUser != null ? gr.ReceivedByUser.FullName : "",
+                LineCount = gr.Lines.Count(l => !l.IsDeleted),
+                TotalReceivedQty = gr.Lines.Where(l => !l.IsDeleted).Sum(l => l.ReceivedQuantity),
+                CreatedAt = gr.CreatedAt
+            }).ToListAsync();
+
+        return new GoodsReceiptListViewModel
+        {
+            Items = items, TotalCount = items.Count,
+            DraftCount = draftCount, ConfirmedCount = confirmedCount,
+            SearchTerm = search, StatusFilter = status
+        };
+    }
+
+    public async Task<GoodsReceiptDetailViewModel?> GetGoodsReceiptDetailAsync(Guid id)
+    {
+        var gr = await db.GoodsReceipts
+            .Include(g => g.Lines.Where(l => !l.IsDeleted)).ThenInclude(l => l.ProductService)
+            .Include(g => g.PurchaseOrder).ThenInclude(po => po!.Vendor)
+            .Include(g => g.ReceivedByUser)
+            .FirstOrDefaultAsync(g => g.Id == id && g.TenantId == tenant.TenantId && !g.IsDeleted);
+        if (gr is null) return null;
+
+        var activityLog = await db.AuditLogs
+            .Where(a => a.TenantId == tenant.TenantId && a.EntityId == id && a.EntityName == "GoodsReceipt")
+            .OrderByDescending(a => a.CreatedAt).Take(15)
+            .Select(a => new ActivityLogItem { UserName = a.UserName, Action = a.Action, Details = a.NewValuesJson, OccurredAt = a.CreatedAt })
+            .ToListAsync();
+
+        return new GoodsReceiptDetailViewModel
+        {
+            Id = gr.Id, ReceiptNo = gr.ReceiptNo,
+            PurchaseOrderNo = gr.PurchaseOrder?.OrderNo ?? "", PurchaseOrderId = gr.PurchaseOrderId,
+            VendorName = gr.PurchaseOrder?.Vendor?.Name ?? "",
+            Status = gr.Status.ToString(), ReceiptDate = gr.ReceiptDate,
+            WarehouseLocation = gr.WarehouseLocation, Note = gr.Note,
+            ReceivedBy = gr.ReceivedByUser?.FullName ?? "", CreatedAt = gr.CreatedAt,
+            Lines = gr.Lines.Select(l => new GoodsReceiptLineDisplay
+            {
+                Id = l.Id, ItemName = l.ItemName, OrderedQuantity = l.OrderedQuantity,
+                ReceivedQuantity = l.ReceivedQuantity, RejectedQuantity = l.RejectedQuantity,
+                QualityPassed = l.QualityPassed, Note = l.Note,
+                ProductName = l.ProductService?.Name, ProductCode = l.ProductService?.Code
+            }).ToList(),
+            ActivityLog = activityLog,
+            CanConfirm = gr.Status == GoodsReceiptStatus.Draft,
+            CanCancel = gr.Status == GoodsReceiptStatus.Draft,
+            CanEdit = gr.Status == GoodsReceiptStatus.Draft
+        };
+    }
+
+    public async Task<GoodsReceiptCreateViewModel> GetGoodsReceiptCreateFormAsync(Guid? poId = null)
+    {
+        var tid = tenant.TenantId;
+        var vm = new GoodsReceiptCreateViewModel
+        {
+            PurchaseOrders = await db.PurchaseOrders
+                .Include(po => po.Vendor)
+                .Where(po => po.TenantId == tid && !po.IsDeleted && po.Status != PurchaseOrderStatus.Cancelled && po.Status != PurchaseOrderStatus.Completed)
+                .OrderByDescending(po => po.CreatedAt)
+                .Select(po => new SelectOption { Value = po.Id.ToString(), Text = po.OrderNo + " — " + (po.Vendor != null ? po.Vendor.Name : "") })
+                .ToListAsync()
+        };
+
+        // If specific PO selected, auto-fill lines from PO lines
+        if (poId.HasValue)
+        {
+            var po = await db.PurchaseOrders
+                .Include(p => p.Lines).ThenInclude(l => l.ProductService)
+                .Include(p => p.Vendor)
+                .FirstOrDefaultAsync(p => p.Id == poId.Value && p.TenantId == tid && !p.IsDeleted);
+            if (po != null)
+            {
+                vm.PurchaseOrderId = po.Id;
+                vm.SelectedPONo = po.OrderNo;
+                vm.SelectedVendor = po.Vendor?.Name;
+
+                // Get already received quantities per PO line
+                var receivedQtys = await db.GoodsReceiptLines
+                    .Where(l => l.GoodsReceipt!.PurchaseOrderId == po.Id && !l.IsDeleted && l.GoodsReceipt.Status == GoodsReceiptStatus.Confirmed)
+                    .GroupBy(l => l.PurchaseOrderLineId)
+                    .Select(g => new { POLineId = g.Key, TotalReceived = g.Sum(l => l.ReceivedQuantity) })
+                    .ToListAsync();
+
+                vm.Lines = po.Lines.Where(l => !l.IsDeleted).Select(l =>
+                {
+                    var alreadyReceived = receivedQtys.FirstOrDefault(r => r.POLineId == l.Id)?.TotalReceived ?? 0;
+                    var remaining = l.Quantity - alreadyReceived;
+                    return new GoodsReceiptLineInput
+                    {
+                        PurchaseOrderLineId = l.Id, ProductServiceId = l.ProductServiceId,
+                        ItemName = l.ProductService?.Name ?? l.ItemName,
+                        OrderedQuantity = l.Quantity, ReceivedQuantity = Math.Max(0, remaining)
+                    };
+                }).ToList();
+            }
+        }
+
+        return vm;
+    }
+
+    public async Task<Guid> CreateGoodsReceiptAsync(GoodsReceiptCreateViewModel vm)
+    {
+        var tid = tenant.TenantId;
+        var count = await db.GoodsReceipts.CountAsync(gr => gr.TenantId == tid);
+        var entity = new GoodsReceipt
+        {
+            TenantId = tid, ReceiptNo = $"GR-{DateTime.Today.Year}-{count + 1:D4}",
+            PurchaseOrderId = vm.PurchaseOrderId, ReceivedByUserId = tenant.UserId,
+            ReceiptDate = vm.ReceiptDate, WarehouseLocation = vm.WarehouseLocation, Note = vm.Note,
+            Status = GoodsReceiptStatus.Draft, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+        };
+        foreach (var line in vm.Lines.Where(l => l.ReceivedQuantity > 0))
+        {
+            entity.Lines.Add(new GoodsReceiptLine
+            {
+                TenantId = tid, PurchaseOrderLineId = line.PurchaseOrderLineId,
+                ProductServiceId = line.ProductServiceId, ItemName = line.ItemName,
+                OrderedQuantity = line.OrderedQuantity, ReceivedQuantity = line.ReceivedQuantity,
+                RejectedQuantity = line.RejectedQuantity, QualityPassed = line.QualityPassed,
+                Note = line.Note, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+        db.GoodsReceipts.Add(entity);
+        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "GoodsReceipt", EntityId = entity.Id, NewValuesJson = $"{{\"ReceiptNo\":\"{entity.ReceiptNo}\",\"PO\":\"{vm.PurchaseOrderId}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync();
+        return entity.Id;
+    }
+
+    public async Task<bool> ConfirmGoodsReceiptAsync(Guid id)
+    {
+        var gr = await db.GoodsReceipts.Include(g => g.Lines.Where(l => !l.IsDeleted)).FirstOrDefaultAsync(g => g.Id == id && g.TenantId == tenant.TenantId);
+        if (gr is null || gr.Status != GoodsReceiptStatus.Draft) return false;
+
+        gr.Status = GoodsReceiptStatus.Confirmed; gr.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Update PurchaseOrder status based on total received quantities
+        var po = await db.PurchaseOrders.Include(p => p.Lines.Where(l => !l.IsDeleted)).FirstOrDefaultAsync(p => p.Id == gr.PurchaseOrderId);
+        if (po != null)
+        {
+            // Sum all confirmed receipts for this PO
+            var totalReceived = await db.GoodsReceiptLines
+                .Where(l => l.GoodsReceipt!.PurchaseOrderId == po.Id && !l.IsDeleted && (l.GoodsReceipt.Status == GoodsReceiptStatus.Confirmed || l.GoodsReceipt.Id == gr.Id))
+                .SumAsync(l => l.ReceivedQuantity);
+            var totalOrdered = po.Lines.Sum(l => l.Quantity);
+
+            po.Status = totalReceived >= totalOrdered ? PurchaseOrderStatus.Completed : PurchaseOrderStatus.PartiallyReceived;
+            po.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
+        // Update Procurement status if applicable
+        if (po?.ProcurementRequestId != null)
+        {
+            var pr = await db.ProcurementRequests.FindAsync(po.ProcurementRequestId);
+            if (pr != null && pr.Status == ProcurementStatus.Ordered)
+            {
+                pr.Status = po.Status == PurchaseOrderStatus.Completed ? ProcurementStatus.Received : ProcurementStatus.Ordered;
+                pr.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+        }
+
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Confirm", EntityName = "GoodsReceipt", EntityId = id, NewValuesJson = "{\"Status\":\"Confirmed\"}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> CancelGoodsReceiptAsync(Guid id)
+    {
+        var gr = await db.GoodsReceipts.FindAsync(id);
+        if (gr is null || gr.TenantId != tenant.TenantId || gr.Status != GoodsReceiptStatus.Draft) return false;
+        gr.Status = GoodsReceiptStatus.Cancelled; gr.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Cancel", EntityName = "GoodsReceipt", EntityId = id, NewValuesJson = "{\"Status\":\"Cancelled\"}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+}

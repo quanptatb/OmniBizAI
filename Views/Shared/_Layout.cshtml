@@ -76,7 +76,7 @@
                 @if (User.IsInRole("ACCOUNTANT") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("EXECUTIVE") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("STAFF"))
                 {
                     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-                    var financeOpen = currentController == "Finance" || currentController == "Expenses" || currentController == "Procurement" || currentController == "PurchaseOrders";
+                    var financeOpen = currentController == "Finance" || currentController == "Expenses" || currentController == "Procurement" || currentController == "PurchaseOrders" || currentController == "GoodsReceipt" || currentController == "GoodsIssue" || currentController == "Inventory" || currentController == "CashBook";
                     var hrOpen = currentController == "Organization" || currentController == "Users" || currentController == "Employees" || currentController == "Positions" || currentController == "Leave";
                     var kpiOkrOpen = currentController == "MissionVision" || currentController == "Okr" || currentController == "KpiSetup" || currentController == "KpiCheckIn" || currentController == "Evaluation";
                     var crmOpen = currentController == "Customers" || currentController == "Vendors" || currentController == "Products";
@@ -99,6 +99,9 @@
                         <a class="nav-item @(currentController == "Expenses" ? "active" : "")" asp-controller="Expenses" asp-action="Index">
                             <i class="fa-solid fa-receipt"></i><span>Chi phí</span>
                         </a>
+                        <a class="nav-item @(currentController == "CashBook" ? "active" : "")" asp-controller="CashBook" asp-action="Index">
+                            <i class="fa-solid fa-book-open"></i><span>Sổ thu chi</span>
+                        </a>
                         <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "PaymentRequests" ? "active" : "")" asp-controller="Finance" asp-action="PaymentRequests">
                             <i class="fa-solid fa-file-invoice-dollar"></i><span>Đề nghị thanh toán</span>
                         </a>
@@ -107,6 +110,15 @@
                         </a>
                         <a class="nav-item @(currentController == "PurchaseOrders" ? "active" : "")" asp-controller="PurchaseOrders" asp-action="Index">
                             <i class="fa-solid fa-file-invoice"></i><span>Đơn mua hàng</span>
+                        </a>
+                        <a class="nav-item @(currentController == "GoodsReceipt" ? "active" : "")" asp-controller="GoodsReceipt" asp-action="Index">
+                            <i class="fa-solid fa-warehouse"></i><span>Nhập kho</span>
+                        </a>
+                        <a class="nav-item @(currentController == "GoodsIssue" ? "active" : "")" asp-controller="GoodsIssue" asp-action="Index">
+                            <i class="fa-solid fa-dolly"></i><span>Xuất kho</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Inventory" ? "active" : "")" asp-controller="Inventory" asp-action="Index">
+                            <i class="fa-solid fa-cubes"></i><span>Tồn kho & Cảnh báo</span>
                         </a>
                     </div>
 
@@ -209,11 +221,31 @@
                         <a class="nav-item @(currentController == "Reports" && reportAction == "KpiOkr" ? "active" : "")" asp-controller="Reports" asp-action="KpiOkr">
                             <i class="fa-solid fa-bullseye"></i><span>KPI/OKR</span>
                         </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Inventory" ? "active" : "")" asp-controller="Reports" asp-action="Inventory">
+                            <i class="fa-solid fa-cubes"></i><span>Kho vận</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "CashFlow" ? "active" : "")" asp-controller="Reports" asp-action="CashFlow">
+                            <i class="fa-solid fa-money-bill-transfer"></i><span>Thu chi</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Crm" ? "active" : "")" asp-controller="Reports" asp-action="Crm">
+                            <i class="fa-solid fa-handshake"></i><span>CRM</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "ExportCenter" ? "active" : "")" asp-controller="Reports" asp-action="ExportCenter">
+                            <i class="fa-solid fa-file-export"></i><span>Xuất báo cáo</span>
+                        </a>
                     </div>
-                    <a class="nav-item @(currentController == "AiInsights" ? "active" : "")" asp-controller="AiInsights" asp-action="Index">
+                    <a class="nav-item @(currentController == "AiInsights" && ViewContext.RouteData.Values["action"]?.ToString() != "Recommendations" ? "active" : "")" asp-controller="AiInsights" asp-action="Index">
                         <i class="fa-solid fa-robot"></i>
                         <span>AI Copilot</span>
                         <span class="nav-badge-ai">AI</span>
+                    </a>
+                    <a class="nav-item @(currentController == "AiInsights" && ViewContext.RouteData.Values["action"]?.ToString() == "Recommendations" ? "active" : "")" asp-controller="AiInsights" asp-action="Recommendations">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>AI Khuyến nghị</span>
+                    </a>
+                    <a class="nav-item @(currentController == "AnomalyAlerts" ? "active" : "")" asp-controller="AnomalyAlerts" asp-action="Index">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Cảnh báo bất thường</span>
                     </a>
                 }
 

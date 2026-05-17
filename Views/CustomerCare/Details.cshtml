@@ -1,0 +1,217 @@
+@model OmniBizAI.ViewModels.CustomerCareDetailViewModel
+@{
+    ViewData["Title"] = Model.Subject;
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <a href='/CustomerCare' style='color:var(--apple-blue);text-decoration:none'>Chăm sóc KH</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chi tiết</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@{
+    var (typeIcon, typeColor) = Model.Type switch
+    {
+        "Call" => ("fa-phone", "#007AFF"), "Email" => ("fa-envelope", "#5856d6"),
+        "Meeting" => ("fa-handshake", "#ff9500"), "Visit" => ("fa-building", "#34c759"),
+        "Note" => ("fa-sticky-note", "#94a3b8"), "Complaint" => ("fa-triangle-exclamation", "#ff3b30"),
+        "Feedback" => ("fa-comment-dots", "#00c7be"), _ => ("fa-circle", "#94a3b8")
+    };
+    var (statusColor, statusBg) = Model.Status switch
+    {
+        "Planned" => ("#007AFF", "rgba(0,122,255,.1)"), "InProgress" => ("#ff9500", "rgba(255,149,0,.1)"),
+        "Completed" => ("#34c759", "rgba(52,199,89,.1)"), "Cancelled" => ("#8e8e93", "rgba(142,142,147,.1)"),
+        _ => ("#94a3b8", "rgba(148,163,184,.1)")
+    };
+    var priColor = Model.Priority switch { "Urgent" => "#ff3b30", "High" => "#ff9500", "Normal" => "#007AFF", "Low" => "#34c759", _ => "#94a3b8" };
+    var isOverdue = Model.Status == "Planned" && Model.ScheduledAt.HasValue && Model.ScheduledAt < DateTimeOffset.UtcNow;
+}
+
+<div class="row g-4">
+    <!-- Left sidebar -->
+    <div class="col-lg-4">
+        <!-- Status card -->
+        <div class="content-card animate-fade-in" style="padding:28px 24px;text-align:center">
+            <div style="width:72px;height:72px;border-radius:50%;background:@(typeColor)15;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <i class="fa-solid @typeIcon" style="font-size:1.6rem;color:@typeColor"></i>
+            </div>
+            <h5 style="font-weight:700;margin:0 0 8px">@Model.TypeLabel</h5>
+            <div class="d-flex gap-2 justify-content-center">
+                <span class="badge rounded-pill" style="background:@statusBg;color:@statusColor;font-size:.8rem;padding:6px 14px">@Model.StatusLabel</span>
+                @if (isOverdue) { <span class="badge rounded-pill" style="background:rgba(255,59,48,.1);color:#ff3b30;font-size:.75rem;padding:5px 12px">⏰ Quá hạn</span> }
+            </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="content-card mt-3 animate-fade-in">
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ưu tiên</label>
+                        <div><span class="badge rounded-pill" style="background:@(priColor)15;color:@priColor;font-size:.75rem;padding:4px 12px">@Model.PriorityLabel</span></div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Thời lượng</label>
+                        <div style="font-weight:500">@(Model.DurationMinutes.HasValue ? $"{Model.DurationMinutes} phút" : "—")</div>
+                    </div>
+                    <div class="col-12">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Khách hàng</label>
+                        <div><a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@Model.CustomerName</a></div>
+                    </div>
+                    @if (Model.ContactName != null)
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Người liên hệ</label>
+                            <div style="font-weight:500">@Model.ContactName</div>
+                        </div>
+                    }
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Phụ trách</label>
+                        <div style="font-weight:500">@(Model.AssignedToName ?? "—")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày tạo</label>
+                        <div style="font-size:.82rem">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    @if (Model.ScheduledAt.HasValue)
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Lịch hẹn</label>
+                            <div style="font-weight:600;color:@(isOverdue ? "#ff3b30" : "var(--text-primary)")">@Model.ScheduledAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    }
+                    @if (Model.CreatedByName != null)
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Người tạo</label>
+                            <div style="font-size:.85rem">@Model.CreatedByName</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="content-card mt-3 animate-fade-in" style="padding:20px 24px">
+            <a asp-action="Index" class="btn btn-light border w-100 mb-2" style="border-radius:10px"><i class="fa-solid fa-list me-2"></i>Danh sách</a>
+            @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary w-100 mb-2" style="border-radius:10px"><i class="fa-solid fa-pen me-2"></i>Sửa</a>
+                @if (Model.Status == "Planned")
+                {
+                    <form asp-action="Start" asp-route-id="@Model.Id" method="post">@Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning text-white w-100 mb-2" style="border-radius:10px"><i class="fa-solid fa-play me-2"></i>Bắt đầu</button>
+                    </form>
+                }
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Hủy tương tác này?')">@Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger w-100" style="border-radius:10px"><i class="fa-solid fa-ban me-2"></i>Hủy</button>
+                </form>
+            }
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="mt-2" onsubmit="return confirm('Xóa tương tác này?')">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100" style="border-radius:10px"><i class="fa-solid fa-trash me-2"></i>Xóa</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right content -->
+    <div class="col-lg-8">
+        <!-- Subject & Description -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid @typeIcon" style="color:@typeColor"></i> @Model.Subject</h5></div>
+            <div class="card-body-custom">
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <div style="background:var(--bg-secondary);padding:16px;border-radius:10px;font-size:.88rem;line-height:1.7;color:var(--text-secondary);white-space:pre-wrap">@Model.Description</div>
+                }
+                else
+                {
+                    <div class="text-muted text-center py-3" style="font-size:.85rem">Không có mô tả chi tiết</div>
+                }
+            </div>
+        </div>
+
+        <!-- Complete Form (if not completed/cancelled) -->
+        @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+        {
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-flag-checkered text-success"></i> Hoàn thành tương tác</h5></div>
+                <div class="card-body-custom">
+                    <form asp-action="Complete" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@Model.Id" />
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Kết quả tương tác</label>
+                                <textarea name="Outcome" class="form-control" rows="3" placeholder="Mô tả kết quả..." style="border-radius:10px;resize:vertical"></textarea>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Hành động tiếp theo</label>
+                                <textarea name="NextAction" class="form-control" rows="2" placeholder="VD: Gọi lại để xác nhận..." style="border-radius:10px;resize:vertical"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Ngày thực hiện</label>
+                                <input type="datetime-local" name="NextActionDate" class="form-control" style="border-radius:10px" />
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end pt-3">
+                            <button type="submit" class="btn btn-success px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-check me-2"></i>Hoàn thành</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- Outcome (if completed) -->
+        @if (Model.Status == "Completed")
+        {
+            <div class="content-card mb-4 animate-fade-in" style="border-left:3px solid #34c759">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-circle-check text-success"></i> Kết quả</h5></div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        @if (!string.IsNullOrWhiteSpace(Model.Outcome))
+                        {
+                            <div class="col-12">
+                                <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Kết quả tương tác</label>
+                                <div style="background:var(--bg-secondary);padding:12px;border-radius:8px;font-size:.88rem;white-space:pre-wrap">@Model.Outcome</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.NextAction))
+                        {
+                            <div class="col-md-8">
+                                <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Hành động tiếp theo</label>
+                                <div style="background:rgba(0,122,255,.04);padding:12px;border-radius:8px;font-size:.88rem;border:1px solid rgba(0,122,255,.1)">
+                                    <i class="fa-solid fa-arrow-right me-1 text-primary"></i>@Model.NextAction
+                                </div>
+                            </div>
+                        }
+                        @if (Model.NextActionDate.HasValue)
+                        {
+                            <div class="col-md-4">
+                                <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày thực hiện</label>
+                                <div style="font-weight:600">@Model.NextActionDate.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        }
+                        <div class="col-md-6">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Hoàn thành bởi</label>
+                            <div>@(Model.CompletedByName ?? "—")</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Hoàn thành lúc</label>
+                            <div>@(Model.CompletedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

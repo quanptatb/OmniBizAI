@@ -62,12 +62,44 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWlJbnNpZ2h0c1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Approvals/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwcm92YWxzXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Approvals/MyTasks.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXBwcm92YWxzXE15VGFza3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Audit/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXVkaXRcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CashBook/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FzaEJvb2tcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CashBook/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FzaEJvb2tcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CashBook/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2FzaEJvb2tcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CustomerCare/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJDYXJlXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CustomerCare/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJDYXJlXERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CustomerCare/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJDYXJlXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CustomerCare/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJDYXJlXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Customers/AddContact.cshtml]
@@ -174,12 +206,52 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRmluYW5jZVxQYXltZW50UmVxdWVzdHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/GoodsIssue/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29vZHNJc3N1ZVxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/GoodsIssue/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29vZHNJc3N1ZVxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/GoodsIssue/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29vZHNJc3N1ZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/GoodsReceipt/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29vZHNSZWNlaXB0XENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/GoodsReceipt/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29vZHNSZWNlaXB0XERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/GoodsReceipt/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29vZHNSZWNlaXB0XEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Inventory/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52ZW50b3J5XEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Inventory/SetThresholds.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52ZW50b3J5XFNldFRocmVzaG9sZHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiCheckIn/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpQ2hlY2tJblxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiCheckIn/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS3BpQ2hlY2tJblxFZGl0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/KpiCheckIn/Index.cshtml]
@@ -338,6 +410,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VPcmRlcnNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/CashFlow.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xDYXNoRmxvdy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/Crm.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xDcm0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -354,8 +434,28 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xIci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/Inventory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xJbnZlbnRvcnkuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/KpiOkr.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xLcGlPa3IuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/SalesOpportunity/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNPcHBvcnR1bml0eVxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/SalesOpportunity/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNPcHBvcnR1bml0eVxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/SalesOpportunity/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNPcHBvcnR1bml0eVxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/SalesOpportunity/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNPcHBvcnR1bml0eVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Settings/Appearance.cshtml]
@@ -416,6 +516,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Vendors/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVuZG9yc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Workflow/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV29ya2Zsb3dcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Workflow/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV29ya2Zsb3dcRWRpdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Workflow/Kanban.cshtml]

@@ -41,6 +41,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CustomerContact> CustomerContacts => Set<CustomerContact>();
     public DbSet<CustomerSite> CustomerSites => Set<CustomerSite>();
+    public DbSet<CrmInteraction> CrmInteractions => Set<CrmInteraction>();
+    public DbSet<SalesOpportunity> SalesOpportunities => Set<SalesOpportunity>();
     public DbSet<Vendor> Vendors => Set<Vendor>();
     public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
     public DbSet<ProductService> ProductServices => Set<ProductService>();
@@ -71,6 +73,12 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<ProcurementRequestLine> ProcurementRequestLines => Set<ProcurementRequestLine>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderLine> PurchaseOrderLines => Set<PurchaseOrderLine>();
+    public DbSet<GoodsReceipt> GoodsReceipts => Set<GoodsReceipt>();
+    public DbSet<GoodsReceiptLine> GoodsReceiptLines => Set<GoodsReceiptLine>();
+    public DbSet<GoodsIssue> GoodsIssues => Set<GoodsIssue>();
+    public DbSet<GoodsIssueLine> GoodsIssueLines => Set<GoodsIssueLine>();
+    public DbSet<StockAlert> StockAlerts => Set<StockAlert>();
+    public DbSet<CashTransaction> CashTransactions => Set<CashTransaction>();
     public DbSet<PaymentRequest> PaymentRequests => Set<PaymentRequest>();
     public DbSet<PaymentRequestLine> PaymentRequestLines => Set<PaymentRequestLine>();
     public DbSet<Budget> Budgets => Set<Budget>();

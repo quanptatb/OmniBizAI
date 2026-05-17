@@ -1,4 +1,4 @@
-@model List<OmniBizAI.ViewModels.AiInsightListItem>
+@model OmniBizAI.ViewModels.AiInsightIndexViewModel
 @{
     ViewData["Title"] = "AI Copilot";
     ViewData["Breadcrumb"] = "<span>AI</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Copilot</span>";
@@ -51,6 +51,8 @@
                                 <option value="Dashboard">📊 Tổng quan</option>
                                 <option value="Operations">⚙️ Vận hành</option>
                                 <option value="Finance">💰 Tài chính</option>
+                                <option value="CashFlow">💸 Thu chi</option>
+                                <option value="Inventory">📦 Kho vận</option>
                                 <option value="HR">👥 Nhân sự</option>
                                 <option value="KPI">🎯 KPI/OKR</option>
                                 <option value="CRM">🤝 CRM</option>
@@ -80,13 +82,45 @@
 
     <!-- Right: History -->
     <div class="col-lg-7">
+        <!-- Filters -->
+        <div class="content-card mb-3">
+            <div class="card-body-custom py-3">
+                <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
+                    <select name="contextType" class="form-select form-select-sm" style="width:auto;min-width:130px;border-radius:8px;font-size:.8rem">
+                        <option value="">📁 Tất cả loại</option>
+                        <option value="Dashboard" selected="@(Model.ContextTypeFilter == "Dashboard")">📊 Tổng quan</option>
+                        <option value="Operations" selected="@(Model.ContextTypeFilter == "Operations")">⚙️ Vận hành</option>
+                        <option value="Finance" selected="@(Model.ContextTypeFilter == "Finance")">💰 Tài chính</option>
+                        <option value="CashFlow" selected="@(Model.ContextTypeFilter == "CashFlow")">💸 Thu chi</option>
+                        <option value="Inventory" selected="@(Model.ContextTypeFilter == "Inventory")">📦 Kho vận</option>
+                        <option value="HR" selected="@(Model.ContextTypeFilter == "HR")">👥 Nhân sự</option>
+                        <option value="KPI" selected="@(Model.ContextTypeFilter == "KPI")">🎯 KPI/OKR</option>
+                        <option value="CRM" selected="@(Model.ContextTypeFilter == "CRM")">🤝 CRM</option>
+                        <option value="Executive" selected="@(Model.ContextTypeFilter == "Executive")">🏢 Ban GĐ</option>
+                    </select>
+                    <select name="riskLevel" class="form-select form-select-sm" style="width:auto;min-width:120px;border-radius:8px;font-size:.8rem">
+                        <option value="">🔎 Tất cả mức</option>
+                        <option value="Low" selected="@(Model.RiskLevelFilter == "Low")">🟢 Low</option>
+                        <option value="Medium" selected="@(Model.RiskLevelFilter == "Medium")">🟡 Medium</option>
+                        <option value="High" selected="@(Model.RiskLevelFilter == "High")">🔴 High</option>
+                    </select>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control form-control-sm" style="width:auto;min-width:160px;border-radius:8px;font-size:.8rem" placeholder="🔍 Tìm kiếm...">
+                    <button type="submit" class="btn btn-sm btn-primary" style="border-radius:8px;font-size:.8rem"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                    @if (!string.IsNullOrEmpty(Model.ContextTypeFilter) || !string.IsNullOrEmpty(Model.RiskLevelFilter) || !string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <a asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:.8rem"><i class="fa-solid fa-times me-1"></i>Xóa lọc</a>
+                    }
+                </form>
+            </div>
+        </div>
+
         <div class="content-card">
             <div class="card-header-custom">
                 <h5><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử phân tích</h5>
-                <span class="badge" style="background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;font-size:.72rem;padding:4px 10px;border-radius:20px">@Model.Count kết quả</span>
+                <span class="badge" style="background:linear-gradient(135deg,#007AFF,#5856D6);color:#fff;font-size:.72rem;padding:4px 10px;border-radius:20px">@Model.TotalCount kết quả</span>
             </div>
             <div class="card-body-custom p-0">
-                @if (!Model.Any())
+                @if (!Model.Items.Any())
                 {
                     <div class="text-center py-5" style="color:var(--text-muted)">
                         <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,rgba(0,122,255,0.1),rgba(88,86,214,0.1));display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
@@ -97,10 +131,10 @@
                     </div>
                 }
 
-                @foreach (var insight in Model)
+                @foreach (var insight in Model.Items)
                 {
                     var riskCls = insight.RiskLevel?.ToLower() ?? "low";
-                    <div class="ai-history-item" style="padding:20px 24px;border-bottom:1px solid var(--divider)">
+                    <a asp-action="Details" asp-route-id="@insight.Id" class="ai-history-item d-block text-decoration-none" style="padding:20px 24px;border-bottom:1px solid var(--divider);color:inherit">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="ai-risk-badge @riskCls">
@@ -119,23 +153,32 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <small style="color:var(--text-muted);font-size:.72rem;white-space:nowrap"><i class="fa-regular fa-clock me-1"></i>@insight.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</small>
-                                <form asp-action="Delete" asp-route-id="@insight.Id" method="post" class="d-inline" onsubmit="return confirm('Xóa phân tích này?')">@Html.AntiForgeryToken()
+                                <form asp-action="Delete" asp-route-id="@insight.Id" method="post" class="d-inline" onclick="event.stopPropagation();" onsubmit="event.stopPropagation(); return confirm('Xóa phân tích này?')">@Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-sm" style="padding:2px 6px;font-size:.62rem;color:var(--text-muted);border:1px solid var(--divider);border-radius:6px" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </form>
                             </div>
                         </div>
                         <p style="font-weight:600;color:var(--apple-blue);margin-bottom:6px;font-size:.88rem"><i class="fa-solid fa-question-circle me-1"></i>@insight.Question</p>
-                        <div class="ai-response-text" style="font-size:.84rem;line-height:1.6;margin-bottom:6px;white-space:pre-line">@insight.Summary</div>
-                        @if (!string.IsNullOrEmpty(insight.Recommendation))
+                        <div class="ai-response-text" style="font-size:.82rem;line-height:1.5;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">@insight.Summary</div>
+                        @if (!string.IsNullOrEmpty(insight.AskedByName))
                         {
-                            <div style="padding:12px 16px;background:linear-gradient(135deg,rgba(0,122,255,0.04),rgba(52,199,89,0.04));border-radius:12px;font-size:.82rem;margin-top:8px;white-space:pre-line;border-left:3px solid var(--apple-blue)">
-                                <div style="font-weight:600;color:var(--text-secondary);font-size:.72rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">💡 Đề xuất hành động</div>
-                                @insight.Recommendation
-                            </div>
+                            <small style="color:var(--text-muted);font-size:.68rem;margin-top:6px;display:block"><i class="fa-solid fa-user me-1"></i>@insight.AskedByName</small>
                         }
-                    </div>
+                    </a>
                 }
             </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-body-custom d-flex justify-content-center gap-1 pt-3" style="border-top:1px solid var(--divider)">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <a asp-action="Index" asp-route-contextType="@Model.ContextTypeFilter" asp-route-riskLevel="@Model.RiskLevelFilter" asp-route-search="@Model.SearchTerm" asp-route-page="@i"
+                           class="btn btn-sm @(i == Model.Page ? "btn-primary" : "btn-outline-secondary")" style="min-width:34px;border-radius:8px;font-size:.78rem">@i</a>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -232,6 +275,11 @@
 
     .ai-history-item { transition: background .2s; }
     .ai-history-item:hover { background: rgba(0,122,255,.02); }
+
+    .ai-risk-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:16px;font-size:.68rem;font-weight:600; }
+    .ai-risk-badge.low { background:rgba(52,199,89,.1);color:#34C759; }
+    .ai-risk-badge.medium { background:rgba(255,149,0,.1);color:#FF9500; }
+    .ai-risk-badge.high { background:rgba(255,59,48,.1);color:#FF3B30; }
 </style>
 
 @section Scripts {
@@ -286,10 +334,11 @@
 
                 answerArea.innerHTML = `
                     <div class="ai-answer-card">
-                        <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
                             <span class="ai-risk-badge ${riskCls}"><i class="fa-solid ${riskIcon}"></i> ${data.riskLevel}</span>
                             ${statusBadge}
                             ${data.modelName ? `<span class="badge" style="background:rgba(88,86,214,.1);color:#5856D6;font-size:.65rem">${data.modelName}</span>` : ''}
+                            ${data.id ? `<a href="/AiInsights/Details/${data.id}" class="btn btn-sm btn-outline-primary" style="font-size:.68rem;padding:2px 10px;border-radius:8px"><i class="fa-solid fa-expand me-1"></i>Chi tiết</a>` : ''}
                         </div>
                         <div style="font-size:.86rem;line-height:1.65;white-space:pre-line;margin-bottom:12px">${escapeHtml(data.summary)}</div>
                         ${data.recommendation ? `
@@ -322,5 +371,12 @@
             div.textContent = s;
             return div.innerHTML;
         }
+
+        // Auto-select filter values from URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const url = new URL(window.location);
+            document.querySelectorAll('select[name="contextType"] option').forEach(o => { o.selected = o.value === (url.searchParams.get('contextType') || ''); });
+            document.querySelectorAll('select[name="riskLevel"] option').forEach(o => { o.selected = o.value === (url.searchParams.get('riskLevel') || ''); });
+        });
     </script>
 }

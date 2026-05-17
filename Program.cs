@@ -64,9 +64,12 @@ builder.Services.AddScoped<KpiOkrDashboardService>();
 // New Business Module Services
 builder.Services.AddScoped<CrmService>();
 builder.Services.AddScoped<ProcurementService>();
+builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<CashBookService>();
 builder.Services.AddScoped<HrService>();
 builder.Services.AddScoped<SettingsService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<AnomalyDetectionService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // AI — Gemini

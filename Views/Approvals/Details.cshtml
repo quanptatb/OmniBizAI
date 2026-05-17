@@ -1,0 +1,248 @@
+@model OmniBizAI.ViewModels.ApprovalTaskDetailViewModel
+@{
+    ViewData["Title"] = "Phê duyệt: " + Model.RequestNo;
+    ViewData["Breadcrumb"] = "<a href='/Approvals/MyTasks' style='color:var(--apple-blue);text-decoration:none'>Phê duyệt</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chi tiết</span>";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left: Task + Request Info -->
+    <div class="col-lg-4">
+        <!-- Status Card -->
+        <div class="content-card animate-fade-in" style="padding:28px 24px;text-align:center">
+            @{
+                var (statusBg, statusIcon) = Model.Status switch
+                {
+                    "Pending" => ("#ff9500", "fa-hourglass-half"),
+                    "Approved" => ("#34c759", "fa-circle-check"),
+                    "Rejected" => ("#ff3b30", "fa-circle-xmark"),
+                    "Skipped" => ("#8e8e93", "fa-arrow-rotate-left"),
+                    "Cancelled" => ("#8e8e93", "fa-ban"),
+                    _ => ("#94a3b8", "fa-circle")
+                };
+            }
+            <div style="width:72px;height:72px;border-radius:50%;background:@(statusBg)15;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <i class="fa-solid @statusIcon" style="font-size:1.6rem;color:@statusBg"></i>
+            </div>
+            <span class="badge rounded-pill" style="background:@statusBg;color:#fff;font-size:.82rem;padding:6px 16px;margin-bottom:12px">@Model.StatusLabel</span>
+            <h5 style="font-weight:700;margin:8px 0 4px">@Model.StepName</h5>
+            <p style="color:var(--text-muted);font-size:.8rem;margin:0">@Model.StepCode</p>
+        </div>
+
+        <!-- Task Meta -->
+        <div class="content-card mt-3 animate-fade-in">
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Giao cho</label>
+                        <div style="font-weight:500;font-size:.85rem">@(Model.AssignedToName ?? "Theo vai trò")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Vai trò</label>
+                        <div style="font-size:.85rem">@(Model.AssignedRole ?? "—")</div>
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày tạo</label>
+                        <div style="font-size:.82rem">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    @if (Model.DecidedAt.HasValue)
+                    {
+                        <div class="col-6">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ngày xử lý</label>
+                            <div style="font-size:.82rem">@Model.DecidedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.DecisionNote))
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Ghi chú / Lý do</label>
+                            <div style="font-size:.85rem;background:var(--bg-secondary);padding:10px;border-radius:8px;white-space:pre-wrap">@Model.DecisionNote</div>
+                        </div>
+                    }
+                    @if (Model.WorkflowName != null)
+                    {
+                        <div class="col-12">
+                            <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase">Quy trình</label>
+                            <div style="font-size:.85rem">@Model.WorkflowName <span class="badge bg-light text-dark border" style="font-size:.65rem">@Model.WorkflowStatus</span></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="content-card mt-3 animate-fade-in" style="padding:20px 24px">
+            <a asp-action="MyTasks" class="btn btn-light border w-100 mb-2" style="border-radius:10px"><i class="fa-solid fa-list me-2"></i>Danh sách phê duyệt</a>
+            <a asp-controller="Operations" asp-action="Details" asp-route-id="@Model.TargetId" class="btn btn-outline-primary w-100" style="border-radius:10px"><i class="fa-solid fa-file-lines me-2"></i>Xem yêu cầu vận hành</a>
+        </div>
+    </div>
+
+    <!-- Right -->
+    <div class="col-lg-8">
+        <!-- Request Info Card -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-file-lines"></i> Thông tin yêu cầu</h5></div>
+            <div class="card-body-custom">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 style="font-weight:700;margin:0 0 4px">@Model.RequestTitle</h5>
+                        <div class="d-flex gap-3 flex-wrap align-items-center">
+                            <a asp-controller="Operations" asp-action="Details" asp-route-id="@Model.TargetId" style="color:var(--apple-blue);text-decoration:none;font-weight:600;font-size:.85rem">@Model.RequestNo</a>
+                            @{
+                                var priColor = Model.RequestPriority switch { "Critical" => "#ff3b30", "High" => "#ff9500", "Normal" => "#007AFF", "Low" => "#34c759", _ => "#94a3b8" };
+                                var priLabel = Model.RequestPriority switch { "Critical" => "Nguy cấp", "High" => "Cao", "Normal" => "Bình thường", "Low" => "Thấp", _ => Model.RequestPriority };
+                            }
+                            <span class="badge rounded-pill" style="background:@(priColor)18;color:@priColor;font-size:.7rem;padding:4px 10px;border:1px solid @(priColor)30">@priLabel</span>
+                            <span class="badge bg-light text-dark border" style="font-size:.68rem">@Model.RequestStatus</span>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.RequestDescription))
+                {
+                    <div style="background:var(--bg-secondary);padding:14px;border-radius:10px;font-size:.88rem;line-height:1.6;color:var(--text-secondary);white-space:pre-wrap;margin-bottom:16px">@Model.RequestDescription</div>
+                }
+
+                <div class="row g-2" style="font-size:.82rem">
+                    <div class="col-md-4"><span class="text-muted">Phòng ban:</span> <strong>@(Model.RequestDepartment ?? "—")</strong></div>
+                    <div class="col-md-4"><span class="text-muted">Người tạo:</span> <strong>@(Model.RequestCreatedBy ?? "—")</strong></div>
+                    <div class="col-md-4"><span class="text-muted">Ngày tạo:</span> <strong>@Model.RequestCreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Forms (if Pending) -->
+        @if (Model.Status == "Pending")
+        {
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-gavel"></i> Quyết định</h5></div>
+                <div class="card-body-custom">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item"><a class="nav-link active fw-bold" data-bs-toggle="tab" href="#tab-approve" style="font-size:.85rem"><i class="fa-solid fa-check me-1 text-success"></i>Duyệt</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" data-bs-toggle="tab" href="#tab-reject" style="font-size:.85rem"><i class="fa-solid fa-xmark me-1 text-danger"></i>Từ chối</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" data-bs-toggle="tab" href="#tab-return" style="font-size:.85rem"><i class="fa-solid fa-arrow-rotate-left me-1 text-warning"></i>Trả lại</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold" data-bs-toggle="tab" href="#tab-reassign" style="font-size:.85rem"><i class="fa-solid fa-people-arrows me-1 text-info"></i>Chuyển giao</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <!-- Approve -->
+                        <div class="tab-pane fade show active" id="tab-approve">
+                            <form asp-action="Approve" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@Model.Id" />
+                                <input type="hidden" name="fromDetail" value="true" />
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Ghi chú (tùy chọn)</label>
+                                    <textarea name="note" class="form-control" rows="3" maxlength="1000" placeholder="Ghi chú khi duyệt..." style="resize:vertical;border-radius:10px"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-check me-2"></i>Phê duyệt</button>
+                            </form>
+                        </div>
+                        <!-- Reject -->
+                        <div class="tab-pane fade" id="tab-reject">
+                            <form asp-action="Reject" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@Model.Id" />
+                                <input type="hidden" name="fromDetail" value="true" />
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Lý do từ chối <span class="text-danger">*</span></label>
+                                    <textarea name="reason" class="form-control" rows="3" minlength="10" maxlength="1000" required placeholder="Nhập lý do từ chối (tối thiểu 10 ký tự)..." style="resize:vertical;border-radius:10px"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-xmark me-2"></i>Từ chối</button>
+                            </form>
+                        </div>
+                        <!-- Return for revision -->
+                        <div class="tab-pane fade" id="tab-return">
+                            <form asp-action="ReturnForRevision" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@Model.Id" />
+                                <div class="mb-3" style="background:rgba(255,149,0,.06);border:1px solid rgba(255,149,0,.15);border-radius:10px;padding:12px 16px">
+                                    <i class="fa-solid fa-info-circle me-1 text-warning"></i>
+                                    <span style="font-size:.82rem;color:#b86e00">Trả lại sẽ chuyển yêu cầu về trạng thái chờ để người tạo chỉnh sửa.</span>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Lý do trả lại <span class="text-danger">*</span></label>
+                                    <textarea name="reason" class="form-control" rows="3" minlength="10" maxlength="1000" required placeholder="Nhập lý do trả lại (tối thiểu 10 ký tự)..." style="resize:vertical;border-radius:10px"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-warning px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-arrow-rotate-left me-2"></i>Trả lại</button>
+                            </form>
+                        </div>
+                        <!-- Reassign -->
+                        <div class="tab-pane fade" id="tab-reassign">
+                            <form asp-action="Reassign" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="taskId" value="@Model.Id" />
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Chuyển giao cho</label>
+                                    <select name="newUserId" class="form-select" required style="border-radius:10px">
+                                        <option value="">— Chọn người nhận —</option>
+                                        @foreach (var u in Model.AvailableAssignees)
+                                        {
+                                            <option value="@u.Value">@u.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-info text-white px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-people-arrows me-2"></i>Chuyển giao</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Workflow Steps Timeline -->
+        @if (Model.AllSteps.Any())
+        {
+            <div class="content-card animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-code-branch"></i> Các bước phê duyệt</h5></div>
+                <div class="card-body-custom">
+                    @foreach (var step in Model.AllSteps)
+                    {
+                        var (stepBg, stepIcon) = step.Status switch
+                        {
+                            "Pending" => ("#ff9500", "fa-hourglass-half"),
+                            "Approved" => ("#34c759", "fa-check"),
+                            "Rejected" => ("#ff3b30", "fa-xmark"),
+                            "Skipped" => ("#8e8e93", "fa-arrow-rotate-left"),
+                            _ => ("#94a3b8", "fa-circle")
+                        };
+                        <div class="d-flex gap-3 align-items-start mb-3 pb-3 @(step != Model.AllSteps.Last() ? "" : "")" style="@(step != Model.AllSteps.Last() ? "border-bottom:1px solid var(--divider)" : "")">
+                            <div style="width:32px;height:32px;border-radius:50%;background:@(stepBg)18;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:@(step.IsCurrent ? $"2px solid {stepBg}" : "none")">
+                                <i class="fa-solid @stepIcon" style="font-size:.72rem;color:@stepBg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold" style="font-size:.88rem">@step.StepName @(step.IsCurrent ? "👈" : "")</span>
+                                    <span class="badge rounded-pill" style="background:@(stepBg)15;color:@stepBg;font-size:.65rem;padding:3px 10px">
+                                        @(step.Status switch { "Pending" => "Chờ", "Approved" => "Đã duyệt", "Rejected" => "Từ chối", "Skipped" => "Trả lại", "Cancelled" => "Hủy", _ => step.Status })
+                                    </span>
+                                </div>
+                                <div class="text-muted" style="font-size:.75rem">
+                                    @(step.AssignedToName ?? step.AssignedRole ?? "—")
+                                    @if (step.DecidedAt.HasValue) { <span>• @step.DecidedAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</span> }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(step.DecisionNote))
+                                {
+                                    <div style="font-size:.8rem;color:var(--text-secondary);margin-top:4px;background:var(--bg-secondary);padding:6px 10px;border-radius:6px">@step.DecisionNote</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

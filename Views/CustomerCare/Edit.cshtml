@@ -1,0 +1,86 @@
+@model OmniBizAI.ViewModels.CustomerCareEditViewModel
+@{
+    ViewData["Title"] = "Sửa tương tác";
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <a href='/CustomerCare' style='color:var(--apple-blue);text-decoration:none'>Chăm sóc KH</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <a href='/CustomerCare/Details/" + Model.Id + "' style='color:var(--apple-blue);text-decoration:none'>Chi tiết</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Sửa</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-pen-to-square"></i> Sửa tương tác</h5>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-light border" style="border-radius:8px"><i class="fa-solid fa-eye me-1"></i>Chi tiết</a>
+            </div>
+            <div class="card-body-custom">
+                <!-- Customer context -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:12px 16px;margin-bottom:20px">
+                    <span class="text-muted small">Khách hàng:</span> <strong>@Model.CustomerName</strong>
+                </div>
+
+                <form method="post" asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="CustomerId" type="hidden" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerContactId" class="form-label fw-bold">Người liên hệ</label>
+                            <select asp-for="CustomerContactId" class="form-select" style="border-radius:10px">
+                                <option value="">— Chọn liên hệ —</option>
+                                @foreach (var c in Model.Contacts) { <option value="@c.Value">@c.Text</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Type" class="form-label fw-bold">Loại <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select" style="border-radius:10px">
+                                <option value="Call">📞 Cuộc gọi</option>
+                                <option value="Email">📧 Email</option>
+                                <option value="Meeting">🤝 Cuộc họp</option>
+                                <option value="Visit">🏢 Thăm viếng</option>
+                                <option value="Note">📝 Ghi chú</option>
+                                <option value="Complaint">⚠️ Khiếu nại</option>
+                                <option value="Feedback">💬 Phản hồi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Priority" class="form-label fw-bold">Ưu tiên</label>
+                            <select asp-for="Priority" class="form-select" style="border-radius:10px">
+                                <option value="Low">Thấp</option>
+                                <option value="Normal">Bình thường</option>
+                                <option value="High">Cao</option>
+                                <option value="Urgent">Khẩn cấp</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="Subject" class="form-label fw-bold">Tiêu đề <span class="text-danger">*</span></label>
+                            <input asp-for="Subject" class="form-control" style="border-radius:10px" />
+                            <span asp-validation-for="Subject" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="Description" class="form-label fw-bold">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" style="border-radius:10px;resize:vertical"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="AssignedToUserId" class="form-label fw-bold">Giao cho</label>
+                            <select asp-for="AssignedToUserId" class="form-select" style="border-radius:10px">
+                                <option value="">— Không đổi —</option>
+                                @foreach (var u in Model.Users) { <option value="@u.Value">@u.Text</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ScheduledAt" class="form-label fw-bold">Lịch hẹn</label>
+                            <input asp-for="ScheduledAt" type="datetime-local" class="form-control" style="border-radius:10px" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DurationMinutes" class="form-label fw-bold">Thời lượng (phút)</label>
+                            <input asp-for="DurationMinutes" type="number" min="1" max="480" class="form-control" style="border-radius:10px" />
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end pt-4 mt-3" style="border-top:1px solid var(--divider)">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-light border px-4" style="border-radius:10px">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-check me-2"></i>Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

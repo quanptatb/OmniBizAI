@@ -1,0 +1,108 @@
+@model OmniBizAI.ViewModels.AiRecommendationsViewModel
+@{
+    ViewData["Title"] = "AI Khuyến nghị";
+    ViewData["Breadcrumb"] = "<span>AI</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Khuyến nghị</span>";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-wand-magic-sparkles me-2" style="color:var(--apple-blue)"></i>AI Khuyến nghị</h4>
+        <span style="color:var(--text-muted);font-size:.82rem"><i class="fa-regular fa-clock me-1"></i>Cập nhật: @Model.GeneratedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-primary btn-sm"><i class="fa-solid fa-robot me-1"></i>AI Copilot</a>
+        <a asp-action="Recommendations" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-refresh me-1"></i>Làm mới</a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto" style="background:rgba(255,59,48,.08);color:#FF3B30"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <div class="stat-value" style="color:#FF3B30">@Model.CriticalCount</div>
+            <div class="stat-label">Critical</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto" style="background:rgba(255,149,0,.08);color:#FF9500"><i class="fa-solid fa-exclamation-triangle"></i></div>
+            <div class="stat-value" style="color:#FF9500">@Model.HighCount</div>
+            <div class="stat-label">High</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon blue mx-auto"><i class="fa-solid fa-info-circle"></i></div>
+            <div class="stat-value">@Model.NormalCount</div>
+            <div class="stat-label">Normal</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon green mx-auto"><i class="fa-solid fa-list-check"></i></div>
+            <div class="stat-value">@Model.Items.Count</div>
+            <div class="stat-label">Tổng khuyến nghị</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations List -->
+@if (!Model.Items.Any())
+{
+    <div class="content-card">
+        <div class="card-body-custom text-center py-5">
+            <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,rgba(52,199,89,.1),rgba(0,122,255,.1));display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                <i class="fa-solid fa-check-circle" style="font-size:2rem;color:var(--success)"></i>
+            </div>
+            <h5 style="font-weight:600;color:var(--text-secondary)">Hệ thống hoạt động tốt!</h5>
+            <p style="font-size:.85rem;color:var(--text-muted);max-width:360px;margin:0 auto">Không phát hiện vấn đề cần khuyến nghị. AI sẽ thông báo khi có cảnh báo mới.</p>
+        </div>
+    </div>
+}
+else
+{
+    @foreach (var item in Model.Items)
+    {
+        var priClass = item.Priority switch { "Critical" => "critical", "High" => "high", _ => "normal" };
+        var priBg = item.Priority switch { "Critical" => "rgba(255,59,48,.06)", "High" => "rgba(255,149,0,.04)", _ => "transparent" };
+        var priColor = item.Priority switch { "Critical" => "#FF3B30", "High" => "#FF9500", _ => "var(--apple-blue)" };
+        var priBadgeBg = item.Priority switch { "Critical" => "rgba(255,59,48,.1)", "High" => "rgba(255,149,0,.1)", _ => "rgba(0,122,255,.08)" };
+        <div class="content-card mb-3 rec-card @priClass" style="background:@priBg;border-left:3px solid @priColor">
+            <div class="card-body-custom py-3 px-4">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div class="d-flex gap-3 flex-grow-1">
+                        <div style="width:42px;height:42px;border-radius:12px;background:@priBadgeBg;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="fa-solid @item.Icon" style="color:@priColor;font-size:1rem"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="rec-priority-badge" style="background:@priBadgeBg;color:@priColor">@item.Priority</span>
+                                <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.65rem;padding:2px 8px;border-radius:12px">@item.Category</span>
+                            </div>
+                            <h6 style="font-weight:600;margin:0 0 4px;font-size:.9rem;color:var(--text-primary)">@item.Title</h6>
+                            <p style="font-size:.82rem;color:var(--text-secondary);margin:0;line-height:1.5">@item.Description</p>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(item.ActionUrl))
+                    {
+                        <a href="@item.ActionUrl" class="btn btn-sm btn-outline-primary rec-action-btn" style="white-space:nowrap;flex-shrink:0">
+                            <i class="fa-solid fa-arrow-right me-1"></i>Xử lý
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<style>
+    .rec-card { transition: all .2s; }
+    .rec-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+    .rec-priority-badge {
+        display: inline-flex; align-items: center; padding: 2px 10px;
+        border-radius: 12px; font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
+    }
+    .rec-action-btn { border-radius: 10px; font-size: .78rem; padding: 6px 16px; }
+    .rec-action-btn:hover { transform: translateY(-1px); }
+</style>

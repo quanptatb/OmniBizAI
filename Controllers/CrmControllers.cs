@@ -95,6 +95,30 @@ public class CustomersController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteContact(Guid contactId, Guid customerId)
+    {
+        if (!await _service.DeleteContactAsync(contactId)) { TempData["ErrorMessage"] = "Không thể xóa liên hệ."; }
+        else { TempData["SuccessMessage"] = "Đã xóa liên hệ."; }
+        return RedirectToAction(nameof(Details), new { id = customerId });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSite(Guid siteId, Guid customerId)
+    {
+        if (!await _service.DeleteSiteAsync(siteId)) { TempData["ErrorMessage"] = "Không thể xóa chi nhánh."; }
+        else { TempData["SuccessMessage"] = "Đã xóa chi nhánh."; }
+        return RedirectToAction(nameof(Details), new { id = customerId });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> TogglePrimary(Guid contactId, Guid customerId)
+    {
+        await _service.TogglePrimaryContactAsync(contactId, customerId);
+        TempData["SuccessMessage"] = "Đã đặt liên hệ chính.";
+        return RedirectToAction(nameof(Details), new { id = customerId });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
     [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> Delete(Guid id)
     {

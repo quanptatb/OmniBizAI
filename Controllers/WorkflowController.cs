@@ -20,14 +20,15 @@ public class WorkflowController : Controller
         _tenant = tenant;
     }
 
+    // ── Kanban Board ──────────────────────────────────────────────────────────
     public async Task<IActionResult> Kanban(string? search, Guid? dept)
     {
         var vm = await _kanban.GetBoardAsync(search, dept);
         return View(vm);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    // ── Create ────────────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(WorkItemCreateViewModel input, string? search, Guid? dept)
     {
         if (!ModelState.IsValid)
@@ -37,23 +38,19 @@ public class WorkflowController : Controller
         }
 
         var result = await _kanban.CreateAsync(input);
-        if (result.Success)
+        if (result.Success && input.OrganizationUnitId.HasValue)
         {
-            // Notify department about new work item
-            if (input.OrganizationUnitId.HasValue)
-            {
-                await _notif.SendToDepartmentAsync(
-                    $"🎯 {_tenant.UserFullName} tạo công việc mới",
-                    $"{_tenant.UserFullName} đã tạo thẻ công việc \"{input.Title}\" trên Kanban.",
-                    input.OrganizationUnitId.Value, "WorkItem", null);
-            }
+            await _notif.SendToDepartmentAsync(
+                $"🎯 {_tenant.UserFullName} tạo công việc mới",
+                $"{_tenant.UserFullName} đã tạo thẻ công việc \"{input.Title}\" trên Kanban.",
+                input.OrganizationUnitId.Value, "WorkItem", null);
         }
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Kanban), new { search, dept });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    // ── Move ──────────────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Move(WorkItemMoveViewModel input)
     {
         if (input.Id == Guid.Empty || !Enum.IsDefined(typeof(WorkItemStatus), input.Status))
@@ -82,5 +79,92 @@ public class WorkflowController : Controller
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Kanban), new { search = input.Search, dept = input.Dept });
     }
-}
 
+    // ── Details ────────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var vm = await _kanban.GetDetailAsync(id);
+        if (vm == null) return NotFound();
+        return View(vm);
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        var vm = await _kanban.GetEditFormAsync(id);
+        if (vm == null) return NotFound();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(WorkItemEditViewModel vm)
+    {
+        if (!ModelState.IsValid)
+        {
+            var form = await _kanban.GetEditFormAsync(vm.Id);
+            if (form == null) return NotFound();
+            vm.Departments = form.Departments;
+            vm.Assignees = form.Assignees;
+            vm.StatusOptions = form.StatusOptions;
+            return View(vm);
+        }
+
+        var result = await _kanban.UpdateAsync(vm);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id = vm.Id });
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _kanban.DeleteAsync(id);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Kanban));
+    }
+
+    // ── Add Comment ───────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddComment(Guid workItemId, string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            TempData["ErrorMessage"] = "Nội dung bình luận không được trống.";
+            return RedirectToAction(nameof(Details), new { id = workItemId });
+        }
+        var result = await _kanban.AddCommentAsync(workItemId, content);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id = workItemId });
+    }
+
+    // ── Checklist CRUD ────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddChecklist(Guid workItemId, string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            TempData["ErrorMessage"] = "Tiêu đề checklist không được trống.";
+            return RedirectToAction(nameof(Details), new { id = workItemId });
+        }
+        var result = await _kanban.AddChecklistAsync(workItemId, title);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id = workItemId });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleChecklist(Guid checklistId, Guid workItemId)
+    {
+        var result = await _kanban.ToggleChecklistAsync(checklistId);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id = workItemId });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteChecklist(Guid checklistId, Guid workItemId)
+    {
+        var result = await _kanban.DeleteChecklistAsync(checklistId);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Details), new { id = workItemId });
+    }
+}

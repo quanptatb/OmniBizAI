@@ -1,0 +1,96 @@
+@model OmniBizAI.ViewModels.AiInsightDetailViewModel
+@{
+    ViewData["Title"] = "Chi tiết phân tích AI";
+    ViewData["Breadcrumb"] = "<span>AI Copilot</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chi tiết</span>";
+    var riskCls = Model.RiskLevel?.ToLower() ?? "low";
+    var riskIcon = riskCls == "high" ? "fa-fire" : riskCls == "medium" ? "fa-exclamation-triangle" : "fa-shield-halved";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-brain me-2" style="color:var(--apple-blue)"></i>Kết quả phân tích AI</h4>
+        <span style="color:var(--text-muted);font-size:.82rem"><i class="fa-regular fa-clock me-1"></i>@Model.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</span>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="ExportInsight" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-download me-1"></i>Xuất MD</a>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard()"><i class="fa-solid fa-copy me-1"></i>Copy</button>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xóa phân tích này?')">@Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i>Xóa</button>
+        </form>
+        <a asp-action="Index" class="btn btn-sm btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại</a>
+    </div>
+</div>
+
+<!-- Meta badges -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <span class="ai-risk-badge @riskCls"><i class="fa-solid @riskIcon"></i> @Model.RiskLevel</span>
+    <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.72rem;padding:5px 12px;border-radius:20px"><i class="fa-solid fa-layer-group me-1"></i>@Model.ContextType</span>
+    @if (Model.Status == "Reviewed")
+    {
+        <span class="badge" style="background:rgba(52,199,89,.1);color:#34C759;font-size:.72rem;padding:5px 12px;border-radius:20px">✓ AI Reviewed</span>
+    }
+    else
+    {
+        <span class="badge" style="background:rgba(255,149,0,.1);color:#FF9500;font-size:.72rem;padding:5px 12px;border-radius:20px">📋 Local Fallback</span>
+    }
+    @if (!string.IsNullOrEmpty(Model.ModelName))
+    {
+        <span class="badge" style="background:rgba(88,86,214,.1);color:#5856D6;font-size:.72rem;padding:5px 12px;border-radius:20px"><i class="fa-solid fa-microchip me-1"></i>@Model.ModelName</span>
+    }
+    @if (!string.IsNullOrEmpty(Model.AskedByName))
+    {
+        <span class="badge" style="background:rgba(0,122,255,.08);color:var(--apple-blue);font-size:.72rem;padding:5px 12px;border-radius:20px"><i class="fa-solid fa-user me-1"></i>@Model.AskedByName</span>
+    }
+</div>
+
+<!-- Question -->
+<div class="content-card mb-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-question-circle" style="color:var(--apple-blue)"></i> Câu hỏi</h5></div>
+    <div class="card-body-custom">
+        <p style="font-size:.92rem;font-weight:500;color:var(--text-primary);margin:0;line-height:1.6">@Model.Question</p>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="content-card mb-4" id="summaryCard">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-file-lines" style="color:var(--success)"></i> Phân tích</h5></div>
+    <div class="card-body-custom">
+        <div style="font-size:.88rem;line-height:1.75;white-space:pre-line;color:var(--text-primary)">@Model.Summary</div>
+    </div>
+</div>
+
+<!-- Recommendation -->
+@if (!string.IsNullOrEmpty(Model.Recommendation))
+{
+    <div class="content-card mb-4">
+        <div class="card-header-custom"><h5><i class="fa-solid fa-lightbulb" style="color:var(--warning)"></i> Đề xuất hành động</h5></div>
+        <div class="card-body-custom">
+            <div style="font-size:.88rem;line-height:1.75;white-space:pre-line;padding:16px 20px;background:linear-gradient(135deg,rgba(0,122,255,.03),rgba(52,199,89,.03));border-radius:12px;border-left:3px solid var(--apple-blue)">@Model.Recommendation</div>
+        </div>
+    </div>
+}
+
+<style>
+    .ai-risk-badge { display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:.72rem;font-weight:600; }
+    .ai-risk-badge.low { background:rgba(52,199,89,.1);color:#34C759; }
+    .ai-risk-badge.medium { background:rgba(255,149,0,.1);color:#FF9500; }
+    .ai-risk-badge.high { background:rgba(255,59,48,.1);color:#FF3B30; }
+</style>
+
+@section Scripts {
+    <script>
+        function copyToClipboard() {
+            const q = @Json.Serialize(Model.Question);
+            const s = @Json.Serialize(Model.Summary);
+            const r = @Json.Serialize(Model.Recommendation ?? "");
+            let text = `Câu hỏi: ${q}\n\nPhân tích:\n${s}`;
+            if (r) text += `\n\nĐề xuất:\n${r}`;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target.closest('button');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i>Đã copy';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            });
+        }
+    </script>
+}

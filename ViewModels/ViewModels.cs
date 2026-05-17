@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using OmniBizAI.Helpers;
 using OmniBizAI.Models.Entities.Enums;
 
 namespace OmniBizAI.ViewModels;
@@ -120,6 +121,11 @@ public class OperationRequestListViewModel
 {
     public List<OperationRequestListItem> Items { get; set; } = new();
     public int TotalCount { get; set; }
+    public int DraftCount { get; set; }
+    public int SubmittedCount { get; set; }
+    public int InProgressCount { get; set; }
+    public int CompletedCount { get; set; }
+    public int OverdueCount { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
@@ -174,9 +180,14 @@ public class OperationRequestCreateViewModel
     [Range(0, double.MaxValue, ErrorMessage = "Số tiền không hợp lệ")]
     public decimal? TotalAmount { get; set; }
 
+    // Order lines
+    public List<OrderLineInputViewModel> Lines { get; set; } = new();
+
     // Dropdowns
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> Customers { get; set; } = new();
+    public List<SelectOption> CustomerSites { get; set; } = new();
+    public List<SelectOption> Products { get; set; } = new();
 }
 
 public class OperationRequestDetailViewModel
@@ -195,6 +206,8 @@ public class OperationRequestDetailViewModel
     public DateOnly? DueDate { get; set; }
     public decimal? TotalAmount { get; set; }
     public string? Description { get; set; }
+    public string? CustomerSiteName { get; set; }
+    public List<OrderLineDisplayItem> Lines { get; set; } = new();
     public List<ApprovalTaskItem> ApprovalTasks { get; set; } = new();
     public List<WorkItemListItem> WorkItems { get; set; } = new();
     public List<AiInsightListItem> AiInsights { get; set; } = new();
@@ -202,6 +215,8 @@ public class OperationRequestDetailViewModel
     public bool CanEdit { get; set; }
     public bool CanSubmit { get; set; }
     public bool CanCancel { get; set; }
+    public bool CanStartWork { get; set; }
+    public bool CanComplete { get; set; }
     public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled";
 
     public string StatusLabel => Status switch
@@ -259,6 +274,31 @@ public class OperationRequestEditViewModel
     public List<SelectOption> Customers { get; set; } = new();
 }
 
+public class OrderLineInputViewModel
+{
+    public Guid? ProductServiceId { get; set; }
+    [StringLength(250)]
+    public string? ProductName { get; set; }
+    [Range(0.01, double.MaxValue, ErrorMessage = "Số lượng phải > 0")]
+    public decimal Quantity { get; set; } = 1;
+    [Range(0, double.MaxValue)]
+    public decimal? UnitPrice { get; set; }
+    [StringLength(500)]
+    public string? Note { get; set; }
+    public decimal LineAmount => Quantity * (UnitPrice ?? 0);
+}
+
+public class OrderLineDisplayItem
+{
+    public Guid Id { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductCode { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal? UnitPrice { get; set; }
+    public decimal? LineAmount { get; set; }
+    public string? Note { get; set; }
+}
+
 public class ActivityLogItem
 {
     public string UserName { get; set; } = "";
@@ -274,6 +314,14 @@ public class ActivityLogItem
         "Reject" => "Từ chối",
         "Cancel" => "Hủy yêu cầu",
         "Update" => "Cập nhật",
+        "StartWork" => "Bắt đầu xử lý",
+        "Complete" => "Hoàn thành",
+        "Delete" => "Xóa",
+        "ChangeStage" => "Chuyển giai đoạn",
+        "ReturnForRevision" => "Trả lại chỉnh sửa",
+        "Confirm" => "Xác nhận nhập kho",
+        "MarkPaid" => "Đánh dấu đã thanh toán",
+        "Close" => "Đóng",
         "MoveKanbanCard" => "Di chuyển Kanban",
         _ => Action
     };
@@ -286,6 +334,14 @@ public class ActivityLogItem
         "Reject" => "fa-times-circle",
         "Cancel" => "fa-ban",
         "Update" => "fa-pen",
+        "StartWork" => "fa-play",
+        "Complete" => "fa-check-double",
+        "Delete" => "fa-trash",
+        "ChangeStage" => "fa-diagram-next",
+        "ReturnForRevision" => "fa-rotate-left",
+        "Confirm" => "fa-clipboard-check",
+        "MarkPaid" => "fa-money-check-dollar",
+        "Close" => "fa-lock",
         "MoveKanbanCard" => "fa-arrows-up-down",
         _ => "fa-clock"
     };
@@ -294,10 +350,13 @@ public class ActivityLogItem
     {
         "Create" => "var(--apple-blue)",
         "Submit" => "var(--info)",
-        "Approve" => "var(--success)",
-        "Reject" => "var(--danger)",
-        "Cancel" => "var(--danger)",
-        "Update" => "var(--warning)",
+        "Approve" or "Complete" or "Confirm" => "var(--success)",
+        "Reject" or "Cancel" or "Delete" => "var(--danger)",
+        "Update" or "ChangeStage" => "var(--warning)",
+        "StartWork" => "#5856d6",
+        "ReturnForRevision" => "#ff9500",
+        "MarkPaid" => "#30b0c7",
+        "Close" => "#636366",
         _ => "var(--text-muted)"
     };
 }
@@ -307,6 +366,14 @@ public class ApprovalTaskListViewModel
 {
     public List<ApprovalTaskItem> PendingTasks { get; set; } = new();
     public List<ApprovalTaskItem> CompletedTasks { get; set; } = new();
+    // Stats
+    public int PendingCount { get; set; }
+    public int ApprovedCount { get; set; }
+    public int RejectedCount { get; set; }
+    public int TotalCount { get; set; }
+    // Filters
+    public string? SearchTerm { get; set; }
+    public string? StatusFilter { get; set; }
 }
 
 public class ApprovalTaskItem
@@ -318,13 +385,18 @@ public class ApprovalTaskItem
     public string StepName { get; set; } = "";
     public string Status { get; set; } = "";
     public string? AssignedRole { get; set; }
+    public string? AssignedToName { get; set; }
     public string? DecisionNote { get; set; }
     public DateTimeOffset? DecidedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     // From linked request
     public string RequestTitle { get; set; } = "";
     public string RequestNo { get; set; } = "";
     public string RequestPriority { get; set; } = "";
     public DateTimeOffset RequestCreatedAt { get; set; }
+    public string? RequestDescription { get; set; }
+    public string? RequestDepartment { get; set; }
+    public string? RequestCreatedBy { get; set; }
 }
 
 public class ApproveRejectViewModel
@@ -334,6 +406,53 @@ public class ApproveRejectViewModel
 
     [StringLength(1000)]
     public string? Note { get; set; }
+}
+
+public class ApprovalTaskDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string TargetType { get; set; } = "";
+    public Guid TargetId { get; set; }
+    public string StepCode { get; set; } = "";
+    public string StepName { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string StatusLabel { get; set; } = "";
+    public string? AssignedRole { get; set; }
+    public string? AssignedToName { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public string? DecisionNote { get; set; }
+    public DateTimeOffset? DecidedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    // Request
+    public string RequestTitle { get; set; } = "";
+    public string RequestNo { get; set; } = "";
+    public string? RequestDescription { get; set; }
+    public string RequestPriority { get; set; } = "";
+    public string? RequestDepartment { get; set; }
+    public string? RequestCreatedBy { get; set; }
+    public DateTimeOffset RequestCreatedAt { get; set; }
+    public string RequestStatus { get; set; } = "";
+    // Workflow
+    public string? WorkflowName { get; set; }
+    public string? WorkflowStatus { get; set; }
+    // All steps in this workflow
+    public List<ApprovalStepItem> AllSteps { get; set; } = new();
+    // Assignees for reassign
+    public List<SelectOption> AvailableAssignees { get; set; } = new();
+}
+
+public class ApprovalStepItem
+{
+    public Guid Id { get; set; }
+    public string StepCode { get; set; } = "";
+    public string StepName { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string? AssignedToName { get; set; }
+    public string? AssignedRole { get; set; }
+    public string? DecisionNote { get; set; }
+    public DateTimeOffset? DecidedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public bool IsCurrent { get; set; }
 }
 
 // ===== ORGANIZATION =====
@@ -751,7 +870,88 @@ public class AiInsightListItem
     public string RiskLevel { get; set; } = "";
     public string Status { get; set; } = "";
     public string? ModelName { get; set; }
+    public string? AskedByName { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class AiInsightDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string ContextType { get; set; } = "";
+    public string Question { get; set; } = "";
+    public string Summary { get; set; } = "";
+    public string? Recommendation { get; set; }
+    public string RiskLevel { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string? ModelName { get; set; }
+    public string? AskedByName { get; set; }
+    public string? RawResponseJson { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class AiInsightIndexViewModel
+{
+    public List<AiInsightListItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
+    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+    public string? ContextTypeFilter { get; set; }
+    public string? RiskLevelFilter { get; set; }
+    public string? SearchTerm { get; set; }
+}
+
+public class AiRecommendationItem
+{
+    public Guid Id { get; set; }
+    public string Category { get; set; } = "";  // Operations, Finance, HR, Inventory, CashFlow, CRM, KPI
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string Priority { get; set; } = "Normal"; // Critical, High, Normal, Low
+    public string Status { get; set; } = "New"; // New, Read, InProgress, Implemented, Dismissed
+    public string? ActionUrl { get; set; }
+    public string Icon { get; set; } = "fa-lightbulb";
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class AiRecommendationsViewModel
+{
+    public List<AiRecommendationItem> Items { get; set; } = new();
+    public int CriticalCount { get; set; }
+    public int HighCount { get; set; }
+    public int NormalCount { get; set; }
+    public int TotalNew { get; set; }
+    public DateTimeOffset GeneratedAt { get; set; }
+}
+
+// ===== ANOMALY ALERTS =====
+public class AnomalyAlertItem
+{
+    public string Id { get; set; } = "";
+    public string Module { get; set; } = "";         // Inventory, Finance, Operations, HR, CRM, CashFlow
+    public string Severity { get; set; } = "Warning"; // Critical, Warning, Info
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string? ActionUrl { get; set; }
+    public string Icon { get; set; } = "fa-triangle-exclamation";
+    public string? MetricValue { get; set; }
+    public string? ThresholdValue { get; set; }
+    public bool IsNew { get; set; } = true;
+}
+
+public class AnomalyDashboardViewModel
+{
+    public List<AnomalyAlertItem> Alerts { get; set; } = new();
+    public int CriticalCount { get; set; }
+    public int WarningCount { get; set; }
+    public int InfoCount { get; set; }
+    public int TotalAlerts { get; set; }
+    public DateTimeOffset ScanTime { get; set; }
+    public string? ModuleFilter { get; set; }
+    public string? SeverityFilter { get; set; }
+    // Stock alerts from DB
+    public List<StockAlertListItem> StockAlerts { get; set; } = new();
+    public int ActiveStockAlerts { get; set; }
 }
 
 // ===== AUDIT LOG =====
@@ -876,6 +1076,80 @@ public class WorkItemMoveViewModel
     public Guid? Dept { get; set; }
 }
 
+public class WorkItemEditViewModel
+{
+    [Required] public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Tiêu đề không được để trống")]
+    [StringLength(250)]
+    public string Title { get; set; } = "";
+
+    [StringLength(2000)]
+    public string? Description { get; set; }
+
+    public Guid? OrganizationUnitId { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
+    public DateOnly? DueDate { get; set; }
+    public WorkItemStatus Status { get; set; }
+
+    public List<SelectOption> Departments { get; set; } = new();
+    public List<SelectOption> Assignees { get; set; } = new();
+    public List<SelectOption> StatusOptions { get; set; } = new();
+}
+
+public class WorkItemDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = "";
+    public string? Description { get; set; }
+    public string Status { get; set; } = "";
+    public string StatusLabel { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public string PriorityClass { get; set; } = "";
+    public string Department { get; set; } = "";
+    public Guid? DepartmentId { get; set; }
+    public string RequestNo { get; set; } = "";
+    public string RequestTitle { get; set; } = "";
+    public Guid OperationRequestId { get; set; }
+    public string? AssignedTo { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public DateOnly? DueDate { get; set; }
+    public bool IsOverdue { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+    public string? CreatedByName { get; set; }
+    public List<WorkItemChecklistItem> Checklists { get; set; } = new();
+    public List<WorkItemCommentItem> Comments { get; set; } = new();
+    public List<WorkItemAssignmentItem> AssignmentHistory { get; set; } = new();
+}
+
+public class WorkItemChecklistItem
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = "";
+    public bool IsCompleted { get; set; }
+    public string? CompletedByName { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+}
+
+public class WorkItemCommentItem
+{
+    public Guid Id { get; set; }
+    public string Content { get; set; } = "";
+    public string UserName { get; set; } = "";
+    public Guid UserId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class WorkItemAssignmentItem
+{
+    public Guid Id { get; set; }
+    public string UserName { get; set; } = "";
+    public DateTimeOffset AssignedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+}
+
 // ── Column management ────────────────────────────────────────────────────────
 public class KanbanColumnCreateViewModel
 {
@@ -987,10 +1261,62 @@ public class ExecutiveReportViewModel
     public FinanceReportViewModel Finance { get; set; } = new();
     public HrReportViewModel Hr { get; set; } = new();
     public KpiOkrReportViewModel KpiOkr { get; set; } = new();
+    public InventoryReportViewModel Inventory { get; set; } = new();
+    public CashFlowReportViewModel CashFlow { get; set; } = new();
     public int TotalCustomers { get; set; }
     public int TotalVendors { get; set; }
     public int TotalProducts { get; set; }
+    public int TotalOpportunities { get; set; }
+    public decimal OpportunityPipelineValue { get; set; }
 }
+
+public class InventoryReportViewModel
+{
+    public int TotalProducts { get; set; }
+    public int LowStockCount { get; set; }
+    public int CriticalStockCount { get; set; }
+    public int OverstockCount { get; set; }
+    public int ActiveAlertCount { get; set; }
+    public decimal TotalStockValue { get; set; }
+    public int TotalReceipts { get; set; }
+    public int ConfirmedReceipts { get; set; }
+    public decimal TotalReceivedQty { get; set; }
+    public int TotalIssues { get; set; }
+    public int ConfirmedIssues { get; set; }
+    public decimal TotalIssuedQty { get; set; }
+    public List<DeptWorkloadItem> TopProducts { get; set; } = new();
+    public List<MonthlyTrendItem> ReceiptIssueTrend { get; set; } = new();
+}
+
+public class CashFlowReportViewModel
+{
+    public decimal TotalIncome { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal Balance => TotalIncome - TotalExpense;
+    public int TotalTransactions { get; set; }
+    public int PendingApproval { get; set; }
+    public List<StatusCountItem> ByCategory { get; set; } = new();
+    public List<StatusCountItem> ByPaymentMethod { get; set; } = new();
+    public List<CashMonthSummary> MonthlyTrend { get; set; } = new();
+}
+
+public class CrmReportViewModel
+{
+    public int TotalCustomers { get; set; }
+    public int ActiveCustomers { get; set; }
+    public int TotalVendors { get; set; }
+    public int TotalOpportunities { get; set; }
+    public int WonOpportunities { get; set; }
+    public int LostOpportunities { get; set; }
+    public decimal PipelineValue { get; set; }
+    public decimal WonValue { get; set; }
+    public decimal WinRate => TotalOpportunities > 0 ? Math.Round((decimal)WonOpportunities / TotalOpportunities * 100, 1) : 0;
+    public int TotalInteractions { get; set; }
+    public List<StatusCountItem> OpportunityByStage { get; set; } = new();
+    public List<DeptWorkloadItem> TopCustomersByRevenue { get; set; } = new();
+    public List<MonthlyTrendItem> InteractionTrend { get; set; } = new();
+}
+
 // ===== CRM — CUSTOMERS =====
 public class CustomerListViewModel
 {
@@ -1062,7 +1388,284 @@ public class CustomerSiteItem
     public string? City { get; set; }
 }
 
+// ===== CRM — CUSTOMER CARE (INTERACTIONS) =====
+public class CustomerCareListViewModel
+{
+    public List<CrmInteractionItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int PlannedCount { get; set; }
+    public int InProgressCount { get; set; }
+    public int CompletedCount { get; set; }
+    public int OverdueCount { get; set; }
+    public string? SearchTerm { get; set; }
+    public string? TypeFilter { get; set; }
+    public string? StatusFilter { get; set; }
+    public Guid? CustomerFilter { get; set; }
+    public List<SelectOption> Customers { get; set; } = new();
+}
+
+public class CrmInteractionItem
+{
+    public Guid Id { get; set; }
+    public string Type { get; set; } = "";
+    public string Subject { get; set; } = "";
+    public string? Description { get; set; }
+    public string Status { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public string CustomerName { get; set; } = "";
+    public string? ContactName { get; set; }
+    public string? AssignedToName { get; set; }
+    public DateTimeOffset? ScheduledAt { get; set; }
+    public int? DurationMinutes { get; set; }
+    public string? Outcome { get; set; }
+    public string? NextAction { get; set; }
+    public DateTimeOffset? NextActionDate { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class CustomerCareCreateViewModel
+{
+    public Guid? PreselectedCustomerId { get; set; }
+
+    [Required(ErrorMessage = "Khách hàng không được để trống")]
+    public Guid CustomerId { get; set; }
+
+    public Guid? CustomerContactId { get; set; }
+
+    [Required(ErrorMessage = "Loại tương tác không được để trống")]
+    [StringLength(50)]
+    public string Type { get; set; } = "Note";
+
+    [Required(ErrorMessage = "Tiêu đề không được để trống")]
+    [StringLength(250)]
+    public string Subject { get; set; } = "";
+
+    [StringLength(4000)]
+    public string? Description { get; set; }
+
+    [StringLength(30)]
+    public string Priority { get; set; } = "Normal";
+
+    public DateTimeOffset? ScheduledAt { get; set; }
+
+    public int? DurationMinutes { get; set; }
+
+    public Guid? AssignedToUserId { get; set; }
+
+    public List<SelectOption> Customers { get; set; } = new();
+    public List<SelectOption> Contacts { get; set; } = new();
+    public List<SelectOption> Users { get; set; } = new();
+}
+
+public class CustomerCareDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string Type { get; set; } = "";
+    public string TypeLabel { get; set; } = "";
+    public string Subject { get; set; } = "";
+    public string? Description { get; set; }
+    public string Status { get; set; } = "";
+    public string StatusLabel { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public string PriorityLabel { get; set; } = "";
+    public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; } = "";
+    public string? ContactName { get; set; }
+    public string? AssignedToName { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public DateTimeOffset? ScheduledAt { get; set; }
+    public int? DurationMinutes { get; set; }
+    public string? Outcome { get; set; }
+    public string? NextAction { get; set; }
+    public DateTimeOffset? NextActionDate { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public string? CompletedByName { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public string? CreatedByName { get; set; }
+}
+
+public class CustomerCareEditViewModel
+{
+    public Guid Id { get; set; }
+    public Guid CustomerId { get; set; }
+    public Guid? CustomerContactId { get; set; }
+
+    [Required(ErrorMessage = "Loại tương tác không được để trống")]
+    [StringLength(50)]
+    public string Type { get; set; } = "Note";
+
+    [Required(ErrorMessage = "Tiêu đề không được để trống")]
+    [StringLength(250)]
+    public string Subject { get; set; } = "";
+
+    [StringLength(4000)]
+    public string? Description { get; set; }
+
+    [StringLength(30)]
+    public string Priority { get; set; } = "Normal";
+
+    public DateTimeOffset? ScheduledAt { get; set; }
+    public int? DurationMinutes { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+
+    public List<SelectOption> Contacts { get; set; } = new();
+    public List<SelectOption> Users { get; set; } = new();
+    public string CustomerName { get; set; } = "";
+}
+
+public class CompleteInteractionViewModel
+{
+    public Guid Id { get; set; }
+    [StringLength(2000)]
+    public string? Outcome { get; set; }
+    [StringLength(2000)]
+    public string? NextAction { get; set; }
+    public DateTimeOffset? NextActionDate { get; set; }
+}
+
+// ===== CRM — SALES OPPORTUNITIES =====
+public class SalesOpportunityListViewModel
+{
+    public List<SalesOpportunityItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int LeadCount { get; set; }
+    public int QualifiedCount { get; set; }
+    public int ProposalCount { get; set; }
+    public int NegotiationCount { get; set; }
+    public int ClosedWonCount { get; set; }
+    public int ClosedLostCount { get; set; }
+    public decimal TotalPipelineValue { get; set; }
+    public decimal WeightedValue { get; set; }
+    public string? SearchTerm { get; set; }
+    public string? StageFilter { get; set; }
+    public string? TempFilter { get; set; }
+    public Guid? CustomerFilter { get; set; }
+    public List<SelectOption> Customers { get; set; } = new();
+}
+
+public class SalesOpportunityItem
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Stage { get; set; } = "";
+    public decimal EstimatedValue { get; set; }
+    public int Probability { get; set; }
+    public string Temperature { get; set; } = "";
+    public string CustomerName { get; set; } = "";
+    public string? AssignedToName { get; set; }
+    public string? Source { get; set; }
+    public DateOnly? ExpectedCloseDate { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class SalesOpportunityCreateViewModel
+{
+    [Required(ErrorMessage = "Tiêu đề không được để trống")]
+    [StringLength(250)]
+    public string Title { get; set; } = "";
+
+    [StringLength(4000)]
+    public string? Description { get; set; }
+
+    [Required(ErrorMessage = "Khách hàng không được để trống")]
+    public Guid CustomerId { get; set; }
+
+    public Guid? CustomerContactId { get; set; }
+
+    [Range(0, double.MaxValue, ErrorMessage = "Giá trị không hợp lệ")]
+    public decimal EstimatedValue { get; set; }
+
+    [Range(0, 100, ErrorMessage = "Xác suất phải từ 0-100")]
+    public int Probability { get; set; } = 10;
+
+    [StringLength(30)]
+    public string Temperature { get; set; } = "Warm";
+
+    [StringLength(250)]
+    public string? Source { get; set; }
+
+    public DateOnly? ExpectedCloseDate { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+
+    public List<SelectOption> Customers { get; set; } = new();
+    public List<SelectOption> Contacts { get; set; } = new();
+    public List<SelectOption> Users { get; set; } = new();
+}
+
+public class SalesOpportunityDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string? Description { get; set; }
+    public string Stage { get; set; } = "";
+    public string StageLabel { get; set; } = "";
+    public decimal EstimatedValue { get; set; }
+    public int Probability { get; set; }
+    public string Temperature { get; set; } = "";
+    public string TemperatureLabel { get; set; } = "";
+    public string? Source { get; set; }
+    public DateOnly? ExpectedCloseDate { get; set; }
+    public DateOnly? ActualCloseDate { get; set; }
+    public string? LostReason { get; set; }
+    public string? WonNote { get; set; }
+    public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; } = "";
+    public string? ContactName { get; set; }
+    public string? AssignedToName { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public string? CreatedByName { get; set; }
+    public decimal WeightedValue => EstimatedValue * Probability / 100m;
+}
+
+public class SalesOpportunityEditViewModel
+{
+    public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Tiêu đề không được để trống")]
+    [StringLength(250)]
+    public string Title { get; set; } = "";
+
+    [StringLength(4000)]
+    public string? Description { get; set; }
+
+    public Guid CustomerId { get; set; }
+    public Guid? CustomerContactId { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal EstimatedValue { get; set; }
+
+    [Range(0, 100)]
+    public int Probability { get; set; }
+
+    [StringLength(30)]
+    public string Temperature { get; set; } = "Warm";
+
+    [StringLength(250)]
+    public string? Source { get; set; }
+
+    public DateOnly? ExpectedCloseDate { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+
+    public string CustomerName { get; set; } = "";
+    public List<SelectOption> Contacts { get; set; } = new();
+    public List<SelectOption> Users { get; set; } = new();
+}
+
+public class ChangeStageViewModel
+{
+    public Guid Id { get; set; }
+    public string NewStage { get; set; } = "";
+    [StringLength(2000)]
+    public string? Note { get; set; }
+}
+
 // ===== CRM — VENDORS =====
+
+
 public class VendorListViewModel
 {
     public List<VendorListItem> Items { get; set; } = new();
@@ -1399,6 +2002,497 @@ public class PurchaseOrderLineItem
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal LineTotal => Quantity * UnitPrice;
+}
+
+// ===== GOODS RECEIPT (NHẬP KHO) =====
+public class GoodsReceiptListViewModel
+{
+    public List<GoodsReceiptListItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int DraftCount { get; set; }
+    public int ConfirmedCount { get; set; }
+    public string? SearchTerm { get; set; }
+    public string? StatusFilter { get; set; }
+}
+
+public class GoodsReceiptListItem
+{
+    public Guid Id { get; set; }
+    public string ReceiptNo { get; set; } = "";
+    public string PurchaseOrderNo { get; set; } = "";
+    public string VendorName { get; set; } = "";
+    public string Status { get; set; } = "";
+    public DateOnly ReceiptDate { get; set; }
+    public string? WarehouseLocation { get; set; }
+    public string ReceivedBy { get; set; } = "";
+    public int LineCount { get; set; }
+    public decimal TotalReceivedQty { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class GoodsReceiptDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string ReceiptNo { get; set; } = "";
+    public string PurchaseOrderNo { get; set; } = "";
+    public Guid PurchaseOrderId { get; set; }
+    public string VendorName { get; set; } = "";
+    public string Status { get; set; } = "";
+    public DateOnly ReceiptDate { get; set; }
+    public string? WarehouseLocation { get; set; }
+    public string? Note { get; set; }
+    public string ReceivedBy { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<GoodsReceiptLineDisplay> Lines { get; set; } = new();
+    public List<ActivityLogItem> ActivityLog { get; set; } = new();
+    public bool CanConfirm { get; set; }
+    public bool CanCancel { get; set; }
+    public bool CanEdit { get; set; }
+
+    public string StatusLabel => EnumHelper.Label<GoodsReceiptStatus>(Status);
+}
+
+public class GoodsReceiptLineDisplay
+{
+    public Guid Id { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductCode { get; set; }
+    public string? ItemName { get; set; }
+    public decimal OrderedQuantity { get; set; }
+    public decimal ReceivedQuantity { get; set; }
+    public decimal? RejectedQuantity { get; set; }
+    public bool QualityPassed { get; set; }
+    public string? Note { get; set; }
+    public decimal AcceptedQuantity => ReceivedQuantity - (RejectedQuantity ?? 0);
+}
+
+public class GoodsReceiptCreateViewModel
+{
+    [Required(ErrorMessage = "Đơn hàng mua không được để trống")]
+    public Guid PurchaseOrderId { get; set; }
+
+    public DateOnly ReceiptDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
+    [StringLength(500)]
+    public string? WarehouseLocation { get; set; }
+
+    [StringLength(2000)]
+    public string? Note { get; set; }
+
+    public List<GoodsReceiptLineInput> Lines { get; set; } = new();
+
+    // Dropdowns
+    public List<SelectOption> PurchaseOrders { get; set; } = new();
+    // PO details for auto-fill
+    public string? SelectedPONo { get; set; }
+    public string? SelectedVendor { get; set; }
+}
+
+public class GoodsReceiptLineInput
+{
+    public Guid? PurchaseOrderLineId { get; set; }
+    public Guid? ProductServiceId { get; set; }
+    [StringLength(250)]
+    public string? ItemName { get; set; }
+    public decimal OrderedQuantity { get; set; }
+    [Range(0, double.MaxValue, ErrorMessage = "Số lượng nhận phải >= 0")]
+    public decimal ReceivedQuantity { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal? RejectedQuantity { get; set; }
+    public bool QualityPassed { get; set; } = true;
+    [StringLength(500)]
+    public string? Note { get; set; }
+}
+
+// ===== GOODS ISSUE (XUẤT KHO) =====
+public class GoodsIssueListViewModel
+{
+    public List<GoodsIssueListItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int DraftCount { get; set; }
+    public int ConfirmedCount { get; set; }
+    public string? SearchTerm { get; set; }
+    public string? StatusFilter { get; set; }
+    public string? TypeFilter { get; set; }
+}
+
+public class GoodsIssueListItem
+{
+    public Guid Id { get; set; }
+    public string IssueNo { get; set; } = "";
+    public string IssueType { get; set; } = "";
+    public string? OperationRequestNo { get; set; }
+    public string? CustomerName { get; set; }
+    public string? Department { get; set; }
+    public string Status { get; set; } = "";
+    public DateOnly IssueDate { get; set; }
+    public string? WarehouseLocation { get; set; }
+    public string IssuedBy { get; set; } = "";
+    public int LineCount { get; set; }
+    public decimal TotalIssuedQty { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public string IssueTypeLabel => IssueType switch
+    {
+        "Internal" => "Nội bộ",
+        "CustomerDelivery" => "Giao khách",
+        "Transfer" => "Điều chuyển",
+        "Adjustment" => "Điều chỉnh",
+        _ => IssueType
+    };
+
+    public string IssueTypeIcon => IssueType switch
+    {
+        "Internal" => "fa-building",
+        "CustomerDelivery" => "fa-truck-fast",
+        "Transfer" => "fa-arrows-rotate",
+        "Adjustment" => "fa-sliders",
+        _ => "fa-box"
+    };
+}
+
+public class GoodsIssueDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string IssueNo { get; set; } = "";
+    public string IssueType { get; set; } = "";
+    public string? OperationRequestNo { get; set; }
+    public Guid? OperationRequestId { get; set; }
+    public string? CustomerName { get; set; }
+    public string? Department { get; set; }
+    public string Status { get; set; } = "";
+    public DateOnly IssueDate { get; set; }
+    public string? WarehouseLocation { get; set; }
+    public string? Destination { get; set; }
+    public string? Note { get; set; }
+    public string IssuedBy { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<GoodsIssueLineDisplay> Lines { get; set; } = new();
+    public List<ActivityLogItem> ActivityLog { get; set; } = new();
+    public bool CanConfirm { get; set; }
+    public bool CanCancel { get; set; }
+    public bool CanEdit { get; set; }
+
+    public string StatusLabel => EnumHelper.Label<GoodsIssueStatus>(Status);
+
+    public string IssueTypeLabel => IssueType switch
+    {
+        "Internal" => "Nội bộ",
+        "CustomerDelivery" => "Giao khách",
+        "Transfer" => "Điều chuyển",
+        "Adjustment" => "Điều chỉnh",
+        _ => IssueType
+    };
+}
+
+public class GoodsIssueLineDisplay
+{
+    public Guid Id { get; set; }
+    public string? ProductName { get; set; }
+    public string? ProductCode { get; set; }
+    public string? ItemName { get; set; }
+    public decimal RequestedQuantity { get; set; }
+    public decimal IssuedQuantity { get; set; }
+    public string? UnitOfMeasure { get; set; }
+    public string? Note { get; set; }
+    public decimal FulfillRate => RequestedQuantity > 0 ? IssuedQuantity / RequestedQuantity * 100 : 0;
+}
+
+public class GoodsIssueCreateViewModel
+{
+    [Required(ErrorMessage = "Loại xuất kho không được để trống")]
+    [StringLength(50)]
+    public string IssueType { get; set; } = "Internal";
+
+    public Guid? OperationRequestId { get; set; }
+    public Guid? CustomerId { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+
+    public DateOnly IssueDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
+    [StringLength(500)]
+    public string? WarehouseLocation { get; set; }
+
+    [StringLength(500)]
+    public string? Destination { get; set; }
+
+    [StringLength(2000)]
+    public string? Note { get; set; }
+
+    public List<GoodsIssueLineInput> Lines { get; set; } = new();
+
+    // Dropdowns
+    public List<SelectOption> OperationRequests { get; set; } = new();
+    public List<SelectOption> Customers { get; set; } = new();
+    public List<SelectOption> Departments { get; set; } = new();
+    public List<SelectOption> Products { get; set; } = new();
+}
+
+public class GoodsIssueLineInput
+{
+    public Guid? ProductServiceId { get; set; }
+    [StringLength(250)]
+    public string? ItemName { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal RequestedQuantity { get; set; }
+    [Range(0, double.MaxValue, ErrorMessage = "Số lượng xuất phải >= 0")]
+    public decimal IssuedQuantity { get; set; }
+    [StringLength(50)]
+    public string? UnitOfMeasure { get; set; }
+    [StringLength(500)]
+    public string? Note { get; set; }
+}
+
+// ===== INVENTORY DASHBOARD & STOCK ALERTS =====
+public class StockDashboardViewModel
+{
+    public List<StockItemViewModel> Items { get; set; } = new();
+    public int TotalProducts { get; set; }
+    public int LowStockCount { get; set; }
+    public int CriticalStockCount { get; set; }
+    public int OverstockCount { get; set; }
+    public int HealthyCount { get; set; }
+    public int ActiveAlertCount { get; set; }
+    public List<StockAlertListItem> RecentAlerts { get; set; } = new();
+    public string? SearchTerm { get; set; }
+    public string? StockFilter { get; set; } // All, Low, Critical, Overstock, Healthy
+    public string? CategoryFilter { get; set; }
+    public List<SelectOption> Categories { get; set; } = new();
+}
+
+public class StockItemViewModel
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? CategoryName { get; set; }
+    public string Type { get; set; } = "";
+    public decimal CurrentStock { get; set; }
+    public decimal ReorderPoint { get; set; }
+    public decimal SafetyStock { get; set; }
+    public decimal MaxStock { get; set; }
+    public decimal? StandardPrice { get; set; }
+    public decimal StockValue => CurrentStock * (StandardPrice ?? 0);
+
+    public string StockStatus
+    {
+        get
+        {
+            if (SafetyStock > 0 && CurrentStock <= SafetyStock) return "Critical";
+            if (ReorderPoint > 0 && CurrentStock <= ReorderPoint) return "Low";
+            if (MaxStock > 0 && CurrentStock >= MaxStock) return "Overstock";
+            return "Healthy";
+        }
+    }
+
+    public string StockStatusLabel => StockStatus switch
+    {
+        "Critical" => "Nguy hiểm",
+        "Low" => "Thấp",
+        "Overstock" => "Vượt mức",
+        "Healthy" => "Bình thường",
+        _ => StockStatus
+    };
+
+    public string StockStatusColor => StockStatus switch
+    {
+        "Critical" => "var(--danger)",
+        "Low" => "var(--warning)",
+        "Overstock" => "#5856d6",
+        "Healthy" => "var(--success)",
+        _ => "var(--text-muted)"
+    };
+
+    public string StockStatusBadge => StockStatus switch
+    {
+        "Critical" => "badge-behind",
+        "Low" => "badge-at-risk",
+        "Overstock" => "badge-pending",
+        "Healthy" => "badge-on-track",
+        _ => ""
+    };
+
+    public decimal StockPercent => ReorderPoint > 0 ? Math.Min(200, CurrentStock / ReorderPoint * 100) : (CurrentStock > 0 ? 100 : 0);
+}
+
+public class StockAlertListViewModel
+{
+    public List<StockAlertListItem> Items { get; set; } = new();
+    public int ActiveCount { get; set; }
+    public int AcknowledgedCount { get; set; }
+    public int ResolvedCount { get; set; }
+    public string? StatusFilter { get; set; }
+    public string? TypeFilter { get; set; }
+}
+
+public class StockAlertListItem
+{
+    public Guid Id { get; set; }
+    public string ProductCode { get; set; } = "";
+    public string ProductName { get; set; } = "";
+    public string AlertType { get; set; } = "";
+    public decimal CurrentStock { get; set; }
+    public decimal Threshold { get; set; }
+    public string? Message { get; set; }
+    public string Status { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? AcknowledgedAt { get; set; }
+    public string? AcknowledgedBy { get; set; }
+
+    public string AlertTypeLabel => AlertType switch
+    {
+        "Critical" => "Nguy hiểm",
+        "Low" => "Tồn kho thấp",
+        "Overstock" => "Vượt mức tồn",
+        _ => AlertType
+    };
+
+    public string AlertTypeIcon => AlertType switch
+    {
+        "Critical" => "fa-triangle-exclamation",
+        "Low" => "fa-arrow-down",
+        "Overstock" => "fa-arrow-up",
+        _ => "fa-bell"
+    };
+
+    public string AlertTypeColor => AlertType switch
+    {
+        "Critical" => "var(--danger)",
+        "Low" => "var(--warning)",
+        "Overstock" => "#5856d6",
+        _ => "var(--text-muted)"
+    };
+}
+
+public class SetStockThresholdsViewModel
+{
+    public Guid ProductId { get; set; }
+    public string ProductCode { get; set; } = "";
+    public string ProductName { get; set; } = "";
+    public decimal CurrentStock { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal ReorderPoint { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal SafetyStock { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal MaxStock { get; set; }
+}
+
+// ===== CASH BOOK (THU CHI) =====
+public class CashBookDashboardViewModel
+{
+    public List<CashTransactionListItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public decimal TotalIncome { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal Balance => TotalIncome - TotalExpense;
+    public int RecordedCount { get; set; }
+    public int ApprovedCount { get; set; }
+    public string? SearchTerm { get; set; }
+    public string? TypeFilter { get; set; }
+    public string? StatusFilter { get; set; }
+    public string? CategoryFilter { get; set; }
+    public DateOnly? FromDate { get; set; }
+    public DateOnly? ToDate { get; set; }
+    public List<SelectOption> Categories { get; set; } = new();
+    public List<CashMonthSummary> MonthlySummary { get; set; } = new();
+}
+
+public class CashTransactionListItem
+{
+    public Guid Id { get; set; }
+    public string TransactionNo { get; set; } = "";
+    public string TransactionType { get; set; } = "";
+    public string Category { get; set; } = "";
+    public string Description { get; set; } = "";
+    public decimal Amount { get; set; }
+    public DateOnly TransactionDate { get; set; }
+    public string? PaymentMethod { get; set; }
+    public string? ReferenceNo { get; set; }
+    public string? CustomerName { get; set; }
+    public string? VendorName { get; set; }
+    public string? Department { get; set; }
+    public string Status { get; set; } = "";
+    public string RecordedBy { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+    public bool IsIncome => TransactionType == "Income";
+}
+
+public class CashTransactionDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string TransactionNo { get; set; } = "";
+    public string TransactionType { get; set; } = "";
+    public string Category { get; set; } = "";
+    public string Description { get; set; } = "";
+    public decimal Amount { get; set; }
+    public DateOnly TransactionDate { get; set; }
+    public string? PaymentMethod { get; set; }
+    public string? ReferenceNo { get; set; }
+    public string? CustomerName { get; set; }
+    public string? VendorName { get; set; }
+    public string? BudgetName { get; set; }
+    public string? Department { get; set; }
+    public string? Note { get; set; }
+    public string Status { get; set; } = "";
+    public string RecordedBy { get; set; } = "";
+    public string? ApprovedBy { get; set; }
+    public DateTimeOffset? ApprovedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<ActivityLogItem> ActivityLog { get; set; } = new();
+    public bool CanApprove { get; set; }
+    public bool CanReject { get; set; }
+    public bool CanVoid { get; set; }
+    public bool IsIncome => TransactionType == "Income";
+    public string StatusLabel => EnumHelper.Label<CashTransactionStatus>(Status);
+}
+
+public class CashTransactionCreateViewModel
+{
+    [Required(ErrorMessage = "Loại giao dịch không được để trống")]
+    [StringLength(20)]
+    public string TransactionType { get; set; } = "Expense";
+
+    [Required(ErrorMessage = "Danh mục không được để trống")]
+    [StringLength(100)]
+    public string Category { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Mô tả không được để trống")]
+    [StringLength(500)]
+    public string Description { get; set; } = string.Empty;
+
+    [Required, Range(0.01, double.MaxValue, ErrorMessage = "Số tiền phải lớn hơn 0")]
+    public decimal Amount { get; set; }
+
+    public DateOnly TransactionDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
+    [StringLength(100)]
+    public string? PaymentMethod { get; set; }
+
+    [StringLength(250)]
+    public string? ReferenceNo { get; set; }
+
+    public Guid? CustomerId { get; set; }
+    public Guid? VendorId { get; set; }
+    public Guid? BudgetId { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+
+    [StringLength(2000)]
+    public string? Note { get; set; }
+
+    // Dropdowns
+    public List<SelectOption> Customers { get; set; } = new();
+    public List<SelectOption> Vendors { get; set; } = new();
+    public List<SelectOption> Budgets { get; set; } = new();
+    public List<SelectOption> Departments { get; set; } = new();
+}
+
+public class CashMonthSummary
+{
+    public string Month { get; set; } = "";
+    public decimal Income { get; set; }
+    public decimal Expense { get; set; }
+    public decimal Balance => Income - Expense;
 }
 
 // ===== EXPENSES =====

@@ -1,104 +1,189 @@
 @model OmniBizAI.ViewModels.ApprovalTaskListViewModel
 @{
     ViewData["Title"] = "Phê duyệt";
-    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Phê duyệt</span>";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Phê duyệt</span>";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="stat-value">@Model.PendingCount</div>
+            <div class="stat-label">Chờ duyệt</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-value">@Model.ApprovedCount</div>
+            <div class="stat-label">Đã duyệt</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(255,59,48,.08);color:#ff3b30"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="stat-value">@Model.RejectedCount</div>
+            <div class="stat-label">Từ chối</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="stat-value">@Model.TotalCount</div>
+            <div class="stat-label">Tổng cộng</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
+        <form method="get" class="d-flex gap-3 align-items-end flex-wrap">
+            <div class="flex-grow-1" style="min-width:220px">
+                <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Mã yêu cầu, tiêu đề..." style="border-radius:0 8px 8px 0" />
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="MyTasks" class="btn btn-light border" style="border-radius:8px"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabs -->
 <ul class="nav nav-tabs mb-4" role="tablist">
     <li class="nav-item">
-        <a class="nav-link active fw-bold" data-bs-toggle="tab" href="#pending">
+        <a class="nav-link active fw-bold" data-bs-toggle="tab" href="#pending" style="font-size:.88rem">
             <i class="fa-solid fa-clock me-2 text-warning"></i>Chờ duyệt
             @if (Model.PendingTasks.Any())
             {
-                <span class="badge bg-warning text-dark ms-2">@Model.PendingTasks.Count</span>
+                <span class="badge rounded-pill" style="background:#ff9500;color:#fff;margin-left:6px">@Model.PendingTasks.Count</span>
             }
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link fw-bold" data-bs-toggle="tab" href="#completed">
+        <a class="nav-link fw-bold" data-bs-toggle="tab" href="#completed" style="font-size:.88rem">
             <i class="fa-solid fa-check-double me-2 text-success"></i>Đã xử lý
         </a>
     </li>
 </ul>
 
 <div class="tab-content">
+    <!-- Pending -->
     <div class="tab-pane fade show active" id="pending">
         @if (!Model.PendingTasks.Any())
         {
             <div class="content-card text-center py-5">
-                <div class="card-body">
-                    <i class="fa-solid fa-circle-check fa-4x text-success mb-3 opacity-50"></i>
-                    <h5 class="text-muted">Không có yêu cầu nào cần duyệt</h5>
-                    <p class="text-muted small">Tất cả các yêu cầu đã được xử lý.</p>
-                </div>
+                <i class="fa-solid fa-circle-check fa-3x text-success mb-3 opacity-50"></i>
+                <h5 class="text-muted" style="font-weight:600">Không có yêu cầu nào cần duyệt</h5>
+                <p class="text-muted small">Tất cả các yêu cầu đã được xử lý.</p>
             </div>
         }
 
         @foreach (var task in Model.PendingTasks)
         {
-            <div class="approval-card pending">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="fw-bold mb-1">
-                            <a asp-controller="Operations" asp-action="Details" asp-route-id="@task.TargetId" class="text-decoration-none text-primary">@task.RequestNo</a>
-                            — @task.RequestTitle
-                        </h6>
-                        <div class="d-flex gap-3 text-muted small">
-                            <span><i class="fa-solid fa-code-branch me-1"></i>@task.StepName</span>
-                            <span><i class="fa-solid fa-user-shield me-1"></i>@task.AssignedRole</span>
-                            <span><i class="fa-regular fa-clock me-1"></i>@task.RequestCreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+            var priColor = task.RequestPriority switch { "Critical" => "#ff3b30", "High" => "#ff9500", "Normal" => "#007AFF", "Low" => "#34c759", _ => "#94a3b8" };
+            var priLabel = task.RequestPriority switch { "Critical" => "Nguy cấp", "High" => "Cao", "Normal" => "Bình thường", "Low" => "Thấp", _ => task.RequestPriority };
+            <div class="content-card mb-3 animate-fade-in" style="border-left:3px solid #ff9500">
+                <div class="card-body-custom">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="fw-bold mb-1" style="font-size:.92rem">
+                                <a asp-action="Details" asp-route-id="@task.Id" style="color:var(--text-primary);text-decoration:none">
+                                    <a asp-controller="Operations" asp-action="Details" asp-route-id="@task.TargetId" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@task.RequestNo</a>
+                                    — @task.RequestTitle
+                                </a>
+                            </h6>
+                            <div class="d-flex gap-3 text-muted small flex-wrap">
+                                <span><i class="fa-solid fa-code-branch me-1"></i>@task.StepName</span>
+                                @if (task.AssignedToName != null) { <span><i class="fa-solid fa-user me-1"></i>@task.AssignedToName</span> }
+                                @if (task.AssignedRole != null) { <span><i class="fa-solid fa-user-shield me-1"></i>@task.AssignedRole</span> }
+                                @if (task.RequestDepartment != null) { <span><i class="fa-solid fa-sitemap me-1"></i>@task.RequestDepartment</span> }
+                                <span><i class="fa-regular fa-clock me-1"></i>@task.RequestCreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(task.RequestDescription))
+                            {
+                                <p style="font-size:.82rem;color:var(--text-secondary);margin:8px 0 0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">@task.RequestDescription</p>
+                            }
                         </div>
+                        <span class="badge rounded-pill" style="background:@(priColor)18;color:@priColor;font-size:.68rem;padding:4px 10px;border:1px solid @(priColor)30;white-space:nowrap">@priLabel</span>
                     </div>
-                    @{
-                        var priClass = task.RequestPriority switch { "Critical" => "bg-danger", "High" => "bg-warning text-dark", _ => "bg-light text-dark border" };
-                        var priLabel = task.RequestPriority switch { "Low" => "Thấp", "Normal" => "B.thường", "High" => "Cao", "Critical" => "Nguy cấp", _ => task.RequestPriority };
-                    }
-                    <span class="badge @priClass">@priLabel</span>
-                </div>
-                <div class="d-flex gap-2 justify-content-end">
-                    <button class="btn btn-success btn-sm px-3" onclick="openApprovalModal('@task.Id', 'Approve')">
-                        <i class="fa-solid fa-check me-1"></i> Duyệt
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm px-3" onclick="openApprovalModal('@task.Id', 'Reject')">
-                        <i class="fa-solid fa-xmark me-1"></i> Từ chối
-                    </button>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-light border px-3" style="border-radius:8px;font-size:.78rem">
+                            <i class="fa-solid fa-eye me-1"></i>Chi tiết
+                        </a>
+                        <button class="btn btn-success btn-sm px-3" style="border-radius:8px;font-size:.78rem" onclick="openApprovalModal('@task.Id', 'Approve')">
+                            <i class="fa-solid fa-check me-1"></i>Duyệt
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm px-3" style="border-radius:8px;font-size:.78rem" onclick="openApprovalModal('@task.Id', 'Reject')">
+                            <i class="fa-solid fa-xmark me-1"></i>Từ chối
+                        </button>
+                    </div>
                 </div>
             </div>
         }
     </div>
 
+    <!-- Completed -->
     <div class="tab-pane fade" id="completed">
         @if (!Model.CompletedTasks.Any())
         {
             <div class="content-card text-center py-5">
-                <div class="card-body">
-                    <i class="fa-solid fa-inbox fa-4x text-muted mb-3 opacity-50"></i>
-                    <h5 class="text-muted">Chưa có lịch sử xử lý</h5>
-                </div>
+                <i class="fa-solid fa-inbox fa-3x text-muted mb-3 opacity-50"></i>
+                <h5 class="text-muted" style="font-weight:600">Chưa có lịch sử xử lý</h5>
             </div>
         }
 
         @foreach (var task in Model.CompletedTasks)
         {
-            <div class="approval-card @(task.Status == "Approved" ? "approved" : "rejected")">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="fw-bold mb-1">@task.RequestNo — @task.RequestTitle</h6>
-                        <div class="d-flex gap-3 text-muted small">
-                            <span><i class="fa-solid fa-code-branch me-1"></i>@task.StepName</span>
-                            <span>
-                                @{ var stLabel = task.Status switch { "Approved" => "Đã duyệt", "Rejected" => "Từ chối", "Skipped" => "Bỏ qua", "Cancelled" => "Đã hủy", _ => task.Status }; }
-                                <span class="badge @(task.Status == "Approved" ? "bg-success" : "bg-danger")">@stLabel</span>
-                            </span>
-                            @if (task.DecidedAt.HasValue)
+            var (borderColor, stLabel, stIcon) = task.Status switch
+            {
+                "Approved" => ("#34c759", "Đã duyệt", "fa-circle-check"),
+                "Rejected" => ("#ff3b30", "Từ chối", "fa-circle-xmark"),
+                "Skipped" => ("#8e8e93", "Trả lại", "fa-arrow-rotate-left"),
+                "Cancelled" => ("#8e8e93", "Đã hủy", "fa-ban"),
+                _ => ("#94a3b8", task.Status, "fa-circle")
+            };
+            <div class="content-card mb-3" style="border-left:3px solid @borderColor">
+                <div class="card-body-custom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1" style="font-size:.92rem">
+                                <a asp-action="Details" asp-route-id="@task.Id" style="color:var(--text-primary);text-decoration:none">@task.RequestNo — @task.RequestTitle</a>
+                            </h6>
+                            <div class="d-flex gap-3 text-muted small flex-wrap align-items-center">
+                                <span><i class="fa-solid fa-code-branch me-1"></i>@task.StepName</span>
+                                <span class="badge rounded-pill" style="background:@(borderColor)18;color:@borderColor;font-size:.68rem;padding:3px 10px"><i class="fa-solid @stIcon me-1"></i>@stLabel</span>
+                                @if (task.DecidedAt.HasValue) { <span><i class="fa-regular fa-clock me-1"></i>@task.DecidedAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</span> }
+                            </div>
+                            @if (!string.IsNullOrEmpty(task.DecisionNote))
                             {
-                                <span><i class="fa-regular fa-clock me-1"></i>@task.DecidedAt.Value.ToString("HH:mm dd/MM/yyyy")</span>
+                                <div style="margin-top:8px;padding:8px 12px;background:var(--bg-secondary);border-radius:8px;font-size:.82rem;color:var(--text-secondary)">
+                                    <i class="fa-solid fa-comment me-1"></i>@task.DecisionNote
+                                </div>
                             }
                         </div>
-                        @if (!string.IsNullOrEmpty(task.DecisionNote))
-                        {
-                            <div class="mt-2 p-2 bg-light rounded border text-sm"><i class="fa-solid fa-comment me-1"></i> @task.DecisionNote</div>
-                        }
+                        <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-light border" style="border-radius:6px" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
                     </div>
                 </div>
             </div>
@@ -109,24 +194,27 @@
 <!-- Approval Modal -->
 <div class="modal fade" id="approvalModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
             <form id="approvalForm" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="taskId" id="modalTaskId" />
-                <div class="modal-header">
+                <div class="modal-header" style="border-bottom:1px solid var(--divider);padding:20px 24px">
                     <h5 class="modal-title fw-bold" id="modalTitle">Phê duyệt</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" id="modalAction" />
-                    <div class="mb-3" id="modalNoteGroup">
-                        <label class="form-label fw-bold">Ghi chú / Lý do</label>
-                        <textarea name="note" id="modalNote" class="form-control" rows="3" placeholder="Nhập lý do từ chối (tối thiểu 10 ký tự nếu từ chối)..."></textarea>
+                <div class="modal-body" style="padding:24px">
+                    <div id="approveNote" class="mb-3">
+                        <label class="form-label fw-bold">Ghi chú</label>
+                        <textarea name="note" id="modalNote" class="form-control" rows="3" placeholder="Ghi chú phê duyệt..." style="border-radius:10px;resize:vertical"></textarea>
+                    </div>
+                    <div id="rejectNote" class="mb-3" style="display:none">
+                        <label class="form-label fw-bold">Lý do từ chối <span class="text-danger">*</span></label>
+                        <textarea name="reason" id="modalReason" class="form-control" rows="3" minlength="10" placeholder="Nhập lý do từ chối (tối thiểu 10 ký tự)..." style="border-radius:10px;resize:vertical"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-success" id="modalSubmitBtn">Xác nhận</button>
+                <div class="modal-footer" style="border-top:1px solid var(--divider);padding:16px 24px">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal" style="border-radius:10px">Đóng</button>
+                    <button type="submit" class="btn btn-success px-4" id="modalSubmitBtn" style="border-radius:10px;font-weight:600">Xác nhận</button>
                 </div>
             </form>
         </div>
@@ -135,14 +223,37 @@
 
 @section Scripts {
     <script>
-        document.getElementById('approvalForm')?.addEventListener('submit', function(e) {
-            const action = document.getElementById('modalAction').value;
-            const taskId = document.getElementById('modalTaskId').value;
-            const note = document.getElementById('modalNote').value;
-            this.action = action === 'Approve' ? '/Approvals/Approve' : '/Approvals/Reject';
-            if (action === 'Reject') {
-                document.getElementById('modalNote').name = 'reason';
+        function openApprovalModal(taskId, action) {
+            document.getElementById('modalTaskId').value = taskId;
+            const form = document.getElementById('approvalForm');
+            const title = document.getElementById('modalTitle');
+            const submitBtn = document.getElementById('modalSubmitBtn');
+            const approveNote = document.getElementById('approveNote');
+            const rejectNote = document.getElementById('rejectNote');
+
+            if (action === 'Approve') {
+                form.action = '/Approvals/Approve';
+                title.textContent = '✅ Phê duyệt yêu cầu';
+                submitBtn.className = 'btn btn-success px-4';
+                submitBtn.style.borderRadius = '10px';
+                submitBtn.style.fontWeight = '600';
+                submitBtn.innerHTML = '<i class="fa-solid fa-check me-2"></i>Phê duyệt';
+                approveNote.style.display = 'block';
+                rejectNote.style.display = 'none';
+                document.getElementById('modalReason').removeAttribute('required');
+            } else {
+                form.action = '/Approvals/Reject';
+                title.textContent = '❌ Từ chối yêu cầu';
+                submitBtn.className = 'btn btn-danger px-4';
+                submitBtn.style.borderRadius = '10px';
+                submitBtn.style.fontWeight = '600';
+                submitBtn.innerHTML = '<i class="fa-solid fa-xmark me-2"></i>Từ chối';
+                approveNote.style.display = 'none';
+                rejectNote.style.display = 'block';
+                document.getElementById('modalReason').setAttribute('required', 'required');
             }
-        });
+
+            new bootstrap.Modal(document.getElementById('approvalModal')).show();
+        }
     </script>
 }

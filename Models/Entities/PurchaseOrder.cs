@@ -25,4 +25,5 @@ public class PurchaseOrder : TenantEntity
 
     public ICollection<PurchaseOrderLine> Lines { get; set; } = new List<PurchaseOrderLine>();
     public ICollection<PaymentRequest> PaymentRequests { get; set; } = new List<PaymentRequest>();
+    public ICollection<GoodsReceipt> GoodsReceipts { get; set; } = new List<GoodsReceipt>();
 }

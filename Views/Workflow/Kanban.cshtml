@@ -65,7 +65,7 @@
                                 <a asp-controller="Operations" asp-action="Details" asp-route-id="@card.OperationRequestId" class="kanban-request">@card.RequestNo</a>
                                 <span class="kanban-priority">@card.Priority</span>
                             </div>
-                            <h3>@card.Title</h3>
+                            <h3><a asp-action="Details" asp-route-id="@card.Id" style="color:inherit;text-decoration:none">@card.Title</a></h3>
                             @if (!string.IsNullOrWhiteSpace(card.Description))
                             {
                                 <p>@card.Description</p>
@@ -89,6 +89,8 @@
                                 </div>
                             }
                             <div class="kanban-actions">
+                                <a asp-action="Details" asp-route-id="@card.Id" class="btn btn-sm btn-light border" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+                                <a asp-action="Edit" asp-route-id="@card.Id" class="btn btn-sm btn-light border" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></a>
                                 @foreach (var nextStatus in NextStatuses(card.Status))
                                 {
                                     <form asp-action="Move" method="post">

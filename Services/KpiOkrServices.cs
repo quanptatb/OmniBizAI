@@ -513,8 +513,130 @@ public class KpiCheckInService(ApplicationDbContext db, ITenantContext tenant)
             TotalCount = total,
             Page = page,
             SearchTerm = search,
-            ReviewStatusFilter = reviewStatus
+            ReviewStatusFilter = reviewStatus,
+            PendingCount = await db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.ReviewStatus == CheckInReviewStatus.Pending),
+            ApprovedCount = await db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.ReviewStatus == CheckInReviewStatus.Approved),
+            RejectedCount = await db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.ReviewStatus == CheckInReviewStatus.Rejected),
+            LateCount = await db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.IsLate)
         };
+    }
+
+    public async Task<KpiCheckInDetailViewModel?> GetDetailAsync(Guid id)
+    {
+        var tid = tenant.TenantId;
+        var c = await db.KpiCheckIns
+            .Include(x => x.KpiTarget).ThenInclude(t => t!.KpiDefinition)
+            .Include(x => x.User)
+            .Include(x => x.SubmittedByUser)
+            .Include(x => x.ReviewedByUser)
+            .Include(x => x.KpiFailReason)
+            .Include(x => x.Details)
+            .Include(x => x.HistoryLogs)
+            .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tid && !x.IsDeleted);
+        if (c == null) return null;
+
+        return new KpiCheckInDetailViewModel
+        {
+            Id = c.Id,
+            KpiName = c.KpiTarget?.KpiDefinition?.Name ?? "",
+            KpiCode = c.KpiTarget?.KpiDefinition?.Code ?? "",
+            KpiTargetId = c.KpiTargetId,
+            UserName = c.User?.FullName ?? "",
+            UserId = c.UserId,
+            SubmittedByName = c.SubmittedByUser?.FullName,
+            CheckInDate = c.CheckInDate,
+            ProgressValue = c.ProgressValue,
+            Comment = c.Comment,
+            FailReasonName = c.KpiFailReason?.ReasonName,
+            IsLate = c.IsLate,
+            DeadlineAt = c.DeadlineAt,
+            ReviewStatus = c.ReviewStatus.ToString(),
+            ReviewedByName = c.ReviewedByUser?.FullName,
+            ReviewedAt = c.ReviewedAt,
+            ReviewComment = c.ReviewComment,
+            ReviewScore = c.ReviewScore,
+            CreatedAt = c.CreatedAt,
+            UpdatedAt = c.UpdatedAt,
+            TargetValue = c.KpiTarget?.TargetValue,
+            Unit = c.KpiTarget?.KpiDefinition?.Unit,
+            DetailItems = c.Details.Where(d => !d.IsDeleted).Select(d => new KpiCheckInDetailLineItem
+            {
+                Id = d.Id, MetricName = d.MetricName,
+                TargetValue = d.TargetValue, AchievedValue = d.AchievedValue, Note = d.Note
+            }).ToList(),
+            HistoryLogs = c.HistoryLogs.Where(h => !h.IsDeleted).OrderByDescending(h => h.CreatedAt)
+                .Select(h => new KpiCheckInHistoryItem { Id = h.Id, Action = h.Action, Details = h.Details, CreatedAt = h.CreatedAt }).ToList()
+        };
+    }
+
+    public async Task<KpiCheckInEditViewModel?> GetEditFormAsync(Guid id)
+    {
+        var tid = tenant.TenantId;
+        var c = await db.KpiCheckIns
+            .Include(x => x.KpiTarget).ThenInclude(t => t!.KpiDefinition)
+            .Include(x => x.User)
+            .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tid && !x.IsDeleted);
+        if (c == null || c.ReviewStatus != CheckInReviewStatus.Pending) return null;
+
+        return new KpiCheckInEditViewModel
+        {
+            Id = c.Id, ProgressValue = c.ProgressValue, Comment = c.Comment,
+            KpiFailReasonId = c.KpiFailReasonId,
+            KpiName = c.KpiTarget?.KpiDefinition?.Name ?? "",
+            KpiCode = c.KpiTarget?.KpiDefinition?.Code ?? "",
+            UserName = c.User?.FullName ?? "",
+            CheckInDate = c.CheckInDate,
+            FailReasons = await db.KpiFailReasons.Where(r => r.TenantId == tid && !r.IsDeleted)
+                .OrderBy(r => r.ReasonName)
+                .Select(r => new SelectOption { Value = r.Id.ToString(), Text = r.ReasonName }).ToListAsync()
+        };
+    }
+
+    public async Task<(bool Success, string Message)> UpdateCheckInAsync(KpiCheckInEditViewModel vm)
+    {
+        var c = await db.KpiCheckIns.FirstOrDefaultAsync(x => x.Id == vm.Id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (c == null) return (false, "Không tìm thấy check-in.");
+        if (c.ReviewStatus != CheckInReviewStatus.Pending) return (false, "Không thể sửa check-in đã được review.");
+
+        var oldValue = c.ProgressValue;
+        c.ProgressValue = vm.ProgressValue;
+        c.Comment = vm.Comment?.Trim();
+        c.KpiFailReasonId = vm.KpiFailReasonId;
+        c.UpdatedAt = DateTimeOffset.UtcNow;
+        c.UpdatedByUserId = tenant.UserId;
+
+        db.KpiCheckInHistoryLogs.Add(new KpiCheckInHistoryLog
+        {
+            TenantId = tenant.TenantId, KpiCheckInId = c.Id,
+            Action = "Updated",
+            Details = $"Cập nhật giá trị từ {oldValue:N2} → {vm.ProgressValue:N2}",
+            CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName,
+            Action = "UpdateCheckIn", EntityName = "KpiCheckIn", EntityId = c.Id,
+            OldValuesJson = $"{{\"ProgressValue\":{oldValue}}}",
+            NewValuesJson = $"{{\"ProgressValue\":{vm.ProgressValue}}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+        return (true, "Đã cập nhật check-in.");
+    }
+
+    public async Task<(bool Success, string Message)> DeleteCheckInAsync(Guid id)
+    {
+        var c = await db.KpiCheckIns.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (c == null) return (false, "Không tìm thấy.");
+        if (c.ReviewStatus != CheckInReviewStatus.Pending) return (false, "Không thể xóa check-in đã được review.");
+
+        c.IsDeleted = true;
+        c.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "DeleteCheckIn", EntityName = "KpiCheckIn", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync();
+        return (true, "Đã xóa check-in.");
     }
 
     public async Task<(bool Success, string Message)> SubmitCheckInAsync(KpiCheckInSubmitViewModel vm)

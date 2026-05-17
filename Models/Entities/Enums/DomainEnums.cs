@@ -86,6 +86,27 @@ public enum PurchaseOrderStatus
     Cancelled = 5
 }
 
+public enum GoodsReceiptStatus
+{
+    Draft = 1,
+    Confirmed = 2,
+    Cancelled = 3
+}
+
+public enum GoodsIssueStatus
+{
+    Draft = 1,
+    Confirmed = 2,
+    Cancelled = 3
+}
+
+public enum StockAlertStatus
+{
+    Active = 1,
+    Acknowledged = 2,
+    Resolved = 3
+}
+
 public enum PaymentStatus
 {
     Draft = 1,
@@ -109,6 +130,14 @@ public enum ExpenseStatus
     Recorded = 1,
     Approved = 2,
     Reversed = 3
+}
+
+public enum CashTransactionStatus
+{
+    Recorded = 1,
+    Approved = 2,
+    Rejected = 3,
+    Voided = 4
 }
 
 public enum LeaveType

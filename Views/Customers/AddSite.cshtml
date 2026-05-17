@@ -1,16 +1,47 @@
 @model OmniBizAI.ViewModels.AddSiteViewModel
-@{ ViewData["Title"] = "Thêm chi nhánh"; ViewData["Breadcrumb"] = "<a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm chi nhánh</span>"; }
-<div class="content-card" style="max-width:520px">
-    <div class="card-header-custom"><h5><i class="fa-solid fa-location-dot"></i> Thêm chi nhánh: @Model.CustomerName</h5></div>
-    <div class="card-body-custom">
-        <form method="post" asp-action="AddSite">@Html.AntiForgeryToken()
-            <input type="hidden" asp-for="CustomerId" /><input type="hidden" asp-for="CustomerName" />
-            <div class="row g-3">
-                <div class="col-12"><label class="form-label">Tên chi nhánh <span class="text-danger">*</span></label><input asp-for="Name" class="form-control" placeholder="Chi nhánh HCM" /><span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span></div>
-                <div class="col-md-8"><label class="form-label">Địa chỉ</label><input asp-for="Address" class="form-control" placeholder="123 Nguyễn Huệ" /></div>
-                <div class="col-md-4"><label class="form-label">Thành phố</label><input asp-for="City" class="form-control" placeholder="TP.HCM" /></div>
+@{
+    ViewData["Title"] = "Thêm chi nhánh";
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers/Details/" + Model.CustomerId + "' style='color:var(--apple-blue);text-decoration:none'>" + Model.CustomerName + "</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm chi nhánh</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-location-dot"></i> Thêm chi nhánh / Địa điểm</h5>
+                <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-sm btn-light border" style="border-radius:8px"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại</a>
             </div>
-            <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Thêm</button><a asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-light">Hủy</a></div>
-        </form>
+            <div class="card-body-custom">
+                <!-- Customer context -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:12px 16px;margin-bottom:20px">
+                    <span class="text-muted small">Khách hàng:</span> <strong>@Model.CustomerName</strong>
+                </div>
+
+                <form method="post" asp-action="AddSite">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="CustomerId" type="hidden" />
+                    <input asp-for="CustomerName" type="hidden" />
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label asp-for="Name" class="form-label fw-bold">Tên chi nhánh <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: Chi nhánh Hà Nội..." style="border-radius:10px" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="Address" class="form-label fw-bold">Địa chỉ</label>
+                            <input asp-for="Address" class="form-control" placeholder="Số nhà, đường, quận/huyện..." style="border-radius:10px" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-bold">Thành phố</label>
+                            <input asp-for="City" class="form-control" placeholder="VD: Hà Nội" style="border-radius:10px" />
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end pt-4 mt-3" style="border-top:1px solid var(--divider)">
+                        <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-light border px-4" style="border-radius:10px">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-check me-2"></i>Thêm chi nhánh</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

@@ -220,6 +220,11 @@ public class KpiCheckInListViewModel
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
     public string? SearchTerm { get; set; }
     public string? ReviewStatusFilter { get; set; }
+    // Stats
+    public int PendingCount { get; set; }
+    public int ApprovedCount { get; set; }
+    public int RejectedCount { get; set; }
+    public int LateCount { get; set; }
 }
 
 public class KpiCheckInListItem
@@ -259,6 +264,68 @@ public class KpiCheckInReviewViewModel
 
     [Range(0, 100)]
     public decimal? Score { get; set; }
+}
+
+public class KpiCheckInDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string KpiName { get; set; } = "";
+    public string KpiCode { get; set; } = "";
+    public Guid KpiTargetId { get; set; }
+    public string UserName { get; set; } = "";
+    public Guid UserId { get; set; }
+    public string? SubmittedByName { get; set; }
+    public DateOnly CheckInDate { get; set; }
+    public decimal ProgressValue { get; set; }
+    public string? Comment { get; set; }
+    public string? FailReasonName { get; set; }
+    public bool IsLate { get; set; }
+    public DateTimeOffset? DeadlineAt { get; set; }
+    public string ReviewStatus { get; set; } = "";
+    public string? ReviewedByName { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public string? ReviewComment { get; set; }
+    public decimal? ReviewScore { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+    // Detail items
+    public List<KpiCheckInDetailLineItem> DetailItems { get; set; } = new();
+    // History logs
+    public List<KpiCheckInHistoryItem> HistoryLogs { get; set; } = new();
+    // KPI target info
+    public decimal? TargetValue { get; set; }
+    public string? Unit { get; set; }
+}
+
+public class KpiCheckInDetailLineItem
+{
+    public Guid Id { get; set; }
+    public string? MetricName { get; set; }
+    public decimal? TargetValue { get; set; }
+    public decimal? AchievedValue { get; set; }
+    public string? Note { get; set; }
+}
+
+public class KpiCheckInHistoryItem
+{
+    public Guid Id { get; set; }
+    public string Action { get; set; } = "";
+    public string? Details { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class KpiCheckInEditViewModel
+{
+    [Required] public Guid Id { get; set; }
+    [Required] public decimal ProgressValue { get; set; }
+    [StringLength(1000)] public string? Comment { get; set; }
+    public Guid? KpiFailReasonId { get; set; }
+    public List<SelectOption> FailReasons { get; set; } = new();
+    // Read-only display
+    public string KpiName { get; set; } = "";
+    public string KpiCode { get; set; } = "";
+    public string UserName { get; set; } = "";
+    public DateOnly CheckInDate { get; set; }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

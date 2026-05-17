@@ -1,18 +1,60 @@
 @model OmniBizAI.ViewModels.AddContactViewModel
-@{ ViewData["Title"] = "Thêm liên hệ"; ViewData["Breadcrumb"] = "<a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm liên hệ</span>"; }
-<div class="content-card" style="max-width:560px">
-    <div class="card-header-custom"><h5><i class="fa-solid fa-user-plus"></i> Thêm liên hệ: @Model.CustomerName</h5></div>
-    <div class="card-body-custom">
-        <form method="post" asp-action="AddContact">@Html.AntiForgeryToken()
-            <input type="hidden" asp-for="CustomerId" /><input type="hidden" asp-for="CustomerName" />
-            <div class="row g-3">
-                <div class="col-md-6"><label class="form-label">Họ tên <span class="text-danger">*</span></label><input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" /><span asp-validation-for="FullName" class="text-danger" style="font-size:.78rem"></span></div>
-                <div class="col-md-6"><label class="form-label">Chức vụ</label><input asp-for="JobTitle" class="form-control" placeholder="Giám đốc" /></div>
-                <div class="col-md-6"><label class="form-label">Email</label><input asp-for="Email" type="email" class="form-control" /><span asp-validation-for="Email" class="text-danger" style="font-size:.78rem"></span></div>
-                <div class="col-md-6"><label class="form-label">Số điện thoại</label><input asp-for="PhoneNumber" class="form-control" /></div>
-                <div class="col-12"><div class="form-check"><input asp-for="IsPrimary" type="checkbox" class="form-check-input" /><label class="form-check-label" asp-for="IsPrimary">Liên hệ chính</label></div></div>
+@{
+    ViewData["Title"] = "Thêm liên hệ";
+    ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers/Details/" + Model.CustomerId + "' style='color:var(--apple-blue);text-decoration:none'>" + Model.CustomerName + "</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm liên hệ</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-user-plus"></i> Thêm người liên hệ</h5>
+                <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-sm btn-light border" style="border-radius:8px"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại</a>
             </div>
-            <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Thêm</button><a asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-light">Hủy</a></div>
-        </form>
+            <div class="card-body-custom">
+                <!-- Customer context -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:12px 16px;margin-bottom:20px">
+                    <span class="text-muted small">Khách hàng:</span> <strong>@Model.CustomerName</strong>
+                </div>
+
+                <form method="post" asp-action="AddContact">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="CustomerId" type="hidden" />
+                    <input asp-for="CustomerName" type="hidden" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label fw-bold">Họ tên <span class="text-danger">*</span></label>
+                            <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" style="border-radius:10px" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="JobTitle" class="form-label fw-bold">Chức vụ</label>
+                            <input asp-for="JobTitle" class="form-control" placeholder="VD: Giám đốc, Kế toán..." style="border-radius:10px" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-bold">Email</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="email@example.com" style="border-radius:10px" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold">Số điện thoại</label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="0123 456 789" style="border-radius:10px" />
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-check" style="padding:12px 16px;background:var(--bg-secondary);border-radius:10px">
+                                <input asp-for="IsPrimary" class="form-check-input" type="checkbox" />
+                                <label asp-for="IsPrimary" class="form-check-label fw-bold">
+                                    <i class="fa-solid fa-star text-warning me-1"></i>Đặt làm liên hệ chính
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end pt-4 mt-3" style="border-top:1px solid var(--divider)">
+                        <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-light border px-4" style="border-radius:10px">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600"><i class="fa-solid fa-check me-2"></i>Thêm liên hệ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

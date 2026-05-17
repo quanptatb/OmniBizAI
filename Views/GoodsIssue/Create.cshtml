@@ -1,0 +1,171 @@
+@model OmniBizAI.ViewModels.GoodsIssueCreateViewModel
+@{
+    ViewData["Title"] = "Tạo phiếu xuất kho";
+    ViewData["Breadcrumb"] = "<a href='/GoodsIssue' style='color:var(--apple-blue);text-decoration:none'>Xuất kho</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-dolly" style="color:var(--apple-blue)"></i> Tạo phiếu xuất kho</h5>
+            </div>
+            <div class="card-body-custom">
+                <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:24px">Điền thông tin phiếu xuất kho và chọn sản phẩm/dịch vụ cần xuất.</p>
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 p-3 rounded" style="background:var(--danger-bg);border:1px solid rgba(255,59,48,.2);border-radius:var(--r-sm)"></div>
+
+                    <div class="row g-4 mb-4">
+                        <!-- Issue Type -->
+                        <div class="col-md-4">
+                            <label asp-for="IssueType" class="form-label">Loại xuất kho <span style="color:var(--danger)">*</span></label>
+                            <select asp-for="IssueType" class="form-select">
+                                <option value="Internal">Nội bộ (sử dụng nội bộ)</option>
+                                <option value="CustomerDelivery">Giao khách hàng</option>
+                                <option value="Transfer">Điều chuyển kho</option>
+                                <option value="Adjustment">Điều chỉnh tồn kho</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="IssueDate" class="form-label">Ngày xuất kho <span style="color:var(--danger)">*</span></label>
+                            <input asp-for="IssueDate" type="date" class="form-control" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="OrganizationUnitId" class="form-label">Phòng ban</label>
+                            <select asp-for="OrganizationUnitId" class="form-select">
+                                <option value="">-- Chọn phòng ban --</option>
+                                @foreach (var d in Model.Departments)
+                                { <option value="@d.Value">@d.Text</option> }
+                            </select>
+                        </div>
+
+                        <!-- Operation Request -->
+                        <div class="col-md-6">
+                            <label asp-for="OperationRequestId" class="form-label">Yêu cầu vận hành (nếu có)</label>
+                            <select asp-for="OperationRequestId" class="form-select">
+                                <option value="">-- Không liên kết --</option>
+                                @foreach (var o in Model.OperationRequests)
+                                { <option value="@o.Value">@o.Text</option> }
+                            </select>
+                            <small class="text-muted">Liên kết với yêu cầu vận hành đã duyệt</small>
+                        </div>
+
+                        <!-- Customer -->
+                        <div class="col-md-6">
+                            <label asp-for="CustomerId" class="form-label">Khách hàng (nếu giao khách)</label>
+                            <select asp-for="CustomerId" class="form-select">
+                                <option value="">-- Không chọn --</option>
+                                @foreach (var c in Model.Customers)
+                                { <option value="@c.Value">@c.Text</option> }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="WarehouseLocation" class="form-label">Kho xuất</label>
+                            <input asp-for="WarehouseLocation" class="form-control" placeholder="VD: Kho A, Kệ 3..." />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Destination" class="form-label">Nơi nhận / Điểm giao</label>
+                            <input asp-for="Destination" class="form-control" placeholder="VD: Phòng sản xuất, Địa chỉ KH..." />
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Note" class="form-label">Ghi chú</label>
+                            <textarea asp-for="Note" class="form-control" rows="2" placeholder="Ghi chú thêm cho phiếu xuất kho..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Lines -->
+                    <div style="border-top:1px solid var(--divider);padding-top:20px;margin-bottom:20px">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 style="font-weight:600;margin:0"><i class="fa-solid fa-boxes-stacked me-1" style="color:var(--apple-blue)"></i> Danh mục hàng xuất</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" style="border-radius:8px" onclick="addLine()"><i class="fa-solid fa-plus me-1"></i>Thêm mục</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" style="font-size:.85rem" id="linesTable">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3">#</th>
+                                        <th>SP / Dịch vụ</th>
+                                        <th class="text-end">SL yêu cầu</th>
+                                        <th class="text-end">SL xuất <span style="color:var(--danger)">*</span></th>
+                                        <th>ĐVT</th>
+                                        <th>Ghi chú</th>
+                                        <th class="text-center pe-3">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="linesBody">
+                                    @for (var i = 0; i < Model.Lines.Count; i++)
+                                    {
+                                        <tr>
+                                            <td class="ps-3" style="color:var(--text-muted)">@(i + 1)</td>
+                                            <td>
+                                                <select name="Lines[@i].ProductServiceId" class="form-select form-select-sm" style="border-radius:8px;min-width:180px">
+                                                    <option value="">-- Chọn SP --</option>
+                                                    @foreach (var p in Model.Products)
+                                                    { <option value="@p.Value" selected="@(Model.Lines[i].ProductServiceId?.ToString() == p.Value)">@p.Text</option> }
+                                                </select>
+                                                <input type="hidden" name="Lines[@i].ItemName" value="@Model.Lines[i].ItemName" />
+                                            </td>
+                                            <td class="text-end"><input type="number" name="Lines[@i].RequestedQuantity" value="@Model.Lines[i].RequestedQuantity" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" /></td>
+                                            <td class="text-end"><input type="number" name="Lines[@i].IssuedQuantity" value="@Model.Lines[i].IssuedQuantity" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" required /></td>
+                                            <td><input type="text" name="Lines[@i].UnitOfMeasure" value="@Model.Lines[i].UnitOfMeasure" class="form-control form-control-sm" style="width:70px;border-radius:8px" placeholder="Cái" /></td>
+                                            <td><input type="text" name="Lines[@i].Note" value="@Model.Lines[i].Note" class="form-control form-control-sm" style="border-radius:8px;max-width:140px" placeholder="..." /></td>
+                                            <td class="text-center pe-3"><button type="button" class="btn btn-sm text-danger" onclick="this.closest('tr').remove();reindex();"><i class="fa-solid fa-trash-can"></i></button></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="emptyMsg" class="text-center py-4" style="color:var(--text-muted);display:@(Model.Lines.Any() ? "none" : "block")">
+                            <i class="fa-solid fa-hand-pointer fa-2x d-block mb-2" style="opacity:.3"></i>
+                            Nhấn <strong>Thêm mục</strong> để thêm SP/DV cần xuất kho.
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                        <a asp-action="Index" class="btn btn-light" style="border-radius:8px">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-save me-1"></i>Lưu nháp phiếu xuất kho</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        var products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Products));
+        var lineIdx = document.querySelectorAll('#linesBody tr').length;
+        function addLine() {
+            document.getElementById('emptyMsg').style.display = 'none';
+            var opts = '<option value="">-- Chọn SP --</option>';
+            products.forEach(function(p) { opts += '<option value="'+p.value+'">'+p.text+'</option>'; });
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td class="ps-3" style="color:var(--text-muted)">' + (lineIdx+1) + '</td>'
+                + '<td><select name="Lines['+lineIdx+'].ProductServiceId" class="form-select form-select-sm" style="border-radius:8px;min-width:180px">' + opts + '</select><input type="hidden" name="Lines['+lineIdx+'].ItemName" /></td>'
+                + '<td class="text-end"><input type="number" name="Lines['+lineIdx+'].RequestedQuantity" value="0" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" /></td>'
+                + '<td class="text-end"><input type="number" name="Lines['+lineIdx+'].IssuedQuantity" value="0" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" required /></td>'
+                + '<td><input type="text" name="Lines['+lineIdx+'].UnitOfMeasure" class="form-control form-control-sm" style="width:70px;border-radius:8px" placeholder="Cái" /></td>'
+                + '<td><input type="text" name="Lines['+lineIdx+'].Note" class="form-control form-control-sm" style="border-radius:8px;max-width:140px" placeholder="..." /></td>'
+                + '<td class="text-center pe-3"><button type="button" class="btn btn-sm text-danger" onclick="this.closest(\'tr\').remove();reindex();"><i class="fa-solid fa-trash-can"></i></button></td>';
+            document.getElementById('linesBody').appendChild(tr);
+            lineIdx++;
+        }
+        function reindex() {
+            var rows = document.querySelectorAll('#linesBody tr');
+            if (rows.length === 0) document.getElementById('emptyMsg').style.display = 'block';
+            rows.forEach(function(tr, i) {
+                tr.querySelector('td').textContent = i + 1;
+                tr.querySelectorAll('[name]').forEach(function(el) {
+                    el.name = el.name.replace(/Lines\[\d+\]/, 'Lines[' + i + ']');
+                });
+            });
+            lineIdx = rows.length;
+        }
+    </script>
+}

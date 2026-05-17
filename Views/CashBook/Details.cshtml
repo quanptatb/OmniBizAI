@@ -1,0 +1,194 @@
+@model OmniBizAI.ViewModels.CashTransactionDetailViewModel
+@{
+    ViewData["Title"] = "Chi tiết " + Model.TransactionNo;
+    ViewData["Breadcrumb"] = "<a href='/CashBook' style='color:var(--apple-blue);text-decoration:none'>Sổ thu chi</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>" + Model.TransactionNo + "</span>";
+    var statusBadge = Model.Status switch { "Approved" => "badge-on-track", "Recorded" => "badge-at-risk", "Rejected" => "badge-behind", "Voided" => "badge-behind", _ => "" };
+    var payMethodLabel = Model.PaymentMethod switch { "Cash" => "Tiền mặt", "BankTransfer" => "Chuyển khoản", "Card" => "Thẻ", "EWallet" => "Ví điện tử", "Other" => "Khác", _ => Model.PaymentMethod ?? "—" };
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- MAIN -->
+    <div class="col-lg-8">
+        <!-- Header Card -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="status-badge-soft @statusBadge"><span class="status-dot"></span>@Model.StatusLabel</span>
+                        @if (Model.IsIncome)
+                        { <span class="badge" style="background:rgba(52,199,89,.08);color:var(--success);border:1px solid rgba(52,199,89,.15)"><i class="fa-solid fa-arrow-down me-1"></i>Thu</span> }
+                        else
+                        { <span class="badge" style="background:rgba(255,59,48,.06);color:var(--danger);border:1px solid rgba(255,59,48,.15)"><i class="fa-solid fa-arrow-up me-1"></i>Chi</span> }
+                    </div>
+                    <h5 style="font-weight:600;margin:0">@Model.TransactionNo</h5>
+                </div>
+                <div class="text-end">
+                    <div style="font-size:1.5rem;font-weight:800;color:@(Model.IsIncome ? "var(--success)" : "var(--danger)")">@(Model.IsIncome ? "+" : "−")@Model.Amount.ToString("N0") ₫</div>
+                    <small style="color:var(--text-muted)">@Model.TransactionDate.ToString("dd/MM/yyyy")</small>
+                </div>
+            </div>
+            <div class="card-body-custom">
+                <!-- Category & Description -->
+                <div style="padding:14px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider);margin-bottom:20px">
+                    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">@Model.Category</div>
+                    <div style="font-weight:500;line-height:1.6">@Model.Description</div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="row g-4 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Phương thức</label>
+                        <div style="font-weight:500"><i class="fa-solid fa-credit-card me-1" style="color:var(--text-muted);font-size:.78rem"></i>@payMethodLabel</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.ReferenceNo))
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Số tham chiếu</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-hashtag me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.ReferenceNo</div>
+                        </div>
+                    }
+                    @if (Model.CustomerName != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Khách hàng</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-building me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.CustomerName</div>
+                        </div>
+                    }
+                    @if (Model.VendorName != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Nhà cung cấp</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-truck me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.VendorName</div>
+                        </div>
+                    }
+                    @if (Model.BudgetName != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Ngân sách</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-piggy-bank me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.BudgetName</div>
+                        </div>
+                    }
+                    @if (Model.Department != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Phòng ban</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-sitemap me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.Department</div>
+                        </div>
+                    }
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Người ghi nhận</label>
+                        <div style="font-weight:500"><i class="fa-solid fa-user me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.RecordedBy</div>
+                    </div>
+                    @if (Model.ApprovedBy != null)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Người duyệt</label>
+                            <div style="font-weight:500"><i class="fa-solid fa-user-check me-1" style="color:var(--success);font-size:.78rem"></i>@Model.ApprovedBy <small class="text-muted">@Model.ApprovedAt?.ToLocalTime().ToString("HH:mm dd/MM")</small></div>
+                        </div>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Note))
+                {
+                    <div class="mb-4">
+                        <label class="form-label" style="margin-bottom:6px">Ghi chú</label>
+                        <div style="padding:14px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider);font-size:.88rem;line-height:1.6;white-space:pre-line">@Model.Note</div>
+                    </div>
+                }
+
+                <!-- Actions -->
+                <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                    @if (Model.CanApprove)
+                    {
+                        <form asp-action="Approve" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Duyệt giao dịch này?');">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-check-double me-1"></i>Phê duyệt</button>
+                        </form>
+                    }
+                    @if (Model.CanReject)
+                    {
+                        <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Từ chối giao dịch này?');">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger" style="border-radius:8px"><i class="fa-solid fa-xmark me-1"></i>Từ chối</button>
+                        </form>
+                    }
+                    @if (Model.CanVoid)
+                    {
+                        <form asp-action="Void" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Hủy giao dịch này? Thao tác không thể hoàn tác.');">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary btn-sm" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Hủy bỏ</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+        <!-- Summary -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom">
+                <h5>
+                    @if (Model.IsIncome)
+                    { <i class="fa-solid fa-arrow-down" style="color:var(--success)"></i> }
+                    else
+                    { <i class="fa-solid fa-arrow-up" style="color:var(--danger)"></i> }
+                    Tổng quan
+                </h5>
+            </div>
+            <div class="card-body-custom">
+                <div style="text-align:center;padding:16px 0">
+                    <div style="font-size:2rem;font-weight:800;color:@(Model.IsIncome ? "var(--success)" : "var(--danger)")">@(Model.IsIncome ? "+" : "−")@Model.Amount.ToString("N0")</div>
+                    <div style="font-size:.78rem;color:var(--text-muted)">VNĐ</div>
+                </div>
+                <div style="border-top:1px solid var(--divider);padding-top:12px">
+                    <div class="d-flex justify-content-between py-1"><span style="color:var(--text-muted);font-size:.82rem">Loại giao dịch</span><span style="font-weight:600;font-size:.82rem">@(Model.IsIncome ? "Khoản thu" : "Khoản chi")</span></div>
+                    <div class="d-flex justify-content-between py-1"><span style="color:var(--text-muted);font-size:.82rem">Danh mục</span><span style="font-weight:600;font-size:.82rem">@Model.Category</span></div>
+                    <div class="d-flex justify-content-between py-1"><span style="color:var(--text-muted);font-size:.82rem">Ngày</span><span style="font-weight:600;font-size:.82rem">@Model.TransactionDate.ToString("dd/MM/yyyy")</span></div>
+                    <div class="d-flex justify-content-between py-1"><span style="color:var(--text-muted);font-size:.82rem">Trạng thái</span><span class="status-badge-soft @statusBadge" style="font-size:.72rem"><span class="status-dot"></span>@Model.StatusLabel</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-timeline" style="color:var(--apple-blue)"></i> Lịch sử</h5></div>
+            <div class="card-body-custom">
+                @if (!Model.ActivityLog.Any())
+                {
+                    <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem">Chưa có hoạt động</div>
+                }
+                else
+                {
+                    <div style="position:relative;padding-left:24px">
+                        <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--divider)"></div>
+                        @foreach (var log in Model.ActivityLog)
+                        {
+                            <div style="position:relative;padding-bottom:16px">
+                                <div style="position:absolute;left:-20px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--canvas);border:2px solid @log.ActionColor;display:flex;align-items:center;justify-content:center">
+                                    <i class="fa-solid @log.ActionIcon" style="font-size:.45rem;color:@log.ActionColor"></i>
+                                </div>
+                                <div style="font-weight:600;font-size:.82rem">@log.ActionLabel</div>
+                                <div style="font-size:.78rem;color:var(--text-secondary)">@log.UserName</div>
+                                <small style="color:var(--text-muted);font-size:.7rem">@log.OccurredAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
