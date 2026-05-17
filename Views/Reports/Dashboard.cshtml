@@ -1,95 +1,61 @@
 @model OmniBizAI.ViewModels.ReportSummaryViewModel
 @{
     ViewData["Title"] = "Báo cáo Vận hành";
-    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Dashboard</span>";
+    ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Vận hành</span>";
 }
 
 <div class="content-card mb-4">
     <div class="card-body-custom py-3">
         <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label">Từ ngày</label>
-                <input type="date" name="from" value="@Model.Filter.FromDate.ToString("yyyy-MM-dd")" class="form-control" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Đến ngày</label>
-                <input type="date" name="to" value="@Model.Filter.ToDate.ToString("yyyy-MM-dd")" class="form-control" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Phòng ban</label>
-                <select name="dept" class="form-select">
-                    <option value="">Tất cả</option>
-                    @foreach (var d in Model.Filter.Departments)
-                    {
-                        <option value="@d.Value" selected="@(Model.Filter.OrganizationUnitId?.ToString() == d.Value)">@d.Text</option>
-                    }
-                </select>
+            <div class="col-md-3"><label class="form-label">Từ ngày</label><input type="date" name="from" value="@Model.Filter.FromDate.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            <div class="col-md-3"><label class="form-label">Đến ngày</label><input type="date" name="to" value="@Model.Filter.ToDate.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            <div class="col-md-3"><label class="form-label">Phòng ban</label>
+                <select name="dept" class="form-select"><option value="">Tất cả</option>@foreach(var d in Model.Filter.Departments){<option value="@d.Value" selected="@(Model.Filter.OrganizationUnitId?.ToString()==d.Value)">@d.Text</option>}</select>
             </div>
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-chart-bar me-1"></i>Phân tích</button>
-                <a asp-action="Export" asp-route-from="@Model.Filter.FromDate" asp-route-to="@Model.Filter.ToDate" class="btn btn-light" title="Xuất CSV">
-                    <i class="fa-solid fa-file-csv"></i>
-                </a>
+                <a asp-action="Export" asp-route-from="@Model.Filter.FromDate" asp-route-to="@Model.Filter.ToDate" class="btn btn-light" title="Xuất CSV"><i class="fa-solid fa-file-csv"></i></a>
             </div>
         </form>
     </div>
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon blue mx-auto"><i class="fa-solid fa-file-lines"></i></div>
-            <div class="stat-value">@Model.TotalRequests</div>
-            <div class="stat-label">Tổng yêu cầu</div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon blue mx-auto"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">@Model.TotalRequests</div><div class="stat-label">Tổng yêu cầu</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon green mx-auto"><i class="fa-solid fa-check-circle"></i></div><div class="stat-value">@Model.CompletedRequests</div><div class="stat-label">Hoàn thành (@Model.CompletionRate%)</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon orange mx-auto"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.PendingRequests</div><div class="stat-label">Đang chờ</div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="stat-card text-center"><div class="stat-icon red mx-auto"><i class="fa-solid fa-circle-xmark"></i></div><div class="stat-value">@Model.RejectedRequests</div><div class="stat-label">Từ chối</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-pie"></i> Phân bổ trạng thái</h5></div>
+            <div class="card-body-custom"><canvas id="reportStatusChart" height="180"></canvas></div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon green mx-auto"><i class="fa-solid fa-check-circle"></i></div>
-            <div class="stat-value">@Model.CompletedRequests</div>
-            <div class="stat-label">Hoàn thành (@Model.CompletionRate%)</div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon orange mx-auto"><i class="fa-solid fa-clock"></i></div>
-            <div class="stat-value">@Model.PendingRequests</div>
-            <div class="stat-label">Đang chờ</div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon red mx-auto"><i class="fa-solid fa-xmark-circle"></i></div>
-            <div class="stat-value">@Model.RejectedRequests</div>
-            <div class="stat-label">Từ chối</div>
+    <div class="col-lg-7">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-line"></i> Xu hướng hàng tháng</h5></div>
+            <div class="card-body-custom"><canvas id="trendChart" height="180"></canvas></div>
         </div>
     </div>
 </div>
 
 <div class="row g-3">
-    <div class="col-lg-8">
+    <div class="col-lg-7">
         <div class="content-card h-100">
-            <div class="card-header-custom">
-                <h5><i class="fa-solid fa-chart-pie"></i> Phân bổ theo trạng thái</h5>
-            </div>
-            <div class="card-body-custom">
-                <canvas id="reportStatusChart" height="120"></canvas>
-            </div>
+            <div class="card-header-custom"><h5><i class="fa-solid fa-building"></i> Khối lượng theo phòng ban</h5></div>
+            <div class="card-body-custom"><canvas id="deptChart" height="180"></canvas></div>
         </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-lg-5">
         <div class="content-card h-100">
-            <div class="card-header-custom">
-                <h5><i class="fa-solid fa-list"></i> Chi tiết trạng thái</h5>
-            </div>
+            <div class="card-header-custom"><h5><i class="fa-solid fa-list"></i> Chi tiết trạng thái</h5></div>
             <div class="card-body-custom p-0">
                 <ul class="list-group list-group-flush">
-                    @foreach (var s in Model.ByStatus)
-                    {
-                        <li class="list-group-item bg-transparent d-flex justify-content-between px-4 py-3" style="border-color:var(--divider)">
-                            <span style="font-weight:500">@s.Status</span>
-                            <span class="badge" style="background:var(--apple-blue);color:#fff">@s.Count</span>
-                        </li>
+                    @foreach (var s in Model.ByStatus) {
+                        <li class="list-group-item bg-transparent d-flex justify-content-between px-4 py-3" style="border-color:var(--divider)"><span style="font-weight:500">@s.Status</span><span class="badge" style="background:var(--apple-blue);color:#fff">@s.Count</span></li>
                     }
                 </ul>
             </div>
@@ -100,16 +66,30 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const colors = ['#007AFF','#34C759','#FF9500','#FF3B30','#5AC8FA','#AF52DE','#FF2D55','#86868B'];
+            // Status chart
             const statuses = @Json.Serialize(Model.ByStatus.Select(x => x.Status));
             const counts = @Json.Serialize(Model.ByStatus.Select(x => x.Count));
-            const colors = ['#0066cc','#34c759','#ff9f0a','#ff3b30','#5ac8fa','#af52de','#ff2d55','#86868b'];
             new Chart(document.getElementById('reportStatusChart'), {
-                type: 'bar',
-                data: {
-                    labels: statuses,
-                    datasets: [{ label: 'Số lượng', data: counts, backgroundColor: colors.slice(0, statuses.length), borderRadius: 8 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f0f0f0' } }, x: { grid: { display: false } } } }
+                type: 'doughnut', data: { labels: statuses, datasets: [{ data: counts, backgroundColor: colors.slice(0, statuses.length) }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+            // Trend chart
+            const months = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Month));
+            const created = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Created));
+            const completed = @Json.Serialize(Model.MonthlyTrend.Select(x => x.Completed));
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line', data: { labels: months, datasets: [
+                    { label: 'Tạo mới', data: created, borderColor: '#007AFF', backgroundColor: 'rgba(0,122,255,.1)', fill: true, tension: .4 },
+                    { label: 'Hoàn thành', data: completed, borderColor: '#34C759', backgroundColor: 'rgba(52,199,89,.1)', fill: true, tension: .4 }
+                ]}, options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+            // Dept chart
+            const depts = @Json.Serialize(Model.ByDepartment.Select(x => x.Dept));
+            const deptCounts = @Json.Serialize(Model.ByDepartment.Select(x => x.Count));
+            new Chart(document.getElementById('deptChart'), {
+                type: 'bar', data: { labels: depts, datasets: [{ label: 'YC', data: deptCounts, backgroundColor: colors.slice(0, depts.length), borderRadius: 8 }] },
+                options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
             });
         });
     </script>

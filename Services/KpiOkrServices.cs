@@ -198,6 +198,46 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
                 .ToListAsync()
         };
     }
+
+    public async Task<OkrEditViewModel?> GetEditFormAsync(Guid id)
+    {
+        var o = await db.OkrObjectives.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (o is null) return null;
+        return new OkrEditViewModel { Id = o.Id, ObjectiveName = o.ObjectiveName, Level = o.Level, Cycle = o.Cycle };
+    }
+
+    public async Task<bool> UpdateAsync(OkrEditViewModel vm)
+    {
+        var o = await db.OkrObjectives.FindAsync(vm.Id);
+        if (o is null || o.TenantId != tenant.TenantId) return false;
+        o.ObjectiveName = vm.ObjectiveName; o.Level = vm.Level; o.Cycle = vm.Cycle;
+        o.UpdatedAt = DateTimeOffset.UtcNow; o.UpdatedByUserId = tenant.UserId;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> ActivateAsync(Guid id)
+    {
+        var o = await db.OkrObjectives.FindAsync(id);
+        if (o is null || o.TenantId != tenant.TenantId) return false;
+        o.Status = OkrStatus.Active; o.IsActive = true; o.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> CloseAsync(Guid id)
+    {
+        var o = await db.OkrObjectives.FindAsync(id);
+        if (o is null || o.TenantId != tenant.TenantId) return false;
+        o.Status = OkrStatus.Cancelled; o.IsActive = false; o.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> UpdateKeyResultAsync(UpdateKrProgressViewModel vm)
+    {
+        var kr = await db.OkrKeyResults.FindAsync(vm.KeyResultId);
+        if (kr is null || kr.TenantId != tenant.TenantId) return false;
+        kr.CurrentValue = vm.CurrentValue; kr.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
 }
 
 // ── KPI Management Service ───────────────────────────────────────────────────
@@ -398,6 +438,22 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
                 .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync()
         };
     }
+
+    public async Task<bool> ActivateAsync(Guid id)
+    {
+        var k = await db.KpiDefinitions.FindAsync(id);
+        if (k is null || k.TenantId != tenant.TenantId) return false;
+        k.Status = KpiStatus.Active; k.IsActive = true; k.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> CloseAsync(Guid id)
+    {
+        var k = await db.KpiDefinitions.FindAsync(id);
+        if (k is null || k.TenantId != tenant.TenantId) return false;
+        k.Status = KpiStatus.Cancelled; k.IsActive = false; k.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
 }
 
 // ── KPI Check-In Service ─────────────────────────────────────────────────────
@@ -570,6 +626,36 @@ public class EvaluationService(ApplicationDbContext db, ITenantContext tenant)
                 .ToListAsync()
         };
     }
+
+    public async Task<EvaluationCreateViewModel> GetCreateFormAsync()
+    {
+        var tid = tenant.TenantId;
+        return new EvaluationCreateViewModel
+        {
+            Users = await db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .OrderBy(u => u.FullName).Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName }).ToListAsync(),
+            Periods = await db.EvaluationPeriods.Where(p => p.TenantId == tid && !p.IsDeleted)
+                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync()
+        };
+    }
+
+    public async Task<Guid> CreateAsync(EvaluationCreateViewModel vm)
+    {
+        var entity = new EvaluationResult
+        {
+            TenantId = tenant.TenantId,
+            UserId = vm.UserId,
+            EvaluationPeriodId = vm.EvaluationPeriodId,
+            TotalScore = vm.TotalScore,
+            Classification = vm.Classification,
+            SubmissionStatus = EvaluationSubmissionStatus.Draft,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.EvaluationResults.Add(entity);
+        await db.SaveChangesAsync();
+        return entity.Id;
+    }
 }
 
 // ── Mission/Vision Service ───────────────────────────────────────────────────
@@ -611,6 +697,30 @@ public class MissionVisionService(ApplicationDbContext db, ITenantContext tenant
         await db.SaveChangesAsync();
         return entity.Id;
     }
+
+    public async Task<MissionVisionEditViewModel?> GetEditFormAsync(Guid id)
+    {
+        var m = await db.MissionVisions.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (m is null) return null;
+        return new MissionVisionEditViewModel { Id = m.Id, Type = m.Type, TargetYear = m.TargetYear, Content = m.Content, FinancialTarget = m.FinancialTarget };
+    }
+
+    public async Task<bool> UpdateAsync(MissionVisionEditViewModel vm)
+    {
+        var m = await db.MissionVisions.FindAsync(vm.Id);
+        if (m is null || m.TenantId != tenant.TenantId) return false;
+        m.Type = vm.Type; m.TargetYear = vm.TargetYear; m.Content = vm.Content; m.FinancialTarget = vm.FinancialTarget;
+        m.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> ToggleAsync(Guid id)
+    {
+        var m = await db.MissionVisions.FindAsync(id);
+        if (m is null || m.TenantId != tenant.TenantId) return false;
+        m.IsActive = !m.IsActive; m.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(); return true;
+    }
 }
 
 // ── OKR Progress Service ─────────────────────────────────────────────────────
@@ -636,3 +746,51 @@ public class OkrProgressService(ApplicationDbContext db)
         await db.SaveChangesAsync();
     }
 }
+
+// ── KPI/OKR Dashboard Service ────────────────────────────────────────────────
+public class KpiOkrDashboardService(ApplicationDbContext db, ITenantContext tenant)
+{
+    public async Task<KpiOkrDashboardViewModel> GetDashboardAsync()
+    {
+        var tid = tenant.TenantId;
+        var okrs = await db.OkrObjectives.Where(o => o.TenantId == tid && !o.IsDeleted)
+            .Include(o => o.KeyResults.Where(kr => !kr.IsDeleted)).ToListAsync();
+        var kpis = await db.KpiDefinitions.Where(k => k.TenantId == tid && !k.IsDeleted)
+            .Include(k => k.OrganizationUnit).Include(k => k.EvaluationPeriod)
+            .OrderByDescending(k => k.CreatedAt).ToListAsync();
+        var pendingCi = await db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.ReviewStatus == CheckInReviewStatus.Pending);
+        var evalCount = await db.EvaluationResults.CountAsync(e => e.TenantId == tid && !e.IsDeleted);
+
+        var avgProgress = okrs.Any() ? Math.Round((decimal)okrs.Average(o =>
+            o.KeyResults.Any() ? (double)o.KeyResults.Average(kr =>
+                kr.TargetValue == 0 ? 0 :
+                kr.IsInverse ? (double)((kr.TargetValue - kr.CurrentValue) / kr.TargetValue * 100) :
+                (double)(kr.CurrentValue / kr.TargetValue * 100)) : 0), 1) : 0;
+
+        return new KpiOkrDashboardViewModel
+        {
+            TotalOkr = okrs.Count,
+            ActiveOkr = okrs.Count(o => o.Status == OkrStatus.Active),
+            CompletedOkr = okrs.Count(o => o.Status == OkrStatus.Completed),
+            TotalKpi = kpis.Count,
+            ActiveKpi = kpis.Count(k => k.Status == KpiStatus.Active),
+            PendingCheckIns = pendingCi,
+            TotalEvaluations = evalCount,
+            AvgOkrProgress = avgProgress,
+            RecentOkrs = okrs.OrderByDescending(o => o.CreatedAt).Take(5).Select(o => new OkrListItem
+            {
+                Id = o.Id, ObjectiveName = o.ObjectiveName, Level = o.Level.ToString(),
+                Status = o.Status.ToString(), KeyResultCount = o.KeyResults.Count,
+                Progress = o.KeyResults.Any() ? Math.Round(o.KeyResults.Average(kr =>
+                    kr.TargetValue == 0 ? 0 : kr.CurrentValue / kr.TargetValue * 100), 1) : 0
+            }).ToList(),
+            RecentKpis = kpis.Take(5).Select(k => new KpiFullListItem
+            {
+                Id = k.Id, Code = k.Code, Name = k.Name, Unit = k.Unit,
+                Status = k.Status.ToString(), Department = k.OrganizationUnit?.Name ?? "",
+                PeriodName = k.EvaluationPeriod?.PeriodName
+            }).ToList()
+        };
+    }
+}
+

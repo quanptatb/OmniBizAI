@@ -601,6 +601,12 @@ public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, Ge
         return new AiInsightListItem { Id = insight.Id, ContextType = insight.ContextType, Question = insight.Question, Summary = summary, Recommendation = recommendation, RiskLevel = risk.ToString(), Status = status.ToString(), ModelName = result.ModelName, CreatedAt = insight.CreatedAt };
     }
 
+    public async Task DeleteAsync(Guid id)
+    {
+        var item = await db.AiInsights.FindAsync(id);
+        if (item != null && item.TenantId == tenant.TenantId) { item.IsDeleted = true; await db.SaveChangesAsync(); }
+    }
+
     public async Task<List<AiQuickAction>> GetQuickActionsAsync()
     {
         var tid = tenant.TenantId; var today = DateOnly.FromDateTime(DateTime.Today);

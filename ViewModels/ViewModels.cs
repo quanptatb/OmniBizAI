@@ -765,6 +765,58 @@ public class ReportSummaryViewModel
     public List<MonthlyTrendItem> MonthlyTrend { get; set; } = new();
 }
 
+public class FinanceReportViewModel
+{
+    public ReportFilterViewModel Filter { get; set; } = new();
+    public decimal TotalBudget { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal BudgetUtilization => TotalBudget > 0 ? Math.Round(TotalExpense / TotalBudget * 100, 1) : 0;
+    public decimal TotalPayments { get; set; }
+    public int PendingPaymentCount { get; set; }
+    public decimal PendingPaymentAmount { get; set; }
+    public int TotalBudgetCount { get; set; }
+    public int ActiveBudgetCount { get; set; }
+    public List<StatusCountItem> PaymentByStatus { get; set; } = new();
+    public List<DeptWorkloadItem> ExpenseByDept { get; set; } = new();
+    public List<MonthlyTrendItem> ExpenseTrend { get; set; } = new();
+}
+
+public class HrReportViewModel
+{
+    public int TotalEmployees { get; set; }
+    public int ActiveEmployees { get; set; }
+    public int InactiveEmployees { get; set; }
+    public int TotalDepartments { get; set; }
+    public int TotalPositions { get; set; }
+    public int PendingLeaves { get; set; }
+    public List<DeptWorkloadItem> ByDepartment { get; set; } = new();
+    public List<StatusCountItem> ByStatus { get; set; } = new();
+}
+
+public class KpiOkrReportViewModel
+{
+    public int TotalOkr { get; set; }
+    public int ActiveOkr { get; set; }
+    public int CompletedOkr { get; set; }
+    public decimal AvgOkrProgress { get; set; }
+    public int TotalKpi { get; set; }
+    public int ActiveKpi { get; set; }
+    public int PendingCheckIns { get; set; }
+    public int TotalEvaluations { get; set; }
+    public List<StatusCountItem> OkrByStatus { get; set; } = new();
+    public List<StatusCountItem> KpiByStatus { get; set; } = new();
+}
+
+public class ExecutiveReportViewModel
+{
+    public ReportSummaryViewModel Operations { get; set; } = new();
+    public FinanceReportViewModel Finance { get; set; } = new();
+    public HrReportViewModel Hr { get; set; } = new();
+    public KpiOkrReportViewModel KpiOkr { get; set; } = new();
+    public int TotalCustomers { get; set; }
+    public int TotalVendors { get; set; }
+    public int TotalProducts { get; set; }
+}
 // ===== CRM — CUSTOMERS =====
 public class CustomerListViewModel
 {

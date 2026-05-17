@@ -97,6 +97,13 @@
                             </div>
                         </div>
                     }
+                    <!-- Actions -->
+                    <div class="mt-3 pt-3 d-flex gap-2" style="border-top:1px solid var(--kpi-border);">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm" style="font-size:.72rem"><i class="fa-solid fa-pen me-1"></i>Sửa</a>
+                        <form asp-action="Toggle" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")" style="font-size:.72rem"><i class="fa-solid fa-toggle-on me-1"></i>@(item.IsActive ? "Tắt" : "Bật")</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

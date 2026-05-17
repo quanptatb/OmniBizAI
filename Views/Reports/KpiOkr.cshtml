@@ -1,0 +1,44 @@
+@model OmniBizAI.ViewModels.KpiOkrReportViewModel
+@{ ViewData["Title"] = "Báo cáo KPI/OKR"; ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>KPI/OKR</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-bullseye"></i></div><div class="stat-value">@Model.TotalOkr</div><div class="stat-label">Tổng OKR</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-play"></i></div><div class="stat-value">@Model.ActiveOkr</div><div class="stat-label">OKR hoạt động</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-chart-line"></i></div><div class="stat-value">@Model.AvgOkrProgress%</div><div class="stat-label">Tiến độ TB</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-trophy"></i></div><div class="stat-value">@Model.CompletedOkr</div><div class="stat-label">OKR hoàn thành</div></div></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-gauge"></i></div><div class="stat-value">@Model.TotalKpi</div><div class="stat-label">Tổng KPI</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-bolt"></i></div><div class="stat-value">@Model.ActiveKpi</div><div class="stat-label">KPI hoạt động</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.PendingCheckIns</div><div class="stat-label">Check-in chờ</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-star"></i></div><div class="stat-value">@Model.TotalEvaluations</div><div class="stat-label">Đánh giá</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-bullseye"></i> OKR theo trạng thái</h5></div>
+            <div class="card-body-custom"><canvas id="okrStatusChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-gauge"></i> KPI theo trạng thái</h5></div>
+            <div class="card-body-custom"><canvas id="kpiStatusChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const colors = ['#007AFF','#34C759','#FF9500','#FF3B30','#5AC8FA','#AF52DE','#FF2D55','#86868B'];
+    const okrSt = @Json.Serialize(Model.OkrByStatus.Select(x => x.Status));
+    const okrVals = @Json.Serialize(Model.OkrByStatus.Select(x => x.Count));
+    new Chart(document.getElementById('okrStatusChart'), { type:'doughnut', data:{ labels:okrSt, datasets:[{data:okrVals,backgroundColor:colors.slice(0,okrSt.length)}]}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+    const kpiSt = @Json.Serialize(Model.KpiByStatus.Select(x => x.Status));
+    const kpiVals = @Json.Serialize(Model.KpiByStatus.Select(x => x.Count));
+    new Chart(document.getElementById('kpiStatusChart'), { type:'doughnut', data:{ labels:kpiSt, datasets:[{data:kpiVals,backgroundColor:colors.slice(0,kpiSt.length)}]}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+});
+</script>
+}

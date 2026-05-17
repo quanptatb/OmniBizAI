@@ -1,0 +1,55 @@
+@model OmniBizAI.ViewModels.HrReportViewModel
+@{ ViewData["Title"] = "Báo cáo Nhân sự"; ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Nhân sự</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-users"></i></div><div class="stat-value">@Model.TotalEmployees</div><div class="stat-label">Tổng NV</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div><div class="stat-value">@Model.ActiveEmployees</div><div class="stat-label">Đang làm</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-user-xmark"></i></div><div class="stat-value">@Model.InactiveEmployees</div><div class="stat-label">Không HĐ</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-sitemap"></i></div><div class="stat-value">@Model.TotalDepartments</div><div class="stat-label">Phòng ban</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-id-badge"></i></div><div class="stat-value">@Model.TotalPositions</div><div class="stat-label">Chức vụ</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-calendar-xmark"></i></div><div class="stat-value">@Model.PendingLeaves</div><div class="stat-label">Nghỉ phép chờ</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-building"></i> Nhân sự theo phòng ban</h5></div>
+            <div class="card-body-custom"><canvas id="hrDeptChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-pie"></i> Trạng thái nhân viên</h5></div>
+            <div class="card-body-custom"><canvas id="hrStatusChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-list"></i> Chi tiết phòng ban</h5></div>
+    <div class="card-body-custom p-0">
+        <table class="data-table">
+            <thead><tr><th class="ps-3">Phòng ban</th><th class="text-end pe-3">Số nhân viên</th><th class="text-end pe-3">Tỷ lệ</th></tr></thead>
+            <tbody>
+                @foreach (var d in Model.ByDepartment) {
+                    var pct = Model.ActiveEmployees > 0 ? Math.Round((decimal)d.Count / Model.ActiveEmployees * 100, 1) : 0;
+                    <tr><td class="ps-3" style="font-weight:500">@d.Dept</td><td class="text-end pe-3">@d.Count</td><td class="text-end pe-3"><span class="badge" style="background:var(--apple-blue);color:#fff">@pct%</span></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const colors = ['#007AFF','#34C759','#FF9500','#FF3B30','#5AC8FA','#AF52DE','#FF2D55','#86868B','#30D158','#FF6482'];
+    const depts = @Json.Serialize(Model.ByDepartment.Select(x => x.Dept));
+    const deptVals = @Json.Serialize(Model.ByDepartment.Select(x => x.Count));
+    new Chart(document.getElementById('hrDeptChart'), { type:'bar', data:{ labels:depts, datasets:[{label:'NV',data:deptVals,backgroundColor:colors.slice(0,depts.length),borderRadius:8}]}, options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f0f0f0'}},y:{grid:{display:false}}}}});
+    const statuses = @Json.Serialize(Model.ByStatus.Select(x => x.Status));
+    const statusVals = @Json.Serialize(Model.ByStatus.Select(x => x.Count));
+    new Chart(document.getElementById('hrStatusChart'), { type:'doughnut', data:{ labels:statuses, datasets:[{data:statusVals,backgroundColor:colors.slice(0,statuses.length)}]}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+});
+</script>
+}

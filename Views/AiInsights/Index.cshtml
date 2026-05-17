@@ -117,7 +117,12 @@
                                     <span class="badge" style="background:rgba(88,86,214,0.1);color:#5856D6;font-size:.65rem">@insight.ModelName</span>
                                 }
                             </div>
-                            <small style="color:var(--text-muted);font-size:.72rem;white-space:nowrap"><i class="fa-regular fa-clock me-1"></i>@insight.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</small>
+                            <div class="d-flex align-items-center gap-2">
+                                <small style="color:var(--text-muted);font-size:.72rem;white-space:nowrap"><i class="fa-regular fa-clock me-1"></i>@insight.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM")</small>
+                                <form asp-action="Delete" asp-route-id="@insight.Id" method="post" class="d-inline" onsubmit="return confirm('Xóa phân tích này?')">@Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm" style="padding:2px 6px;font-size:.62rem;color:var(--text-muted);border:1px solid var(--divider);border-radius:6px" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </div>
                         </div>
                         <p style="font-weight:600;color:var(--apple-blue);margin-bottom:6px;font-size:.88rem"><i class="fa-solid fa-question-circle me-1"></i>@insight.Question</p>
                         <div class="ai-response-text" style="font-size:.84rem;line-height:1.6;margin-bottom:6px;white-space:pre-line">@insight.Summary</div>

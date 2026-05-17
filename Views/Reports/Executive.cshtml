@@ -1,0 +1,75 @@
+@model OmniBizAI.ViewModels.ExecutiveReportViewModel
+@{ ViewData["Title"] = "Báo cáo Ban GĐ"; ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Ban GĐ</span>"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h4 class="page-title mb-1">Báo cáo tổng quan Ban Giám đốc</h4><span style="color:var(--text-muted);font-size:.85rem">Dữ liệu tổng hợp toàn hệ thống</span></div>
+    <a asp-controller="AiInsights" asp-action="Index" class="btn btn-primary"><i class="fa-solid fa-robot me-2"></i>Hỏi AI</a>
+</div>
+
+<!-- Operations Summary -->
+<div class="content-card mb-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-cogs" style="color:var(--apple-blue)"></i> Vận hành</h5><a asp-action="Dashboard" class="btn btn-sm btn-outline-primary">Chi tiết</a></div>
+    <div class="card-body-custom">
+        <div class="row g-3">
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.6rem;font-weight:700;color:var(--apple-blue)">@Model.Operations.TotalRequests</div><div style="font-size:.78rem;color:var(--text-muted)">Tổng yêu cầu</div></div></div>
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.6rem;font-weight:700;color:var(--success)">@Model.Operations.CompletedRequests</div><div style="font-size:.78rem;color:var(--text-muted)">Hoàn thành (@Model.Operations.CompletionRate%)</div></div></div>
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.6rem;font-weight:700;color:var(--warning)">@Model.Operations.PendingRequests</div><div style="font-size:.78rem;color:var(--text-muted)">Đang chờ</div></div></div>
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.6rem;font-weight:700;color:var(--danger)">@Model.Operations.RejectedRequests</div><div style="font-size:.78rem;color:var(--text-muted)">Từ chối</div></div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Finance Summary -->
+<div class="content-card mb-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-wallet" style="color:var(--success)"></i> Tài chính</h5><a asp-action="Finance" class="btn btn-sm btn-outline-primary">Chi tiết</a></div>
+    <div class="card-body-custom">
+        <div class="row g-3">
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.3rem;font-weight:700;color:var(--apple-blue)">@Model.Finance.TotalBudget.ToString("N0")</div><div style="font-size:.78rem;color:var(--text-muted)">NS kế hoạch (₫)</div></div></div>
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.3rem;font-weight:700;color:@(Model.Finance.BudgetUtilization > 80 ? "var(--danger)" : "var(--success)")">@Model.Finance.BudgetUtilization%</div><div style="font-size:.78rem;color:var(--text-muted)">Sử dụng NS</div></div></div>
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.3rem;font-weight:700;color:var(--warning)">@Model.Finance.TotalExpense.ToString("N0")</div><div style="font-size:.78rem;color:var(--text-muted)">Đã chi (₫)</div></div></div>
+            <div class="col-md-3"><div class="text-center"><div style="font-size:1.3rem;font-weight:700;color:var(--danger)">@Model.Finance.PendingPaymentCount</div><div style="font-size:.78rem;color:var(--text-muted)">TT chờ (@Model.Finance.PendingPaymentAmount.ToString("N0")₫)</div></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- HR Summary -->
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-users" style="color:var(--purple)"></i> Nhân sự</h5><a asp-action="Hr" class="btn btn-sm btn-outline-primary">Chi tiết</a></div>
+            <div class="card-body-custom">
+                <div class="row g-2 text-center">
+                    <div class="col-4"><div style="font-size:1.6rem;font-weight:700;color:var(--apple-blue)">@Model.Hr.TotalEmployees</div><div style="font-size:.75rem;color:var(--text-muted)">Tổng NV</div></div>
+                    <div class="col-4"><div style="font-size:1.6rem;font-weight:700;color:var(--success)">@Model.Hr.ActiveEmployees</div><div style="font-size:.75rem;color:var(--text-muted)">Hoạt động</div></div>
+                    <div class="col-4"><div style="font-size:1.6rem;font-weight:700;color:var(--warning)">@Model.Hr.TotalDepartments</div><div style="font-size:.75rem;color:var(--text-muted)">Phòng ban</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- KPI Summary -->
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-bullseye" style="color:var(--warning)"></i> KPI/OKR</h5><a asp-action="KpiOkr" class="btn btn-sm btn-outline-primary">Chi tiết</a></div>
+            <div class="card-body-custom">
+                <div class="row g-2 text-center">
+                    <div class="col-3"><div style="font-size:1.4rem;font-weight:700;color:var(--apple-blue)">@Model.KpiOkr.TotalOkr</div><div style="font-size:.72rem;color:var(--text-muted)">OKR</div></div>
+                    <div class="col-3"><div style="font-size:1.4rem;font-weight:700;color:var(--success)">@Model.KpiOkr.AvgOkrProgress%</div><div style="font-size:.72rem;color:var(--text-muted)">Tiến độ</div></div>
+                    <div class="col-3"><div style="font-size:1.4rem;font-weight:700;color:var(--warning)">@Model.KpiOkr.TotalKpi</div><div style="font-size:.72rem;color:var(--text-muted)">KPI</div></div>
+                    <div class="col-3"><div style="font-size:1.4rem;font-weight:700;color:var(--purple)">@Model.KpiOkr.ActiveKpi</div><div style="font-size:.72rem;color:var(--text-muted)">KPI HĐ</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CRM Summary -->
+<div class="content-card">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-handshake" style="color:var(--teal)"></i> CRM</h5></div>
+    <div class="card-body-custom">
+        <div class="row g-3 text-center">
+            <div class="col-md-4"><div style="font-size:1.6rem;font-weight:700;color:var(--apple-blue)">@Model.TotalCustomers</div><div style="font-size:.78rem;color:var(--text-muted)">Khách hàng</div></div>
+            <div class="col-md-4"><div style="font-size:1.6rem;font-weight:700;color:var(--success)">@Model.TotalVendors</div><div style="font-size:.78rem;color:var(--text-muted)">Nhà cung cấp</div></div>
+            <div class="col-md-4"><div style="font-size:1.6rem;font-weight:700;color:var(--warning)">@Model.TotalProducts</div><div style="font-size:.78rem;color:var(--text-muted)">SP/Dịch vụ</div></div>
+        </div>
+    </div>
+</div>

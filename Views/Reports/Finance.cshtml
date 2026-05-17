@@ -1,0 +1,61 @@
+@model OmniBizAI.ViewModels.FinanceReportViewModel
+@{ ViewData["Title"] = "Báo cáo Tài chính"; ViewData["Breadcrumb"] = "<span>Báo cáo</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tài chính</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-wallet"></i></div><div class="stat-value">@Model.TotalBudget.ToString("N0")</div><div class="stat-label">NS kế hoạch (₫)</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon @(Model.BudgetUtilization > 80 ? "red" : Model.BudgetUtilization > 60 ? "orange" : "green")"><i class="fa-solid fa-chart-pie"></i></div><div class="stat-value">@Model.BudgetUtilization%</div><div class="stat-label">Sử dụng NS</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-receipt"></i></div><div class="stat-value">@Model.TotalExpense.ToString("N0")</div><div class="stat-label">Tổng chi (₫)</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.PendingPaymentCount</div><div class="stat-label">TT chờ (@Model.PendingPaymentAmount.ToString("N0")₫)</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="stat-value">@Model.TotalBudgetCount</div><div class="stat-label">Ngân sách</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div><div class="stat-value">@Model.ActiveBudgetCount</div><div class="stat-label">NS hoạt động</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-credit-card"></i></div><div class="stat-value">@Model.TotalPayments.ToString("N0")</div><div class="stat-label">Tổng thanh toán (₫)</div></div></div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-piggy-bank"></i></div>
+            <div class="stat-value">@((Model.TotalBudget - Model.TotalExpense).ToString("N0"))</div>
+            <div class="stat-label">Ngân sách còn lại (₫)</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-building"></i> Chi phí theo phòng ban (triệu ₫)</h5></div>
+            <div class="card-body-custom"><canvas id="expDeptChart" height="180"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card h-100">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-line"></i> Xu hướng chi phí (triệu ₫)</h5></div>
+            <div class="card-body-custom"><canvas id="expTrendChart" height="180"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-file-invoice"></i> Thanh toán theo trạng thái</h5></div>
+    <div class="card-body-custom p-0">
+        <table class="data-table">
+            <thead><tr><th class="ps-3">Trạng thái</th><th class="text-end pe-3">Số lượng</th></tr></thead>
+            <tbody>@foreach(var s in Model.PaymentByStatus){<tr><td class="ps-3" style="font-weight:500">@s.Status</td><td class="text-end pe-3"><span class="badge" style="background:var(--apple-blue);color:#fff">@s.Count</span></td></tr>}</tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const colors = ['#007AFF','#34C759','#FF9500','#FF3B30','#5AC8FA','#AF52DE','#FF2D55','#86868B'];
+    const depts = @Json.Serialize(Model.ExpenseByDept.Select(x => x.Dept));
+    const deptVals = @Json.Serialize(Model.ExpenseByDept.Select(x => x.Count));
+    new Chart(document.getElementById('expDeptChart'), { type:'bar', data:{ labels:depts, datasets:[{label:'Triệu ₫',data:deptVals,backgroundColor:colors.slice(0,depts.length),borderRadius:8}]}, options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}});
+    const months = @Json.Serialize(Model.ExpenseTrend.Select(x => x.Month));
+    const monthVals = @Json.Serialize(Model.ExpenseTrend.Select(x => x.Created));
+    new Chart(document.getElementById('expTrendChart'), { type:'line', data:{ labels:months, datasets:[{label:'Triệu ₫',data:monthVals,borderColor:'#007AFF',backgroundColor:'rgba(0,122,255,.1)',fill:true,tension:.4,pointRadius:4}]}, options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+});
+</script>
+}

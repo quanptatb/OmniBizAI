@@ -1,15 +1,29 @@
 @model OmniBizAI.ViewModels.KpiDetailViewModel
-@{ ViewData["Title"] = $"KPI: {Model.Code}"; }
+@{ ViewData["Title"] = $"KPI: {Model.Code}"; ViewData["Breadcrumb"] = "<a href='/KpiSetup' style='color:var(--apple-blue);text-decoration:none'>KPI</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Code + "</span>"; }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h3 mb-1">@Model.Name</h1>
-        <code class="me-2">@Model.Code</code>
-        <span class="badge @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusBadgeClass(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(Model.Status))">
-            @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusDisplay(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(Model.Status))
-        </span>
+        <h4 class="page-title mb-1">@Model.Name</h4>
+        <div class="d-flex gap-2 align-items-center">
+            <code>@Model.Code</code>
+            <span class="badge @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusBadgeClass(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(Model.Status))">
+                @OmniBizAI.Helpers.WorkflowStatusHelper.GetKpiStatusDisplay(Enum.Parse<OmniBizAI.Models.Entities.Enums.KpiStatus>(Model.Status))
+            </span>
+        </div>
     </div>
-    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+    <div class="d-flex gap-2">
+        @if (Model.Status == "Draft") {
+            <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-play me-1"></i>Kích hoạt</button>
+            </form>
+        }
+        @if (Model.Status == "Active") {
+            <form asp-action="Close" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-stop me-1"></i>Đóng</button>
+            </form>
+        }
+        <a asp-action="Index" class="btn btn-light btn-sm"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại</a>
+    </div>
 </div>
 
 <div class="row g-4">

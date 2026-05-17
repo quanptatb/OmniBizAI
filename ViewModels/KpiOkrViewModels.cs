@@ -324,3 +324,69 @@ public class MissionVisionCreateViewModel
 
     public decimal? FinancialTarget { get; set; }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Enhancement VMs — OKR Edit, KPI Status, Evaluation Create, MV Edit, Dashboard
+// ═══════════════════════════════════════════════════════════════════════════════
+
+public class OkrEditViewModel
+{
+    public Guid Id { get; set; }
+    [Required(ErrorMessage = "Tên mục tiêu không được để trống")]
+    [StringLength(255)]
+    public string ObjectiveName { get; set; } = "";
+    public OkrLevel Level { get; set; }
+    [StringLength(50)]
+    public string? Cycle { get; set; }
+}
+
+public class UpdateKrProgressViewModel
+{
+    public Guid KeyResultId { get; set; }
+    public Guid OkrId { get; set; }
+    [Required]
+    public decimal CurrentValue { get; set; }
+}
+
+public class EvaluationCreateViewModel
+{
+    [Required]
+    public Guid UserId { get; set; }
+    [Required]
+    public Guid EvaluationPeriodId { get; set; }
+    [Range(0, 100)]
+    public decimal? TotalScore { get; set; }
+    [StringLength(100)]
+    public string? Classification { get; set; }
+    [StringLength(2000)]
+    public string? Comment { get; set; }
+
+    public List<SelectOption> Users { get; set; } = new();
+    public List<SelectOption> Periods { get; set; } = new();
+}
+
+public class MissionVisionEditViewModel
+{
+    public Guid Id { get; set; }
+    [Required]
+    public MissionVisionType Type { get; set; }
+    public int? TargetYear { get; set; }
+    [Required(ErrorMessage = "Nội dung không được để trống")]
+    [StringLength(4000)]
+    public string? Content { get; set; }
+    public decimal? FinancialTarget { get; set; }
+}
+
+public class KpiOkrDashboardViewModel
+{
+    public int TotalOkr { get; set; }
+    public int ActiveOkr { get; set; }
+    public int CompletedOkr { get; set; }
+    public int TotalKpi { get; set; }
+    public int ActiveKpi { get; set; }
+    public int PendingCheckIns { get; set; }
+    public int TotalEvaluations { get; set; }
+    public decimal AvgOkrProgress { get; set; }
+    public List<OkrListItem> RecentOkrs { get; set; } = new();
+    public List<KpiFullListItem> RecentKpis { get; set; } = new();
+}

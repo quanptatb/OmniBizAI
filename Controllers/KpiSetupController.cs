@@ -8,7 +8,7 @@ using OmniBizAI.ViewModels;
 namespace OmniBizAI.Controllers;
 
 [Authorize]
-public class KpiSetupController(KpiManagementService kpiService, ApplicationDbContext db, ITenantContext tenant) : Controller
+public class KpiSetupController(KpiManagementService kpiService, ApplicationDbContext db, ITenantContext tenant, NotificationService notif) : Controller
 {
     public async Task<IActionResult> Index(string? search, string? status, string? periodId, string? ownerType)
     {
@@ -29,8 +29,6 @@ public class KpiSetupController(KpiManagementService kpiService, ApplicationDbCo
         return View(vm);
     }
 
-
-
     [HttpGet]
     public async Task<IActionResult> KeyResults(Guid okrObjectiveId)
     {
@@ -39,26 +37,23 @@ public class KpiSetupController(KpiManagementService kpiService, ApplicationDbCo
             .OrderBy(kr => kr.KeyResultName)
             .Select(kr => new { value = kr.Id, text = kr.KeyResultName })
             .ToListAsync();
-
         return Json(items);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(KpiCreateViewModel vm)
     {
         if (!ModelState.IsValid)
         {
             var form = await kpiService.GetCreateFormAsync();
-            vm.Departments = form.Departments;
-            vm.OkrObjectives = form.OkrObjectives;
-            vm.OkrKeyResults = form.OkrKeyResults;
-            vm.Periods = form.Periods;
+            vm.Departments = form.Departments; vm.OkrObjectives = form.OkrObjectives;
+            vm.OkrKeyResults = form.OkrKeyResults; vm.Periods = form.Periods;
             return View(vm);
         }
         try
         {
             var id = await kpiService.CreateAsync(vm);
+            await notif.SendToManagersAsync($"📊 {tenant.UserFullName} tạo KPI", $"Tạo KPI: {vm.Name}", "KpiDefinition", id);
             TempData["Success"] = "Đã tạo KPI thành công.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -66,12 +61,27 @@ public class KpiSetupController(KpiManagementService kpiService, ApplicationDbCo
         {
             ModelState.AddModelError(nameof(vm.OkrKeyResultId), ex.Message);
             var form = await kpiService.GetCreateFormAsync();
-            vm.Departments = form.Departments;
-            vm.OkrObjectives = form.OkrObjectives;
-            vm.OkrKeyResults = form.OkrKeyResults;
-            vm.Periods = form.Periods;
+            vm.Departments = form.Departments; vm.OkrObjectives = form.OkrObjectives;
+            vm.OkrKeyResults = form.OkrKeyResults; vm.Periods = form.Periods;
             return View(vm);
         }
+    }
 
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Activate(Guid id)
+    {
+        if (await kpiService.ActivateAsync(id))
+        {
+            await notif.BroadcastAsync($"✅ KPI được kích hoạt", $"{tenant.UserFullName} kích hoạt KPI.", "KpiDefinition", id);
+            TempData["Success"] = "Đã kích hoạt KPI.";
+        }
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Close(Guid id)
+    {
+        if (await kpiService.CloseAsync(id)) TempData["Success"] = "Đã đóng KPI.";
+        return RedirectToAction(nameof(Details), new { id });
     }
 }

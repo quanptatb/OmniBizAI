@@ -1,0 +1,62 @@
+@model OmniBizAI.ViewModels.KpiOkrDashboardViewModel
+@{ ViewData["Title"] = "Tổng quan KPI/OKR"; ViewData["Breadcrumb"] = "<span>KPI/OKR</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tổng quan</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-bullseye"></i></div><div class="stat-value">@Model.TotalOkr</div><div class="stat-label">Tổng OKR</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-play"></i></div><div class="stat-value">@Model.ActiveOkr</div><div class="stat-label">OKR đang chạy</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-chart-line"></i></div><div class="stat-value">@Model.AvgOkrProgress%</div><div class="stat-label">Tiến độ TB</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-trophy"></i></div><div class="stat-value">@Model.CompletedOkr</div><div class="stat-label">OKR hoàn thành</div></div></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-gauge"></i></div><div class="stat-value">@Model.TotalKpi</div><div class="stat-label">Tổng KPI</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-bolt"></i></div><div class="stat-value">@Model.ActiveKpi</div><div class="stat-label">KPI hoạt động</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@Model.PendingCheckIns</div><div class="stat-label">Check-in chờ duyệt</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-star"></i></div><div class="stat-value">@Model.TotalEvaluations</div><div class="stat-label">Đánh giá</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-bullseye" style="color:var(--apple-blue)"></i> OKR gần nhất</h5><a asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a></div>
+            <div class="card-body-custom p-0">
+                @foreach (var o in Model.RecentOkrs) {
+                    <a asp-action="Details" asp-route-id="@o.Id" style="display:block;padding:12px 20px;border-bottom:1px solid var(--divider);text-decoration:none;color:inherit">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><div style="font-weight:600;font-size:.85rem">@o.ObjectiveName</div><div style="font-size:.72rem;color:var(--text-muted)">@o.Level · @o.KeyResultCount KR</div></div>
+                            <div class="text-end"><div style="font-weight:700;font-size:.85rem;color:var(--apple-blue)">@o.Progress%</div>
+                                <span class="badge" style="font-size:.62rem;background:@(o.Status == "Active" ? "var(--success)" : o.Status == "Completed" ? "var(--apple-blue)" : "var(--text-muted)");color:#fff">@o.Status</span>
+                            </div>
+                        </div>
+                    </a>
+                }
+                @if (!Model.RecentOkrs.Any()) { <div class="text-center py-3" style="color:var(--text-muted);font-size:.82rem">Chưa có OKR</div> }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-gauge" style="color:var(--success)"></i> KPI gần nhất</h5><a asp-controller="KpiSetup" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a></div>
+            <div class="card-body-custom p-0">
+                @foreach (var k in Model.RecentKpis) {
+                    <a asp-controller="KpiSetup" asp-action="Details" asp-route-id="@k.Id" style="display:block;padding:12px 20px;border-bottom:1px solid var(--divider);text-decoration:none;color:inherit">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><div style="font-weight:600;font-size:.85rem">@k.Name</div><div style="font-size:.72rem;color:var(--text-muted)">@k.Code · @k.Department</div></div>
+                            <span class="badge" style="font-size:.62rem;background:@(k.Status == "Active" ? "var(--success)" : "var(--text-muted)");color:#fff">@k.Status</span>
+                        </div>
+                    </a>
+                }
+                @if (!Model.RecentKpis.Any()) { <div class="text-center py-3" style="color:var(--text-muted);font-size:.82rem">Chưa có KPI</div> }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Thao tác nhanh</h5></div>
+    <div class="card-body-custom"><div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-bullseye me-1"></i>Tạo OKR</a>
+        <a asp-controller="KpiSetup" asp-action="Create" class="btn btn-outline-primary"><i class="fa-solid fa-gauge me-1"></i>Tạo KPI</a>
+        <a asp-controller="KpiCheckIn" asp-action="Index" class="btn btn-outline-primary"><i class="fa-solid fa-check-circle me-1"></i>Check-in</a>
+        <a asp-controller="Evaluation" asp-action="Create" class="btn btn-outline-primary"><i class="fa-solid fa-star me-1"></i>Tạo đánh giá</a>
+    </div></div>
+</div>
