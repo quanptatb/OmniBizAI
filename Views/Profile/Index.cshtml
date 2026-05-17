@@ -1,6 +1,13 @@
 @model OmniBizAI.ViewModels.ProfileViewModel
 @{ ViewData["Title"] = "Hồ sơ cá nhân"; ViewData["Breadcrumb"] = "<span>Hồ sơ cá nhân</span>"; }
 
+@if (TempData["SuccessMessage"] != null) {
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row g-4">
     <div class="col-lg-4">
         <!-- Profile Card -->
@@ -61,7 +68,7 @@
         </div>
 
         <!-- Stats -->
-        <div class="row g-3">
+        <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="stat-card">
                     <div class="stat-icon blue"><i class="fa-solid fa-bell"></i></div>
@@ -74,6 +81,41 @@
                     <div class="stat-icon @(Model.UnreadNotifications > 0 ? "orange" : "green")"><i class="fa-solid @(Model.UnreadNotifications > 0 ? "fa-envelope" : "fa-envelope-open")"></i></div>
                     <div class="stat-value">@Model.UnreadNotifications</div>
                     <div class="stat-label">Chưa đọc</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-shield-halved"></i> Bảo mật</h5></div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Trạng thái tài khoản</label>
+                        <div style="margin-top:2px">
+                            <span class="badge bg-success rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Đang hoạt động</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Phiên đăng nhập</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.88rem">
+                            <i class="fa-solid fa-clock me-1" style="color:var(--apple-blue)"></i>Đang hoạt động
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <hr style="border-color:var(--divider);margin:8px 0" />
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a asp-action="ChangePassword" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:.78rem">
+                                <i class="fa-solid fa-key me-1"></i>Đổi mật khẩu
+                            </a>
+                            <form method="post" asp-controller="Account" asp-action="Logout" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:8px;font-size:.78rem">
+                                    <i class="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất tất cả thiết bị
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

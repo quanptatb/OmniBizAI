@@ -1,35 +1,50 @@
 @model OmniBizAI.ViewModels.OrgUnitTreeItem
 
-<div class="tree-node @(Model.Level == 0 ? "tree-node-root" : "")">
-    <div class="tree-node-item d-flex justify-content-between align-items-center">
+<div class="tree-node @(Model.Level == 0 ? "tree-node-root" : "")" style="margin-left:@(Model.Level * 24)px;margin-bottom:8px">
+    <div class="d-flex justify-content-between align-items-center p-3" style="background:@(Model.IsActive ? "var(--card-bg)" : "rgba(142,142,147,.06)");border:1px solid @(Model.IsActive ? "var(--divider)" : "rgba(142,142,147,.15)");border-radius:var(--r-md);transition:all .2s">
         <div class="d-flex align-items-center gap-3">
-            <div class="icon-shape bg-primary text-white" style="width:40px;height:40px;border-radius:10px;font-size:.85rem;">
+            <div style="width:40px;height:40px;border-radius:10px;background:@(Model.Level == 0 ? "linear-gradient(135deg,#007AFF,#5856D6)" : Model.Level == 1 ? "linear-gradient(135deg,#30d158,#0066cc)" : "linear-gradient(135deg,#ff9500,#ff6b35)");display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;flex-shrink:0;opacity:@(Model.IsActive ? "1" : ".5")">
                 <i class="fa-solid @(Model.Level == 0 ? "fa-building" : Model.Level == 1 ? "fa-layer-group" : "fa-users")"></i>
             </div>
             <div>
-                <div class="fw-bold">@Model.Name <span class="text-muted fw-normal small">(#@Model.Code)</span></div>
-                <div class="d-flex gap-3 text-muted small mt-1">
+                <div class="d-flex align-items-center gap-2">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="fw-bold" style="color:var(--text-primary);text-decoration:none;font-size:.92rem">@Model.Name</a>
+                    <span style="font-size:.72rem;color:var(--text-muted);font-weight:500">#@Model.Code</span>
+                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary") rounded-pill" style="font-size:.62rem">@(Model.IsActive ? "Hoạt động" : "Ngưng")</span>
+                </div>
+                <div class="d-flex gap-3 mt-1" style="font-size:.78rem;color:var(--text-muted)">
                     <span><i class="fa-solid fa-user-tie me-1"></i>@(Model.ManagerName ?? "Chưa gán")</span>
                     <span><i class="fa-solid fa-users me-1"></i>@Model.EmployeeCount nhân viên</span>
+                    @if (Model.Children.Any())
+                    {
+                        <span><i class="fa-solid fa-folder-tree me-1"></i>@Model.Children.Count đơn vị con</span>
+                    }
                 </div>
             </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary") rounded-pill">@(Model.IsActive ? "Hoạt động" : "Ngưng")</span>
-            @if (Model.IsActive)
-            {
-                <form asp-action="Deactivate" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn ngưng hoạt động phòng ban này?');">
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Ngưng hoạt động"><i class="fa-solid fa-power-off"></i></button>
-                </form>
-            }
+        <div class="d-flex align-items-center gap-1">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary" title="Chi tiết" style="border-radius:6px">
+                <i class="fa-solid fa-eye"></i>
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa" style="border-radius:6px">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm @(Model.IsActive ? "btn-outline-warning" : "btn-outline-success")" title="@(Model.IsActive ? "Ngừng hoạt động" : "Kích hoạt")" style="border-radius:6px">
+                    <i class="fa-solid @(Model.IsActive ? "fa-power-off" : "fa-circle-check")"></i>
+                </button>
+            </form>
         </div>
     </div>
 
     @if (Model.Children.Any())
     {
-        @foreach (var child in Model.Children)
-        {
-            @await Html.PartialAsync("_OrgUnitNode", child)
-        }
+        <div style="border-left:2px solid var(--divider);margin-left:20px;padding-left:0;margin-top:4px">
+            @foreach (var child in Model.Children)
+            {
+                @await Html.PartialAsync("_OrgUnitNode", child)
+            }
+        </div>
     }
 </div>

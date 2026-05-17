@@ -1,0 +1,145 @@
+@model OmniBizAI.ViewModels.UserDetailViewModel
+@{
+    ViewData["Title"] = Model.FullName;
+    ViewData["Breadcrumb"] = "<a href='/Users' style='color:var(--apple-blue);text-decoration:none'>Người dùng</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>" + Model.FullName + "</span>";
+}
+
+<div class="row g-4">
+    <!-- Left: Profile Card -->
+    <div class="col-lg-4">
+        <div class="content-card animate-fade-in" style="text-align:center;padding:32px 24px">
+            <div style="width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,#007AFF,#5856D6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;font-weight:700;color:#fff;box-shadow:0 8px 24px rgba(0,122,255,.25)">
+                @Model.FullName.Substring(0, 1).ToUpper()
+            </div>
+            <h4 style="font-weight:700;margin:0 0 4px">@Model.FullName</h4>
+            <p style="color:var(--text-secondary);font-size:.88rem;margin:0 0 4px">@Model.Email</p>
+            @if (!string.IsNullOrEmpty(Model.JobTitle))
+            {
+                <p style="color:var(--text-muted);font-size:.82rem;margin:0 0 12px">@Model.JobTitle</p>
+            }
+
+            <!-- Status -->
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <span class="badge @(Model.Status == "Active" ? "bg-success" : Model.Status == "Locked" ? "bg-danger" : "bg-secondary") rounded-pill" style="font-size:.75rem">
+                    <i class="fa-solid @(Model.Status == "Active" ? "fa-circle-check" : "fa-lock") me-1"></i>
+                    @(Model.Status == "Active" ? "Hoạt động" : Model.Status == "Locked" ? "Đã khóa" : "Ngừng hoạt động")
+                </span>
+                @if (Model.IsLocked)
+                {
+                    <span class="badge bg-warning rounded-pill" style="font-size:.75rem">
+                        <i class="fa-solid fa-exclamation-triangle me-1"></i>Identity Locked
+                    </span>
+                }
+            </div>
+
+            <!-- Roles -->
+            <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+                @foreach (var role in Model.Roles.Split(", ", StringSplitOptions.RemoveEmptyEntries))
+                {
+                    <span class="badge" style="background:linear-gradient(135deg,rgba(0,122,255,.1),rgba(88,86,214,.1));color:var(--apple-blue);font-size:.72rem;padding:4px 12px;border-radius:20px;font-weight:600">@role</span>
+                }
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm" style="border-radius:8px;font-size:.78rem">
+                    <i class="fa-solid fa-pen me-1"></i>Chỉnh sửa
+                </a>
+                <a asp-controller="Account" asp-action="AdminResetPassword" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm" style="border-radius:8px;font-size:.78rem">
+                    <i class="fa-solid fa-key me-1"></i>Đặt lại MK
+                </a>
+                <form asp-action="ToggleLock" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm @(Model.Status == "Active" ? "btn-outline-warning" : "btn-outline-success")" style="border-radius:8px;font-size:.78rem">
+                        <i class="fa-solid @(Model.Status == "Active" ? "fa-lock" : "fa-unlock") me-1"></i>
+                        @(Model.Status == "Active" ? "Khóa" : "Mở khóa")
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Details -->
+    <div class="col-lg-8">
+        <!-- Info Card -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-id-card"></i> Thông tin chi tiết</h5></div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Email</label>
+                        <div style="font-weight:500;margin-top:2px">@Model.Email</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Số điện thoại</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.PhoneNumber ?? "—")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Phòng ban</label>
+                        <div style="font-weight:500;margin-top:2px">@Model.Department</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Chức danh</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.JobTitle ?? "—")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Múi giờ</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.TimeZoneId ?? "Asia/Ho_Chi_Minh")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ngôn ngữ</label>
+                        <div style="font-weight:500;margin-top:2px">@(Model.Locale ?? "vi-VN")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-bell"></i></div>
+                    <div class="stat-value">@Model.TotalNotifications</div>
+                    <div class="stat-label">Thông báo</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-list-check"></i></div>
+                    <div class="stat-value">@Model.AssignedTasks</div>
+                    <div class="stat-label">Công việc</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon @(Model.IsLocked ? "red" : "green")">
+                        <i class="fa-solid @(Model.IsLocked ? "fa-lock" : "fa-shield-check")"></i>
+                    </div>
+                    <div class="stat-value">@(Model.IsLocked ? "Locked" : "OK")</div>
+                    <div class="stat-label">Bảo mật</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timestamps -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử</h5></div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ngày tạo</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.88rem">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Cập nhật lần cuối</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.88rem">@(Model.UpdatedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Tạo bởi</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.88rem">@Model.CreatedByName</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

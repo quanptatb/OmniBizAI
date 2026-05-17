@@ -1,34 +1,51 @@
 @model OmniBizAI.ViewModels.OrgUnitCreateViewModel
 @{
-    ViewData["Title"] = "Thêm Phòng ban";
-    ViewData["Breadcrumb"] = "<span>Tổ chức</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Thêm mới</span>";
+    ViewData["Title"] = "Thêm phòng ban";
+    ViewData["Breadcrumb"] = "<a href='/Organization' style='color:var(--apple-blue);text-decoration:none'>Phòng ban</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Thêm mới</span>";
 }
 
 <div class="row justify-content-center">
     <div class="col-lg-7">
-        <div class="card content-card border-top border-primary border-3">
-            <div class="card-header bg-transparent border-bottom p-4">
-                <h4 class="card-title mb-0"><i class="fa-solid fa-building me-2 text-primary"></i>Thêm phòng ban mới</h4>
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-building-circle-arrow-right"></i> Thêm phòng ban mới</h5>
             </div>
-            <div class="card-body p-4">
-                <form asp-action="Create" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="card-body-custom">
+                @if (ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+                {
+                    <div style="background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div style="font-size:.82rem;color:var(--danger)"><i class="fa-solid fa-circle-exclamation me-1"></i>@error.ErrorMessage</div>
+                        }
+                    </div>
+                }
 
-                    <div class="row g-4 mb-4">
+                <form asp-action="Create" method="post" id="createForm">
+                    @Html.AntiForgeryToken()
+
+                    <div style="background:rgba(0,102,204,.04);border:1px solid rgba(0,102,204,.1);border-radius:var(--r-sm);padding:12px;margin-bottom:20px">
+                        <div style="font-size:.78rem;color:var(--text-secondary);line-height:1.6">
+                            <i class="fa-solid fa-circle-info me-1" style="color:var(--apple-blue)"></i>
+                            Phòng ban sẽ nằm trong cây tổ chức. Bạn có thể chọn đơn vị cha hoặc để trống (cấp cao nhất).
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label asp-for="Code" class="form-label fw-bold">Mã phòng ban <span class="text-danger">*</span></label>
-                            <input asp-for="Code" class="form-control bg-light" placeholder="VD: DEPT-HR" />
+                            <input asp-for="Code" class="form-control" placeholder="VD: DEPT-HR" autofocus />
                             <span asp-validation-for="Code" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="Name" class="form-label fw-bold">Tên phòng ban <span class="text-danger">*</span></label>
-                            <input asp-for="Name" class="form-control bg-light" placeholder="VD: Phòng Nhân sự" />
+                            <input asp-for="Name" class="form-control" placeholder="VD: Phòng Nhân sự" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="ParentId" class="form-label fw-bold">Thuộc đơn vị cha</label>
-                            <select asp-for="ParentId" class="form-select bg-light">
-                                <option value="">-- Cấp cao nhất --</option>
+                            <select asp-for="ParentId" class="form-select">
+                                <option value="">— Cấp cao nhất —</option>
                                 @foreach (var opt in Model.ParentOptions)
                                 {
                                     <option value="@opt.Value">@opt.Text</option>
@@ -37,8 +54,8 @@
                         </div>
                         <div class="col-md-6">
                             <label asp-for="ManagerUserId" class="form-label fw-bold">Trưởng bộ phận</label>
-                            <select asp-for="ManagerUserId" class="form-select bg-light">
-                                <option value="">-- Chưa chỉ định --</option>
+                            <select asp-for="ManagerUserId" class="form-select">
+                                <option value="">— Chưa chỉ định —</option>
                                 @foreach (var opt in Model.UserOptions)
                                 {
                                     <option value="@opt.Value">@opt.Text</option>
@@ -47,9 +64,11 @@
                         </div>
                     </div>
 
-                    <div class="border-top pt-4 d-flex justify-content-end gap-2">
-                        <a asp-action="Index" class="btn btn-light border px-4">Hủy</a>
-                        <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i>Tạo phòng ban</button>
+                    <div class="d-flex justify-content-end gap-2 pt-3" style="border-top:1px solid var(--divider)">
+                        <a asp-action="Index" class="btn btn-light border px-4" style="border-radius:10px">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600" id="submitBtn">
+                            <i class="fa-solid fa-plus me-2"></i>Tạo phòng ban
+                        </button>
                     </div>
                 </form>
             </div>
@@ -58,5 +77,11 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script>
+document.getElementById('createForm').addEventListener('submit', function() {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tạo...';
+});
+</script>
 }

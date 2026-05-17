@@ -16,16 +16,37 @@
 </head>
 <body>
 <div class="login-page">
-    <div class="login-card text-center">
-        <div style="width:56px;height:56px;background:rgba(255,59,48,.08);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-            <i class="fa-solid fa-lock" style="font-size:24px;color:var(--danger)"></i>
+    <div class="login-card text-center" style="animation: slideUp .5s ease-out; max-width: 440px">
+        <div style="width:64px;height:64px;background:rgba(255,59,48,.06);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <i class="fa-solid fa-shield-halved" style="font-size:26px;color:var(--danger)"></i>
         </div>
-        <h1 style="font-size:1.4rem;font-weight:600;color:var(--text-primary);margin-bottom:6px">Truy cập bị từ chối</h1>
-        <p style="font-size:.88rem;color:var(--text-secondary);margin-bottom:24px">Bạn không có quyền truy cập trang này. Vui lòng liên hệ quản trị viên.</p>
-        <a href="/" class="btn-primary-custom">
-            <i class="fa-solid fa-arrow-left me-2"></i>Quay lại trang chủ
-        </a>
+        <h1 style="font-size:1.4rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">Truy cập bị từ chối</h1>
+        <p style="font-size:.88rem;color:var(--text-secondary);margin-bottom:8px;line-height:1.5">
+            Bạn không có quyền truy cập trang này.
+        </p>
+        <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:24px">
+            Nếu bạn tin rằng đây là lỗi, vui lòng liên hệ quản trị viên để được cấp quyền.
+        </p>
+
+        <div style="background:rgba(255,59,48,.04);border:1px solid rgba(255,59,48,.1);border-radius:var(--r-sm);padding:14px;margin-bottom:20px;text-align:left">
+            <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:4px">
+                <i class="fa-solid fa-user me-1"></i>Tài khoản: <strong style="color:var(--text-primary)">@(User.Identity?.Name ?? "—")</strong>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-muted)">
+                <i class="fa-solid fa-link me-1"></i>URL: <code style="font-size:.7rem;word-break:break-all">@Context.Request.Query["ReturnUrl"]</code>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="/" class="btn btn-primary flex-fill" style="border-radius:10px;font-weight:600">
+                <i class="fa-solid fa-house me-2"></i>Trang chủ
+            </a>
+            <a href="javascript:history.back()" class="btn btn-light flex-fill" style="border-radius:10px;font-weight:500">
+                <i class="fa-solid fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
     </div>
 </div>
+<style>@@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }</style>
 </body>
 </html>

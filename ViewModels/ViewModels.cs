@@ -33,6 +33,41 @@ public class LoginViewModel
     public string? ReturnUrl { get; set; }
 }
 
+public class ForgotPasswordViewModel
+{
+    [Required(ErrorMessage = "Vui lòng nhập email hoặc tên đăng nhập")]
+    public string Email { get; set; } = "";
+}
+
+public class ResetPasswordViewModel
+{
+    [Required] public string Email { get; set; } = "";
+    [Required] public string Token { get; set; } = "";
+
+    [Required(ErrorMessage = "Mật khẩu mới không được để trống")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Mật khẩu tối thiểu 3 ký tự")]
+    public string NewPassword { get; set; } = "";
+
+    [Required(ErrorMessage = "Xác nhận mật khẩu không được để trống")]
+    [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+    public string ConfirmPassword { get; set; } = "";
+}
+
+public class AdminResetPasswordViewModel
+{
+    [Required] public Guid UserId { get; set; }
+    public string UserName { get; set; } = "";
+    public string FullName { get; set; } = "";
+
+    [Required(ErrorMessage = "Mật khẩu mới không được để trống")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Mật khẩu tối thiểu 3 ký tự")]
+    public string NewPassword { get; set; } = "";
+
+    [Required(ErrorMessage = "Xác nhận mật khẩu không được để trống")]
+    [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+    public string ConfirmPassword { get; set; } = "";
+}
+
 // ===== DASHBOARD =====
 public class DashboardViewModel
 {
@@ -305,6 +340,9 @@ public class ApproveRejectViewModel
 public class OrganizationUnitListViewModel
 {
     public List<OrgUnitTreeItem> Tree { get; set; } = new();
+    public int TotalActive { get; set; }
+    public int TotalInactive { get; set; }
+    public int TotalEmployees { get; set; }
 }
 
 public class OrgUnitTreeItem
@@ -313,7 +351,9 @@ public class OrgUnitTreeItem
     public string Code { get; set; } = "";
     public string Name { get; set; } = "";
     public int Level { get; set; }
+    public Guid? ManagerUserId { get; set; }
     public string? ManagerName { get; set; }
+    public string? ParentName { get; set; }
     public bool IsActive { get; set; }
     public int EmployeeCount { get; set; }
     public List<OrgUnitTreeItem> Children { get; set; } = new();
@@ -334,6 +374,76 @@ public class OrgUnitCreateViewModel
 
     public List<SelectOption> ParentOptions { get; set; } = new();
     public List<SelectOption> UserOptions { get; set; } = new();
+}
+
+public class OrgUnitEditViewModel
+{
+    [Required] public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Mã phòng ban không được để trống")]
+    [StringLength(50)]
+    public string Code { get; set; } = "";
+
+    [Required(ErrorMessage = "Tên phòng ban không được để trống")]
+    [StringLength(200)]
+    public string Name { get; set; } = "";
+
+    public Guid? ParentId { get; set; }
+    public Guid? ManagerUserId { get; set; }
+    public bool IsActive { get; set; } = true;
+
+    public List<SelectOption> ParentOptions { get; set; } = new();
+    public List<SelectOption> UserOptions { get; set; } = new();
+}
+
+public class OrgUnitDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Level { get; set; }
+    public string? ParentName { get; set; }
+    public Guid? ParentId { get; set; }
+    public Guid? ManagerUserId { get; set; }
+    public string? ManagerName { get; set; }
+    public bool IsActive { get; set; }
+    public int EmployeeCount { get; set; }
+    public int ChildCount { get; set; }
+    public int PositionCount { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+    public string? CreatedByName { get; set; }
+    public List<OrgDetailEmployee> Employees { get; set; } = new();
+    public List<OrgDetailPosition> Positions { get; set; } = new();
+    public List<OrgDetailChild> Children { get; set; } = new();
+}
+
+public class OrgDetailEmployee
+{
+    public Guid Id { get; set; }
+    public string FullName { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string? JobTitle { get; set; }
+    public string Status { get; set; } = "";
+}
+
+public class OrgDetailPosition
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Level { get; set; }
+    public bool IsManagerial { get; set; }
+}
+
+public class OrgDetailChild
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public bool IsActive { get; set; }
+    public int EmployeeCount { get; set; }
+    public string? ManagerName { get; set; }
 }
 
 // ===== USERS =====
@@ -364,25 +474,89 @@ public class UserCreateViewModel
     public string FullName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email không được để trống")]
-    [EmailAddress]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     [StringLength(255)]
     public string Email { get; set; } = string.Empty;
+
+    [StringLength(30)]
+    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+    public string? PhoneNumber { get; set; }
 
     [StringLength(150)]
     public string? JobTitle { get; set; }
 
     public Guid? OrganizationUnitId { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Vai trò không được để trống")]
     public string Role { get; set; } = "STAFF";
 
     [Required(ErrorMessage = "Mật khẩu không được để trống")]
-    [StringLength(100, MinimumLength = 1, ErrorMessage = "Mật khẩu không được để trống")]
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Mật khẩu tối thiểu 3 ký tự")]
     [DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Xác nhận mật khẩu không được để trống")]
+    [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+    [DataType(DataType.Password)]
+    public string ConfirmPassword { get; set; } = string.Empty;
+
+    public bool SendWelcomeEmail { get; set; } = true;
+
     public List<SelectOption> DepartmentOptions { get; set; } = new();
     public List<SelectOption> RoleOptions { get; set; } = new();
+}
+
+public class UserEditViewModel
+{
+    [Required] public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Họ tên không được để trống")]
+    [StringLength(200)]
+    public string FullName { get; set; } = "";
+
+    [Required(ErrorMessage = "Email không được để trống")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    [StringLength(255)]
+    public string Email { get; set; } = "";
+
+    [StringLength(30)]
+    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+    public string? PhoneNumber { get; set; }
+
+    [StringLength(150)]
+    public string? JobTitle { get; set; }
+
+    public Guid? OrganizationUnitId { get; set; }
+
+    [Required(ErrorMessage = "Vai trò không được để trống")]
+    public string Role { get; set; } = "STAFF";
+
+    public string Status { get; set; } = "Active";
+
+    public List<SelectOption> DepartmentOptions { get; set; } = new();
+    public List<SelectOption> RoleOptions { get; set; } = new();
+    public List<SelectOption> StatusOptions { get; set; } = new();
+}
+
+public class UserDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string FullName { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string? PhoneNumber { get; set; }
+    public string? JobTitle { get; set; }
+    public string Department { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string Roles { get; set; } = "";
+    public string? AvatarUrl { get; set; }
+    public string? TimeZoneId { get; set; }
+    public string? Locale { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
+    public string? CreatedByName { get; set; }
+    public int TotalNotifications { get; set; }
+    public int AssignedTasks { get; set; }
+    public bool IsLocked { get; set; }
 }
 
 // ===== FINANCE =====

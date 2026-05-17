@@ -240,6 +240,6 @@ C:\Users\Cua\Desktop\proj\OmniBizAI\bin\Debug\net10.0\runtimes\win-x64\native\Mi
 C:\Users\Cua\Desktop\proj\OmniBizAI\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\Cua\Desktop\proj\OmniBizAI\bin\Debug\net10.0\runtimes\win\lib\net8.0\System.Windows.Extensions.dll
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\OmniBizAI.csproj.Up2Date
-C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\seket66tel-{0}-gojcqdvgzo-gojcqdvgzo.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\lhby38vocg-{0}-6vurmnqqs0-6vurmnqqs0.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\xb8xh16tom-{0}-c3isym5ftt-c3isym5ftt.gz
+C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\seket66tel-{0}-lilfj2li97-lilfj2li97.gz

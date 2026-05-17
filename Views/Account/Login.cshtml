@@ -15,6 +15,37 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .login-input-group { position: relative; }
+        .login-input-group .form-control { padding-right: 42px; }
+        .password-toggle {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            font-size: .85rem; padding: 4px; z-index: 5;
+        }
+        .password-toggle:hover { color: var(--text-primary); }
+        .login-divider {
+            display: flex; align-items: center; gap: 12px; margin: 20px 0;
+            color: var(--text-muted); font-size: .72rem;
+        }
+        .login-divider::before, .login-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--divider);
+        }
+        .error-banner {
+            background: rgba(255,59,48,.06); border: 1px solid rgba(255,59,48,.15);
+            border-radius: var(--r-sm); padding: 10px 14px; margin-bottom: 16px;
+            font-size: .82rem; color: var(--danger);
+        }
+        .error-banner i { margin-right: 6px; }
+        .login-footer { text-align: center; margin-top: 20px; }
+        .login-footer a { color: var(--apple-blue); font-size: .82rem; text-decoration: none; font-weight: 500; }
+        .login-footer a:hover { text-decoration: underline; }
+        .demo-btn { transition: all .2s ease; }
+        .demo-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        .demo-btn.loading { opacity: .7; pointer-events: none; }
+        .login-card { animation: slideUp .5s ease-out; }
+        @@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body>
 <div class="login-page">
@@ -25,19 +56,35 @@
         <h1 class="login-title">OmniBizAI</h1>
         <p class="login-subtitle">Hệ thống vận hành thông minh cho doanh nghiệp</p>
 
-        <form asp-action="Login" method="post">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="error-banner">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div><i class="fa-solid fa-circle-exclamation"></i>@error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form asp-action="Login" method="post" id="loginForm">
             <input asp-for="ReturnUrl" type="hidden" />
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
 
             <div class="mb-3">
                 <label asp-for="UserName" class="form-label">Tên đăng nhập</label>
-                <input asp-for="UserName" class="form-control" placeholder="admin@omnibiz.demo" autofocus />
+                <div class="login-input-group">
+                    <input asp-for="UserName" class="form-control" placeholder="admin@omnibiz.demo" autofocus autocomplete="username" />
+                </div>
                 <span asp-validation-for="UserName" class="text-danger small"></span>
             </div>
 
             <div class="mb-3">
                 <label asp-for="Password" class="form-label">Mật khẩu</label>
-                <input asp-for="Password" class="form-control" placeholder="••••" />
+                <div class="login-input-group">
+                    <input asp-for="Password" class="form-control" placeholder="••••" autocomplete="current-password" />
+                    <button type="button" class="password-toggle" onclick="togglePassword()" title="Hiện/Ẩn mật khẩu">
+                        <i class="fa-solid fa-eye" id="pwIcon"></i>
+                    </button>
+                </div>
                 <span asp-validation-for="Password" class="text-danger small"></span>
             </div>
 
@@ -46,16 +93,21 @@
                     <input asp-for="RememberMe" class="form-check-input" />
                     <label asp-for="RememberMe" class="form-check-label" style="font-size:.82rem;color:var(--text-secondary)">Ghi nhớ đăng nhập</label>
                 </div>
+                <a asp-action="ForgotPassword" style="font-size:.82rem;color:var(--apple-blue);text-decoration:none;font-weight:500">
+                    <i class="fa-solid fa-key me-1" style="font-size:.7rem"></i>Quên mật khẩu?
+                </a>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2" style="font-weight:500;font-size:.88rem;">
-                Đăng nhập
+            <button type="submit" class="btn btn-primary w-100 py-2" style="font-weight:600;font-size:.88rem;border-radius:10px" id="loginBtn">
+                <i class="fa-solid fa-right-to-bracket me-2"></i>Đăng nhập
             </button>
         </form>
 
-        <div class="mt-4 p-3" style="background:var(--parchment);border-radius:var(--r-md);border:1px solid var(--divider);">
-            <p style="font-size:.75rem;color:var(--text-secondary);margin-bottom:10px;font-weight:600;">
-                <i class="fa-solid fa-bolt me-1" style="color:var(--warning)"></i>Đăng nhập nhanh <span style="font-weight:400;opacity:.7">(mật khẩu: 123)</span>
+        <div class="login-divider">Hoặc đăng nhập nhanh</div>
+
+        <div class="p-3" style="background:var(--parchment);border-radius:var(--r-md);border:1px solid var(--divider);">
+            <p style="font-size:.72rem;color:var(--text-secondary);margin-bottom:10px;font-weight:600;">
+                <i class="fa-solid fa-bolt me-1" style="color:var(--warning)"></i>Tài khoản demo <span style="font-weight:400;opacity:.7">(mật khẩu: 123)</span>
             </p>
             <div class="d-flex flex-wrap gap-2">
                 <button type="button" class="btn btn-sm btn-light demo-btn" data-user="sysadmin@omnibiz.vn" title="System Administrator – SYSTEM_ADMIN">
@@ -78,18 +130,44 @@
                 </button>
             </div>
         </div>
+
+        <div class="login-footer">
+            <p style="font-size:.72rem;color:var(--text-muted);margin-top:16px">© 2026 OmniBizAI. All rights reserved.</p>
+        </div>
     </div>
 </div>
 <script>
+function togglePassword() {
+    const pw = document.getElementById('Password');
+    const icon = document.getElementById('pwIcon');
+    if (pw.type === 'password') { pw.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
+    else { pw.type = 'password'; icon.className = 'fa-solid fa-eye'; }
+}
+
+// Demo quick login
 document.querySelectorAll('.demo-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+        document.querySelectorAll('.demo-btn').forEach(b => { b.style.background = ''; b.style.color = ''; b.style.borderColor = ''; b.classList.remove('loading'); });
         document.getElementById('UserName').value = btn.dataset.user;
         document.getElementById('Password').value = '123';
+        btn.classList.add('loading');
         btn.style.background = 'var(--apple-blue)';
         btn.style.color = '#fff';
         btn.style.borderColor = 'var(--apple-blue)';
-        setTimeout(() => document.querySelector('form').submit(), 250);
+        setTimeout(() => document.getElementById('loginForm').submit(), 300);
     });
+});
+
+// Submit button loading state
+document.getElementById('loginForm').addEventListener('submit', function() {
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang đăng nhập...';
+});
+
+// Enter key submits form from either field
+document.getElementById('UserName').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('Password').focus(); }
 });
 </script>
 </body>

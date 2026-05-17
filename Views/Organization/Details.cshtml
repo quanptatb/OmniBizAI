@@ -1,0 +1,348 @@
+@model OmniBizAI.ViewModels.OrgUnitDetailViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["Breadcrumb"] = "<a href='/Organization' style='color:var(--apple-blue);text-decoration:none'>Phòng ban</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>" + Model.Name + "</span>";
+    var allDepts = (List<OmniBizAI.ViewModels.SelectOption>?)ViewBag.AllDepartments ?? new();
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left: Profile Card -->
+    <div class="col-lg-4">
+        <div class="content-card animate-fade-in" style="text-align:center;padding:32px 24px">
+            <div style="width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#007AFF,#5856D6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;box-shadow:0 8px 24px rgba(0,122,255,.25)">
+                <i class="fa-solid @(Model.Level == 0 ? "fa-building" : Model.Level == 1 ? "fa-layer-group" : "fa-users")"></i>
+            </div>
+            <h4 style="font-weight:700;margin:0 0 4px">@Model.Name</h4>
+            <p style="color:var(--text-muted);font-size:.82rem;margin:0 0 12px">#@Model.Code · Cấp @Model.Level</p>
+
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary") rounded-pill" style="font-size:.75rem">
+                    <i class="fa-solid @(Model.IsActive ? "fa-circle-check" : "fa-power-off") me-1"></i>
+                    @(Model.IsActive ? "Hoạt động" : "Ngừng hoạt động")
+                </span>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm" style="border-radius:8px;font-size:.78rem">
+                    <i class="fa-solid fa-pen me-1"></i>Chỉnh sửa
+                </a>
+                <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm @(Model.IsActive ? "btn-outline-warning" : "btn-outline-success")" style="border-radius:8px;font-size:.78rem">
+                        <i class="fa-solid @(Model.IsActive ? "fa-power-off" : "fa-circle-check") me-1"></i>
+                        @(Model.IsActive ? "Ngừng" : "Kích hoạt")
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mt-0">
+            <div class="col-6">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-value">@Model.EmployeeCount</div>
+                    <div class="stat-label">Nhân viên</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-folder-tree"></i></div>
+                    <div class="stat-value">@Model.ChildCount</div>
+                    <div class="stat-label">Đơn vị con</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fa-solid fa-briefcase"></i></div>
+                    <div class="stat-value">@Model.PositionCount</div>
+                    <div class="stat-label">Chức danh</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right -->
+    <div class="col-lg-8">
+        <!-- Detail Info -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-circle-info"></i> Thông tin chi tiết</h5></div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Mã phòng ban</label>
+                        <div style="font-weight:600;margin-top:2px;font-family:monospace">@Model.Code</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Đơn vị cha</label>
+                        <div style="font-weight:500;margin-top:2px">
+                            @if (Model.ParentId.HasValue)
+                            {
+                                <a asp-action="Details" asp-route-id="@Model.ParentId" style="color:var(--apple-blue);text-decoration:none">@Model.ParentName</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">— Cấp cao nhất —</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Trưởng bộ phận</label>
+                        <div style="font-weight:500;margin-top:2px">
+                            @if (Model.ManagerUserId.HasValue)
+                            {
+                                <a asp-controller="Users" asp-action="Details" asp-route-id="@Model.ManagerUserId" style="color:var(--apple-blue);text-decoration:none">
+                                    <i class="fa-solid fa-user-tie me-1"></i>@Model.ManagerName
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa chỉ định</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Cấp bậc</label>
+                        <div style="font-weight:500;margin-top:2px">Cấp @Model.Level</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ngày tạo</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.85rem">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Cập nhật</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.85rem">@(Model.UpdatedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label style="font-size:.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Tạo bởi</label>
+                        <div style="font-weight:500;margin-top:2px;font-size:.85rem">@Model.CreatedByName</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Child Units -->
+        @if (Model.Children.Any())
+        {
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom">
+                    <h5><i class="fa-solid fa-folder-tree"></i> Đơn vị con <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.ChildCount</span></h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Đơn vị</th>
+                                    <th>Trưởng bộ phận</th>
+                                    <th>Nhân viên</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var child in Model.Children)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <a asp-action="Details" asp-route-id="@child.Id" class="fw-bold" style="color:var(--text-primary);text-decoration:none">@child.Name</a>
+                                            <div class="text-muted" style="font-size:.72rem">#@child.Code</div>
+                                        </td>
+                                        <td style="font-size:.85rem">@(child.ManagerName ?? "—")</td>
+                                        <td><span class="badge bg-primary-subtle text-primary border" style="font-size:.72rem">@child.EmployeeCount</span></td>
+                                        <td><span class="badge @(child.IsActive ? "bg-success" : "bg-secondary") rounded-pill" style="font-size:.65rem">@(child.IsActive ? "Hoạt động" : "Ngưng")</span></td>
+                                        <td class="text-end pe-4">
+                                            <a asp-action="Edit" asp-route-id="@child.Id" class="btn btn-sm btn-outline-primary" style="border-radius:6px"><i class="fa-solid fa-pen"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Positions -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-briefcase"></i> Chức danh <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.PositionCount</span></h5>
+                <a asp-controller="Positions" asp-action="Create" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:.75rem">
+                    <i class="fa-solid fa-plus me-1"></i>Thêm
+                </a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Positions.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Chức danh</th>
+                                    <th>Mã</th>
+                                    <th>Cấp</th>
+                                    <th>Quản lý</th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pos in Model.Positions)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold" style="font-size:.88rem">@pos.Name</td>
+                                        <td class="text-muted" style="font-size:.82rem;font-family:monospace">@pos.Code</td>
+                                        <td><span class="badge bg-primary-subtle text-primary border" style="font-size:.72rem">Cấp @pos.Level</span></td>
+                                        <td>
+                                            @if (pos.IsManagerial)
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border rounded-pill" style="font-size:.68rem">
+                                                    <i class="fa-solid fa-crown me-1"></i>Quản lý
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted" style="font-size:.82rem">—</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a asp-controller="Positions" asp-action="Edit" asp-route-id="@pos.Id" class="btn btn-sm btn-outline-primary" style="border-radius:6px"><i class="fa-solid fa-pen"></i></a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-briefcase fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0">Chưa có chức danh nào</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Employee List -->
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-users"></i> Nhân viên <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.EmployeeCount</span></h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Employees.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Nhân viên</th>
+                                    <th>Chức danh</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var emp in Model.Employees)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="topbar-avatar" style="width:34px;height:34px;font-size:.72rem">@emp.FullName.Substring(0, 1).ToUpper()</div>
+                                                <div>
+                                                    <a asp-controller="Users" asp-action="Details" asp-route-id="@emp.Id" class="fw-bold" style="font-size:.88rem;color:var(--text-primary);text-decoration:none">@emp.FullName</a>
+                                                    <div class="text-muted" style="font-size:.75rem">@emp.Email</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="font-size:.85rem">@(emp.JobTitle ?? "—")</td>
+                                        <td>
+                                            <span class="badge @(emp.Status == "Active" ? "bg-success" : "bg-secondary") rounded-pill" style="font-size:.65rem">@(emp.Status == "Active" ? "Hoạt động" : "Ngưng")</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <div class="d-flex gap-1 justify-content-end">
+                                                <a asp-controller="Users" asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-secondary" style="border-radius:6px" title="Chi tiết">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                                @if (allDepts.Any())
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-info" style="border-radius:6px" title="Chuyển phòng ban" onclick="showMoveDialog('@emp.Id','@emp.FullName')">
+                                                        <i class="fa-solid fa-right-left"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-user-slash fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0">Chưa có nhân viên nào trong phòng ban này</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Move Employee Modal -->
+@if (allDepts.Any())
+{
+    <div class="modal fade" id="moveModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+                <div class="modal-header border-0 pb-0" style="padding:24px 24px 12px">
+                    <h5 class="modal-title" style="font-weight:700;font-size:1rem">
+                        <i class="fa-solid fa-right-left me-2" style="color:var(--apple-blue)"></i>Chuyển phòng ban
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="MoveEmployee" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="employeeId" id="moveEmpId" />
+                    <input type="hidden" name="fromDeptId" value="@Model.Id" />
+                    <div class="modal-body" style="padding:12px 24px 24px">
+                        <p style="font-size:.88rem;color:var(--text-secondary);margin-bottom:16px">
+                            Chuyển <strong id="moveEmpName"></strong> từ <strong>@Model.Name</strong> sang:
+                        </p>
+                        <select name="toDeptId" class="form-select" required>
+                            <option value="">— Chọn phòng ban —</option>
+                            @foreach (var dept in allDepts)
+                            {
+                                <option value="@dept.Value">@dept.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="modal-footer border-0" style="padding:0 24px 24px">
+                        <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal" style="border-radius:10px">Hủy</button>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600">
+                            <i class="fa-solid fa-right-left me-2"></i>Chuyển
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+function showMoveDialog(empId, empName) {
+    document.getElementById('moveEmpId').value = empId;
+    document.getElementById('moveEmpName').textContent = empName;
+    new bootstrap.Modal(document.getElementById('moveModal')).show();
+}
+</script>
+}

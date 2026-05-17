@@ -22,6 +22,7 @@ public class OrganizationController : Controller
         _tenant = tenant;
     }
 
+    // ── Index (Tree) ──────────────────────────────────────────────────────────
     public async Task<IActionResult> Index()
     {
         var tid = _tenant.TenantId;
@@ -40,10 +41,13 @@ public class OrganizationController : Controller
             .Select(g => new { DeptId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.DeptId, x => x.Count);
 
+        var unitMap = allUnits.ToDictionary(u => u.Id, u => u.Name);
+
         OrgUnitTreeItem BuildTree(OrganizationUnit unit)
         {
             managers.TryGetValue(unit.ManagerUserId ?? Guid.Empty, out var managerName);
             employeeCounts.TryGetValue(unit.Id, out var empCount);
+            unitMap.TryGetValue(unit.ParentId ?? Guid.Empty, out var parentName);
 
             return new OrgUnitTreeItem
             {
@@ -51,24 +55,36 @@ public class OrganizationController : Controller
                 Code = unit.Code,
                 Name = unit.Name,
                 Level = unit.Level,
+                ManagerUserId = unit.ManagerUserId,
                 ManagerName = managerName,
+                ParentName = parentName,
                 IsActive = unit.IsActive,
                 EmployeeCount = empCount,
                 Children = allUnits
                     .Where(c => c.ParentId == unit.Id)
+                    .OrderBy(c => c.Name)
                     .Select(BuildTree)
                     .ToList()
             };
         }
 
-        var roots = allUnits.Where(o => o.ParentId == null).Select(BuildTree).ToList();
-        return View(new OrganizationUnitListViewModel { Tree = roots });
+        var roots = allUnits.Where(o => o.ParentId == null).OrderBy(o => o.Name).Select(BuildTree).ToList();
+        var totalEmp = employeeCounts.Values.Sum();
+
+        return View(new OrganizationUnitListViewModel
+        {
+            Tree = roots,
+            TotalActive = allUnits.Count(u => u.IsActive),
+            TotalInactive = allUnits.Count(u => !u.IsActive),
+            TotalEmployees = totalEmp
+        });
     }
 
+    // ── Create ────────────────────────────────────────────────────────────────
     public async Task<IActionResult> Create()
     {
-        var vm = await BuildCreateFormAsync();
-        return View(vm);
+        var vm = await BuildFormAsync();
+        return View(new OrgUnitCreateViewModel { ParentOptions = vm.ParentOptions, UserOptions = vm.UserOptions });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -76,7 +92,7 @@ public class OrganizationController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var form = await BuildCreateFormAsync();
+            var form = await BuildFormAsync();
             vm.ParentOptions = form.ParentOptions;
             vm.UserOptions = form.UserOptions;
             return View(vm);
@@ -85,8 +101,8 @@ public class OrganizationController : Controller
         var tid = _tenant.TenantId;
         if (await _db.OrganizationUnits.AnyAsync(o => o.TenantId == tid && o.Code == vm.Code && !o.IsDeleted))
         {
-            ModelState.AddModelError("Code", "Mã phòng ban đã tồn tại trong doanh nghiệp.");
-            var form = await BuildCreateFormAsync();
+            ModelState.AddModelError("Code", "Mã phòng ban đã tồn tại.");
+            var form = await BuildFormAsync();
             vm.ParentOptions = form.ParentOptions;
             vm.UserOptions = form.UserOptions;
             return View(vm);
@@ -99,8 +115,10 @@ public class OrganizationController : Controller
             level = (parent?.Level ?? 0) + 1;
         }
 
+        var unitId = Guid.NewGuid();
         _db.OrganizationUnits.Add(new OrganizationUnit
         {
+            Id = unitId,
             TenantId = tid,
             Code = vm.Code,
             Name = vm.Name,
@@ -114,49 +132,284 @@ public class OrganizationController : Controller
 
         _db.AuditLogs.Add(new AuditLog
         {
-            TenantId = tid,
-            UserId = _tenant.UserId,
-            UserName = _tenant.UserFullName,
-            EntityType = "OrganizationUnit",
-            EntityId = Guid.NewGuid(),
-            Action = "Create",
+            TenantId = tid, UserId = _tenant.UserId, UserName = _tenant.UserFullName,
+            EntityType = "OrganizationUnit", EntityId = unitId, Action = "Create",
             NewValues = $"{{\"Code\":\"{vm.Code}\",\"Name\":\"{vm.Name}\"}}",
             CreatedAt = DateTimeOffset.UtcNow
         });
 
         await _db.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Tạo phòng ban thành công.";
+        TempData["SuccessMessage"] = $"Tạo phòng ban {vm.Name} thành công.";
         return RedirectToAction(nameof(Index));
     }
 
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        var tid = _tenant.TenantId;
+        var unit = await _db.OrganizationUnits.FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tid && !o.IsDeleted);
+        if (unit == null) return NotFound();
+
+        var form = await BuildFormAsync(excludeId: id);
+        return View(new OrgUnitEditViewModel
+        {
+            Id = unit.Id,
+            Code = unit.Code,
+            Name = unit.Name,
+            ParentId = unit.ParentId,
+            ManagerUserId = unit.ManagerUserId,
+            IsActive = unit.IsActive,
+            ParentOptions = form.ParentOptions,
+            UserOptions = form.UserOptions
+        });
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Deactivate(Guid id)
+    public async Task<IActionResult> Edit(OrgUnitEditViewModel vm)
+    {
+        if (!ModelState.IsValid)
+        {
+            var form = await BuildFormAsync(excludeId: vm.Id);
+            vm.ParentOptions = form.ParentOptions;
+            vm.UserOptions = form.UserOptions;
+            return View(vm);
+        }
+
+        var tid = _tenant.TenantId;
+        var unit = await _db.OrganizationUnits.FirstOrDefaultAsync(o => o.Id == vm.Id && o.TenantId == tid && !o.IsDeleted);
+        if (unit == null) return NotFound();
+
+        // Check duplicate code
+        if (await _db.OrganizationUnits.AnyAsync(o => o.TenantId == tid && o.Code == vm.Code && o.Id != vm.Id && !o.IsDeleted))
+        {
+            ModelState.AddModelError("Code", "Mã phòng ban đã tồn tại.");
+            var form = await BuildFormAsync(excludeId: vm.Id);
+            vm.ParentOptions = form.ParentOptions;
+            vm.UserOptions = form.UserOptions;
+            return View(vm);
+        }
+
+        var oldValues = $"{{\"Code\":\"{unit.Code}\",\"Name\":\"{unit.Name}\",\"IsActive\":{unit.IsActive.ToString().ToLower()}}}";
+
+        unit.Code = vm.Code;
+        unit.Name = vm.Name;
+        unit.ParentId = vm.ParentId;
+        unit.ManagerUserId = vm.ManagerUserId;
+        unit.IsActive = vm.IsActive;
+        unit.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Recalculate level
+        if (vm.ParentId.HasValue)
+        {
+            var parent = await _db.OrganizationUnits.FindAsync(vm.ParentId.Value);
+            unit.Level = (parent?.Level ?? 0) + 1;
+        }
+        else unit.Level = 0;
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tid, UserId = _tenant.UserId, UserName = _tenant.UserFullName,
+            EntityType = "OrganizationUnit", EntityId = unit.Id, Action = "Update",
+            OldValues = oldValues,
+            NewValues = $"{{\"Code\":\"{vm.Code}\",\"Name\":\"{vm.Name}\",\"IsActive\":{vm.IsActive.ToString().ToLower()}}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Cập nhật phòng ban {vm.Name} thành công.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ── Details ────────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var tid = _tenant.TenantId;
+        var unit = await _db.OrganizationUnits
+            .Include(o => o.Parent)
+            .Include(o => o.ManagerUser)
+            .FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tid && !o.IsDeleted);
+        if (unit == null) return NotFound();
+
+        // Employees in this department
+        var employees = await _db.AppUsers
+            .Where(u => u.OrganizationUnitId == id && u.TenantId == tid && !u.IsDeleted)
+            .OrderBy(u => u.FullName)
+            .Select(u => new OrgDetailEmployee
+            {
+                Id = u.Id, FullName = u.FullName, Email = u.Email,
+                JobTitle = u.JobTitle, Status = u.Status.ToString()
+            }).ToListAsync();
+
+        // Positions in this department
+        var positions = await _db.Positions
+            .Where(p => p.OrganizationUnitId == id && p.TenantId == tid && !p.IsDeleted)
+            .OrderBy(p => p.Level).ThenBy(p => p.Name)
+            .Select(p => new OrgDetailPosition
+            {
+                Id = p.Id, Code = p.Code, Name = p.Name,
+                Level = p.Level, IsManagerial = p.IsManagerial
+            }).ToListAsync();
+
+        // Child units with their employee counts and managers
+        var childUnits = await _db.OrganizationUnits
+            .Include(c => c.ManagerUser)
+            .Where(c => c.ParentId == id && c.TenantId == tid && !c.IsDeleted)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
+        var childIds = childUnits.Select(c => c.Id).ToList();
+        var childEmpCounts = await _db.AppUsers
+            .Where(u => u.TenantId == tid && u.OrganizationUnitId.HasValue && childIds.Contains(u.OrganizationUnitId!.Value) && !u.IsDeleted)
+            .GroupBy(u => u.OrganizationUnitId!.Value)
+            .Select(g => new { DeptId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.DeptId, x => x.Count);
+
+        var children = childUnits.Select(c =>
+        {
+            childEmpCounts.TryGetValue(c.Id, out var cnt);
+            return new OrgDetailChild
+            {
+                Id = c.Id, Code = c.Code, Name = c.Name,
+                IsActive = c.IsActive, EmployeeCount = cnt,
+                ManagerName = c.ManagerUser?.FullName
+            };
+        }).ToList();
+
+        var createdByName = unit.CreatedByUserId.HasValue
+            ? (await _db.AppUsers.Where(u => u.Id == unit.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync()) ?? "—"
+            : "Hệ thống";
+
+        // For move employee dropdown
+        ViewBag.AllDepartments = await _db.OrganizationUnits
+            .Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted && o.Id != id)
+            .OrderBy(o => o.Name)
+            .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
+            .ToListAsync();
+
+        return View(new OrgUnitDetailViewModel
+        {
+            Id = unit.Id, Code = unit.Code, Name = unit.Name,
+            Level = unit.Level, ParentName = unit.Parent?.Name,
+            ParentId = unit.ParentId,
+            ManagerUserId = unit.ManagerUserId,
+            ManagerName = unit.ManagerUser?.FullName,
+            IsActive = unit.IsActive,
+            EmployeeCount = employees.Count,
+            ChildCount = children.Count,
+            PositionCount = positions.Count,
+            CreatedAt = unit.CreatedAt, UpdatedAt = unit.UpdatedAt,
+            CreatedByName = createdByName,
+            Employees = employees, Positions = positions, Children = children
+        });
+    }
+
+    // ── Move Employee ─────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveEmployee(Guid employeeId, Guid fromDeptId, Guid toDeptId)
+    {
+        var tid = _tenant.TenantId;
+        var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == employeeId && u.TenantId == tid && !u.IsDeleted);
+        if (user == null) return NotFound();
+
+        var toDept = await _db.OrganizationUnits.FirstOrDefaultAsync(o => o.Id == toDeptId && o.TenantId == tid && !o.IsDeleted);
+        if (toDept == null) return NotFound();
+
+        var oldDeptName = user.OrganizationUnitId.HasValue
+            ? (await _db.OrganizationUnits.Where(o => o.Id == user.OrganizationUnitId.Value).Select(o => o.Name).FirstOrDefaultAsync()) ?? "—"
+            : "—";
+
+        user.OrganizationUnitId = toDeptId;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tid, UserId = _tenant.UserId, UserName = _tenant.UserFullName,
+            EntityType = "AppUser", EntityId = employeeId, Action = "MoveDepartment",
+            OldValues = $"{{\"Department\":\"{oldDeptName}\"}}",
+            NewValues = $"{{\"Department\":\"{toDept.Name}\"}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Đã chuyển {user.FullName} sang {toDept.Name}.";
+        return RedirectToAction(nameof(Details), new { id = fromDeptId });
+    }
+
+    // ── Toggle Active ─────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleActive(Guid id)
     {
         var unit = await _db.OrganizationUnits.FindAsync(id);
         if (unit == null || unit.TenantId != _tenant.TenantId) return NotFound();
 
-        unit.IsActive = false;
+        unit.IsActive = !unit.IsActive;
         unit.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Đã ngừng hoạt động phòng ban.";
+        TempData["SuccessMessage"] = unit.IsActive ? $"Đã kích hoạt {unit.Name}." : $"Đã ngừng hoạt động {unit.Name}.";
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<OrgUnitCreateViewModel> BuildCreateFormAsync()
+    // ── Delete (soft) ─────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var tid = _tenant.TenantId;
-        var parents = await _db.OrganizationUnits
-            .Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted)
-            .Select(o => new SelectOption { Value = o.Id.ToString(), Text = $"{'│'} {o.Name}" })
+        var unit = await _db.OrganizationUnits.FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tid && !o.IsDeleted);
+        if (unit == null) return NotFound();
+
+        // Check for children or employees
+        var hasChildren = await _db.OrganizationUnits.AnyAsync(c => c.ParentId == id && !c.IsDeleted);
+        var hasEmployees = await _db.AppUsers.AnyAsync(u => u.OrganizationUnitId == id && !u.IsDeleted);
+        if (hasChildren || hasEmployees)
+        {
+            TempData["ErrorMessage"] = "Không thể xóa phòng ban đang có đơn vị con hoặc nhân viên.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        unit.IsDeleted = true;
+        unit.IsActive = false;
+        unit.UpdatedAt = DateTimeOffset.UtcNow;
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tid, UserId = _tenant.UserId, UserName = _tenant.UserFullName,
+            EntityType = "OrganizationUnit", EntityId = id, Action = "Delete",
+            OldValues = $"{{\"Code\":\"{unit.Code}\",\"Name\":\"{unit.Name}\"}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Đã xóa phòng ban {unit.Name}.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // Kept for backward compat
+    [HttpPost, ValidateAntiForgeryToken]
+    public Task<IActionResult> Deactivate(Guid id) => ToggleActive(id);
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    private async Task<(List<SelectOption> ParentOptions, List<SelectOption> UserOptions)> BuildFormAsync(Guid? excludeId = null)
+    {
+        var tid = _tenant.TenantId;
+        var parentQuery = _db.OrganizationUnits
+            .Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted);
+        if (excludeId.HasValue)
+            parentQuery = parentQuery.Where(o => o.Id != excludeId.Value);
+
+        var parents = await parentQuery
+            .OrderBy(o => o.Level).ThenBy(o => o.Name)
+            .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
             .ToListAsync();
 
         var users = await _db.AppUsers
             .Where(u => u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted)
+            .OrderBy(u => u.FullName)
             .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName })
             .ToListAsync();
 
-        return new OrgUnitCreateViewModel { ParentOptions = parents, UserOptions = users };
+        return (parents, users);
     }
 }
 
@@ -166,14 +419,17 @@ public class UsersController : Controller
     private readonly ApplicationDbContext _db;
     private readonly ITenantContext _tenant;
     private readonly UserManager<IdentityUser<Guid>> _userManager;
+    private readonly IEmailService _email;
 
-    public UsersController(ApplicationDbContext db, ITenantContext tenant, UserManager<IdentityUser<Guid>> userManager)
+    public UsersController(ApplicationDbContext db, ITenantContext tenant, UserManager<IdentityUser<Guid>> userManager, IEmailService email)
     {
         _db = db;
         _tenant = tenant;
         _userManager = userManager;
+        _email = email;
     }
 
+    // ── List ──────────────────────────────────────────────────────────────────
     public async Task<IActionResult> Index(string? search, string? status)
     {
         var tid = _tenant.TenantId;
@@ -190,7 +446,6 @@ public class UsersController : Controller
             .Join(_db.OrganizationUnits, u => u.OrganizationUnitId, o => o.Id, (u, o) => new { u, DeptName = o.Name })
             .ToListAsync();
 
-        // Get roles for each user from Identity
         var identityUsers = await _userManager.Users.ToListAsync();
         var rolesByUser = new Dictionary<Guid, string>();
         foreach (var iu in identityUsers)
@@ -220,6 +475,7 @@ public class UsersController : Controller
         });
     }
 
+    // ── Create ────────────────────────────────────────────────────────────────
     public async Task<IActionResult> Create()
     {
         var vm = await BuildCreateFormAsync();
@@ -256,6 +512,7 @@ public class UsersController : Controller
             UserName = vm.Email,
             Email = vm.Email,
             EmailConfirmed = true,
+            PhoneNumber = vm.PhoneNumber,
             NormalizedEmail = vm.Email.ToUpperInvariant(),
             NormalizedUserName = vm.Email.ToUpperInvariant()
         };
@@ -273,7 +530,7 @@ public class UsersController : Controller
         await _userManager.AddToRoleAsync(identityUser, vm.Role);
 
         // Create AppUser
-        _db.AppUsers.Add(new AppUser
+        var appUser = new AppUser
         {
             Id = userId,
             TenantId = tid,
@@ -284,8 +541,25 @@ public class UsersController : Controller
             Status = UserStatus.Active,
             CreatedByUserId = _tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow
-        });
+        };
+        _db.AppUsers.Add(appUser);
 
+        // Create UserProfile
+        if (!string.IsNullOrWhiteSpace(vm.PhoneNumber))
+        {
+            _db.Set<UserProfile>().Add(new UserProfile
+            {
+                TenantId = tid,
+                UserId = userId,
+                PhoneNumber = vm.PhoneNumber,
+                TimeZoneId = "Asia/Ho_Chi_Minh",
+                Locale = "vi-VN",
+                CreatedByUserId = _tenant.UserId,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        // Audit log
         _db.AuditLogs.Add(new AuditLog
         {
             TenantId = tid,
@@ -294,15 +568,216 @@ public class UsersController : Controller
             EntityType = "AppUser",
             EntityId = userId,
             Action = "Create",
-            NewValues = $"{{\"Email\":\"{vm.Email}\",\"Role\":\"{vm.Role}\"}}",
+            NewValues = $"{{\"Email\":\"{vm.Email}\",\"Role\":\"{vm.Role}\",\"FullName\":\"{vm.FullName}\"}}",
             CreatedAt = DateTimeOffset.UtcNow
         });
 
         await _db.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Tạo người dùng thành công.";
+
+        // Send welcome email
+        if (vm.SendWelcomeEmail)
+        {
+            try
+            {
+                var loginUrl = Url.Action("Login", "Account", null, Request.Scheme)!;
+                await _email.SendWelcomeEmailAsync(vm.Email, vm.FullName, loginUrl, vm.Password);
+            }
+            catch { /* Non-critical, don't fail user creation */ }
+        }
+
+        TempData["SuccessMessage"] = $"Tạo người dùng {vm.FullName} thành công.";
         return RedirectToAction(nameof(Index));
     }
 
+    // ── Details ────────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var tid = _tenant.TenantId;
+        var user = await _db.AppUsers
+            .Include(u => u.OrganizationUnit)
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tid && !u.IsDeleted);
+        if (user == null) return NotFound();
+
+        var identityUser = await _userManager.FindByIdAsync(id.ToString());
+        var roles = identityUser != null ? (await _userManager.GetRolesAsync(identityUser)).ToList() : new List<string>();
+        var isLocked = identityUser != null && await _userManager.IsLockedOutAsync(identityUser);
+
+        var createdByName = user.CreatedByUserId.HasValue
+            ? (await _db.AppUsers.Where(u => u.Id == user.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync()) ?? "—"
+            : "Hệ thống";
+
+        var notifCount = await _db.NotificationDeliveries.CountAsync(d => d.UserId == id && d.TenantId == tid && !d.IsDeleted);
+
+        var vm = new UserDetailViewModel
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            PhoneNumber = user.Profile?.PhoneNumber,
+            JobTitle = user.JobTitle,
+            Department = user.OrganizationUnit?.Name ?? "Chưa phân bổ",
+            Status = user.Status.ToString(),
+            Roles = string.Join(", ", roles),
+            AvatarUrl = user.Profile?.AvatarUrl,
+            TimeZoneId = user.Profile?.TimeZoneId,
+            Locale = user.Profile?.Locale,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            CreatedByName = createdByName,
+            TotalNotifications = notifCount,
+            IsLocked = isLocked
+        };
+        return View(vm);
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    [HttpGet]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        var tid = _tenant.TenantId;
+        var user = await _db.AppUsers.Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tid && !u.IsDeleted);
+        if (user == null) return NotFound();
+
+        var identityUser = await _userManager.FindByIdAsync(id.ToString());
+        var roles = identityUser != null ? (await _userManager.GetRolesAsync(identityUser)).ToList() : new List<string>();
+
+        var vm = await BuildEditFormAsync();
+        vm.Id = user.Id;
+        vm.FullName = user.FullName;
+        vm.Email = user.Email;
+        vm.PhoneNumber = user.Profile?.PhoneNumber;
+        vm.JobTitle = user.JobTitle;
+        vm.OrganizationUnitId = user.OrganizationUnitId;
+        vm.Role = roles.FirstOrDefault() ?? "STAFF";
+        vm.Status = user.Status.ToString();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(UserEditViewModel vm)
+    {
+        if (!ModelState.IsValid)
+        {
+            var form = await BuildEditFormAsync();
+            vm.DepartmentOptions = form.DepartmentOptions;
+            vm.RoleOptions = form.RoleOptions;
+            vm.StatusOptions = form.StatusOptions;
+            return View(vm);
+        }
+
+        var tid = _tenant.TenantId;
+        var user = await _db.AppUsers.Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == vm.Id && u.TenantId == tid && !u.IsDeleted);
+        if (user == null) return NotFound();
+
+        // Check duplicate email
+        if (await _db.AppUsers.AnyAsync(u => u.TenantId == tid && u.Email == vm.Email && u.Id != vm.Id && !u.IsDeleted))
+        {
+            ModelState.AddModelError("Email", "Email đã tồn tại.");
+            var form = await BuildEditFormAsync();
+            vm.DepartmentOptions = form.DepartmentOptions;
+            vm.RoleOptions = form.RoleOptions;
+            vm.StatusOptions = form.StatusOptions;
+            return View(vm);
+        }
+
+        var oldValues = $"{{\"FullName\":\"{user.FullName}\",\"Email\":\"{user.Email}\",\"Status\":\"{user.Status}\"}}";
+
+        user.FullName = vm.FullName;
+        user.Email = vm.Email;
+        user.JobTitle = vm.JobTitle;
+        user.OrganizationUnitId = vm.OrganizationUnitId;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        if (Enum.TryParse<UserStatus>(vm.Status, out var newStatus))
+            user.Status = newStatus;
+
+        // Update profile phone
+        if (user.Profile != null)
+        {
+            user.Profile.PhoneNumber = vm.PhoneNumber;
+            user.Profile.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+        else if (!string.IsNullOrWhiteSpace(vm.PhoneNumber))
+        {
+            _db.Set<UserProfile>().Add(new UserProfile
+            {
+                TenantId = tid, UserId = user.Id, PhoneNumber = vm.PhoneNumber,
+                TimeZoneId = "Asia/Ho_Chi_Minh", Locale = "vi-VN",
+                CreatedByUserId = _tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        // Update Identity user email
+        var identityUser = await _userManager.FindByIdAsync(vm.Id.ToString());
+        if (identityUser != null)
+        {
+            identityUser.Email = vm.Email;
+            identityUser.UserName = vm.Email;
+            identityUser.NormalizedEmail = vm.Email.ToUpperInvariant();
+            identityUser.NormalizedUserName = vm.Email.ToUpperInvariant();
+            identityUser.PhoneNumber = vm.PhoneNumber;
+            await _userManager.UpdateAsync(identityUser);
+
+            // Update role
+            var currentRoles = await _userManager.GetRolesAsync(identityUser);
+            if (!currentRoles.Contains(vm.Role))
+            {
+                await _userManager.RemoveFromRolesAsync(identityUser, currentRoles);
+                await _userManager.AddToRoleAsync(identityUser, vm.Role);
+            }
+        }
+
+        // Audit
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tid, UserId = _tenant.UserId, UserName = _tenant.UserFullName,
+            EntityType = "AppUser", EntityId = user.Id, Action = "Update",
+            OldValues = oldValues,
+            NewValues = $"{{\"FullName\":\"{vm.FullName}\",\"Email\":\"{vm.Email}\",\"Status\":\"{vm.Status}\"}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Cập nhật người dùng {vm.FullName} thành công.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ── Delete (soft) ─────────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var tid = _tenant.TenantId;
+        var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tid && !u.IsDeleted);
+        if (user == null) return NotFound();
+
+        user.IsDeleted = true;
+        user.Status = UserStatus.Locked;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Lock Identity account
+        var identityUser = await _userManager.FindByIdAsync(id.ToString());
+        if (identityUser != null)
+        {
+            await _userManager.SetLockoutEndDateAsync(identityUser, DateTimeOffset.MaxValue);
+        }
+
+        _db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tid, UserId = _tenant.UserId, UserName = _tenant.UserFullName,
+            EntityType = "AppUser", EntityId = id, Action = "Delete",
+            OldValues = $"{{\"FullName\":\"{user.FullName}\",\"Email\":\"{user.Email}\"}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Đã xóa người dùng {user.FullName}.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ── Toggle Lock ───────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleLock(Guid id)
     {
@@ -311,12 +786,27 @@ public class UsersController : Controller
 
         user.Status = user.Status == UserStatus.Active ? UserStatus.Locked : UserStatus.Active;
         user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Sync with Identity lockout
+        var identityUser = await _userManager.FindByIdAsync(id.ToString());
+        if (identityUser != null)
+        {
+            if (user.Status == UserStatus.Locked)
+                await _userManager.SetLockoutEndDateAsync(identityUser, DateTimeOffset.MaxValue);
+            else
+            {
+                await _userManager.SetLockoutEndDateAsync(identityUser, null);
+                await _userManager.ResetAccessFailedCountAsync(identityUser);
+            }
+        }
+
         await _db.SaveChangesAsync();
 
         TempData["SuccessMessage"] = user.Status == UserStatus.Locked ? "Đã khóa tài khoản." : "Đã mở khóa tài khoản.";
         return RedirectToAction(nameof(Index));
     }
 
+    // ── Helpers ────────────────────────────────────────────────────────────────
     private async Task<UserCreateViewModel> BuildCreateFormAsync()
     {
         var tid = _tenant.TenantId;
@@ -324,20 +814,44 @@ public class UsersController : Controller
         {
             DepartmentOptions = await _db.OrganizationUnits
                 .Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted)
+                .OrderBy(o => o.Name)
                 .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
                 .ToListAsync(),
-            RoleOptions = new List<SelectOption>
+            RoleOptions = BuildRoleOptions()
+        };
+    }
+
+    private async Task<UserEditViewModel> BuildEditFormAsync()
+    {
+        var tid = _tenant.TenantId;
+        return new UserEditViewModel
+        {
+            DepartmentOptions = await _db.OrganizationUnits
+                .Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted)
+                .OrderBy(o => o.Name)
+                .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
+                .ToListAsync(),
+            RoleOptions = BuildRoleOptions(),
+            StatusOptions = new List<SelectOption>
             {
-                new() { Value = "STAFF", Text = "Nhân viên" },
-                new() { Value = "DEPARTMENT_MANAGER", Text = "Trưởng bộ phận" },
-                new() { Value = "EXECUTIVE", Text = "Ban lãnh đạo" },
-                new() { Value = "ACCOUNTANT", Text = "Kế toán" },
-                new() { Value = "AUDITOR", Text = "Kiểm soát" },
-                new() { Value = "TENANT_ADMIN", Text = "Quản trị doanh nghiệp" },
+                new() { Value = "Active", Text = "Hoạt động" },
+                new() { Value = "Locked", Text = "Đã khóa" },
+                new() { Value = "Inactive", Text = "Ngừng hoạt động" },
             }
         };
     }
+
+    private static List<SelectOption> BuildRoleOptions() => new()
+    {
+        new() { Value = "STAFF", Text = "Nhân viên" },
+        new() { Value = "DEPARTMENT_MANAGER", Text = "Trưởng bộ phận" },
+        new() { Value = "EXECUTIVE", Text = "Ban lãnh đạo" },
+        new() { Value = "ACCOUNTANT", Text = "Kế toán" },
+        new() { Value = "AUDITOR", Text = "Kiểm soát" },
+        new() { Value = "TENANT_ADMIN", Text = "Quản trị doanh nghiệp" },
+    };
 }
+
 
 [Authorize(Roles = "ACCOUNTANT,TENANT_ADMIN,SYSTEM_ADMIN,EXECUTIVE,DEPARTMENT_MANAGER")]
 public class FinanceController : Controller

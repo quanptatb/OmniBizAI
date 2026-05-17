@@ -4,6 +4,14 @@
     ViewData["Breadcrumb"] = "<span>Tổ chức</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Người dùng</span>";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="card content-card mb-4">
     <div class="card-body p-3">
         <form method="get" class="row g-3 align-items-end">
@@ -32,7 +40,7 @@
 <div class="card content-card">
     <div class="card-header-custom">
         <h5><i class="fa-solid fa-users"></i> Danh sách người dùng <span class="badge" style="background:var(--apple-blue);color:#fff">@Model.TotalCount</span></h5>
-        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus me-1"></i>Thêm</a>
+        <a asp-action="Create" class="btn btn-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-user-plus me-1"></i>Thêm mới</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -55,7 +63,7 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="topbar-avatar" style="width:38px;height:38px;font-size:.8rem;">@u.FullName.Substring(0, 1).ToUpper()</div>
                                     <div>
-                                        <div class="fw-bold">@u.FullName</div>
+                                        <a asp-action="Details" asp-route-id="@u.Id" class="fw-bold" style="color:var(--text-primary);text-decoration:none">@u.FullName</a>
                                         <div class="text-muted small">@u.Email</div>
                                     </div>
                                 </div>
@@ -67,11 +75,23 @@
                             </td>
                             <td class="text-muted small">@u.CreatedAt.ToString("dd/MM/yyyy")</td>
                             <td class="text-end pe-4">
-                                <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm @(u.Status == "Active" ? "btn-outline-warning" : "btn-outline-success")" title="@(u.Status == "Active" ? "Khóa" : "Mở khóa")">
-                                        <i class="fa-solid @(u.Status == "Active" ? "fa-lock" : "fa-unlock")"></i>
-                                    </button>
-                                </form>
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@u.Id" class="btn btn-sm btn-outline-secondary" title="Chi tiết" style="border-radius:6px">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa" style="border-radius:6px">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                    <a asp-controller="Account" asp-action="AdminResetPassword" asp-route-id="@u.Id" class="btn btn-sm btn-outline-info" title="Đặt lại mật khẩu" style="border-radius:6px">
+                                        <i class="fa-solid fa-key"></i>
+                                    </a>
+                                    <form asp-action="ToggleLock" asp-route-id="@u.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm @(u.Status == "Active" ? "btn-outline-warning" : "btn-outline-success")" title="@(u.Status == "Active" ? "Khóa" : "Mở khóa")" style="border-radius:6px">
+                                            <i class="fa-solid @(u.Status == "Active" ? "fa-lock" : "fa-unlock")"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }

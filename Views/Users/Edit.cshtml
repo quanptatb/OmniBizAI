@@ -1,0 +1,131 @@
+@model OmniBizAI.ViewModels.UserEditViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa người dùng";
+    ViewData["Breadcrumb"] = "<a href='/Users' style='color:var(--apple-blue);text-decoration:none'>Người dùng</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-card animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-user-pen"></i> Chỉnh sửa người dùng</h5>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-light border" style="border-radius:8px">
+                    <i class="fa-solid fa-eye me-1"></i>Xem chi tiết
+                </a>
+            </div>
+            <div class="card-body-custom">
+                @if (ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+                {
+                    <div style="background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div style="font-size:.82rem;color:var(--danger)"><i class="fa-solid fa-circle-exclamation me-1"></i>@error.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+
+                    <!-- Section: Thông tin cá nhân -->
+                    <div style="margin-bottom:24px">
+                        <h6 style="font-weight:700;font-size:.82rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">
+                            <i class="fa-solid fa-user me-1"></i>Thông tin cá nhân
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" type="email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-bold">Số điện thoại</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="0912 345 678" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="JobTitle" class="form-label fw-bold">Chức danh</label>
+                                <input asp-for="JobTitle" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="border-color:var(--divider);margin:0 0 24px" />
+
+                    <!-- Section: Phân quyền -->
+                    <div style="margin-bottom:24px">
+                        <h6 style="font-weight:700;font-size:.82rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">
+                            <i class="fa-solid fa-building me-1"></i>Phân bổ & Vai trò
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="OrganizationUnitId" class="form-label fw-bold">Phòng ban</label>
+                                <select asp-for="OrganizationUnitId" class="form-select">
+                                    <option value="">— Chưa phân bổ —</option>
+                                    @foreach (var d in Model.DepartmentOptions)
+                                    {
+                                        <option value="@d.Value" selected="@(d.Value == Model.OrganizationUnitId?.ToString())">@d.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Role" class="form-label fw-bold">Vai trò <span class="text-danger">*</span></label>
+                                <select asp-for="Role" class="form-select">
+                                    @foreach (var r in Model.RoleOptions)
+                                    {
+                                        <option value="@r.Value" selected="@(r.Value == Model.Role)">@r.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Status" class="form-label fw-bold">Trạng thái</label>
+                                <select asp-for="Status" class="form-select">
+                                    @foreach (var s in Model.StatusOptions)
+                                    {
+                                        <option value="@s.Value" selected="@(s.Value == Model.Status)">@s.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 justify-content-between pt-3" style="border-top:1px solid var(--divider)">
+                        <div>
+                            <button type="button" class="btn btn-outline-danger btn-sm" style="border-radius:8px" onclick="confirmDelete()">
+                                <i class="fa-solid fa-trash me-1"></i>Xóa người dùng
+                            </button>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-light border px-4" style="border-radius:10px">Hủy</a>
+                            <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600">
+                                <i class="fa-solid fa-check me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Delete form (hidden) -->
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" id="deleteForm">
+                    @Html.AntiForgeryToken()
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function confirmDelete() {
+    if (confirm('Bạn có chắc chắn muốn xóa người dùng này?\n\nHành động này không thể hoàn tác. Tài khoản sẽ bị khóa vĩnh viễn.')) {
+        document.getElementById('deleteForm').submit();
+    }
+}
+</script>
+}

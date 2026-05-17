@@ -31,6 +31,10 @@ builder.Services.AddIdentity<IdentityUser<Guid>, IdentityRole<Guid>>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Password reset token lifespan
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(2));
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -63,6 +67,7 @@ builder.Services.AddScoped<ProcurementService>();
 builder.Services.AddScoped<HrService>();
 builder.Services.AddScoped<SettingsService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // AI — Gemini
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));

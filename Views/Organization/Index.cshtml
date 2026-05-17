@@ -1,21 +1,75 @@
 @model OmniBizAI.ViewModels.OrganizationUnitListViewModel
 @{
     ViewData["Title"] = "Cơ cấu Tổ chức";
-    ViewData["Breadcrumb"] = "<span>Tổ chức</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Phòng ban</span>";
+    ViewData["Breadcrumb"] = "<span>Tổ chức</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Phòng ban</span>";
 }
 
-<div class="card content-card">
-    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
-        <h5 class="card-title mb-0"><i class="fa-solid fa-sitemap me-2 text-primary"></i>Cây phòng ban</h5>
-        <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Thêm phòng ban</a>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div class="card-body p-4">
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(255,59,48,.08);color:#c33">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-building"></i></div>
+            <div class="stat-value">@Model.TotalActive</div>
+            <div class="stat-label">Đang hoạt động</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-power-off"></i></div>
+            <div class="stat-value">@Model.TotalInactive</div>
+            <div class="stat-label">Ngừng hoạt động</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-value">@Model.TotalEmployees</div>
+            <div class="stat-label">Tổng nhân viên</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tree -->
+<div class="content-card">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-sitemap"></i> Cây phòng ban <span class="badge" style="background:var(--apple-blue);color:#fff">@(Model.TotalActive + Model.TotalInactive)</span></h5>
+        <div class="d-flex gap-2">
+            <div class="input-group" style="width:240px">
+                <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
+                <input type="text" id="treeSearch" class="form-control form-control-sm bg-light border-start-0" placeholder="Tìm phòng ban..." style="border-radius:0 8px 8px 0" oninput="filterTree(this.value)" />
+            </div>
+            <button type="button" class="btn btn-sm btn-light border" style="border-radius:8px" onclick="toggleAll(true)" title="Mở rộng tất cả">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-light border" style="border-radius:8px" onclick="toggleAll(false)" title="Thu gọn tất cả">
+                <i class="fa-solid fa-compress"></i>
+            </button>
+            <a asp-action="Create" class="btn btn-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-plus me-1"></i>Thêm</a>
+        </div>
+    </div>
+    <div class="card-body-custom" id="treeContainer">
         @if (!Model.Tree.Any())
         {
             <div class="text-center py-5 text-muted">
                 <i class="fa-solid fa-building fa-4x mb-3 opacity-50"></i>
                 <h5 class="text-muted">Chưa có phòng ban nào</h5>
-                <p class="text-muted small">Bấm "Thêm phòng ban" để bắt đầu.</p>
+                <p class="text-muted small mb-3">Bấm "Thêm" để bắt đầu xây dựng cơ cấu tổ chức.</p>
+                <a asp-action="Create" class="btn btn-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-plus me-1"></i>Thêm phòng ban đầu tiên</a>
             </div>
         }
 
@@ -25,3 +79,46 @@
         }
     </div>
 </div>
+
+@section Scripts {
+<script>
+// Client-side search filter
+function filterTree(query) {
+    query = query.toLowerCase().trim();
+    var nodes = document.querySelectorAll('#treeContainer .tree-node');
+    nodes.forEach(function(node) {
+        var text = node.querySelector('a.fw-bold')?.textContent?.toLowerCase() || '';
+        var code = node.textContent.toLowerCase();
+        if (!query || code.includes(query)) {
+            node.style.display = '';
+        } else {
+            node.style.display = 'none';
+        }
+    });
+    // If searching, show all matching parents
+    if (query) {
+        nodes.forEach(function(node) {
+            if (node.style.display !== 'none') {
+                var parent = node.parentElement;
+                while (parent && parent.id !== 'treeContainer') {
+                    if (parent.classList.contains('tree-node')) {
+                        parent.style.display = '';
+                    }
+                    parent = parent.parentElement;
+                }
+            }
+        });
+    }
+}
+
+// Expand/Collapse all
+function toggleAll(expand) {
+    var containers = document.querySelectorAll('#treeContainer .tree-node > div:last-child');
+    containers.forEach(function(c) {
+        if (c.style) {
+            c.style.display = expand ? '' : 'none';
+        }
+    });
+}
+</script>
+}
