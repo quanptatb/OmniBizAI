@@ -17,10 +17,8 @@
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold">Trạng thái</label>
                 <select name="status" class="form-select bg-light">
-                    <option value="">Tất cả</option>
-                    <option value="Active" selected="@(Model.StatusFilter == "Active")">Hoạt động</option>
-                    <option value="Locked" selected="@(Model.StatusFilter == "Locked")">Bị khóa</option>
-                    <option value="Inactive" selected="@(Model.StatusFilter == "Inactive")">Ngưng</option>
+                    @foreach (var s in EnumHelper.GetSelectList<UserStatus>(Model.StatusFilter, includeAll: true))
+                    { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
                 </select>
             </div>
             <div class="col-md-4 d-flex gap-2">
@@ -65,7 +63,7 @@
                             <td>@u.Department</td>
                             <td><span class="badge bg-primary-subtle text-primary border">@u.Roles</span></td>
                             <td>
-                                <span class="badge @(u.Status == "Active" ? "bg-success" : u.Status == "Locked" ? "bg-danger" : "bg-secondary") rounded-pill">@u.Status</span>
+                                <span class="badge @(u.Status == "Active" ? "bg-success" : u.Status == "Locked" ? "bg-danger" : "bg-secondary") rounded-pill">@(EnumHelper.Label<UserStatus>(u.Status))</span>
                             </td>
                             <td class="text-muted small">@u.CreatedAt.ToString("dd/MM/yyyy")</td>
                             <td class="text-end pe-4">

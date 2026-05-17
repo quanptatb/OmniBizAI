@@ -80,6 +80,15 @@ public class CrmService(ApplicationDbContext db, ITenantContext tenant)
         return true;
     }
 
+    public async Task<bool> DeleteCustomerAsync(Guid id)
+    {
+        var c = await db.Customers.FindAsync(id);
+        if (c is null || c.TenantId != tenant.TenantId) return false;
+        c.IsDeleted = true; c.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "Customer", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
     // ── Vendors ──────────────────────────────────────────────────────────────
     public async Task<VendorListViewModel> GetVendorsAsync(string? search)
     {
@@ -122,6 +131,15 @@ public class CrmService(ApplicationDbContext db, ITenantContext tenant)
         v.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<bool> DeleteVendorAsync(Guid id)
+    {
+        var v = await db.Vendors.FindAsync(id);
+        if (v is null || v.TenantId != tenant.TenantId) return false;
+        v.IsDeleted = true; v.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "Vendor", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
     }
 
     // ── Products ─────────────────────────────────────────────────────────────
@@ -283,6 +301,15 @@ public class CrmService(ApplicationDbContext db, ITenantContext tenant)
         p.StandardPrice = vm.StandardPrice;
         p.UpdatedAt = DateTimeOffset.UtcNow; p.UpdatedByUserId = tenant.UserId;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Update", EntityName = "ProductService", EntityId = p.Id, NewValuesJson = $"{{\"Name\":\"{vm.Name}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
+    public async Task<bool> DeleteProductAsync(Guid id)
+    {
+        var p = await db.ProductServices.FindAsync(id);
+        if (p is null || p.TenantId != tenant.TenantId) return false;
+        p.IsDeleted = true; p.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "ProductService", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync(); return true;
     }
 

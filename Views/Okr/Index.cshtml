@@ -26,16 +26,13 @@
                 </div>
                 <select name="level" class="filter-select">
                     <option value="">Tất cả cấp độ</option>
-                    <option value="Company" selected="@(Model.LevelFilter == "Company")">🏢 Công ty</option>
-                    <option value="Department" selected="@(Model.LevelFilter == "Department")">🏗️ Phòng ban</option>
-                    <option value="Individual" selected="@(Model.LevelFilter == "Individual")">👤 Cá nhân</option>
+                    @foreach (var l in EnumHelper.GetSelectList<OkrLevel>(Model.LevelFilter))
+                    { <option value="@l.Value" selected="@l.Selected">@l.Text</option> }
                 </select>
                 <select name="status" class="filter-select">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="Draft" selected="@(Model.StatusFilter == "Draft")">📝 Bản nháp</option>
-                    <option value="Active" selected="@(Model.StatusFilter == "Active")">✅ Đang thực hiện</option>
-                    <option value="Completed" selected="@(Model.StatusFilter == "Completed")">🏆 Hoàn thành</option>
-                    <option value="Cancelled" selected="@(Model.StatusFilter == "Cancelled")">🚫 Đã hủy</option>
+                    @foreach (var s in EnumHelper.GetSelectList<OkrStatus>(Model.StatusFilter))
+                    { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
                 </select>
             </div>
             <div class="toolbar-right">
@@ -148,13 +145,7 @@
         "Individual" => "badge-at-risk",
         _ => ""
     };
-    string GetLevelName(string level) => level switch
-    {
-        "Company" => "Công ty",
-        "Department" => "Phòng ban",
-        "Individual" => "Cá nhân",
-        _ => level
-    };
+    string GetLevelName(string level) => EnumHelper.Label<OkrLevel>(level);
     string GetStatusBadge(string status) => status switch
     {
         "Draft" => "",
@@ -163,14 +154,7 @@
         "Cancelled" => "badge-late",
         _ => ""
     };
-    string GetStatusName(string status) => status switch
-    {
-        "Draft" => "Bản nháp",
-        "Active" => "Đang thực hiện",
-        "Completed" => "Hoàn thành",
-        "Cancelled" => "Đã hủy",
-        _ => status
-    };
+    string GetStatusName(string status) => EnumHelper.Label<OkrStatus>(status);
     string GetProgressClass(decimal p) => p switch
     {
         >= 100 => "excellent",

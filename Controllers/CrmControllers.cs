@@ -93,6 +93,15 @@ public class CustomersController : Controller
         else { TempData["SuccessMessage"] = "Thêm chi nhánh thành công."; }
         return RedirectToAction(nameof(Details), new { id = vm.CustomerId });
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!await _service.DeleteCustomerAsync(id)) { TempData["ErrorMessage"] = "Không thể xóa khách hàng."; }
+        else { TempData["SuccessMessage"] = "Đã xóa khách hàng."; }
+        return RedirectToAction(nameof(Index));
+    }
 }
 
 [Authorize]
@@ -155,6 +164,15 @@ public class VendorsController : Controller
         TempData["SuccessMessage"] = "Cập nhật trạng thái thành công.";
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!await _service.DeleteVendorAsync(id)) { TempData["ErrorMessage"] = "Không thể xóa NCC."; }
+        else { TempData["SuccessMessage"] = "Đã xóa nhà cung cấp."; }
+        return RedirectToAction(nameof(Index));
+    }
 }
 
 [Authorize]
@@ -198,6 +216,15 @@ public class ProductsController : Controller
         if (!ModelState.IsValid) { var f = await _service.GetProductEditFormAsync(vm.Id); vm.Categories = f?.Categories ?? new(); vm.Units = f?.Units ?? new(); return View(vm); }
         if (!await _service.UpdateProductAsync(vm)) { TempData["ErrorMessage"] = "Cập nhật thất bại."; return View(vm); }
         TempData["SuccessMessage"] = "Cập nhật sản phẩm thành công.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!await _service.DeleteProductAsync(id)) { TempData["ErrorMessage"] = "Không thể xóa sản phẩm."; }
+        else { TempData["SuccessMessage"] = "Đã xóa sản phẩm/dịch vụ."; }
         return RedirectToAction(nameof(Index));
     }
 }

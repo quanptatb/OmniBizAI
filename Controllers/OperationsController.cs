@@ -147,5 +147,17 @@ public class OperationsController : Controller
             : "Không thể hủy yêu cầu này.";
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var success = await _service.DeleteAsync(id);
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+            ? "Đã xóa yêu cầu."
+            : "Không thể xóa yêu cầu này.";
+        return RedirectToAction(nameof(Index));
+    }
 }
 

@@ -9,11 +9,8 @@
                 <div class="col-12">
                     <label class="form-label">Loại nghỉ phép <span class="text-danger">*</span></label>
                     <select asp-for="LeaveType" class="form-select">
-                        <option value="Annual">🌴 Phép năm</option>
-                        <option value="Sick">🏥 Ốm đau</option>
-                        <option value="Personal">👤 Việc riêng</option>
-                        <option value="Maternity">👶 Thai sản</option>
-                        <option value="Unpaid">📋 Không lương</option>
+                        @foreach (var lt in EnumHelper.GetSelectList<LeaveType>())
+                        { <option value="@lt.Value">@lt.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-6">

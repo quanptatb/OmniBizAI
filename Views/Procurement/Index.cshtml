@@ -4,7 +4,7 @@
     <div><h4 class="page-title mb-1">Đề xuất mua sắm</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount đề xuất</p></div>
     <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Tạo đề xuất</a>
 </div>
-<div class="content-card mb-4"><div class="card-body-custom"><form method="get" class="row g-2"><div class="col-md-6"><input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo mã hoặc tiêu đề..." /></div><div class="col-md-3"><select name="status" class="form-input"><option value="">-- Trạng thái --</option><option value="Draft">Nháp</option><option value="Submitted">Đã gửi</option><option value="Approved">Đã duyệt</option><option value="Ordered">Đã đặt</option><option value="Cancelled">Đã hủy</option></select></div><div class="col-md-3"><button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div></form></div></div>
+<div class="content-card mb-4"><div class="card-body-custom"><form method="get" class="row g-2"><div class="col-md-6"><input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo mã hoặc tiêu đề..." /></div><div class="col-md-3"><select name="status" class="form-input"><option value="">-- Trạng thái --</option>@foreach(var s in EnumHelper.GetSelectList<ProcurementStatus>(Model.StatusFilter)){<option value="@s.Value" selected="@s.Selected">@s.Text</option>}</select></div><div class="col-md-3"><button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div></form></div></div>
 <div class="content-card"><div class="card-body-custom p-0">
     <table class="data-table">
         <thead><tr><th class="ps-3">Mã</th><th>Tiêu đề</th><th>Phòng ban</th><th>Người đề xuất</th><th>Tổng ước tính</th><th>Trạng thái</th><th class="pe-3">Cần trước</th></tr></thead>
@@ -14,7 +14,7 @@
                     <td class="ps-3"><a asp-action="Details" asp-route-id="@p.Id" style="font-weight:600;color:var(--apple-blue);text-decoration:none">@p.RequestNo</a></td>
                     <td style="font-weight:500">@p.Title</td><td style="color:var(--text-secondary);font-size:.82rem">@(p.Department ?? "—")</td><td style="font-size:.82rem">@p.RequestedBy</td>
                     <td style="font-weight:500">@p.TotalEstimated.ToString("N0") ₫</td>
-                    <td><span class="status-badge-soft @(p.Status == "Approved" ? "badge-on-track" : p.Status == "Draft" ? "badge-at-risk" : p.Status == "Cancelled" ? "badge-late" : "badge-at-risk")"><span class="status-dot"></span>@p.Status</span></td>
+                    <td><span class="status-badge-soft @(p.Status == "Approved" ? "badge-on-track" : p.Status == "Draft" ? "badge-at-risk" : p.Status == "Cancelled" ? "badge-late" : "badge-at-risk")"><span class="status-dot"></span>@(EnumHelper.Label<ProcurementStatus>(p.Status))</span></td>
                     <td class="pe-3" style="font-size:.82rem;color:var(--text-muted)">@(p.NeededByDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                 </tr>
             }

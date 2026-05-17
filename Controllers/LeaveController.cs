@@ -61,4 +61,12 @@ public class LeaveController : Controller
         else { await _notif.BroadcastAsync($"❌ {_tenant.UserFullName} từ chối nghỉ phép", $"{_tenant.UserFullName} đã từ chối đơn nghỉ phép. Lý do: {reason ?? "N/A"}", "LeaveRequest", id); TempData["SuccessMessage"] = "Đã từ chối."; }
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!await _service.DeleteLeaveAsync(id)) { TempData["ErrorMessage"] = "Không thể xóa đơn này."; }
+        else { TempData["SuccessMessage"] = "Đã xóa đơn nghỉ phép."; }
+        return RedirectToAction(nameof(Index));
+    }
 }

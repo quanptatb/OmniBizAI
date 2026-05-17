@@ -238,6 +238,15 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
         kr.CurrentValue = vm.CurrentValue; kr.UpdatedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(); return true;
     }
+
+    public async Task<bool> DeleteOkrAsync(Guid id)
+    {
+        var okr = await db.OkrObjectives.FindAsync(id);
+        if (okr is null || okr.TenantId != tenant.TenantId) return false;
+        okr.IsDeleted = true; okr.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "OkrObjective", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
 }
 
 // ── KPI Management Service ───────────────────────────────────────────────────

@@ -5,14 +5,8 @@
 }
 
 @{
-    string StatusLabel(string s) => s switch {
-        "Draft" => "Bản nháp", "Submitted" => "Đã gửi duyệt", "InReview" => "Đang xem xét",
-        "Approved" => "Đã duyệt", "InProgress" => "Đang xử lý", "Completed" => "Hoàn thành",
-        "Rejected" => "Bị từ chối", "Cancelled" => "Đã hủy", _ => s
-    };
-    string PriorityLabel(string p) => p switch {
-        "Low" => "Thấp", "Normal" => "B.thường", "High" => "Cao", "Critical" => "Nguy cấp", _ => p
-    };
+    string StatusLabel(string s) => EnumHelper.Label<OperationStatus>(s);
+    string PriorityLabel(string p) => EnumHelper.Label<PriorityLevel>(p);
 }
 
 <!-- Stats -->
@@ -58,24 +52,15 @@
             <div class="col-md-2">
                 <label class="form-label">Trạng thái</label>
                 <select name="status" class="form-select">
-                    <option value="">Tất cả</option>
-                    <option value="Draft" selected="@(Model.StatusFilter == "Draft")">Bản nháp</option>
-                    <option value="Submitted" selected="@(Model.StatusFilter == "Submitted")">Đã gửi duyệt</option>
-                    <option value="Approved" selected="@(Model.StatusFilter == "Approved")">Đã duyệt</option>
-                    <option value="InProgress" selected="@(Model.StatusFilter == "InProgress")">Đang xử lý</option>
-                    <option value="Completed" selected="@(Model.StatusFilter == "Completed")">Hoàn thành</option>
-                    <option value="Rejected" selected="@(Model.StatusFilter == "Rejected")">Từ chối</option>
-                    <option value="Cancelled" selected="@(Model.StatusFilter == "Cancelled")">Đã hủy</option>
+                    @foreach (var s in EnumHelper.GetSelectList<OperationStatus>(Model.StatusFilter, includeAll: true))
+                    { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
                 </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Mức ưu tiên</label>
                 <select name="priority" class="form-select">
-                    <option value="">Tất cả</option>
-                    <option value="Low" selected="@(Model.PriorityFilter == "Low")">Thấp</option>
-                    <option value="Normal" selected="@(Model.PriorityFilter == "Normal")">Bình thường</option>
-                    <option value="High" selected="@(Model.PriorityFilter == "High")">Cao</option>
-                    <option value="Critical" selected="@(Model.PriorityFilter == "Critical")">Nghiêm trọng</option>
+                    @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>(Model.PriorityFilter, includeAll: true))
+                    { <option value="@p.Value" selected="@p.Selected">@p.Text</option> }
                 </select>
             </div>
             <div class="col-md-3">

@@ -22,9 +22,8 @@
                 <div class="col-md-2">
                     <label asp-for="Level" class="form-label">Cấp độ</label>
                     <select asp-for="Level" class="form-select">
-                        <option value="Company">Công ty</option>
-                        <option value="Department">Phòng ban</option>
-                        <option value="Individual">Cá nhân</option>
+                        @foreach (var l in EnumHelper.GetSelectList<OkrLevel>())
+                        { <option value="@l.Value">@l.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-2">

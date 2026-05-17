@@ -313,6 +313,15 @@ public class HrService(ApplicationDbContext db, ITenantContext tenant)
         await db.SaveChangesAsync(); return true;
     }
 
+    public async Task<bool> DeleteLeaveAsync(Guid id)
+    {
+        var l = await db.LeaveRequests.FindAsync(id);
+        if (l is null || l.TenantId != tenant.TenantId) return false;
+        l.IsDeleted = true; l.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "LeaveRequest", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
     // ── HR Dashboard ────────────────────────────────────────────────────────
     public async Task<HrDashboardViewModel> GetDashboardAsync()
     {

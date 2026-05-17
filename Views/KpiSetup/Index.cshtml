@@ -38,11 +38,8 @@
                 </div>
                 <select name="status" class="filter-select">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="Draft">📝 Bản nháp</option>
-                    <option value="PendingApproval">⏳ Chờ duyệt</option>
-                    <option value="Active">✅ Đang thực hiện</option>
-                    <option value="Completed">🏆 Hoàn thành</option>
-                    <option value="Failed">❌ Không đạt</option>
+                    @foreach (var s in EnumHelper.GetSelectList<KpiStatus>(Model.StatusFilter))
+                    { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
                 </select>
                 <select name="periodId" class="filter-select">
                     <option value="">Tất cả kỳ đánh giá</option>
@@ -50,9 +47,8 @@
                 </select>
                 <select name="ownerType" class="filter-select">
                     <option value="">Tất cả loại</option>
-                    <option value="Company">🏢 Công ty</option>
-                    <option value="Department">🏗️ Phòng ban</option>
-                    <option value="User">👤 Cá nhân</option>
+                    @foreach (var o in EnumHelper.GetSelectList<KpiOwnerType>(Model.OwnerTypeFilter))
+                    { <option value="@o.Value" selected="@o.Selected">@o.Text</option> }
                 </select>
             </div>
             <div class="toolbar-right">
@@ -96,7 +92,7 @@
                         </td>
                         <td class="text-center">@item.Unit</td>
                         <td class="text-center">
-                            <span class="status-badge-soft" style="font-size:0.7rem;">@item.OwnerType</span>
+                            <span class="status-badge-soft" style="font-size:0.7rem;">@(EnumHelper.Label<KpiOwnerType>(item.OwnerType))</span>
                         </td>
                         <td class="text-center" style="color:var(--kpi-text-secondary);">@item.Department</td>
                         <td class="text-end" style="font-weight:800; color:var(--kpi-text-primary);">@item.TargetValue.ToString("N0")</td>

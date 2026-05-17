@@ -28,33 +28,29 @@
                 <div class="col-md-3">
                     <label asp-for="OwnerType" class="form-label">Loại</label>
                     <select asp-for="OwnerType" class="form-select">
-                        <option value="Company">Công ty</option>
-                        <option value="Department">Phòng ban</option>
-                        <option value="User">Cá nhân</option>
+                        @foreach (var o in EnumHelper.GetSelectList<KpiOwnerType>())
+                        { <option value="@o.Value">@o.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="MeasureType" class="form-label">Phương thức đo</label>
                     <select asp-for="MeasureType" class="form-select">
-                        <option value="Quantitative">Định lượng</option>
-                        <option value="Qualitative">Định tính</option>
-                        <option value="Behavioral">Hành vi</option>
+                        @foreach (var m in EnumHelper.GetSelectList<KpiMeasureType>())
+                        { <option value="@m.Value">@m.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="PropertyType" class="form-label">Tính chất</label>
                     <select asp-for="PropertyType" class="form-select">
-                        <option value="Growth">Tăng trưởng</option>
-                        <option value="Stability">Ổn định</option>
-                        <option value="Reduction">Giảm thiểu</option>
+                        @foreach (var p in EnumHelper.GetSelectList<KpiPropertyType>())
+                        { <option value="@p.Value">@p.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="PeriodType" class="form-label">Tần suất</label>
                     <select asp-for="PeriodType" class="form-select">
-                        <option value="Monthly">Hàng tháng</option>
-                        <option value="Quarterly">Hàng quý</option>
-                        <option value="Yearly">Hàng năm</option>
+                        @foreach (var pt in EnumHelper.GetSelectList<KpiPeriodType>())
+                        { <option value="@pt.Value">@pt.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-4">

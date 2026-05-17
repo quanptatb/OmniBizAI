@@ -236,6 +236,15 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         await db.SaveChangesAsync(); return true;
     }
 
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var r = await db.OperationRequests.FindAsync(id);
+        if (r is null || r.TenantId != tenant.TenantId) return false;
+        r.IsDeleted = true; r.UpdatedAt = DateTimeOffset.UtcNow;
+        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "OperationRequest", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync(); return true;
+    }
+
     public async Task<OperationRequestCreateViewModel> GetCreateFormAsync()
     {
         var tid = tenant.TenantId;

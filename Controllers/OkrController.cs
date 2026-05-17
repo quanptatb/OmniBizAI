@@ -93,4 +93,15 @@ public class OkrController(OkrService okrService, OkrProgressService progressSer
         }
         return RedirectToAction(nameof(Details), new { id = vm.OkrId });
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (await okrService.DeleteOkrAsync(id))
+            TempData["Success"] = "Đã xóa OKR.";
+        else
+            TempData["Error"] = "Không thể xóa OKR này.";
+        return RedirectToAction(nameof(Index));
+    }
 }
