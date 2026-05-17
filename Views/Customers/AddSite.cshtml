@@ -1,0 +1,16 @@
+@model OmniBizAI.ViewModels.AddSiteViewModel
+@{ ViewData["Title"] = "Thêm chi nhánh"; ViewData["Breadcrumb"] = "<a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm chi nhánh</span>"; }
+<div class="content-card" style="max-width:520px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-location-dot"></i> Thêm chi nhánh: @Model.CustomerName</h5></div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="AddSite">@Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CustomerId" /><input type="hidden" asp-for="CustomerName" />
+            <div class="row g-3">
+                <div class="col-12"><label class="form-label">Tên chi nhánh <span class="text-danger">*</span></label><input asp-for="Name" class="form-control" placeholder="Chi nhánh HCM" /><span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span></div>
+                <div class="col-md-8"><label class="form-label">Địa chỉ</label><input asp-for="Address" class="form-control" placeholder="123 Nguyễn Huệ" /></div>
+                <div class="col-md-4"><label class="form-label">Thành phố</label><input asp-for="City" class="form-control" placeholder="TP.HCM" /></div>
+            </div>
+            <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Thêm</button><a asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-light">Hủy</a></div>
+        </form>
+    </div>
+</div>

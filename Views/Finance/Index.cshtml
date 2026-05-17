@@ -1,0 +1,108 @@
+@model OmniBizAI.ViewModels.FinanceDashboardViewModel
+@{ ViewData["Title"] = "Tổng quan Tài chính"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tổng quan</span>"; }
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div><div class="stat-value">@Model.TotalBudget.ToString("N0")<span style="font-size:.5em;font-weight:400"> ₫</span></div><div class="stat-label">Tổng ngân sách năm @DateTime.Today.Year</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-receipt"></i></div><div class="stat-value">@Model.TotalExpense.ToString("N0")<span style="font-size:.5em;font-weight:400"> ₫</span></div><div class="stat-label">Tổng chi phí</div><div class="stat-change @(Model.UsagePercent > 80 ? "down" : "up")"><i class="fa-solid fa-chart-line"></i> @Model.UsagePercent%</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-coins"></i></div><div class="stat-value">@Model.BudgetRemaining.ToString("N0")<span style="font-size:.5em;font-weight:400"> ₫</span></div><div class="stat-label">Còn lại</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon @(Model.PendingPayments > 0 ? "red" : "green")"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="stat-value">@Model.PendingPayments</div><div class="stat-label">Đề nghị TT chờ duyệt</div>@if(Model.PendingPaymentAmount > 0){<div class="stat-change down"><i class="fa-solid fa-arrow-up"></i> @Model.PendingPaymentAmount.ToString("N0") ₫</div>}</div></div>
+</div>
+
+<div class="row g-4">
+    <!-- Left: Chart + Alert Budgets -->
+    <div class="col-lg-8">
+        <!-- Monthly Expense Chart -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-chart-bar"></i> Chi phí theo tháng (@DateTime.Today.Year)</h5>
+                <span style="font-size:.78rem;color:var(--text-muted)">Tháng này: @Model.ExpenseThisMonth.ToString("N0") ₫</span>
+            </div>
+            <div class="card-body-custom">
+                <div style="display:flex;align-items:flex-end;gap:6px;height:180px;padding-top:12px">
+                    @{ var maxVal = Model.MonthlyExpenses.Max(m => m.Amount); if (maxVal == 0) maxVal = 1; }
+                    @foreach (var m in Model.MonthlyExpenses)
+                    {
+                        var pct = Math.Round((double)(m.Amount / maxVal * 100));
+                        var isCurrentMonth = m.Month == DateTime.Today.ToString("MMM");
+                        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                            <span style="font-size:.6rem;color:var(--text-muted);font-weight:500">@(m.Amount > 0 ? (m.Amount / 1000000).ToString("N1") + "M" : "")</span>
+                            <div style="width:100%;max-width:40px;background:@(isCurrentMonth ? "var(--apple-blue)" : "var(--divider)");border-radius:4px 4px 0 0;min-height:4px;height:@(pct)%;transition:height .4s ease" title="@m.Amount.ToString("N0") ₫"></div>
+                            <span style="font-size:.65rem;color:@(isCurrentMonth ? "var(--apple-blue)" : "var(--text-muted)");font-weight:@(isCurrentMonth ? "700" : "400")">@m.Month</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Budgets -->
+        @if (Model.AlertBudgets.Any())
+        {
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <h5><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> Ngân sách cần lưu ý</h5>
+                    <a asp-action="Budgets" class="btn btn-light btn-sm">Xem tất cả</a>
+                </div>
+                <div class="card-body-custom p-0">
+                    @foreach (var b in Model.AlertBudgets)
+                    {
+                        var barColor = b.IsDanger ? "var(--danger)" : "var(--warning)";
+                        <div style="padding:14px 24px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:16px">
+                            <div style="flex:1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <a asp-action="BudgetDetails" asp-route-id="@b.Id" style="font-weight:600;color:var(--apple-blue);text-decoration:none">@b.Name</a>
+                                    <span style="font-weight:700;color:@barColor;font-size:.82rem">@b.UsagePercent%</span>
+                                </div>
+                                <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:6px">@b.Department · @b.UsedAmount.ToString("N0") / @b.TotalAmount.ToString("N0") ₫</div>
+                                <div class="progress" style="height:6px;border-radius:3px;background:var(--bg-secondary)">
+                                    <div style="width:@(Math.Min(b.UsagePercent, 100))%;background:@barColor;border-radius:3px;transition:width .4s"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Right: Quick Actions + Recent Payments -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Thao tác nhanh</h5></div>
+            <div class="card-body-custom d-flex flex-column gap-2">
+                <a asp-action="PaymentCreate" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-2"></i>Tạo đề nghị thanh toán</a>
+                <a asp-action="BudgetCreate" class="btn btn-outline-primary w-100"><i class="fa-solid fa-piggy-bank me-2"></i>Tạo ngân sách mới</a>
+                <a asp-controller="Expenses" asp-action="Create" class="btn btn-light w-100"><i class="fa-solid fa-receipt me-2"></i>Ghi nhận chi phí</a>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="content-card">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-file-invoice-dollar" style="color:var(--apple-blue)"></i> Thanh toán gần đây</h5>
+                <a asp-action="PaymentRequests" class="btn btn-light btn-sm" style="font-size:.72rem">Tất cả</a>
+            </div>
+            <div class="card-body-custom p-0">
+                @if (!Model.RecentPayments.Any())
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted);font-size:.82rem">Chưa có đề nghị thanh toán</div>
+                }
+                @foreach (var p in Model.RecentPayments)
+                {
+                    var badge = p.Status switch { "Paid" or "Approved" => "badge-on-track", "Draft" or "Submitted" => "badge-at-risk", _ => "badge-behind" };
+                    <a asp-action="PaymentDetails" asp-route-id="@p.Id" style="display:block;padding:12px 24px;border-bottom:1px solid var(--divider);text-decoration:none;color:inherit">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span style="font-weight:600;color:var(--apple-blue);font-size:.82rem">@p.RequestNo</span>
+                            <span class="status-badge-soft @badge" style="font-size:.65rem"><span class="status-dot"></span>@p.StatusLabel</span>
+                        </div>
+                        <div class="d-flex justify-content-between" style="font-size:.78rem;color:var(--text-muted)">
+                            <span>@(p.VendorName ?? "N/A")</span>
+                            <span style="font-weight:600;color:var(--text-primary)">@p.TotalAmount.ToString("N0") ₫</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

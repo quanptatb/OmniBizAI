@@ -1,30 +1,71 @@
 @model OmniBizAI.ViewModels.BudgetDetailViewModel
-@{ ViewData["Title"] = Model.Name; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Finance/Budgets' style='color:var(--apple-blue);text-decoration:none'>Ngân sách</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Name + "</span>"; }
+@{ ViewData["Title"] = Model.Name; ViewData["Breadcrumb"] = "<a href='/Finance' style='color:var(--apple-blue);text-decoration:none'>Tài chính</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Finance/Budgets' style='color:var(--apple-blue);text-decoration:none'>Ngân sách</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Name + "</span>"; }
+@{ var stLabel = Model.Status switch { "Draft" => "Bản nháp", "Active" => "Đang hoạt động", "Closed" => "Đã đóng", "Cancelled" => "Đã hủy", _ => Model.Status };
+   var stBadge = Model.Status switch { "Active" => "badge-on-track", "Draft" => "badge-at-risk", _ => "badge-behind" };
+   var isActive = Model.Status == "Active"; }
 
+<!-- Stats -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3 fade-in"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div><div class="stat-value">@Model.PlannedAmount.ToString("N0") ₫</div><div class="stat-label">Kế hoạch</div></div></div>
-    <div class="col-md-3 fade-in fade-in-delay-1"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-receipt"></i></div><div class="stat-value">@Model.UsedAmount.ToString("N0") ₫</div><div class="stat-label">Đã chi</div></div></div>
-    <div class="col-md-3 fade-in fade-in-delay-2"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-coins"></i></div><div class="stat-value">@Model.Remaining.ToString("N0") ₫</div><div class="stat-label">Còn lại</div></div></div>
+    <div class="col-md-3 fade-in"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-money-bill-trend-up"></i></div><div class="stat-value">@Model.PlannedAmount.ToString("N0")<span style="font-size:.4em;font-weight:400"> ₫</span></div><div class="stat-label">Kế hoạch</div></div></div>
+    <div class="col-md-3 fade-in fade-in-delay-1"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-receipt"></i></div><div class="stat-value">@Model.UsedAmount.ToString("N0")<span style="font-size:.4em;font-weight:400"> ₫</span></div><div class="stat-label">Đã chi</div></div></div>
+    <div class="col-md-3 fade-in fade-in-delay-2"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-coins"></i></div><div class="stat-value">@Model.Remaining.ToString("N0")<span style="font-size:.4em;font-weight:400"> ₫</span></div><div class="stat-label">Còn lại</div></div></div>
     <div class="col-md-3 fade-in fade-in-delay-2"><div class="stat-card"><div class="stat-icon @(Model.UsagePercent > 90 ? "red" : Model.UsagePercent > 70 ? "orange" : "green")"><i class="fa-solid fa-chart-pie"></i></div><div class="stat-value">@Model.UsagePercent%</div><div class="stat-label">Sử dụng</div></div></div>
 </div>
 
-<div class="content-card mb-4"><div class="card-header-custom"><h5><i class="fa-solid fa-piggy-bank"></i> @Model.Name</h5><span class="status-badge-soft badge-on-track"><span class="status-dot"></span>@Model.Status</span></div><div class="card-body-custom">
-    <div class="row g-3">
-        <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Phòng ban</label><div style="font-weight:600">@Model.Department</div></div>
-        <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Năm tài chính</label><div>@Model.FiscalYear</div></div>
-        <div class="col-md-4">
-            <label class="form-label" style="color:var(--text-muted);font-size:.78rem">Tiến độ</label>
-            <div class="progress" style="height:8px;border-radius:4px;background:var(--bg-secondary)"><div class="progress-bar" style="width:@(Math.Min(Model.UsagePercent, 100))%;background:@(Model.UsagePercent > 90 ? "var(--apple-red)" : Model.UsagePercent > 70 ? "var(--apple-orange)" : "var(--apple-green)");border-radius:4px"></div></div>
+<!-- Info Card -->
+<div class="content-card mb-4">
+    <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
+        <div class="d-flex align-items-center gap-2">
+            <h5 style="margin:0"><i class="fa-solid fa-piggy-bank" style="color:var(--apple-blue)"></i> @Model.Name</h5>
+            <span class="status-badge-soft @stBadge"><span class="status-dot"></span>@stLabel</span>
+        </div>
+        <div class="d-flex gap-2">
+            @if (isActive) {
+                <a asp-action="BudgetEdit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-pen me-1"></i>Chỉnh sửa</a>
+                <form asp-action="BudgetClose" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn muốn đóng ngân sách này?')">
+                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-lock me-1"></i>Đóng ngân sách</button>
+                </form>
+            }
         </div>
     </div>
-</div></div>
+    <div class="card-body-custom">
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Phòng ban</label><div style="font-weight:600">@Model.Department</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Năm tài chính</label><div>@Model.FiscalYear</div></div>
+            <div class="col-md-4">
+                <label class="form-label" style="color:var(--text-muted);font-size:.78rem">Tiến độ</label>
+                <div class="progress" style="height:8px;border-radius:4px;background:var(--bg-secondary)">
+                    <div class="progress-bar" style="width:@(Math.Min(Model.UsagePercent, 100))%;background:@(Model.UsagePercent > 90 ? "var(--apple-red)" : Model.UsagePercent > 70 ? "var(--apple-orange)" : "var(--apple-green)");border-radius:4px;transition:width .4s"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<div class="content-card"><div class="card-header-custom"><h5><i class="fa-solid fa-list"></i> Chi phí liên quan</h5></div><div class="card-body-custom p-0">
-    <table class="data-table">
-        <thead><tr><th class="ps-3">Mô tả</th><th>Ngày chi</th><th>Số tiền</th><th class="pe-3">Trạng thái</th></tr></thead>
-        <tbody>
-            @foreach (var e in Model.Expenses) { <tr><td class="ps-3" style="font-weight:500">@e.Description</td><td style="font-size:.82rem">@e.ExpenseDate.ToString("dd/MM/yyyy")</td><td style="font-weight:600">@e.Amount.ToString("N0") ₫</td><td class="pe-3"><span class="status-badge-soft badge-on-track"><span class="status-dot"></span>@e.Status</span></td></tr> }
-            @if (!Model.Expenses.Any()) { <tr><td colspan="4" class="text-center py-3" style="color:var(--text-muted)">Chưa có chi phí</td></tr> }
-        </tbody>
-    </table>
-</div></div>
+<!-- Expenses -->
+<div class="content-card">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-list"></i> Chi phí liên quan</h5>
+        @if (isActive) {
+            <a asp-controller="Expenses" asp-action="Create" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-plus me-1"></i>Ghi nhận chi phí</a>
+        }
+    </div>
+    <div class="card-body-custom p-0">
+        <table class="data-table">
+            <thead><tr><th class="ps-3">Mô tả</th><th>Ngày chi</th><th>Số tiền</th><th class="pe-3">Trạng thái</th></tr></thead>
+            <tbody>
+                @foreach (var e in Model.Expenses) {
+                    var expStLabel = e.Status switch { "Recorded" => "Đã ghi nhận", "Approved" => "Đã duyệt", _ => e.Status };
+                    var expBadge = e.Status == "Approved" ? "badge-on-track" : "badge-at-risk";
+                    <tr>
+                        <td class="ps-3" style="font-weight:500">@e.Description</td>
+                        <td style="font-size:.82rem">@e.ExpenseDate.ToString("dd/MM/yyyy")</td>
+                        <td style="font-weight:600">@e.Amount.ToString("N0") ₫</td>
+                        <td class="pe-3"><span class="status-badge-soft @expBadge"><span class="status-dot"></span>@expStLabel</span></td>
+                    </tr>
+                }
+                @if (!Model.Expenses.Any()) { <tr><td colspan="4" class="text-center py-3" style="color:var(--text-muted)">Chưa có chi phí</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>

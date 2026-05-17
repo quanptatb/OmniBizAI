@@ -1,0 +1,28 @@
+@model OmniBizAI.ViewModels.ProductEditViewModel
+@{ ViewData["Title"] = "Chỉnh sửa SP"; ViewData["Breadcrumb"] = "<a href='/Products' style='color:var(--apple-blue);text-decoration:none'>SP/DV</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>"; }
+<div class="content-card" style="max-width:560px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-pen"></i> Chỉnh sửa: @Model.Code</h5></div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="Edit">@Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label">Mã SP <span class="text-danger">*</span></label><input asp-for="Code" class="form-control" /><span asp-validation-for="Code" class="text-danger" style="font-size:.78rem"></span></div>
+                <div class="col-md-8"><label class="form-label">Tên SP <span class="text-danger">*</span></label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span></div>
+                <div class="col-md-4">
+                    <label class="form-label">Loại <span class="text-danger">*</span></label>
+                    <select asp-for="Type" class="form-select"><option value="Service">Dịch vụ</option><option value="Product">Hàng hóa</option></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Danh mục</label>
+                    <select asp-for="ProductCategoryId" class="form-select"><option value="">— Chọn —</option>@foreach(var c in Model.Categories){<option value="@c.Value">@c.Text</option>}</select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">ĐVT</label>
+                    <select asp-for="UnitOfMeasureId" class="form-select"><option value="">— Chọn —</option>@foreach(var u in Model.Units){<option value="@u.Value">@u.Text</option>}</select>
+                </div>
+                <div class="col-md-4"><label class="form-label">Giá chuẩn</label><input asp-for="StandardPrice" type="number" step="1000" class="form-control" /><span asp-validation-for="StandardPrice" class="text-danger" style="font-size:.78rem"></span></div>
+            </div>
+            <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Lưu</button><a asp-action="Index" class="btn btn-light">Hủy</a></div>
+        </form>
+    </div>
+</div>

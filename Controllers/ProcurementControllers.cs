@@ -108,7 +108,15 @@ public class PurchaseOrdersController : Controller
 public class ExpensesController : Controller
 {
     private readonly ProcurementService _service;
-    public ExpensesController(ProcurementService service) => _service = service;
+    private readonly NotificationService _notif;
+    private readonly ITenantContext _tenant;
+
+    public ExpensesController(ProcurementService service, NotificationService notif, ITenantContext tenant)
+    {
+        _service = service;
+        _notif = notif;
+        _tenant = tenant;
+    }
 
     public async Task<IActionResult> Index(string? status, Guid? budget)
     {
@@ -132,7 +140,17 @@ public class ExpensesController : Controller
             return View(vm);
         }
         await _service.CreateExpenseAsync(vm);
+        await _notif.SendToManagersAsync($"💸 {_tenant.UserFullName} ghi nhận chi phí", $"{_tenant.UserFullName} đã ghi nhận khoản chi {vm.Amount:N0} ₫.", "Expense", null);
         TempData["SuccessMessage"] = "Ghi nhận chi phí thành công.";
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Approve(Guid id)
+    {
+        if (!await _service.ApproveExpenseAsync(id)) { TempData["ErrorMessage"] = "Không thể duyệt chi phí."; }
+        else { await _notif.BroadcastAsync($"✅ {_tenant.UserFullName} duyệt chi phí", $"{_tenant.UserFullName} đã duyệt một khoản chi phí.", "Expense", id); TempData["SuccessMessage"] = "Đã duyệt chi phí thành công."; }
+        return RedirectToAction(nameof(Index));
+    }
 }
+

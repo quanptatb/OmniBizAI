@@ -75,7 +75,7 @@
                 {
                     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
                     var financeOpen = currentController == "Finance" || currentController == "Expenses" || currentController == "Procurement" || currentController == "PurchaseOrders";
-                    var hrOpen = currentController == "Organization" || currentController == "Users" || currentController == "Employees" || currentController == "Positions";
+                    var hrOpen = currentController == "Organization" || currentController == "Users" || currentController == "Employees" || currentController == "Positions" || currentController == "Leave";
                     var kpiOkrOpen = currentController == "MissionVision" || currentController == "Okr" || currentController == "KpiSetup" || currentController == "KpiCheckIn" || currentController == "Evaluation";
                     var crmOpen = currentController == "Customers" || currentController == "Vendors" || currentController == "Products";
                     var settingsOpen = currentController == "Settings";
@@ -86,6 +86,9 @@
                         <i class="fa-solid fa-chevron-down chev"></i>
                     </button>
                     <div id="financeBranch" class="nav-group-items @(financeOpen ? "open" : "")" data-nav-group>
+                        <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Finance" asp-action="Index">
+                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
+                        </a>
                         <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Budgets" ? "active" : "")" asp-controller="Finance" asp-action="Budgets">
                             <i class="fa-solid fa-piggy-bank"></i><span>Ngân sách</span>
                         </a>
@@ -109,14 +112,20 @@
                         <i class="fa-solid fa-chevron-down chev"></i>
                     </button>
                     <div id="hrBranch" class="nav-group-items @(hrOpen ? "open" : "")" data-nav-group>
+                        <a class="nav-item @(currentController == "Employees" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Employees" asp-action="Dashboard">
+                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
+                        </a>
                         @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
                         {
                             <a class="nav-item @(currentController == "Organization" ? "active" : "")" asp-controller="Organization" asp-action="Index">
                                 <i class="fa-solid fa-sitemap"></i><span>Phòng ban</span>
                             </a>
                         }
-                        <a class="nav-item @(currentController == "Employees" ? "active" : "")" asp-controller="Employees" asp-action="Index">
+                        <a class="nav-item @(currentController == "Employees" && ViewContext.RouteData.Values["action"]?.ToString() != "Dashboard" ? "active" : "")" asp-controller="Employees" asp-action="Index">
                             <i class="fa-solid fa-id-badge"></i><span>Nhân viên</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Leave" ? "active" : "")" asp-controller="Leave" asp-action="Index">
+                            <i class="fa-solid fa-calendar-check"></i><span>Nghỉ phép</span>
                         </a>
                         @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
                         {
@@ -135,7 +144,10 @@
                         <i class="fa-solid fa-chevron-down chev"></i>
                     </button>
                     <div id="crmBranch" class="nav-group-items @(crmOpen ? "open" : "")" data-nav-group>
-                        <a class="nav-item @(currentController == "Customers" ? "active" : "")" asp-controller="Customers" asp-action="Index">
+                        <a class="nav-item @(currentController == "Customers" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Customers" asp-action="Dashboard">
+                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Customers" && ViewContext.RouteData.Values["action"]?.ToString() != "Dashboard" ? "active" : "")" asp-controller="Customers" asp-action="Index">
                             <i class="fa-solid fa-building"></i><span>Khách hàng</span>
                         </a>
                         <a class="nav-item @(currentController == "Vendors" ? "active" : "")" asp-controller="Vendors" asp-action="Index">

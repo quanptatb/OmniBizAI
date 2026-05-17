@@ -1,0 +1,43 @@
+@model OmniBizAI.ViewModels.BudgetEditViewModel
+@{ ViewData["Title"] = "Chỉnh sửa ngân sách"; ViewData["Breadcrumb"] = "<a href='/Finance' style='color:var(--apple-blue);text-decoration:none'>Tài chính</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Finance/Budgets' style='color:var(--apple-blue);text-decoration:none'>Ngân sách</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>"; }
+
+<div class="content-card" style="max-width:560px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-pen"></i> Chỉnh sửa: @Model.CurrentName</h5></div>
+    <div class="card-body-custom">
+        <div class="row g-2 mb-4" style="font-size:.82rem;color:var(--text-muted)">
+            <div class="col-auto"><i class="fa-solid fa-building me-1"></i>@Model.Department</div>
+            <div class="col-auto"><i class="fa-solid fa-calendar me-1"></i>Năm @Model.FiscalYear</div>
+            <div class="col-auto"><i class="fa-solid fa-receipt me-1"></i>Đã sử dụng: @Model.UsedAmount.ToString("N0") ₫</div>
+        </div>
+        <form method="post" asp-action="BudgetEdit">@Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CurrentName" />
+            <input type="hidden" asp-for="Department" />
+            <input type="hidden" asp-for="FiscalYear" />
+            <input type="hidden" asp-for="UsedAmount" />
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Tên ngân sách <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Số tiền kế hoạch (VNĐ) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="PlannedAmount" type="number" step="1000" class="form-control" />
+                        <span class="input-group-text">₫</span>
+                    </div>
+                    <span asp-validation-for="PlannedAmount" class="text-danger" style="font-size:.78rem"></span>
+                    @if (Model.UsedAmount > 0)
+                    {
+                        <small style="color:var(--warning);margin-top:4px;display:block"><i class="fa-solid fa-triangle-exclamation me-1"></i>Đã chi @Model.UsedAmount.ToString("N0") ₫. Số tiền kế hoạch nên ≥ số đã chi.</small>
+                    }
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Lưu thay đổi</button>
+                <a asp-action="BudgetDetails" asp-route-id="@Model.Id" class="btn btn-light">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

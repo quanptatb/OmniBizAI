@@ -386,6 +386,29 @@ public class UserCreateViewModel
 }
 
 // ===== FINANCE =====
+// ===== FINANCE DASHBOARD =====
+public class FinanceDashboardViewModel
+{
+    public decimal TotalBudget { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal BudgetRemaining => TotalBudget - TotalExpense;
+    public decimal UsagePercent => TotalBudget > 0 ? Math.Round(TotalExpense / TotalBudget * 100, 1) : 0;
+    public int ActiveBudgets { get; set; }
+    public int PendingPayments { get; set; }
+    public decimal PendingPaymentAmount { get; set; }
+    public decimal ExpenseThisMonth { get; set; }
+    public List<BudgetListItem> AlertBudgets { get; set; } = new(); // >70% usage
+    public List<PaymentRequestListItem> RecentPayments { get; set; } = new();
+    public List<ExpenseMonthItem> MonthlyExpenses { get; set; } = new();
+}
+
+public class ExpenseMonthItem
+{
+    public string Month { get; set; } = "";
+    public decimal Amount { get; set; }
+}
+
+// ===== BUDGETS =====
 public class BudgetListViewModel
 {
     public List<BudgetListItem> Items { get; set; } = new();
@@ -403,11 +426,22 @@ public class BudgetListItem
     public string Status { get; set; } = "";
     public DateOnly PeriodStart { get; set; }
     public DateOnly PeriodEnd { get; set; }
+
+    public string StatusLabel => Status switch
+    {
+        "Draft" => "Bản nháp", "Active" => "Đang hoạt động", "Closed" => "Đã đóng", "Cancelled" => "Đã hủy", _ => Status
+    };
+
+    public bool IsWarning => UsagePercent > 70 && Status == "Active";
+    public bool IsDanger => UsagePercent > 90 && Status == "Active";
 }
 
+// ===== PAYMENT REQUESTS =====
 public class PaymentRequestListViewModel
 {
     public List<PaymentRequestListItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public string? StatusFilter { get; set; }
 }
 
 public class PaymentRequestListItem
@@ -418,8 +452,87 @@ public class PaymentRequestListItem
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = "";
     public string Department { get; set; } = "";
+    public string? VendorName { get; set; }
+    public string? RequestedBy { get; set; }
+    public DateOnly? DueDate { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+
+    public string StatusLabel => Status switch
+    {
+        "Draft" => "Bản nháp", "Submitted" => "Đã gửi duyệt", "Approved" => "Đã duyệt",
+        "Paid" => "Đã thanh toán", "Rejected" => "Từ chối", "Cancelled" => "Đã hủy", _ => Status
+    };
+    public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status is not ("Paid" or "Cancelled" or "Rejected");
 }
+
+public class PaymentRequestCreateViewModel
+{
+    [Required(ErrorMessage = "Tiêu đề không được để trống")]
+    [StringLength(200)]
+    public string Title { get; set; } = "";
+
+    public Guid? VendorId { get; set; }
+    public Guid? PurchaseOrderId { get; set; }
+
+    [Required(ErrorMessage = "Số tiền không được để trống")]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Số tiền phải lớn hơn 0")]
+    public decimal TotalAmount { get; set; }
+
+    public DateOnly? DueDate { get; set; }
+
+    [StringLength(1000)]
+    public string? Description { get; set; }
+
+    public List<SelectOption> Vendors { get; set; } = new();
+    public List<SelectOption> PurchaseOrders { get; set; } = new();
+}
+
+public class PaymentRequestDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string RequestNo { get; set; } = "";
+    public string Title { get; set; } = "";
+    public decimal TotalAmount { get; set; }
+    public string Status { get; set; } = "";
+    public string? VendorName { get; set; }
+    public string? PurchaseOrderNo { get; set; }
+    public string RequestedBy { get; set; } = "";
+    public DateOnly? DueDate { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<ActivityLogItem> ActivityLog { get; set; } = new();
+
+    public bool CanSubmit => Status == "Draft";
+    public bool CanApprove => Status == "Submitted";
+    public bool CanReject => Status == "Submitted";
+    public bool CanMarkPaid => Status == "Approved";
+    public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status is not ("Paid" or "Cancelled" or "Rejected");
+
+    public string StatusLabel => Status switch
+    {
+        "Draft" => "Bản nháp", "Submitted" => "Đã gửi duyệt", "Approved" => "Đã duyệt",
+        "Paid" => "Đã thanh toán", "Rejected" => "Từ chối", "Cancelled" => "Đã hủy", _ => Status
+    };
+}
+
+public class BudgetEditViewModel
+{
+    public Guid Id { get; set; }
+    public string CurrentName { get; set; } = "";
+
+    [Required(ErrorMessage = "Tên ngân sách không được để trống")]
+    [StringLength(200)]
+    public string Name { get; set; } = "";
+
+    [Required(ErrorMessage = "Số tiền kế hoạch không được để trống")]
+    [Range(0.01, double.MaxValue)]
+    public decimal PlannedAmount { get; set; }
+
+    public decimal UsedAmount { get; set; }
+    public string Department { get; set; } = "";
+    public int FiscalYear { get; set; }
+}
+
+
 
 // ===== KPI =====
 public class KpiListViewModel
@@ -812,6 +925,119 @@ public class ProductCreateViewModel
     public List<SelectOption> Units { get; set; } = new();
 }
 
+// ===== CRM — CUSTOMER EDIT =====
+public class CustomerEditViewModel
+{
+    public Guid Id { get; set; }
+    [Required(ErrorMessage = "Mã KH không được để trống")]
+    [StringLength(80)]
+    public string Code { get; set; } = "";
+    [Required(ErrorMessage = "Tên KH không được để trống")]
+    [StringLength(250)]
+    public string Name { get; set; } = "";
+    [StringLength(100)]
+    public string? TaxCode { get; set; }
+    [StringLength(100)]
+    public string? Industry { get; set; }
+}
+
+public class AddContactViewModel
+{
+    public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; } = "";
+    [Required(ErrorMessage = "Tên liên hệ không được để trống")]
+    [StringLength(200)]
+    public string FullName { get; set; } = "";
+    [StringLength(150)]
+    public string? JobTitle { get; set; }
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    [StringLength(255)]
+    public string? Email { get; set; }
+    [StringLength(30)]
+    public string? PhoneNumber { get; set; }
+    public bool IsPrimary { get; set; }
+}
+
+public class AddSiteViewModel
+{
+    public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; } = "";
+    [Required(ErrorMessage = "Tên chi nhánh không được để trống")]
+    [StringLength(200)]
+    public string Name { get; set; } = "";
+    [StringLength(500)]
+    public string? Address { get; set; }
+    [StringLength(100)]
+    public string? City { get; set; }
+}
+
+// ===== CRM — VENDOR EDIT & DETAIL =====
+public class VendorEditViewModel
+{
+    public Guid Id { get; set; }
+    [Required(ErrorMessage = "Mã NCC không được để trống")]
+    [StringLength(80)]
+    public string Code { get; set; } = "";
+    [Required(ErrorMessage = "Tên NCC không được để trống")]
+    [StringLength(250)]
+    public string Name { get; set; } = "";
+    [StringLength(100)]
+    public string? TaxCode { get; set; }
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    [StringLength(255)]
+    public string? Email { get; set; }
+    [StringLength(30)]
+    public string? PhoneNumber { get; set; }
+}
+
+public class VendorDetailViewModel
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? TaxCode { get; set; }
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public bool IsActive { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public int PurchaseOrderCount { get; set; }
+    public int PaymentRequestCount { get; set; }
+}
+
+// ===== CRM — PRODUCT EDIT =====
+public class ProductEditViewModel
+{
+    public Guid Id { get; set; }
+    [Required(ErrorMessage = "Mã SP không được để trống")]
+    [StringLength(80)]
+    public string Code { get; set; } = "";
+    [Required(ErrorMessage = "Tên SP không được để trống")]
+    [StringLength(250)]
+    public string Name { get; set; } = "";
+    [Required]
+    [StringLength(50)]
+    public string Type { get; set; } = "Service";
+    public Guid? ProductCategoryId { get; set; }
+    public Guid? UnitOfMeasureId { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal? StandardPrice { get; set; }
+    public List<SelectOption> Categories { get; set; } = new();
+    public List<SelectOption> Units { get; set; } = new();
+}
+
+// ===== CRM — DASHBOARD =====
+public class CrmDashboardViewModel
+{
+    public int TotalCustomers { get; set; }
+    public int ActiveCustomers { get; set; }
+    public int TotalVendors { get; set; }
+    public int ActiveVendors { get; set; }
+    public int TotalProducts { get; set; }
+    public int TotalContacts { get; set; }
+    public List<CustomerListItem> RecentCustomers { get; set; } = new();
+    public List<VendorListItem> RecentVendors { get; set; } = new();
+}
+
 // ===== PROCUREMENT =====
 public class ProcurementListViewModel
 {
@@ -1101,6 +1327,172 @@ public class PositionCreateViewModel
     public Guid? OrganizationUnitId { get; set; }
 
     public List<SelectOption> Departments { get; set; } = new();
+}
+
+// ===== HR — LEAVE MANAGEMENT =====
+public class LeaveListViewModel
+{
+    public List<LeaveListItem> Items { get; set; } = new();
+    public int TotalCount { get; set; }
+    public string? StatusFilter { get; set; }
+    public List<SelectOption> Employees { get; set; } = new();
+}
+
+public class LeaveListItem
+{
+    public Guid Id { get; set; }
+    public string EmployeeName { get; set; } = "";
+    public string EmployeeCode { get; set; } = "";
+    public string? Department { get; set; }
+    public string LeaveType { get; set; } = "";
+    public string Status { get; set; } = "";
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public int TotalDays { get; set; }
+    public string? Reason { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public string LeaveTypeLabel => LeaveType switch
+    {
+        "Annual" => "Phép năm", "Sick" => "Ốm đau", "Personal" => "Việc riêng",
+        "Maternity" => "Thai sản", "Unpaid" => "Không lương", _ => LeaveType
+    };
+    public string StatusLabel => Status switch
+    {
+        "Draft" => "Bản nháp", "Submitted" => "Chờ duyệt", "Approved" => "Đã duyệt",
+        "Rejected" => "Từ chối", "Cancelled" => "Đã hủy", _ => Status
+    };
+}
+
+public class LeaveCreateViewModel
+{
+    [Required(ErrorMessage = "Loại nghỉ phép không được để trống")]
+    public string LeaveType { get; set; } = "Annual";
+
+    [Required(ErrorMessage = "Ngày bắt đầu không được để trống")]
+    public DateOnly StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+
+    [Required(ErrorMessage = "Ngày kết thúc không được để trống")]
+    public DateOnly EndDate { get; set; } = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+
+    [StringLength(500)]
+    public string? Reason { get; set; }
+}
+
+// ===== HR — EMPLOYEE CREATE/EDIT =====
+public class EmployeeCreateViewModel
+{
+    [Required(ErrorMessage = "Mã nhân viên không được để trống")]
+    [StringLength(50)]
+    public string EmployeeCode { get; set; } = "";
+
+    [Required(ErrorMessage = "Họ tên không được để trống")]
+    [StringLength(200)]
+    public string FullName { get; set; } = "";
+
+    [Required(ErrorMessage = "Email không được để trống")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    [StringLength(255)]
+    public string Email { get; set; } = "";
+
+    [StringLength(150)]
+    public string? JobTitle { get; set; }
+
+    public DateOnly? DateOfBirth { get; set; }
+    public DateOnly? StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    public Guid? OrganizationUnitId { get; set; }
+
+    public List<SelectOption> Departments { get; set; } = new();
+}
+
+public class EmployeeEditViewModel
+{
+    public Guid ProfileId { get; set; }
+    public Guid UserId { get; set; }
+    public string EmployeeCode { get; set; } = "";
+
+    [Required(ErrorMessage = "Họ tên không được để trống")]
+    [StringLength(200)]
+    public string FullName { get; set; } = "";
+
+    [StringLength(150)]
+    public string? JobTitle { get; set; }
+
+    public DateOnly? DateOfBirth { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+
+    public List<SelectOption> Departments { get; set; } = new();
+}
+
+public class AddContractViewModel
+{
+    public Guid EmployeeProfileId { get; set; }
+    public string EmployeeName { get; set; } = "";
+
+    [Required(ErrorMessage = "Số hợp đồng không được để trống")]
+    [StringLength(80)]
+    public string ContractNo { get; set; } = "";
+
+    [Required(ErrorMessage = "Loại hợp đồng không được để trống")]
+    [StringLength(80)]
+    public string ContractType { get; set; } = "";
+
+    [Required(ErrorMessage = "Ngày hiệu lực không được để trống")]
+    public DateOnly EffectiveFrom { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
+    public DateOnly? EffectiveTo { get; set; }
+}
+
+// ===== HR — POSITION EDIT =====
+public class PositionEditViewModel
+{
+    public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Mã chức vụ không được để trống")]
+    [StringLength(80)]
+    public string Code { get; set; } = "";
+
+    [Required(ErrorMessage = "Tên chức vụ không được để trống")]
+    [StringLength(150)]
+    public string Name { get; set; } = "";
+
+    public int Level { get; set; }
+    public bool IsManagerial { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+
+    public List<SelectOption> Departments { get; set; } = new();
+}
+
+// ===== HR — DASHBOARD =====
+public class HrDashboardViewModel
+{
+    public int TotalEmployees { get; set; }
+    public int ActiveEmployees { get; set; }
+    public int InactiveEmployees { get; set; }
+    public int NewThisMonth { get; set; }
+    public int ExpiringContracts { get; set; }
+    public int OnLeaveToday { get; set; }
+    public int PendingLeaves { get; set; }
+    public List<DeptDistributionItem> DeptDistribution { get; set; } = new();
+    public List<EmployeeListItem> RecentEmployees { get; set; } = new();
+    public List<ExpiringContractItem> ExpiringContractList { get; set; } = new();
+}
+
+public class DeptDistributionItem
+{
+    public string DepartmentName { get; set; } = "";
+    public int Count { get; set; }
+    public decimal Percent { get; set; }
+}
+
+public class ExpiringContractItem
+{
+    public Guid ProfileId { get; set; }
+    public string EmployeeName { get; set; } = "";
+    public string ContractNo { get; set; } = "";
+    public DateOnly ExpiryDate { get; set; }
+    public int DaysRemaining { get; set; }
 }
 
 // ===== SETTINGS =====

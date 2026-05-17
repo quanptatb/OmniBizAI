@@ -10,6 +10,17 @@
                 <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:2px">@(Model.JobTitle ?? "—")</p>
                 <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:12px">@(Model.Department ?? "—")</p>
                 <span class="status-badge-soft @(Model.Status == "Active" ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(Model.Status == "Active" ? "Đang làm việc" : "Nghỉ việc")</span>
+
+                <!-- Actions -->
+                <div class="d-flex flex-column gap-2 mt-4" style="border-top:1px solid var(--divider);padding-top:16px">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-pen me-1"></i>Chỉnh sửa</a>
+                    <a asp-action="AddContract" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-file-contract me-1"></i>Thêm hợp đồng</a>
+                    @if (Model.Status == "Active") {
+                        <form asp-action="Deactivate" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Xác nhận cho nhân viên nghỉ việc?')">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"><i class="fa-solid fa-user-slash me-1"></i>Nghỉ việc</button>
+                        </form>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -30,7 +41,10 @@
 </div>
 
 <div class="content-card">
-    <div class="card-header-custom"><h5><i class="fa-solid fa-file-contract"></i> Lịch sử hợp đồng</h5></div>
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-file-contract"></i> Lịch sử hợp đồng</h5>
+        <a asp-action="AddContract" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-plus me-1"></i>Thêm HĐ</a>
+    </div>
     <div class="card-body-custom p-0">
         <table class="data-table">
             <thead><tr><th class="ps-3">Số hợp đồng</th><th>Loại</th><th>Hiệu lực từ</th><th>Đến ngày</th><th class="pe-3">Trạng thái</th></tr></thead>

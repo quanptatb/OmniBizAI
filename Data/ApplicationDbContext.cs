@@ -34,6 +34,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<EmployeeProfile> EmployeeProfiles => Set<EmployeeProfile>();
     public DbSet<EmployeeDepartmentAssignment> EmployeeDepartmentAssignments => Set<EmployeeDepartmentAssignment>();
     public DbSet<EmployeeContract> EmployeeContracts => Set<EmployeeContract>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     public DbSet<WorkCalendar> WorkCalendars => Set<WorkCalendar>();
 
     // CRM & Catalog

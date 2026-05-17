@@ -339,83 +339,148 @@ public class UsersController : Controller
     }
 }
 
-[Authorize(Roles = "ACCOUNTANT,TENANT_ADMIN,SYSTEM_ADMIN,EXECUTIVE")]
+[Authorize(Roles = "ACCOUNTANT,TENANT_ADMIN,SYSTEM_ADMIN,EXECUTIVE,DEPARTMENT_MANAGER")]
 public class FinanceController : Controller
 {
-    private readonly ApplicationDbContext _db;
+    private readonly ProcurementService _svc;
+    private readonly NotificationService _notif;
     private readonly ITenantContext _tenant;
 
-    public FinanceController(ApplicationDbContext db, ITenantContext tenant)
+    public FinanceController(ProcurementService svc, NotificationService notif, ITenantContext tenant)
     {
-        _db = db;
+        _svc = svc;
+        _notif = notif;
         _tenant = tenant;
     }
 
-    public async Task<IActionResult> Budgets()
+    // ── Dashboard ────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Index()
     {
-        var budgets = await _db.Budgets
-            .Include(b => b.Expenses)
-            .Where(b => b.TenantId == _tenant.TenantId && !b.IsDeleted)
-            .Join(_db.OrganizationUnits, b => b.OrganizationUnitId, o => o.Id, (b, o) => new BudgetListItem
-            {
-                Id = b.Id,
-                Name = b.Name,
-                Department = o.Name,
-                TotalAmount = b.PlannedAmount,
-                UsedAmount = b.Expenses.Sum(e => e.Amount),
-                Status = b.Status.ToString(),
-                PeriodStart = new DateOnly(b.FiscalYear, 1, 1),
-                PeriodEnd = new DateOnly(b.FiscalYear, 12, 31)
-            })
-            .ToListAsync();
-
-        return View(new BudgetListViewModel { Items = budgets });
-    }
-
-    public async Task<IActionResult> PaymentRequests()
-    {
-        var items = await _db.PaymentRequests
-            .Where(p => p.TenantId == _tenant.TenantId && !p.IsDeleted)
-            .Select(p => new PaymentRequestListItem
-            {
-                Id = p.Id,
-                RequestNo = p.RequestNo,
-                Title = p.RequestNo,
-                TotalAmount = p.TotalAmount,
-                Status = p.Status.ToString(),
-                Department = "",
-                CreatedAt = p.CreatedAt
-            })
-            .ToListAsync();
-
-        return View(new PaymentRequestListViewModel { Items = items });
-    }
-
-    public async Task<IActionResult> BudgetCreate([FromServices] ProcurementService svc)
-    {
-        var vm = await svc.GetBudgetCreateFormAsync();
+        var vm = await _svc.GetDashboardAsync();
         return View(vm);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> BudgetCreate([FromServices] ProcurementService svc, BudgetCreateViewModel vm)
+    // ── Budgets ──────────────────────────────────────────────────────────────
+    public async Task<IActionResult> Budgets([FromServices] ApplicationDbContext db)
     {
-        if (!ModelState.IsValid)
+        var budgets = await db.Budgets
+            .Include(b => b.Expenses.Where(e => !e.IsDeleted))
+            .Include(b => b.OrganizationUnit)
+            .Where(b => b.TenantId == _tenant.TenantId && !b.IsDeleted)
+            .OrderByDescending(b => b.FiscalYear).ThenBy(b => b.Name)
+            .ToListAsync();
+
+        var items = budgets.Select(b => new BudgetListItem
         {
-            var form = await svc.GetBudgetCreateFormAsync();
-            vm.Departments = form.Departments;
-            return View(vm);
-        }
-        var id = await svc.CreateBudgetAsync(vm);
+            Id = b.Id, Name = b.Name, Department = b.OrganizationUnit?.Name ?? "",
+            TotalAmount = b.PlannedAmount, UsedAmount = b.Expenses.Sum(e => e.Amount),
+            Status = b.Status.ToString(),
+            PeriodStart = new DateOnly(b.FiscalYear, 1, 1), PeriodEnd = new DateOnly(b.FiscalYear, 12, 31)
+        }).ToList();
+
+        return View(new BudgetListViewModel { Items = items });
+    }
+
+    public async Task<IActionResult> BudgetCreate() => View(await _svc.GetBudgetCreateFormAsync());
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BudgetCreate(BudgetCreateViewModel vm)
+    {
+        if (!ModelState.IsValid) { vm.Departments = (await _svc.GetBudgetCreateFormAsync()).Departments; return View(vm); }
+        var id = await _svc.CreateBudgetAsync(vm);
+        await _notif.SendToManagersAsync($"💰 {_tenant.UserFullName} tạo ngân sách mới", $"{_tenant.UserFullName} đã tạo ngân sách \"{vm.Name}\" ({vm.PlannedAmount:N0} VNĐ)", "Budget", id);
         TempData["SuccessMessage"] = "Tạo ngân sách thành công.";
         return RedirectToAction(nameof(BudgetDetails), new { id });
     }
 
-    public async Task<IActionResult> BudgetDetails([FromServices] ProcurementService svc, Guid id)
+    public async Task<IActionResult> BudgetDetails(Guid id)
     {
-        var vm = await svc.GetBudgetDetailAsync(id);
+        var vm = await _svc.GetBudgetDetailAsync(id);
         if (vm is null) return NotFound();
         return View(vm);
+    }
+
+    public async Task<IActionResult> BudgetEdit(Guid id)
+    {
+        var vm = await _svc.GetBudgetEditFormAsync(id);
+        if (vm is null) return NotFound();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BudgetEdit(BudgetEditViewModel vm)
+    {
+        if (!ModelState.IsValid) return View(vm);
+        if (!await _svc.UpdateBudgetAsync(vm)) { TempData["ErrorMessage"] = "Không thể cập nhật ngân sách."; return RedirectToAction(nameof(BudgetDetails), new { id = vm.Id }); }
+        await _notif.SendToManagersAsync($"📝 {_tenant.UserFullName} cập nhật ngân sách", $"{_tenant.UserFullName} đã cập nhật ngân sách \"{vm.Name}\".", "Budget", vm.Id);
+        TempData["SuccessMessage"] = "Cập nhật ngân sách thành công.";
+        return RedirectToAction(nameof(BudgetDetails), new { id = vm.Id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BudgetClose(Guid id)
+    {
+        if (!await _svc.CloseBudgetAsync(id)) { TempData["ErrorMessage"] = "Không thể đóng ngân sách."; }
+        else { await _notif.SendToManagersAsync($"🔒 {_tenant.UserFullName} đóng ngân sách", $"{_tenant.UserFullName} đã đóng một ngân sách.", "Budget", id); TempData["SuccessMessage"] = "Đã đóng ngân sách."; }
+        return RedirectToAction(nameof(BudgetDetails), new { id });
+    }
+
+    // ── Payment Requests ─────────────────────────────────────────────────────
+    public async Task<IActionResult> PaymentRequests(string? status)
+    {
+        var vm = await _svc.GetPaymentListAsync(status);
+        return View(vm);
+    }
+
+    public async Task<IActionResult> PaymentCreate() => View(await _svc.GetPaymentCreateFormAsync());
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> PaymentCreate(PaymentRequestCreateViewModel vm)
+    {
+        if (!ModelState.IsValid) { var form = await _svc.GetPaymentCreateFormAsync(); vm.Vendors = form.Vendors; vm.PurchaseOrders = form.PurchaseOrders; return View(vm); }
+        var id = await _svc.CreatePaymentAsync(vm);
+        await _notif.SendToManagersAsync($"💳 {_tenant.UserFullName} tạo đề nghị thanh toán", $"{_tenant.UserFullName} đã tạo đề nghị thanh toán {vm.TotalAmount:N0} VNĐ.", "PaymentRequest", id);
+        TempData["SuccessMessage"] = "Tạo đề nghị thanh toán thành công.";
+        return RedirectToAction(nameof(PaymentDetails), new { id });
+    }
+
+    public async Task<IActionResult> PaymentDetails(Guid id)
+    {
+        var vm = await _svc.GetPaymentDetailAsync(id);
+        if (vm is null) return NotFound();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> PaymentSubmit(Guid id)
+    {
+        if (!await _svc.SubmitPaymentAsync(id)) { TempData["ErrorMessage"] = "Không thể gửi duyệt."; }
+        else { await _notif.SendToManagersAsync($"📤 {_tenant.UserFullName} gửi duyệt thanh toán", $"{_tenant.UserFullName} đã gửi đề nghị thanh toán chờ phê duyệt.", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã gửi duyệt thành công."; }
+        return RedirectToAction(nameof(PaymentDetails), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> PaymentApprove(Guid id)
+    {
+        if (!await _svc.ApprovePaymentAsync(id)) { TempData["ErrorMessage"] = "Không thể phê duyệt."; }
+        else { await _notif.BroadcastAsync($"✅ {_tenant.UserFullName} phê duyệt thanh toán", $"{_tenant.UserFullName} đã phê duyệt một đề nghị thanh toán.", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã phê duyệt thành công."; }
+        return RedirectToAction(nameof(PaymentDetails), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> PaymentReject(Guid id, string? reason)
+    {
+        if (!await _svc.RejectPaymentAsync(id, reason)) { TempData["ErrorMessage"] = "Không thể từ chối."; }
+        else { await _notif.BroadcastAsync($"❌ {_tenant.UserFullName} từ chối thanh toán", $"{_tenant.UserFullName} đã từ chối đề nghị thanh toán. Lý do: {reason ?? "N/A"}", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã từ chối."; }
+        return RedirectToAction(nameof(PaymentDetails), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> PaymentMarkPaid(Guid id)
+    {
+        if (!await _svc.MarkPaymentPaidAsync(id)) { TempData["ErrorMessage"] = "Không thể xác nhận thanh toán."; }
+        else { await _notif.BroadcastAsync($"💵 {_tenant.UserFullName} xác nhận thanh toán", $"{_tenant.UserFullName} đã xác nhận hoàn thành thanh toán.", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã xác nhận thanh toán thành công."; }
+        return RedirectToAction(nameof(PaymentDetails), new { id });
     }
 }
 

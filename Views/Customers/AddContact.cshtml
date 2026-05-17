@@ -1,0 +1,18 @@
+@model OmniBizAI.ViewModels.AddContactViewModel
+@{ ViewData["Title"] = "Thêm liên hệ"; ViewData["Breadcrumb"] = "<a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm liên hệ</span>"; }
+<div class="content-card" style="max-width:560px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-user-plus"></i> Thêm liên hệ: @Model.CustomerName</h5></div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="AddContact">@Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CustomerId" /><input type="hidden" asp-for="CustomerName" />
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Họ tên <span class="text-danger">*</span></label><input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" /><span asp-validation-for="FullName" class="text-danger" style="font-size:.78rem"></span></div>
+                <div class="col-md-6"><label class="form-label">Chức vụ</label><input asp-for="JobTitle" class="form-control" placeholder="Giám đốc" /></div>
+                <div class="col-md-6"><label class="form-label">Email</label><input asp-for="Email" type="email" class="form-control" /><span asp-validation-for="Email" class="text-danger" style="font-size:.78rem"></span></div>
+                <div class="col-md-6"><label class="form-label">Số điện thoại</label><input asp-for="PhoneNumber" class="form-control" /></div>
+                <div class="col-12"><div class="form-check"><input asp-for="IsPrimary" type="checkbox" class="form-check-input" /><label class="form-check-label" asp-for="IsPrimary">Liên hệ chính</label></div></div>
+            </div>
+            <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Thêm</button><a asp-action="Details" asp-route-id="@Model.CustomerId" class="btn btn-light">Hủy</a></div>
+        </form>
+    </div>
+</div>

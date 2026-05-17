@@ -1,8 +1,17 @@
 @model OmniBizAI.ViewModels.BudgetListViewModel
 @{
     ViewData["Title"] = "Quản lý Ngân sách";
-    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class=\"fa-solid fa-chevron-right mx-2 text-muted fs-7\"></i> <span class=\"text-primary fw-bold\">Ngân sách</span>";
+    ViewData["Breadcrumb"] = "<a href='/Finance' style='color:var(--apple-blue);text-decoration:none'>Tài chính</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Ngân sách</span>";
 }
+
+<!-- Stats -->
+@{ var active = Model.Items.Count(b => b.Status == "Active"); var warning = Model.Items.Count(b => b.IsWarning); var danger = Model.Items.Count(b => b.IsDanger); }
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-piggy-bank"></i></div><div class="stat-value">@Model.Items.Count</div><div class="stat-label">Tổng ngân sách</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div class="stat-value">@active</div><div class="stat-label">Đang hoạt động</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-value">@warning</div><div class="stat-label">Cần lưu ý (&gt;70%)</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-fire"></i></div><div class="stat-value">@danger</div><div class="stat-label">Cảnh báo (&gt;90%)</div></div></div>
+</div>
 
 <div class="card content-card">
     <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center py-3">
@@ -26,24 +35,29 @@
                 <tbody>
                     @foreach (var b in Model.Items)
                     {
-                        <tr>
-                            <td class="ps-4 fw-bold"><a asp-action="BudgetDetails" asp-route-id="@b.Id" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@b.Name</a></td>
+                        var pct = b.UsagePercent;
+                        var barColor = b.IsDanger ? "bg-danger" : b.IsWarning ? "bg-warning" : "bg-success";
+                        var rowClass = b.IsDanger ? "style='background:rgba(255,59,48,.03)'" : "";
+                        <tr @Html.Raw(rowClass)>
+                            <td class="ps-4 fw-bold">
+                                <a asp-action="BudgetDetails" asp-route-id="@b.Id" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@b.Name</a>
+                                @if (b.IsDanger) { <i class="fa-solid fa-fire ms-1" style="color:var(--danger);font-size:.7rem" title="Vượt 90%"></i> }
+                            </td>
                             <td>@b.Department</td>
                             <td class="fw-medium">@b.TotalAmount.ToString("N0") ₫</td>
                             <td class="text-muted">@b.UsedAmount.ToString("N0") ₫</td>
                             <td style="min-width:140px;">
-                                @{
-                                    var pct = b.UsagePercent;
-                                    var barColor = pct > 90 ? "bg-danger" : pct > 70 ? "bg-warning" : "bg-success";
-                                }
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="progress flex-grow-1" style="height:8px;border-radius:4px;">
-                                        <div class="progress-bar @barColor progress-bar-animated" style="width:@pct%"></div>
+                                        <div class="progress-bar @barColor progress-bar-animated" style="width:@(Math.Min(pct, 100))%"></div>
                                     </div>
-                                    <span class="small fw-bold text-muted">@pct%</span>
+                                    <span class="small fw-bold" style="color:@(b.IsDanger ? "var(--danger)" : b.IsWarning ? "var(--warning)" : "var(--text-muted)")">@pct%</span>
                                 </div>
                             </td>
-                            <td><span class="badge @(b.Status == "Active" ? "bg-success" : "bg-secondary") rounded-pill">@b.Status</span></td>
+                            <td>
+                                @{ var badgeCls = b.Status switch { "Active" => "bg-success", "Closed" => "bg-secondary", "Draft" => "bg-warning text-dark", _ => "bg-secondary" }; }
+                                <span class="badge @badgeCls rounded-pill">@b.StatusLabel</span>
+                            </td>
                             <td class="text-muted small">@b.PeriodStart.ToString("dd/MM") – @b.PeriodEnd.ToString("dd/MM/yyyy")</td>
                         </tr>
                     }

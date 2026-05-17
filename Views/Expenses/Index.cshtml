@@ -1,23 +1,59 @@
 @model OmniBizAI.ViewModels.ExpenseListViewModel
-@{ ViewData["Title"] = "Chi phí"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chi phí</span>"; }
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div><h4 class="page-title mb-1">Quản lý chi phí</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount khoản chi</p></div>
+@{ ViewData["Title"] = "Chi phí"; ViewData["Breadcrumb"] = "<a href='/Finance' style='color:var(--apple-blue);text-decoration:none'>Tài chính</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chi phí</span>"; }
+
+@{ var totalAmount = Model.Items.Sum(e => e.Amount); var recorded = Model.Items.Count(e => e.Status == "Recorded"); var approved = Model.Items.Count(e => e.Status == "Approved"); }
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-receipt"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng khoản chi</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-money-bill-wave"></i></div><div class="stat-value">@totalAmount.ToString("N0")<span style="font-size:.4em;font-weight:400"> ₫</span></div><div class="stat-label">Tổng số tiền</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@recorded</div><div class="stat-label">Chờ duyệt</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-double"></i></div><div class="stat-value">@approved</div><div class="stat-label">Đã duyệt</div></div></div>
+</div>
+
+<!-- Filters -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        @{ var filters = new[] { ("","Tất cả"), ("Recorded","Chờ duyệt"), ("Approved","Đã duyệt") }; }
+        @foreach (var (val, lbl) in filters) {
+            var isAct = (Model.StatusFilter ?? "") == val;
+            <a asp-action="Index" asp-route-status="@val" asp-route-budget="@Model.BudgetFilter" class="btn btn-sm @(isAct ? "btn-primary" : "btn-light")" style="font-size:.78rem">@lbl</a>
+        }
+        @if (Model.Budgets.Any())
+        {
+            <select class="form-select form-select-sm" style="width:auto;font-size:.78rem" onchange="location.href='/Expenses?status=@(Model.StatusFilter ?? "")&budget='+this.value">
+                <option value="">Tất cả ngân sách</option>
+                @foreach (var b in Model.Budgets) { <option value="@b.Value" selected="@(Model.BudgetFilter?.ToString() == b.Value)">@b.Text</option> }
+            </select>
+        }
+    </div>
     <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Ghi nhận chi phí</a>
 </div>
+
+<!-- Table -->
 <div class="content-card"><div class="card-body-custom p-0">
     <table class="data-table">
-        <thead><tr><th class="ps-3">Mô tả</th><th>Ngân sách</th><th>Ngày chi</th><th>Số tiền</th><th class="pe-3">Trạng thái</th></tr></thead>
+        <thead><tr><th class="ps-3">Mô tả</th><th>Ngân sách</th><th>Ngày chi</th><th>Số tiền</th><th>Trạng thái</th><th class="pe-3">Thao tác</th></tr></thead>
         <tbody>
             @foreach (var e in Model.Items) {
+                var stLabel = e.Status switch { "Recorded" => "Chờ duyệt", "Approved" => "Đã duyệt", _ => e.Status };
+                var stBadge = e.Status == "Approved" ? "badge-on-track" : "badge-at-risk";
                 <tr>
                     <td class="ps-3" style="font-weight:500">@e.Description</td>
                     <td style="color:var(--text-secondary);font-size:.82rem">@(e.BudgetName ?? "—")</td>
                     <td style="font-size:.82rem">@e.ExpenseDate.ToString("dd/MM/yyyy")</td>
                     <td style="font-weight:600">@e.Amount.ToString("N0") ₫</td>
-                    <td class="pe-3"><span class="status-badge-soft @(e.Status == "Approved" ? "badge-on-track" : "badge-at-risk")"><span class="status-dot"></span>@e.Status</span></td>
+                    <td><span class="status-badge-soft @stBadge"><span class="status-dot"></span>@stLabel</span></td>
+                    <td class="pe-3">
+                        @if (e.Status == "Recorded") {
+                            <form asp-action="Approve" asp-route-id="@e.Id" method="post" class="d-inline" onsubmit="return confirm('Duyệt khoản chi này?')">
+                                <button type="submit" class="btn btn-success btn-sm" style="font-size:.72rem;padding:2px 8px"><i class="fa-solid fa-check me-1"></i>Duyệt</button>
+                            </form>
+                        } else { <span style="font-size:.72rem;color:var(--text-muted)">—</span> }
+                    </td>
                 </tr>
             }
-            @if (!Model.Items.Any()) { <tr><td colspan="5" class="text-center py-4" style="color:var(--text-muted)">Chưa có chi phí</td></tr> }
+            @if (!Model.Items.Any()) { <tr><td colspan="6" class="text-center py-4" style="color:var(--text-muted)">Chưa có chi phí</td></tr> }
         </tbody>
     </table>
 </div></div>

@@ -1,0 +1,53 @@
+@model OmniBizAI.ViewModels.LeaveListViewModel
+@{ ViewData["Title"] = "Nghỉ phép"; ViewData["Breadcrumb"] = "<span>Nhân sự</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Nghỉ phép</span>"; }
+
+@{ var pending = Model.Items.Count(l => l.Status == "Submitted"); var approved = Model.Items.Count(l => l.Status == "Approved"); }
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-calendar-days"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng đơn</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div><div class="stat-value">@pending</div><div class="stat-label">Chờ duyệt</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-double"></i></div><div class="stat-value">@approved</div><div class="stat-label">Đã duyệt</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-calculator"></i></div><div class="stat-value">@Model.Items.Sum(l => l.TotalDays)</div><div class="stat-label">Tổng ngày nghỉ</div></div></div>
+</div>
+
+<!-- Filter -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="d-flex gap-2 flex-wrap">
+        @{ var filters = new[] { ("","Tất cả"), ("Submitted","Chờ duyệt"), ("Approved","Đã duyệt"), ("Rejected","Từ chối") }; }
+        @foreach (var (val, lbl) in filters) {
+            var isAct = (Model.StatusFilter ?? "") == val;
+            <a asp-action="Index" asp-route-status="@val" class="btn btn-sm @(isAct ? "btn-primary" : "btn-light")" style="font-size:.78rem">@lbl</a>
+        }
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Xin nghỉ phép</a>
+</div>
+
+<div class="content-card"><div class="card-body-custom p-0">
+    <table class="data-table">
+        <thead><tr><th class="ps-3">Nhân viên</th><th>Phòng ban</th><th>Loại</th><th>Từ ngày</th><th>Đến ngày</th><th>Số ngày</th><th>Lý do</th><th>Trạng thái</th><th class="pe-3">Thao tác</th></tr></thead>
+        <tbody>
+            @foreach (var l in Model.Items) {
+                var badgeCls = l.Status switch { "Approved" => "badge-on-track", "Submitted" => "badge-at-risk", "Rejected" => "badge-behind", _ => "" };
+                <tr>
+                    <td class="ps-3"><div class="d-flex align-items-center gap-2"><div class="topbar-avatar" style="width:26px;height:26px;font-size:.65rem">@l.EmployeeName[0]</div><div><div style="font-weight:600;font-size:.85rem">@l.EmployeeName</div><div style="font-size:.7rem;color:var(--text-muted)">@l.EmployeeCode</div></div></div></td>
+                    <td style="font-size:.82rem;color:var(--text-secondary)">@(l.Department ?? "—")</td>
+                    <td><span style="font-size:.78rem;padding:2px 8px;border-radius:var(--r-pill);background:var(--bg-secondary)">@l.LeaveTypeLabel</span></td>
+                    <td style="font-size:.82rem">@l.StartDate.ToString("dd/MM")</td>
+                    <td style="font-size:.82rem">@l.EndDate.ToString("dd/MM")</td>
+                    <td style="font-weight:600;text-align:center">@l.TotalDays</td>
+                    <td style="font-size:.78rem;color:var(--text-secondary);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="@l.Reason">@(l.Reason ?? "—")</td>
+                    <td><span class="status-badge-soft @badgeCls"><span class="status-dot"></span>@l.StatusLabel</span></td>
+                    <td class="pe-3">
+                        @if (l.Status == "Submitted" && (User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))) {
+                            <div class="d-flex gap-1">
+                                <form asp-action="Approve" asp-route-id="@l.Id" method="post" class="d-inline"><button type="submit" class="btn btn-success btn-sm" style="font-size:.68rem;padding:2px 6px" title="Duyệt"><i class="fa-solid fa-check"></i></button></form>
+                                <button class="btn btn-outline-danger btn-sm" style="font-size:.68rem;padding:2px 6px" title="Từ chối" onclick="var r=prompt('Lý do từ chối:');if(r){var f=document.createElement('form');f.method='post';f.action='@Url.Action("Reject", new { id = l.Id })';var t=document.createElement('input');t.name='__RequestVerificationToken';t.value=document.querySelector('[name=__RequestVerificationToken]')?.value||'';f.appendChild(t);var i=document.createElement('input');i.name='reason';i.value=r;f.appendChild(i);document.body.appendChild(f);f.submit();}"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        } else { <span style="font-size:.72rem;color:var(--text-muted)">—</span> }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Items.Any()) { <tr><td colspan="9" class="text-center py-4" style="color:var(--text-muted)"><i class="fa-solid fa-calendar-xmark fa-2x mb-2 d-block opacity-50"></i>Chưa có đơn nghỉ phép</td></tr> }
+        </tbody>
+    </table>
+</div></div>
+@Html.AntiForgeryToken()

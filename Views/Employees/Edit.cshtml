@@ -1,0 +1,44 @@
+@model OmniBizAI.ViewModels.EmployeeEditViewModel
+@{ ViewData["Title"] = "Chỉnh sửa nhân viên"; ViewData["Breadcrumb"] = "<a href='/Employees' style='color:var(--apple-blue);text-decoration:none'>Nhân viên</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>"; }
+
+<div class="content-card" style="max-width:640px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-pen"></i> Chỉnh sửa: @Model.EmployeeCode</h5></div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="Edit">@Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ProfileId" />
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="EmployeeCode" />
+            <div class="row g-3">
+                <div class="col-12"><label class="form-label">Mã NV</label><div style="font-weight:600;color:var(--apple-blue)">@Model.EmployeeCode</div></div>
+                <div class="col-md-8">
+                    <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Chức danh</label>
+                    <input asp-for="JobTitle" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ngày sinh</label>
+                    <input asp-for="DateOfBirth" type="date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ngày vào làm</label>
+                    <input asp-for="StartDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Phòng ban</label>
+                    <select asp-for="OrganizationUnitId" class="form-select">
+                        <option value="">— Chọn phòng ban —</option>
+                        @foreach (var d in Model.Departments) { <option value="@d.Value">@d.Text</option> }
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Lưu thay đổi</button>
+                <a asp-action="Details" asp-route-id="@Model.ProfileId" class="btn btn-light">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

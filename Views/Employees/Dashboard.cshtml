@@ -1,0 +1,91 @@
+@model OmniBizAI.ViewModels.HrDashboardViewModel
+@{ ViewData["Title"] = "Tổng quan Nhân sự"; ViewData["Breadcrumb"] = "<span>Nhân sự</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tổng quan</span>"; }
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-users"></i></div><div class="stat-value">@Model.TotalEmployees</div><div class="stat-label">Tổng nhân viên</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div><div class="stat-value">@Model.ActiveEmployees</div><div class="stat-label">Đang làm việc</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-file-contract"></i></div><div class="stat-value">@Model.ExpiringContracts</div><div class="stat-label">HĐ sắp hết hạn (30 ngày)</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon @(Model.PendingLeaves > 0 ? "red" : "green")"><i class="fa-solid fa-calendar-check"></i></div><div class="stat-value">@Model.OnLeaveToday</div><div class="stat-label">Nghỉ hôm nay / @Model.PendingLeaves chờ duyệt</div></div></div>
+</div>
+
+<div class="row g-4">
+    <!-- Left -->
+    <div class="col-lg-8">
+        <!-- Department Distribution -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-chart-pie" style="color:var(--apple-blue)"></i> Phân bổ theo phòng ban</h5></div>
+            <div class="card-body-custom">
+                @if (!Model.DeptDistribution.Any()) { <div class="text-center py-3" style="color:var(--text-muted)">Chưa có dữ liệu</div> }
+                @foreach (var d in Model.DeptDistribution)
+                {
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div style="width:120px;font-weight:500;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="@d.DepartmentName">@d.DepartmentName</div>
+                        <div class="flex-grow-1">
+                            <div class="progress" style="height:10px;border-radius:5px;background:var(--bg-secondary)">
+                                <div style="width:@d.Percent%;background:var(--apple-blue);border-radius:5px;transition:width .5s"></div>
+                            </div>
+                        </div>
+                        <div style="min-width:60px;text-align:right;font-weight:600;font-size:.85rem;color:var(--apple-blue)">@d.Count <span style="color:var(--text-muted);font-weight:400;font-size:.72rem">(@d.Percent%)</span></div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Expiring Contracts -->
+        @if (Model.ExpiringContractList.Any()) {
+            <div class="content-card">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> Hợp đồng sắp hết hạn</h5></div>
+                <div class="card-body-custom p-0">
+                    <table class="data-table">
+                        <thead><tr><th class="ps-3">Nhân viên</th><th>Số HĐ</th><th>Hết hạn</th><th class="pe-3">Còn lại</th></tr></thead>
+                        <tbody>
+                            @foreach (var c in Model.ExpiringContractList) {
+                                var urgency = c.DaysRemaining <= 7 ? "var(--danger)" : c.DaysRemaining <= 14 ? "var(--warning)" : "var(--text-muted)";
+                                <tr>
+                                    <td class="ps-3"><a asp-controller="Employees" asp-action="Details" asp-route-id="@c.ProfileId" style="color:var(--apple-blue);font-weight:600;text-decoration:none">@c.EmployeeName</a></td>
+                                    <td style="font-size:.82rem">@c.ContractNo</td>
+                                    <td style="font-size:.82rem">@c.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="pe-3" style="font-weight:600;color:@urgency">@c.DaysRemaining ngày</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Right -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Thao tác nhanh</h5></div>
+            <div class="card-body-custom d-flex flex-column gap-2">
+                <a asp-controller="Employees" asp-action="Create" class="btn btn-primary w-100"><i class="fa-solid fa-user-plus me-2"></i>Thêm nhân viên</a>
+                <a asp-controller="Leave" asp-action="Index" class="btn btn-outline-primary w-100"><i class="fa-solid fa-calendar-check me-2"></i>Nghỉ phép (@Model.PendingLeaves chờ)</a>
+                <a asp-controller="Employees" asp-action="Index" class="btn btn-light w-100"><i class="fa-solid fa-list me-2"></i>Danh sách NV</a>
+            </div>
+        </div>
+
+        <!-- Recent Employees -->
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-user-clock" style="color:var(--apple-blue)"></i> NV mới nhất</h5></div>
+            <div class="card-body-custom p-0">
+                @foreach (var e in Model.RecentEmployees)
+                {
+                    <a asp-controller="Employees" asp-action="Details" asp-route-id="@e.Id" style="display:block;padding:10px 20px;border-bottom:1px solid var(--divider);text-decoration:none;color:inherit">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="topbar-avatar" style="width:28px;height:28px;font-size:.7rem">@e.FullName[0]</div>
+                            <div>
+                                <div style="font-weight:600;font-size:.85rem">@e.FullName</div>
+                                <div style="font-size:.72rem;color:var(--text-muted)">@e.EmployeeCode · @(e.StartDate?.ToString("dd/MM/yyyy") ?? "")</div>
+                            </div>
+                        </div>
+                    </a>
+                }
+                @if (!Model.RecentEmployees.Any()) { <div class="text-center py-3" style="color:var(--text-muted);font-size:.82rem">Chưa có dữ liệu</div> }
+            </div>
+        </div>
+    </div>
+</div>

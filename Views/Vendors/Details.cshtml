@@ -1,0 +1,30 @@
+@model OmniBizAI.ViewModels.VendorDetailViewModel
+@{ ViewData["Title"] = Model.Name; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Vendors' style='color:var(--apple-blue);text-decoration:none'>NCC</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Code + "</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-cart-shopping"></i></div><div class="stat-value">@Model.PurchaseOrderCount</div><div class="stat-label">Đơn mua hàng</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="stat-value">@Model.PaymentRequestCount</div><div class="stat-label">Đề nghị TT</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon @(Model.IsActive ? "green" : "red")"><i class="fa-solid @(Model.IsActive ? "fa-circle-check" : "fa-circle-xmark")"></i></div><div class="stat-value">@(Model.IsActive ? "HĐ" : "Ngừng")</div><div class="stat-label">Trạng thái</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-calendar"></i></div><div class="stat-value">@Model.CreatedAt.ToString("dd/MM")</div><div class="stat-label">Ngày tạo</div></div></div>
+</div>
+
+<div class="content-card">
+    <div class="card-header-custom">
+        <h5><i class="fa-solid fa-truck"></i> Thông tin NCC</h5>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-pen me-1"></i>Sửa</a>
+            <form asp-action="Toggle" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm @(Model.IsActive ? "btn-outline-danger" : "btn-outline-success")"><i class="fa-solid fa-toggle-on me-1"></i>@(Model.IsActive ? "Tắt" : "Bật")</button>
+            </form>
+        </div>
+    </div>
+    <div class="card-body-custom">
+        <div class="row g-3">
+            <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Mã NCC</label><div style="font-weight:600;color:var(--apple-blue)">@Model.Code</div></div>
+            <div class="col-md-5"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Tên</label><div style="font-weight:600">@Model.Name</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">MST</label><div>@(Model.TaxCode ?? "—")</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Email</label><div>@(Model.Email ?? "—")</div></div>
+            <div class="col-md-4"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">SĐT</label><div>@(Model.PhoneNumber ?? "—")</div></div>
+        </div>
+    </div>
+</div>

@@ -1,13 +1,20 @@
 @model OmniBizAI.ViewModels.EmployeeListViewModel
 @{ ViewData["Title"] = "Nhân viên"; ViewData["Breadcrumb"] = "<span>Nhân sự</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Nhân viên</span>"; }
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div><h4 class="page-title mb-1">Hồ sơ nhân viên</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount nhân viên</p></div>
+
+@{ var activeCount = Model.Items.Count(e => e.Status == "Active"); var inactiveCount = Model.Items.Count(e => e.Status != "Active"); }
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-users"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng nhân viên</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div><div class="stat-value">@activeCount</div><div class="stat-label">Đang làm việc</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-user-xmark"></i></div><div class="stat-value">@inactiveCount</div><div class="stat-label">Nghỉ việc</div></div></div>
 </div>
+
 <div class="content-card mb-4"><div class="card-body-custom"><form method="get" class="row g-2">
-    <div class="col-md-5"><input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo tên, email, mã NV..." /></div>
-    <div class="col-md-4"><select name="dept" class="form-input"><option value="">-- Tất cả phòng ban --</option>@foreach(var d in Model.Departments){<option value="@d.Value" selected="@(Model.DeptFilter?.ToString() == d.Value)">@d.Text</option>}</select></div>
-    <div class="col-md-3"><button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div>
+    <div class="col-md-4"><input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Tìm theo tên, email, mã NV..." /></div>
+    <div class="col-md-3"><select name="dept" class="form-select"><option value="">-- Tất cả phòng ban --</option>@foreach(var d in Model.Departments){<option value="@d.Value" selected="@(Model.DeptFilter?.ToString() == d.Value)">@d.Text</option>}</select></div>
+    <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div>
+    <div class="col-md-3 text-end"><a asp-action="Create" class="btn btn-primary w-100"><i class="fa-solid fa-user-plus me-1"></i>Thêm NV</a></div>
 </form></div></div>
+
 <div class="content-card"><div class="card-body-custom p-0">
     <table class="data-table">
         <thead><tr><th class="ps-3">Mã NV</th><th>Họ tên</th><th>Email</th><th>Chức vụ</th><th>Phòng ban</th><th>Ngày vào</th><th>Hợp đồng</th><th>TT</th><th class="pe-3"></th></tr></thead>
@@ -22,7 +29,7 @@
                     <td style="font-size:.82rem;color:var(--text-muted)">@(e.StartDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                     <td style="font-size:.78rem">@(e.CurrentContract ?? "—")</td>
                     <td><span class="status-badge-soft @(e.Status == "Active" ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(e.Status == "Active" ? "✓" : "✗")</span></td>
-                    <td class="pe-3"><a asp-action="Details" asp-route-id="@e.Id" class="btn-outline-custom btn-sm" style="font-size:.72rem;padding:4px 12px"><i class="fa-solid fa-eye"></i></a></td>
+                    <td class="pe-3"><a asp-action="Details" asp-route-id="@e.Id" class="btn btn-outline-primary btn-sm" style="font-size:.72rem;padding:4px 12px"><i class="fa-solid fa-eye"></i></a></td>
                 </tr>
             }
             @if (!Model.Items.Any()) { <tr><td colspan="9" class="text-center py-4" style="color:var(--text-muted)">Chưa có hồ sơ nhân viên</td></tr> }

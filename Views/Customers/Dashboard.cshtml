@@ -1,0 +1,58 @@
+@model OmniBizAI.ViewModels.CrmDashboardViewModel
+@{ ViewData["Title"] = "Tổng quan CRM"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Tổng quan</span>"; }
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-building"></i></div><div class="stat-value">@Model.TotalCustomers</div><div class="stat-label">Khách hàng</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div><div class="stat-value">@Model.ActiveCustomers</div><div class="stat-label">KH hoạt động</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-truck"></i></div><div class="stat-value">@Model.TotalVendors</div><div class="stat-label">Nhà cung cấp</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-handshake"></i></div><div class="stat-value">@Model.ActiveVendors</div><div class="stat-label">NCC hoạt động</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-box"></i></div><div class="stat-value">@Model.TotalProducts</div><div class="stat-label">SP/Dịch vụ</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-address-book"></i></div><div class="stat-value">@Model.TotalContacts</div><div class="stat-label">Liên hệ</div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-building" style="color:var(--apple-blue)"></i> Khách hàng mới nhất</h5><a asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a></div>
+            <div class="card-body-custom p-0">
+                @foreach (var c in Model.RecentCustomers) {
+                    <a asp-action="Details" asp-route-id="@c.Id" style="display:block;padding:12px 20px;border-bottom:1px solid var(--divider);text-decoration:none;color:inherit">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><div style="font-weight:600;font-size:.85rem">@c.Name</div><div style="font-size:.72rem;color:var(--text-muted)">@c.Code · @(c.Industry ?? "—")</div></div>
+                            <span class="status-badge-soft @(c.IsActive ? "badge-on-track" : "badge-late")" style="font-size:.68rem"><span class="status-dot"></span>@(c.IsActive ? "HĐ" : "Ngừng")</span>
+                        </div>
+                    </a>
+                }
+                @if (!Model.RecentCustomers.Any()) { <div class="text-center py-3" style="color:var(--text-muted);font-size:.82rem">Chưa có dữ liệu</div> }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-truck" style="color:var(--warning)"></i> NCC mới nhất</h5><a asp-controller="Vendors" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a></div>
+            <div class="card-body-custom p-0">
+                @foreach (var v in Model.RecentVendors) {
+                    <a asp-controller="Vendors" asp-action="Details" asp-route-id="@v.Id" style="display:block;padding:12px 20px;border-bottom:1px solid var(--divider);text-decoration:none;color:inherit">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div><div style="font-weight:600;font-size:.85rem">@v.Name</div><div style="font-size:.72rem;color:var(--text-muted)">@v.Code · @(v.Email ?? "—")</div></div>
+                            <span class="status-badge-soft @(v.IsActive ? "badge-on-track" : "badge-late")" style="font-size:.68rem"><span class="status-dot"></span>@(v.IsActive ? "HĐ" : "Ngừng")</span>
+                        </div>
+                    </a>
+                }
+                @if (!Model.RecentVendors.Any()) { <div class="text-center py-3" style="color:var(--text-muted);font-size:.82rem">Chưa có dữ liệu</div> }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="content-card mt-4">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Thao tác nhanh</h5></div>
+    <div class="card-body-custom">
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-building-circle-plus me-1"></i>Thêm KH</a>
+            <a asp-controller="Vendors" asp-action="Create" class="btn btn-outline-primary"><i class="fa-solid fa-truck me-1"></i>Thêm NCC</a>
+            <a asp-controller="Products" asp-action="Create" class="btn btn-outline-primary"><i class="fa-solid fa-box me-1"></i>Thêm SP/DV</a>
+        </div>
+    </div>
+</div>

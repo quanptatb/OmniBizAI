@@ -1,0 +1,43 @@
+@model OmniBizAI.ViewModels.AddContractViewModel
+@{ ViewData["Title"] = "Thêm hợp đồng"; ViewData["Breadcrumb"] = "<a href='/Employees' style='color:var(--apple-blue);text-decoration:none'>Nhân viên</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Thêm hợp đồng</span>"; }
+
+<div class="content-card" style="max-width:560px">
+    <div class="card-header-custom"><h5><i class="fa-solid fa-file-contract"></i> Thêm hợp đồng cho @Model.EmployeeName</h5></div>
+    <div class="card-body-custom">
+        <form method="post" asp-action="AddContract">@Html.AntiForgeryToken()
+            <input type="hidden" asp-for="EmployeeProfileId" />
+            <input type="hidden" asp-for="EmployeeName" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Số hợp đồng <span class="text-danger">*</span></label>
+                    <input asp-for="ContractNo" class="form-control" placeholder="VD: HD-2026-001" />
+                    <span asp-validation-for="ContractNo" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Loại hợp đồng <span class="text-danger">*</span></label>
+                    <select asp-for="ContractType" class="form-select">
+                        <option value="">— Chọn loại —</option>
+                        <option value="Thử việc">Thử việc</option>
+                        <option value="Có thời hạn">Có thời hạn</option>
+                        <option value="Không thời hạn">Không thời hạn</option>
+                    </select>
+                    <span asp-validation-for="ContractType" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Hiệu lực từ <span class="text-danger">*</span></label>
+                    <input asp-for="EffectiveFrom" type="date" class="form-control" />
+                    <span asp-validation-for="EffectiveFrom" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Đến ngày</label>
+                    <input asp-for="EffectiveTo" type="date" class="form-control" />
+                    <small class="text-muted">Để trống = không thời hạn</small>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Thêm hợp đồng</button>
+                <a asp-action="Details" asp-route-id="@Model.EmployeeProfileId" class="btn btn-light">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

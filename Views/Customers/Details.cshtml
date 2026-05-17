@@ -2,21 +2,21 @@
 @{ ViewData["Title"] = Model.Name; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Customers' style='color:var(--apple-blue);text-decoration:none'>Khách hàng</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Code + "</span>"; }
 
 <div class="row g-3 mb-4">
-    <div class="col-md-4 fade-in">
-        <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-address-card"></i></div><div class="stat-value">@Model.Contacts.Count</div><div class="stat-label">Liên hệ</div></div>
-    </div>
-    <div class="col-md-4 fade-in fade-in-delay-1">
-        <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-building"></i></div><div class="stat-value">@Model.Sites.Count</div><div class="stat-label">Chi nhánh</div></div>
-    </div>
-    <div class="col-md-4 fade-in fade-in-delay-2">
-        <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">@Model.OperationRequestCount</div><div class="stat-label">Yêu cầu vận hành</div></div>
-    </div>
+    <div class="col-md-3 fade-in"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-address-card"></i></div><div class="stat-value">@Model.Contacts.Count</div><div class="stat-label">Liên hệ</div></div></div>
+    <div class="col-md-3 fade-in fade-in-delay-1"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-building"></i></div><div class="stat-value">@Model.Sites.Count</div><div class="stat-label">Chi nhánh</div></div></div>
+    <div class="col-md-3 fade-in fade-in-delay-2"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-file-lines"></i></div><div class="stat-value">@Model.OperationRequestCount</div><div class="stat-label">Yêu cầu vận hành</div></div></div>
+    <div class="col-md-3 fade-in"><div class="stat-card"><div class="stat-icon @(Model.IsActive ? "green" : "red")"><i class="fa-solid @(Model.IsActive ? "fa-circle-check" : "fa-circle-xmark")"></i></div><div class="stat-value">@(Model.IsActive ? "HĐ" : "Ngừng")</div><div class="stat-label">Trạng thái</div></div></div>
 </div>
 
 <div class="content-card mb-4">
     <div class="card-header-custom">
         <h5><i class="fa-solid fa-building"></i> Thông tin khách hàng</h5>
-        <span class="status-badge-soft @(Model.IsActive ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(Model.IsActive ? "Hoạt động" : "Ngừng")</span>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-pen me-1"></i>Sửa</a>
+            <form asp-action="Toggle" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm @(Model.IsActive ? "btn-outline-danger" : "btn-outline-success")"><i class="fa-solid fa-toggle-on me-1"></i>@(Model.IsActive ? "Tắt" : "Bật")</button>
+            </form>
+        </div>
     </div>
     <div class="card-body-custom">
         <div class="row g-3">
@@ -32,10 +32,13 @@
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="content-card h-100">
-            <div class="card-header-custom"><h5><i class="fa-solid fa-user-group"></i> Người liên hệ</h5></div>
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-user-group"></i> Người liên hệ</h5>
+                <a asp-action="AddContact" asp-route-id="@Model.Id" asp-route-name="@Model.Name" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-plus me-1"></i>Thêm</a>
+            </div>
             <div class="card-body-custom p-0">
                 <table class="data-table">
-                    <thead><tr><th class="ps-3">Tên</th><th>Chức vụ</th><th>Email</th><th>SĐT</th><th class="pe-3"></th></tr></thead>
+                    <thead><tr><th class="ps-3">Tên</th><th>Chức vụ</th><th>Email</th><th>SĐT</th></tr></thead>
                     <tbody>
                         @foreach (var c in Model.Contacts)
                         {
@@ -44,10 +47,9 @@
                                 <td style="color:var(--text-secondary);font-size:.82rem">@(c.JobTitle ?? "—")</td>
                                 <td style="font-size:.82rem">@(c.Email ?? "—")</td>
                                 <td style="font-size:.82rem">@(c.PhoneNumber ?? "—")</td>
-                                <td class="pe-3"></td>
                             </tr>
                         }
-                        @if (!Model.Contacts.Any()) { <tr><td colspan="5" class="text-center py-3" style="color:var(--text-muted)">Chưa có liên hệ</td></tr> }
+                        @if (!Model.Contacts.Any()) { <tr><td colspan="4" class="text-center py-3" style="color:var(--text-muted)">Chưa có liên hệ</td></tr> }
                     </tbody>
                 </table>
             </div>
@@ -55,7 +57,10 @@
     </div>
     <div class="col-lg-6">
         <div class="content-card h-100">
-            <div class="card-header-custom"><h5><i class="fa-solid fa-location-dot"></i> Chi nhánh / Địa điểm</h5></div>
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-location-dot"></i> Chi nhánh / Địa điểm</h5>
+                <a asp-action="AddSite" asp-route-id="@Model.Id" asp-route-name="@Model.Name" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-plus me-1"></i>Thêm</a>
+            </div>
             <div class="card-body-custom p-0">
                 <table class="data-table">
                     <thead><tr><th class="ps-3">Tên chi nhánh</th><th>Địa chỉ</th><th>Thành phố</th></tr></thead>

@@ -1,34 +1,41 @@
 @model OmniBizAI.ViewModels.ProductListViewModel
-@{ ViewData["Title"] = "Sản phẩm & Dịch vụ"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>SP & DV</span>"; }
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div><h4 class="page-title mb-1">Sản phẩm & Dịch vụ</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount mục</p></div>
-    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Thêm SP/DV</a>
+@{ ViewData["Title"] = "SP/Dịch vụ"; ViewData["Breadcrumb"] = "<span>CRM</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>SP/Dịch vụ</span>"; }
+
+@{ var svcs = Model.Items.Count(p => p.Type == "Service"); var prods = Model.Items.Count(p => p.Type == "Product"); }
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-box"></i></div><div class="stat-value">@Model.TotalCount</div><div class="stat-label">Tổng SP/DV</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-cogs"></i></div><div class="stat-value">@svcs</div><div class="stat-label">Dịch vụ</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-cube"></i></div><div class="stat-value">@prods</div><div class="stat-label">Hàng hóa</div></div></div>
 </div>
+
 <div class="content-card mb-4"><div class="card-body-custom">
     <form method="get" class="row g-2">
-        <div class="col-md-5"><input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo mã hoặc tên..." /></div>
-        <div class="col-md-3"><select name="type" class="form-input"><option value="">-- Tất cả loại --</option><option value="Product" selected="@(Model.TypeFilter == "Product")">Sản phẩm</option><option value="Service" selected="@(Model.TypeFilter == "Service")">Dịch vụ</option></select></div>
-        <div class="col-md-2"><select name="category" class="form-input"><option value="">-- Danh mục --</option>@foreach(var c in Model.Categories){<option value="@c.Value" selected="@(Model.CategoryFilter?.ToString() == c.Value)">@c.Text</option>}</select></div>
-        <div class="col-md-2"><button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div>
+        <div class="col-md-4"><input type="text" name="search" value="@Model.SearchTerm" class="form-control" placeholder="Tìm theo tên hoặc mã..." /></div>
+        <div class="col-md-2"><select name="type" class="form-select"><option value="">Tất cả loại</option><option value="Service" selected="@(Model.TypeFilter == "Service")">Dịch vụ</option><option value="Product" selected="@(Model.TypeFilter == "Product")">Hàng hóa</option></select></div>
+        <div class="col-md-2"><select name="category" class="form-select"><option value="">Tất cả DM</option>@foreach(var c in Model.Categories){<option value="@c.Value" selected="@(Model.CategoryFilter?.ToString() == c.Value)">@c.Text</option>}</select></div>
+        <div class="col-md-1"><button type="submit" class="btn btn-outline-primary w-100"><i class="fa-solid fa-search"></i></button></div>
+        <div class="col-md-3 text-end"><a asp-action="Create" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-2"></i>Thêm SP/DV</a></div>
     </form>
 </div></div>
+
 <div class="content-card"><div class="card-body-custom p-0">
     <table class="data-table">
-        <thead><tr><th class="ps-3">Mã</th><th>Tên</th><th>Loại</th><th>Danh mục</th><th>ĐVT</th><th>Giá chuẩn</th><th>TT</th></tr></thead>
+        <thead><tr><th class="ps-3">Mã</th><th>Tên</th><th>Loại</th><th>Danh mục</th><th>ĐVT</th><th>Giá</th><th>TT</th><th class="pe-3">Thao tác</th></tr></thead>
         <tbody>
             @foreach (var p in Model.Items)
             {
                 <tr>
                     <td class="ps-3" style="font-weight:600;color:var(--apple-blue)">@p.Code</td>
                     <td style="font-weight:500">@p.Name</td>
-                    <td><span class="badge @(p.Type == "Product" ? "bg-info" : "bg-warning") text-dark" style="font-size:.72rem">@(p.Type == "Product" ? "Sản phẩm" : "Dịch vụ")</span></td>
-                    <td style="color:var(--text-secondary);font-size:.82rem">@(p.CategoryName ?? "—")</td>
+                    <td><span style="padding:2px 8px;border-radius:var(--r-pill);font-size:.72rem;background:@(p.Type == "Service" ? "var(--apple-blue)" : "var(--warning)");color:#fff">@(p.Type == "Service" ? "DV" : "HH")</span></td>
+                    <td style="font-size:.82rem;color:var(--text-secondary)">@(p.CategoryName ?? "—")</td>
                     <td style="font-size:.82rem">@(p.UnitName ?? "—")</td>
-                    <td style="font-weight:500">@(p.StandardPrice?.ToString("N0") ?? "—") ₫</td>
-                    <td><span class="status-badge-soft @(p.IsActive ? "badge-on-track" : "badge-late")"><span class="status-dot"></span>@(p.IsActive ? "✓" : "✗")</span></td>
+                    <td style="font-weight:600;font-size:.82rem">@(p.StandardPrice?.ToString("N0") ?? "—")</td>
+                    <td><span class="status-badge-soft @(p.IsActive ? "badge-on-track" : "badge-late")" style="font-size:.68rem"><span class="status-dot"></span>@(p.IsActive ? "✓" : "✗")</span></td>
+                    <td class="pe-3"><a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-outline-primary btn-sm" style="font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-pen"></i></a></td>
                 </tr>
             }
-            @if (!Model.Items.Any()) { <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted)">Chưa có sản phẩm/dịch vụ</td></tr> }
+            @if (!Model.Items.Any()) { <tr><td colspan="8" class="text-center py-4" style="color:var(--text-muted)">Chưa có sản phẩm/dịch vụ</td></tr> }
         </tbody>
     </table>
 </div></div>

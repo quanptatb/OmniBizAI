@@ -1,0 +1,114 @@
+@model OmniBizAI.ViewModels.PaymentRequestDetailViewModel
+@{ ViewData["Title"] = Model.RequestNo; ViewData["Breadcrumb"] = "<a href='/Finance' style='color:var(--apple-blue);text-decoration:none'>Tài chính</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Finance/PaymentRequests' style='color:var(--apple-blue);text-decoration:none'>Thanh toán</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.RequestNo + "</span>"; }
+@{ var badge = Model.Status switch { "Paid" or "Approved" => "badge-on-track", "Draft" or "Submitted" => "badge-at-risk", _ => "badge-behind" }; }
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="content-card mb-4">
+            <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="status-badge-soft @badge"><span class="status-dot"></span>@Model.StatusLabel</span>
+                        @if (Model.IsOverdue) { <span class="status-badge-soft badge-behind"><span class="status-dot"></span>Quá hạn</span> }
+                    </div>
+                    <h5 style="font-weight:600;margin:0">@Model.Title</h5>
+                </div>
+                <div class="text-end">
+                    <div style="font-weight:700;color:var(--apple-blue);font-size:1.1rem">@Model.TotalAmount.ToString("N0") ₫</div>
+                    <small style="color:var(--text-muted)">@Model.RequestNo</small>
+                </div>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-4 mb-4">
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Người đề nghị</label>
+                        <div style="font-weight:500"><i class="fa-solid fa-user me-1" style="color:var(--text-muted);font-size:.78rem"></i>@Model.RequestedBy</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Nhà cung cấp</label>
+                        <div style="font-weight:500"><i class="fa-solid fa-building me-1" style="color:var(--text-muted);font-size:.78rem"></i>@(Model.VendorName ?? "Không xác định")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Đơn mua hàng</label>
+                        <div style="font-weight:500">@(Model.PurchaseOrderNo ?? "Không liên kết")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Hạn thanh toán</label>
+                        <div style="font-weight:500;color:@(Model.IsOverdue ? "var(--danger)" : "var(--text-primary)")">
+                            <i class="fa-regular fa-calendar me-1" style="font-size:.78rem"></i>@(Model.DueDate?.ToString("dd/MM/yyyy") ?? "Không có")
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label" style="margin-bottom:4px">Ngày tạo</label>
+                        <div style="font-weight:500">@Model.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</div>
+                    </div>
+                </div>
+
+                <!-- Status Flow -->
+                <div class="mb-4">
+                    <label class="form-label" style="margin-bottom:8px">Tiến trình</label>
+                    <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:.72rem">
+                        @{ var steps = new[] { ("Draft","Bản nháp"), ("Submitted","Đã gửi"), ("Approved","Đã duyệt"), ("Paid","Đã TT") };
+                           var ci = Array.FindIndex(steps, s => s.Item1 == Model.Status);
+                           var isTerm = Model.Status is "Rejected" or "Cancelled"; }
+                        @for (var i = 0; i < steps.Length; i++) {
+                            var (k,l) = steps[i]; var isAct = k == Model.Status; var isPast = i < ci && !isTerm;
+                            var bg = isAct ? "var(--apple-blue)" : isPast ? "var(--success)" : "var(--divider)";
+                            var fg = isAct || isPast ? "#fff" : "var(--text-muted)";
+                            <span style="padding:4px 10px;border-radius:var(--r-pill);background:@bg;color:@fg;font-weight:@(isAct?"600":"400")">@l</span>
+                            if (i < steps.Length - 1) { <i class="fa-solid fa-chevron-right" style="font-size:.5rem;color:var(--text-muted)"></i> }
+                        }
+                        @if (isTerm) { <i class="fa-solid fa-chevron-right" style="font-size:.5rem;color:var(--text-muted)"></i><span style="padding:4px 10px;border-radius:var(--r-pill);background:var(--danger);color:#fff;font-weight:600">@Model.StatusLabel</span> }
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
+                    @if (Model.CanSubmit) {
+                        <form asp-action="PaymentSubmit" asp-route-id="@Model.Id" method="post" class="d-inline"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button></form>
+                    }
+                    @if (Model.CanApprove) {
+                        <form asp-action="PaymentApprove" asp-route-id="@Model.Id" method="post" class="d-inline"><button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-1"></i>Phê duyệt</button></form>
+                        <button class="btn btn-outline-danger" onclick="document.getElementById('rejectSection').style.display='block'"><i class="fa-solid fa-xmark me-1"></i>Từ chối</button>
+                    }
+                    @if (Model.CanMarkPaid) {
+                        <form asp-action="PaymentMarkPaid" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xác nhận đã thanh toán?')"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-money-check me-1"></i>Xác nhận đã thanh toán</button></form>
+                    }
+                    <a asp-action="PaymentRequests" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại</a>
+                </div>
+
+                <!-- Reject form (hidden) -->
+                <div id="rejectSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--divider)">
+                    <form asp-action="PaymentReject" asp-route-id="@Model.Id" method="post">
+                        <label class="form-label">Lý do từ chối <span class="text-danger">*</span></label>
+                        <textarea name="reason" class="form-control mb-2" rows="2" required placeholder="Nhập lý do..."></textarea>
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark me-1"></i>Xác nhận từ chối</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Activity -->
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="card-header-custom"><h5><i class="fa-solid fa-timeline" style="color:var(--apple-blue)"></i> Lịch sử</h5></div>
+            <div class="card-body-custom">
+                @if (!Model.ActivityLog.Any()) { <div class="text-center py-3" style="color:var(--text-muted);font-size:.85rem">Chưa có hoạt động</div> }
+                else {
+                    <div style="position:relative;padding-left:24px">
+                        <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--divider)"></div>
+                        @foreach (var log in Model.ActivityLog) {
+                            <div style="position:relative;padding-bottom:16px">
+                                <div style="position:absolute;left:-20px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--canvas);border:2px solid @log.ActionColor;display:flex;align-items:center;justify-content:center"><i class="fa-solid @log.ActionIcon" style="font-size:.45rem;color:@log.ActionColor"></i></div>
+                                <div style="font-weight:600;font-size:.82rem">@log.ActionLabel</div>
+                                <div style="font-size:.78rem;color:var(--text-secondary)">@log.UserName</div>
+                                <small style="color:var(--text-muted);font-size:.7rem">@log.OccurredAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")</small>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
