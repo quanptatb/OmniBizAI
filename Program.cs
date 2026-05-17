@@ -70,6 +70,7 @@ builder.Services.AddScoped<HrService>();
 builder.Services.AddScoped<SettingsService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AnomalyDetectionService>();
+builder.Services.AddScoped<BackupService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // AI — Gemini

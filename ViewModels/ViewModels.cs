@@ -954,6 +954,55 @@ public class AnomalyDashboardViewModel
     public int ActiveStockAlerts { get; set; }
 }
 
+// ===== BACKUP & RESTORE =====
+public class BackupDashboardViewModel
+{
+    public List<BackupFileItem> BackupFiles { get; set; } = new();
+    public int TotalBackups { get; set; }
+    public long TotalSize { get; set; }
+    public string TotalSizeDisplay { get; set; } = "";
+    public DateTime? LastBackupAt { get; set; }
+    public string BackupDirectory { get; set; } = "";
+    public string DatabaseName { get; set; } = "";
+    public int SqlBackupCount { get; set; }
+    public int JsonExportCount { get; set; }
+    public DatabaseInfoViewModel? DatabaseInfo { get; set; }
+}
+
+public class BackupFileItem
+{
+    public string FileName { get; set; } = "";
+    public string FilePath { get; set; } = "";
+    public long FileSize { get; set; }
+    public string FileSizeDisplay { get; set; } = "";
+    public DateTime CreatedAt { get; set; }
+    public string BackupType { get; set; } = "Full";
+    public string DatabaseName { get; set; } = "";
+}
+
+public class BackupResultViewModel
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = "";
+    public string? FileName { get; set; }
+    public string? FilePath { get; set; }
+    public long FileSize { get; set; }
+    public string? BackupType { get; set; }
+    public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class DatabaseInfoViewModel
+{
+    public string DatabaseName { get; set; } = "";
+    public decimal SizeMB { get; set; }
+    public string SizeDisplay { get; set; } = "";
+    public int TableCount { get; set; }
+    public DateTime? LastSqlBackupAt { get; set; }
+    public string ServerVersion { get; set; } = "";
+    public string? ErrorMessage { get; set; }
+}
+
 // ===== AUDIT LOG =====
 public class AuditLogListViewModel
 {

@@ -279,6 +279,11 @@
                             <i class="fa-solid fa-palette"></i>
                             <span>Giao diện</span>
                         </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Backup" ? "active" : "")"
+                           asp-controller="Backup" asp-action="Index">
+                            <i class="fa-solid fa-database"></i>
+                            <span>Sao lưu dữ liệu</span>
+                        </a>
                     }
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Audit" ? "active" : "")"
                        asp-controller="Audit" asp-action="Index">

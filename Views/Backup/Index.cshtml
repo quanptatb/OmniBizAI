@@ -1,0 +1,281 @@
+@model OmniBizAI.ViewModels.BackupDashboardViewModel
+@{
+    ViewData["Title"] = "Sao lưu & Khôi phục";
+    ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Sao lưu</span>";
+}
+
+<!-- Database Info Cards -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-database me-2" style="color:var(--apple-blue)"></i>Sao lưu & Khôi phục dữ liệu</h4>
+        <span style="color:var(--text-muted);font-size:.82rem">Bảo vệ dữ liệu doanh nghiệp — SQL Server backup & JSON export</span>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal"><i class="fa-solid fa-plus me-1"></i>Tạo sao lưu</button>
+        <form method="post" asp-action="ExportJson" class="d-inline">@Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-primary" title="Xuất dữ liệu tenant ra JSON"><i class="fa-solid fa-file-code me-1"></i>Export JSON</button>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon blue mx-auto"><i class="fa-solid fa-database"></i></div>
+            <div class="stat-value">@(Model.DatabaseInfo?.SizeDisplay ?? "–")</div>
+            <div class="stat-label">Kích thước DB (@(Model.DatabaseInfo?.DatabaseName ?? ""))</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon green mx-auto"><i class="fa-solid fa-hard-drive"></i></div>
+            <div class="stat-value">@Model.TotalBackups</div>
+            <div class="stat-label">Bản sao lưu (@Model.TotalSizeDisplay)</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon orange mx-auto"><i class="fa-solid fa-clock-rotate-left"></i></div>
+            <div class="stat-value" style="font-size:1.1rem">@(Model.LastBackupAt?.ToString("dd/MM HH:mm") ?? "Chưa có")</div>
+            <div class="stat-label">Lần sao lưu cuối</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon purple mx-auto"><i class="fa-solid fa-table"></i></div>
+            <div class="stat-value">@(Model.DatabaseInfo?.TableCount ?? 0)</div>
+            <div class="stat-label">Bảng dữ liệu</div>
+        </div>
+    </div>
+</div>
+
+<!-- Server Info -->
+@if (Model.DatabaseInfo != null)
+{
+    <div class="content-card mb-4">
+        <div class="card-body-custom py-3 px-4">
+            <div class="row align-items-center">
+                <div class="col-auto"><i class="fa-solid fa-server" style="font-size:1.5rem;color:var(--apple-blue)"></i></div>
+                <div class="col">
+                    <div style="font-weight:600;font-size:.9rem">SQL Server</div>
+                    <div style="color:var(--text-muted);font-size:.78rem;word-break:break-all">@Model.DatabaseInfo.ServerVersion</div>
+                </div>
+                <div class="col-auto">
+                    <span style="font-size:.78rem;color:var(--text-muted)">Backup gần nhất (SQL Server): </span>
+                    <span style="font-size:.78rem;font-weight:600">@(Model.DatabaseInfo.LastSqlBackupAt?.ToString("dd/MM/yyyy HH:mm:ss") ?? "Chưa có")</span>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.DatabaseInfo.ErrorMessage))
+            {
+                <div class="mt-2" style="color:var(--danger);font-size:.78rem"><i class="fa-solid fa-exclamation-triangle me-1"></i>@Model.DatabaseInfo.ErrorMessage</div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="content-card h-100 backup-action-card" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+            <div class="card-body-custom text-center py-4 px-3">
+                <div class="backup-action-icon" style="background:rgba(0,122,255,.08);color:var(--apple-blue)"><i class="fa-solid fa-shield-halved"></i></div>
+                <h6 style="font-weight:700;font-size:.95rem;margin-bottom:4px">Sao lưu Full</h6>
+                <p style="font-size:.78rem;color:var(--text-muted);margin:0">Backup toàn bộ CSDL qua SQL Server BACKUP DATABASE</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <form method="post" asp-action="ExportJson" class="h-100">@Html.AntiForgeryToken()
+            <button type="submit" class="content-card h-100 w-100 border-0 backup-action-card" style="cursor:pointer;background:var(--surface)">
+                <div class="card-body-custom text-center py-4 px-3">
+                    <div class="backup-action-icon" style="background:rgba(52,199,89,.08);color:var(--success)"><i class="fa-solid fa-file-code"></i></div>
+                    <h6 style="font-weight:700;font-size:.95rem;margin-bottom:4px">Export JSON</h6>
+                    <p style="font-size:.78rem;color:var(--text-muted);margin:0">Xuất dữ liệu tenant dạng JSON portable</p>
+                </div>
+            </button>
+        </form>
+    </div>
+    <div class="col-md-4">
+        <form method="post" asp-action="Cleanup" class="h-100">@Html.AntiForgeryToken()
+            <input type="hidden" name="days" value="30" />
+            <button type="submit" class="content-card h-100 w-100 border-0 backup-action-card" style="cursor:pointer;background:var(--surface)" onclick="return confirm('Xóa tất cả bản sao lưu cũ hơn 30 ngày?')">
+                <div class="card-body-custom text-center py-4 px-3">
+                    <div class="backup-action-icon" style="background:rgba(255,59,48,.08);color:var(--danger)"><i class="fa-solid fa-broom"></i></div>
+                    <h6 style="font-weight:700;font-size:.95rem;margin-bottom:4px">Dọn dẹp</h6>
+                    <p style="font-size:.78rem;color:var(--text-muted);margin:0">Xóa bản sao lưu cũ hơn 30 ngày</p>
+                </div>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Backup History -->
+<div class="content-card">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử sao lưu (@Model.TotalBackups)</h5>
+        <span style="font-size:.78rem;color:var(--text-muted)">
+            <i class="fa-solid fa-folder me-1"></i>@Model.BackupDirectory
+        </span>
+    </div>
+    <div class="card-body-custom p-0">
+        @if (!Model.BackupFiles.Any())
+        {
+            <div class="text-center py-5" style="color:var(--text-muted)">
+                <i class="fa-solid fa-box-open" style="font-size:2.5rem;margin-bottom:12px;display:block;opacity:.5"></i>
+                <span>Chưa có bản sao lưu nào. Nhấn <strong>"Tạo sao lưu"</strong> để bắt đầu.</span>
+            </div>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="ps-3" style="width:50%">Tên file</th>
+                        <th>Loại</th>
+                        <th>Kích thước</th>
+                        <th>Thời gian</th>
+                        <th class="text-center pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in Model.BackupFiles)
+                    {
+                        var icon = f.BackupType == "JSON Export" ? "fa-file-code" : f.BackupType == "Differential" ? "fa-layer-group" : "fa-shield-halved";
+                        var color = f.BackupType == "JSON Export" ? "var(--success)" : f.BackupType == "Differential" ? "#FF9500" : "var(--apple-blue)";
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid @icon" style="color:@color;font-size:1.1rem"></i>
+                                    <div>
+                                        <div style="font-weight:500;font-size:.85rem;word-break:break-all">@f.FileName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" style="background:@(f.BackupType == "JSON Export" ? "rgba(52,199,89,.1);color:var(--success)" : f.BackupType == "Differential" ? "rgba(255,149,0,.1);color:#FF9500" : "rgba(0,122,255,.1);color:var(--apple-blue)")">
+                                    @f.BackupType
+                                </span>
+                            </td>
+                            <td style="font-weight:500;font-size:.85rem">@f.FileSizeDisplay</td>
+                            <td style="font-size:.82rem">@f.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-center pe-3">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <a asp-action="Download" asp-route-fileName="@f.FileName" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:.75rem" title="Tải về"><i class="fa-solid fa-download"></i></a>
+                                    @if (f.BackupType != "JSON Export")
+                                    {
+                                        <form method="post" asp-action="Restore" class="d-inline">@Html.AntiForgeryToken()
+                                            <input type="hidden" name="fileName" value="@f.FileName" />
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius:8px;font-size:.75rem" title="Khôi phục" onclick="return confirm('⚠️ CẢNH BÁO: Khôi phục sẽ GHI ĐÈ toàn bộ dữ liệu hiện tại!\n\nBạn chắc chắn muốn khôi phục từ:\n@f.FileName?')"><i class="fa-solid fa-rotate-left"></i></button>
+                                        </form>
+                                    }
+                                    <form method="post" asp-action="Delete" class="d-inline">@Html.AntiForgeryToken()
+                                        <input type="hidden" name="fileName" value="@f.FileName" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:8px;font-size:.75rem" title="Xóa" onclick="return confirm('Xóa bản sao lưu @f.FileName?')"><i class="fa-solid fa-trash-can"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- Info footer -->
+<div class="content-card mt-4">
+    <div class="card-body-custom py-3 px-4" style="font-size:.78rem;color:var(--text-muted)">
+        <div class="row">
+            <div class="col-md-4">
+                <strong><i class="fa-solid fa-shield-halved me-1" style="color:var(--apple-blue)"></i>Sao lưu Full (.bak)</strong><br>
+                Sử dụng lệnh <code>BACKUP DATABASE</code> của SQL Server. Chứa toàn bộ dữ liệu, có thể khôi phục hoàn toàn.
+            </div>
+            <div class="col-md-4">
+                <strong><i class="fa-solid fa-layer-group me-1" style="color:#FF9500"></i>Sao lưu Differential (.bak)</strong><br>
+                Chỉ sao lưu phần thay đổi kể từ lần Full gần nhất. Nhanh hơn, nhỏ hơn.
+            </div>
+            <div class="col-md-4">
+                <strong><i class="fa-solid fa-file-code me-1" style="color:var(--success)"></i>Export JSON</strong><br>
+                Xuất dữ liệu nghiệp vụ dạng JSON portable. Phù hợp cho phân tích và di chuyển dữ liệu.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Backup Modal -->
+<div class="modal fade" id="createBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:16px;border:none">
+            <form method="post" asp-action="CreateBackup">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom:1px solid var(--divider)">
+                    <h5 class="modal-title"><i class="fa-solid fa-shield-halved me-2" style="color:var(--apple-blue)"></i>Tạo bản sao lưu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Loại sao lưu</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="backup-type-option selected" id="optFull">
+                                    <input type="radio" name="type" value="Full" checked class="d-none" />
+                                    <i class="fa-solid fa-shield-halved" style="font-size:1.3rem;color:var(--apple-blue);display:block;margin-bottom:6px"></i>
+                                    <strong style="font-size:.85rem">Full Backup</strong>
+                                    <small style="display:block;color:var(--text-muted);font-size:.72rem;margin-top:2px">Sao lưu toàn bộ</small>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="backup-type-option" id="optDiff">
+                                    <input type="radio" name="type" value="Differential" class="d-none" />
+                                    <i class="fa-solid fa-layer-group" style="font-size:1.3rem;color:#FF9500;display:block;margin-bottom:6px"></i>
+                                    <strong style="font-size:.85rem">Differential</strong>
+                                    <small style="display:block;color:var(--text-muted);font-size:.72rem;margin-top:2px">Phần thay đổi</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ghi chú <span style="color:var(--text-muted);font-weight:normal">(tùy chọn)</span></label>
+                        <input type="text" name="description" class="form-control" placeholder="VD: Trước khi cập nhật hệ thống..." style="border-radius:10px" />
+                    </div>
+                    <div class="p-3" style="background:rgba(255,149,0,.06);border-radius:10px;font-size:.78rem;color:#FF9500">
+                        <i class="fa-solid fa-info-circle me-1"></i>
+                        Quá trình sao lưu có thể mất vài phút tùy kích thước CSDL. Không tắt trình duyệt trong lúc thực hiện.
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--divider)">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius:10px"><i class="fa-solid fa-play me-1"></i>Bắt đầu sao lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .backup-action-card { transition: all .2s; }
+    .backup-action-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.06); }
+    .backup-action-icon {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 12px; font-size: 1.3rem;
+    }
+    .backup-type-option {
+        display: block; text-align: center; padding: 16px 12px;
+        border: 2px solid var(--divider); border-radius: 12px;
+        cursor: pointer; transition: all .15s;
+    }
+    .backup-type-option:hover { border-color: var(--apple-blue); }
+    .backup-type-option.selected { border-color: var(--apple-blue); background: rgba(0,122,255,.04); }
+</style>
+
+<script>
+    document.querySelectorAll('.backup-type-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.backup-type-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            opt.querySelector('input[type=radio]').checked = true;
+        });
+    });
+</script>

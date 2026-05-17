@@ -264,3 +264,86 @@ public class SettingsController : Controller
         catch { return Content("/* no theme */", "text/css"); }
     }
 }
+
+[Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
+public class BackupController : Controller
+{
+    private readonly BackupService _backup;
+    private readonly ITenantContext _tenant;
+    private readonly NotificationService _notif;
+
+    public BackupController(BackupService backup, ITenantContext tenant, NotificationService notif)
+    {
+        _backup = backup; _tenant = tenant; _notif = notif;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var vm = await _backup.GetBackupDashboardAsync();
+        vm.DatabaseInfo = await _backup.GetDatabaseInfoAsync();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateBackup(string? description, string type = "Full")
+    {
+        var result = await _backup.CreateBackupAsync(description, type);
+        if (result.Success)
+        {
+            await _notif.SendToManagersAsync($"💾 Sao lưu {type}", $"{_tenant.UserFullName} đã tạo bản sao lưu {type}: {result.FileName}", "Backup", null);
+            TempData["SuccessMessage"] = result.Message;
+        }
+        else
+            TempData["ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ExportJson()
+    {
+        var result = await _backup.ExportTenantDataAsync(_tenant.TenantId);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public IActionResult Download(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName)) return NotFound();
+        var file = _backup.GetBackupFileForDownload(fileName);
+        if (file == null) return NotFound();
+        return File(file.Value.stream!, file.Value.contentType, file.Value.fileName);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Delete(string fileName)
+    {
+        if (_backup.DeleteBackup(fileName))
+            TempData["SuccessMessage"] = $"Đã xóa: {fileName}";
+        else
+            TempData["ErrorMessage"] = "Không thể xóa file.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Restore(string fileName)
+    {
+        var result = await _backup.RestoreBackupAsync(fileName);
+        if (result.Success)
+        {
+            await _notif.BroadcastAsync("🔄 Khôi phục CSDL", $"{_tenant.UserFullName} đã khôi phục cơ sở dữ liệu từ {fileName}. Hệ thống có thể cần khởi động lại.", "Backup", null);
+            TempData["SuccessMessage"] = result.Message;
+        }
+        else
+            TempData["ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult Cleanup(int days = 30)
+    {
+        var deleted = _backup.CleanupOldBackups(days);
+        TempData["SuccessMessage"] = deleted > 0 ? $"Đã xóa {deleted} bản sao lưu cũ hơn {days} ngày." : "Không có bản sao lưu nào cần xóa.";
+        return RedirectToAction(nameof(Index));
+    }
+}
