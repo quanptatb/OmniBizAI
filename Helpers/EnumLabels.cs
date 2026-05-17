@@ -3,11 +3,16 @@ using OmniBizAI.Models.Entities.Enums;
 namespace OmniBizAI.Helpers;
 
 /// <summary>
-/// Vietnamese labels for all domain enums. Single source of truth — edit here to change labels everywhere.
+/// Vietnamese labels for all domain enums.
+/// Defaults are stored here. Tenants can override via SystemParameter (Group = "EnumLabel.{EnumType}").
 /// </summary>
 public static class EnumLabels
 {
-    private static readonly Dictionary<Type, Dictionary<int, string>> _labels = new()
+    /// <summary>
+    /// Thread-safe tenant overrides: TenantId → (EnumType → (IntKey → Label))
+    /// Loaded on first access per request, cached in HttpContext.Items.
+    /// </summary>
+    private static readonly Dictionary<Type, Dictionary<int, string>> _defaults = new()
     {
         [typeof(OperationStatus)] = new()
         {
@@ -180,13 +185,108 @@ public static class EnumLabels
     };
 
     /// <summary>
-    /// Get Vietnamese label for an enum value. Falls back to .ToString() if not mapped.
+    /// Tenant-level overrides loaded from DB. Key: "EnumTypeName.EnumValueName" → label
     /// </summary>
-    public static string Get<TEnum>(TEnum value) where TEnum : struct, Enum
+    private static readonly Dictionary<Guid, Dictionary<string, string>> _tenantOverrides = new();
+
+    /// <summary>
+    /// Set tenant overrides (called from SettingsService when loading from DB).
+    /// </summary>
+    public static void SetTenantOverrides(Guid tenantId, Dictionary<string, string> overrides)
     {
+        lock (_tenantOverrides) { _tenantOverrides[tenantId] = overrides; }
+    }
+
+    /// <summary>
+    /// Get tenant overrides for display in management UI.
+    /// </summary>
+    public static Dictionary<string, string> GetTenantOverrides(Guid tenantId)
+    {
+        lock (_tenantOverrides) { return _tenantOverrides.TryGetValue(tenantId, out var o) ? new(o) : new(); }
+    }
+
+    /// <summary>
+    /// Clear tenant overrides (called when labels are updated).
+    /// </summary>
+    public static void ClearTenantOverrides(Guid tenantId)
+    {
+        lock (_tenantOverrides) { _tenantOverrides.Remove(tenantId); }
+    }
+
+    /// <summary>
+    /// Get Vietnamese label for an enum value. Checks tenant overrides first, then defaults.
+    /// </summary>
+    public static string Get<TEnum>(TEnum value, Guid? tenantId = null) where TEnum : struct, Enum
+    {
+        var enumName = typeof(TEnum).Name;
+        var valueName = value.ToString();
+        var lookupKey = $"{enumName}.{valueName}";
+
+        // Check tenant override
+        if (tenantId.HasValue)
+        {
+            lock (_tenantOverrides)
+            {
+                if (_tenantOverrides.TryGetValue(tenantId.Value, out var overrides) && overrides.TryGetValue(lookupKey, out var overrideLabel))
+                    return overrideLabel;
+            }
+        }
+
+        // Fallback to default
         var key = Convert.ToInt32(value);
-        if (_labels.TryGetValue(typeof(TEnum), out var dict) && dict.TryGetValue(key, out var label))
+        if (_defaults.TryGetValue(typeof(TEnum), out var dict) && dict.TryGetValue(key, out var label))
             return label;
         return value.ToString();
     }
+
+    /// <summary>
+    /// Get all supported enum types and their default labels for management UI.
+    /// </summary>
+    public static Dictionary<string, Dictionary<string, string>> GetAllDefaults()
+    {
+        var result = new Dictionary<string, Dictionary<string, string>>();
+        foreach (var (type, dict) in _defaults)
+        {
+            var enumName = type.Name;
+            var values = new Dictionary<string, string>();
+            foreach (var enumVal in Enum.GetValues(type))
+            {
+                var key = $"{enumName}.{enumVal}";
+                values[key] = dict.TryGetValue((int)enumVal, out var label) ? label : enumVal.ToString()!;
+            }
+            result[enumName] = values;
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Get friendly group name for enum type.
+    /// </summary>
+    public static string GetGroupDisplayName(string enumTypeName) => enumTypeName switch
+    {
+        "OperationStatus" => "Trạng thái vận hành",
+        "PriorityLevel" => "Mức ưu tiên",
+        "ProcurementStatus" => "Trạng thái mua sắm",
+        "PurchaseOrderStatus" => "Trạng thái đơn hàng",
+        "PaymentStatus" => "Trạng thái thanh toán",
+        "BudgetStatus" => "Trạng thái ngân sách",
+        "ExpenseStatus" => "Trạng thái chi phí",
+        "LeaveType" => "Loại nghỉ phép",
+        "LeaveStatus" => "Trạng thái nghỉ phép",
+        "UserStatus" => "Trạng thái người dùng",
+        "OkrLevel" => "Cấp độ OKR",
+        "OkrStatus" => "Trạng thái OKR",
+        "KpiStatus" => "Trạng thái KPI",
+        "KpiOwnerType" => "Loại chủ sở hữu KPI",
+        "KpiPeriodType" => "Tần suất KPI",
+        "KpiPropertyType" => "Tính chất KPI",
+        "KpiMeasureType" => "Phương thức đo KPI",
+        "ApprovalStatus" => "Trạng thái phê duyệt",
+        "WorkItemStatus" => "Trạng thái công việc",
+        "CheckInReviewStatus" => "Trạng thái check-in",
+        "MissionVisionType" => "Loại sứ mệnh/tầm nhìn",
+        "ModuleStatus" => "Trạng thái module",
+        "RiskLevel" => "Mức rủi ro",
+        _ => enumTypeName
+    };
 }

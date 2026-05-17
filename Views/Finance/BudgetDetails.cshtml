@@ -1,6 +1,6 @@
 @model OmniBizAI.ViewModels.BudgetDetailViewModel
 @{ ViewData["Title"] = Model.Name; ViewData["Breadcrumb"] = "<a href='/Finance' style='color:var(--apple-blue);text-decoration:none'>Tài chính</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Finance/Budgets' style='color:var(--apple-blue);text-decoration:none'>Ngân sách</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.Name + "</span>"; }
-@{ var stLabel = Model.Status switch { "Draft" => "Bản nháp", "Active" => "Đang hoạt động", "Closed" => "Đã đóng", "Cancelled" => "Đã hủy", _ => Model.Status };
+@{ var stLabel = EnumHelper.Label<BudgetStatus>(Model.Status);
    var stBadge = Model.Status switch { "Active" => "badge-on-track", "Draft" => "badge-at-risk", _ => "badge-behind" };
    var isActive = Model.Status == "Active"; }
 
@@ -55,7 +55,7 @@
             <thead><tr><th class="ps-3">Mô tả</th><th>Ngày chi</th><th>Số tiền</th><th class="pe-3">Trạng thái</th></tr></thead>
             <tbody>
                 @foreach (var e in Model.Expenses) {
-                    var expStLabel = e.Status switch { "Recorded" => "Đã ghi nhận", "Approved" => "Đã duyệt", _ => e.Status };
+                    var expStLabel = EnumHelper.Label<ExpenseStatus>(e.Status);
                     var expBadge = e.Status == "Approved" ? "badge-on-track" : "badge-at-risk";
                     <tr>
                         <td class="ps-3" style="font-weight:500">@e.Description</td>

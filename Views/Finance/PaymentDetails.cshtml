@@ -48,7 +48,7 @@
                 <div class="mb-4">
                     <label class="form-label" style="margin-bottom:8px">Tiến trình</label>
                     <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:.72rem">
-                        @{ var steps = new[] { ("Draft","Bản nháp"), ("Submitted","Đã gửi"), ("Approved","Đã duyệt"), ("Paid","Đã TT") };
+                        @{ var steps = new[] { ("Draft", EnumHelper.Label<PaymentStatus>("Draft")), ("Submitted", EnumHelper.Label<PaymentStatus>("Submitted")), ("Approved", EnumHelper.Label<PaymentStatus>("Approved")), ("Paid", EnumHelper.Label<PaymentStatus>("Paid")) };
                            var ci = Array.FindIndex(steps, s => s.Item1 == Model.Status);
                            var isTerm = Model.Status is "Rejected" or "Cancelled"; }
                         @for (var i = 0; i < steps.Length; i++) {

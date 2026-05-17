@@ -22,7 +22,7 @@ public static class EnumHelper
             items.Add(new SelectListItem
             {
                 Value = name,
-                Text = EnumLabels.Get<TEnum>(val),
+                Text = EnumLabels.Get(val),
                 Selected = name == selectedValue
             });
         }

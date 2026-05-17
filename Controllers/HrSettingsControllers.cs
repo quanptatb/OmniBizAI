@@ -200,4 +200,67 @@ public class SettingsController : Controller
         TempData["SuccessMessage"] = "Cập nhật tham số thành công.";
         return RedirectToAction(nameof(Parameters));
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateParameter(string group, string key, string? value, string valueType)
+    {
+        await _service.CreateParameterAsync(group, key, value, valueType);
+        TempData["SuccessMessage"] = "Tạo tham số mới thành công.";
+        return RedirectToAction(nameof(Parameters));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteParameter(Guid id)
+    {
+        await _service.DeleteParameterAsync(id);
+        TempData["SuccessMessage"] = "Đã xóa tham số.";
+        return RedirectToAction(nameof(Parameters));
+    }
+
+    // ── Enum Label Management ────────────────────────────────────────────────
+    public async Task<IActionResult> EnumLabels()
+    {
+        var vm = await _service.GetEnumLabelsAsync();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveEnumLabels(IFormCollection form)
+    {
+        var labels = new Dictionary<string, string>();
+        foreach (var key in form.Keys)
+        {
+            if (key.StartsWith("label.") && !string.IsNullOrWhiteSpace(form[key]))
+            {
+                var fullKey = key[6..]; // remove "label." prefix
+                labels[fullKey] = form[key].ToString();
+            }
+        }
+        await _service.SaveEnumLabelsAsync(labels);
+        TempData["SuccessMessage"] = $"Đã lưu {labels.Count} nhãn tùy chỉnh.";
+        return RedirectToAction(nameof(EnumLabels));
+    }
+
+    // ── Appearance / Theme ───────────────────────────────────────────────────
+    public async Task<IActionResult> Appearance()
+    {
+        var vm = await _service.GetThemeAsync();
+        return View(vm);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Appearance(ThemeSettingsViewModel vm)
+    {
+        await _service.SaveThemeAsync(vm);
+        TempData["SuccessMessage"] = "Cập nhật giao diện thành công! Tải lại trang để áp dụng.";
+        return RedirectToAction(nameof(Appearance));
+    }
+
+    [HttpGet]
+    [ResponseCache(Duration = 60)]
+    public async Task<IActionResult> ThemeCss()
+    {
+        try { var css = await _service.GetThemeCssAsync(); return Content(css, "text/css"); }
+        catch { return Content("/* no theme */", "text/css"); }
+    }
 }

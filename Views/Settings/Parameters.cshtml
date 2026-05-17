@@ -1,14 +1,24 @@
 @model OmniBizAI.ViewModels.ParameterListViewModel
 @{ ViewData["Title"] = "Tham số hệ thống"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tham số</span>"; }
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div><h4 class="page-title mb-1">Tham số hệ thống</h4><p class="text-muted mb-0" style="font-size:.82rem">Cấu hình tham số vận hành theo tenant</p></div>
+    <button type="button" class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createParamModal"><i class="fa-solid fa-plus me-2"></i>Thêm tham số</button>
 </div>
+
+@if (TempData["SuccessMessage"] != null) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 @foreach (var g in Model.Groups) {
     <div class="content-card mb-3">
         <div class="card-header-custom"><h5><i class="fa-solid fa-sliders"></i> @g.GroupName</h5></div>
         <div class="card-body-custom p-0">
             <table class="data-table">
-                <thead><tr><th class="ps-3">Key</th><th>Giá trị</th><th>Loại</th><th class="pe-3"></th></tr></thead>
+                <thead><tr><th class="ps-3">Key</th><th>Giá trị</th><th>Loại</th><th class="pe-3 text-end">Thao tác</th></tr></thead>
                 <tbody>
                     @foreach (var p in g.Parameters) {
                         <tr>
@@ -23,7 +33,15 @@
                                 } else { <span style="color:var(--text-secondary);font-size:.82rem">@p.Value</span> }
                             </td>
                             <td><span class="badge bg-light text-dark" style="font-size:.68rem">@p.ValueType</span></td>
-                            <td class="pe-3">@if(!p.IsEditable){<i class="fa-solid fa-lock" style="color:var(--text-muted);font-size:.72rem" title="Không chỉnh sửa"></i>}</td>
+                            <td class="pe-3 text-end">
+                                @if(!p.IsEditable){<i class="fa-solid fa-lock" style="color:var(--text-muted);font-size:.72rem" title="Không chỉnh sửa"></i>}
+                                else {
+                                    <form asp-action="DeleteParameter" method="post" class="d-inline" onsubmit="return confirm('Xóa tham số này?')">@Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@p.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:.68rem;padding:2px 8px"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -32,3 +50,44 @@
     </div>
 }
 @if (!Model.Groups.Any()) { <div class="content-card"><div class="card-body-custom text-center py-4" style="color:var(--text-muted)">Chưa có tham số</div></div> }
+
+<!-- Create Parameter Modal -->
+<div class="modal fade" id="createParamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:16px;border:none">
+            <form asp-action="CreateParameter" method="post">@Html.AntiForgeryToken()
+                <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle me-2" style="color:var(--apple-blue)"></i>Thêm tham số mới</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nhóm <span class="text-danger">*</span></label>
+                            <input type="text" name="group" class="form-control" required placeholder="VD: EmailSettings" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Key <span class="text-danger">*</span></label>
+                            <input type="text" name="key" class="form-control" required placeholder="VD: SmtpHost" />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Giá trị</label>
+                            <input type="text" name="value" class="form-control" placeholder="Nhập giá trị..." />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Loại dữ liệu</label>
+                            <select name="valueType" class="form-select">
+                                <option value="String">String</option>
+                                <option value="Integer">Integer</option>
+                                <option value="Boolean">Boolean</option>
+                                <option value="Decimal">Decimal</option>
+                                <option value="Json">JSON</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Tạo tham số</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

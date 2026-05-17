@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/kpi-okr.css" asp-append-version="true" />
+    @if (SignInManager.IsSignedIn(User)) { <link rel="stylesheet" href="@Url.Action("ThemeCss", "Settings")" /> }
     @await RenderSectionAsync("Styles", required: false)
     <script>
         (function(){
@@ -29,11 +30,12 @@
     {
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
+            @{ var _themeVm = await ((OmniBizAI.Services.SettingsService)Context.RequestServices.GetService(typeof(OmniBizAI.Services.SettingsService))!).GetThemeAsync(); }
             <div class="sidebar-brand">
-                <div class="brand-icon"><i class="fa-solid fa-brain"></i></div>
+                <div class="brand-icon"><i class="@_themeVm.LogoIcon"></i></div>
                 <div class="brand-text">
-                    <span class="brand-name">OmniBizAI</span>
-                    <span class="brand-tagline">Smart Operations</span>
+                    <span class="brand-name">@_themeVm.BrandName</span>
+                    <span class="brand-tagline">@_themeVm.BrandTagline</span>
                 </div>
             </div>
 
@@ -234,6 +236,16 @@
                            asp-controller="Settings" asp-action="Parameters">
                             <i class="fa-solid fa-sliders"></i>
                             <span>Tham số hệ thống</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "EnumLabels" ? "active" : "")"
+                           asp-controller="Settings" asp-action="EnumLabels">
+                            <i class="fa-solid fa-tags"></i>
+                            <span>Nhãn hệ thống</span>
+                        </a>
+                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Appearance" ? "active" : "")"
+                           asp-controller="Settings" asp-action="Appearance">
+                            <i class="fa-solid fa-palette"></i>
+                            <span>Giao diện</span>
                         </a>
                     }
                     <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Audit" ? "active" : "")"

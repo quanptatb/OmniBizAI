@@ -12,7 +12,7 @@
 <!-- Filter -->
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div class="d-flex gap-2 flex-wrap">
-        @{ var filters = new[] { ("","Tất cả"), ("Submitted","Chờ duyệt"), ("Approved","Đã duyệt"), ("Rejected","Từ chối") }; }
+        @{ var filters = new[] { ("","Tất cả"), ("Submitted", EnumHelper.Label<LeaveStatus>("Submitted")), ("Approved", EnumHelper.Label<LeaveStatus>("Approved")), ("Rejected", EnumHelper.Label<LeaveStatus>("Rejected")) }; }
         @foreach (var (val, lbl) in filters) {
             var isAct = (Model.StatusFilter ?? "") == val;
             <a asp-action="Index" asp-route-status="@val" class="btn btn-sm @(isAct ? "btn-primary" : "btn-light")" style="font-size:.78rem">@lbl</a>

@@ -1,0 +1,116 @@
+@model OmniBizAI.ViewModels.EnumLabelManagementViewModel
+@{ ViewData["Title"] = "Quản lý nhãn hệ thống"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Nhãn hệ thống</span>"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-tags me-2"></i>Quản lý nhãn hệ thống</h4>
+        <p class="text-muted mb-0" style="font-size:.82rem">Tùy chỉnh tên hiển thị cho tất cả trạng thái, loại, mức ưu tiên trong hệ thống</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form asp-action="SaveEnumLabels" method="post">
+    @Html.AntiForgeryToken()
+
+    <!-- Search -->
+    <div class="content-card mb-4">
+        <div class="card-body-custom py-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="fa-solid fa-search" style="color:var(--text-muted)"></i></span>
+                        <input type="text" id="labelSearch" class="form-control bg-light border-0" placeholder="Tìm kiếm nhãn..." style="border-radius:0 10px 10px 0">
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-muted small"><i class="fa-solid fa-info-circle me-1"></i>@Model.Groups.Count nhóm • @Model.Groups.Sum(g => g.Items.Count) nhãn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Label Groups -->
+    <div class="row g-4" id="labelGroups">
+        @foreach (var group in Model.Groups)
+        {
+            <div class="col-md-6 col-lg-4 label-group-card" data-group="@group.EnumTypeName">
+                <div class="content-card h-100 animate-fade-in">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" style="font-size:.88rem">
+                            <i class="fa-solid fa-tag me-2" style="color:var(--apple-blue)"></i>@group.DisplayName
+                        </h5>
+                        <span class="badge" style="background:var(--apple-blue-light,#e8f0fe);color:var(--apple-blue);font-size:.68rem">@group.Items.Count giá trị</span>
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <table class="data-table" style="font-size:.82rem">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3" style="width:30%">Mã</th>
+                                    <th style="width:35%">Mặc định</th>
+                                    <th class="pe-3" style="width:35%">Tùy chỉnh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in group.Items)
+                                {
+                                    <tr class="label-row" data-label="@item.DefaultLabel @item.EnumValue">
+                                        <td class="ps-3">
+                                            <code style="background:var(--bg-secondary);padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:600">@item.EnumValue</code>
+                                        </td>
+                                        <td style="color:var(--text-secondary)">
+                                            @item.DefaultLabel
+                                        </td>
+                                        <td class="pe-3">
+                                            <input type="text" name="label.@item.FullKey"
+                                                   value="@(item.CustomLabel ?? item.DefaultLabel)"
+                                                   class="form-control form-control-sm @(item.IsOverridden ? "border-primary" : "")"
+                                                   style="font-size:.78rem;height:30px;border-radius:8px" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Save Button -->
+    <div class="content-card mt-4" style="position:sticky;bottom:16px;z-index:10">
+        <div class="card-body-custom py-3 d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                <i class="fa-solid fa-lightbulb me-1" style="color:var(--apple-orange)"></i>
+                Nhập nhãn tùy chỉnh → Lưu. Để bỏ: xóa trắng ô tùy chỉnh sẽ dùng lại nhãn mặc định.
+            </div>
+            <button type="submit" class="btn btn-primary px-4" style="border-radius:10px;font-weight:600">
+                <i class="fa-solid fa-save me-2"></i>Lưu tất cả nhãn
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+document.getElementById('labelSearch')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.label-group-card').forEach(card => {
+        const rows = card.querySelectorAll('.label-row');
+        let hasVisible = false;
+        rows.forEach(row => {
+            const match = row.dataset.label.toLowerCase().includes(q) || 
+                          row.querySelector('input')?.value.toLowerCase().includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) hasVisible = true;
+        });
+        card.style.display = hasVisible || !q ? '' : 'none';
+    });
+});
+</script>
+}

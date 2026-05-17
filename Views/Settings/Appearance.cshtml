@@ -1,0 +1,291 @@
+@model OmniBizAI.ViewModels.ThemeSettingsViewModel
+@{ ViewData["Title"] = "Tùy chỉnh giao diện"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Giao diện</span>"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-palette me-2"></i>Tùy chỉnh giao diện</h4>
+        <p class="text-muted mb-0" style="font-size:.82rem">Thay đổi theme, màu sắc, icon, typography cho toàn bộ hệ thống</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form method="post" asp-action="Appearance">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <!-- LEFT: Settings -->
+        <div class="col-lg-8">
+
+            <!-- 🎨 Brand Colors -->
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-droplet"></i> Màu thương hiệu</h5></div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Màu chính (Accent)</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" name="AccentColor" value="@Model.AccentColor" class="form-control form-control-color" style="width:50px;height:38px;border-radius:10px" />
+                                <input type="text" value="@Model.AccentColor" class="form-control form-control-sm" style="font-family:monospace;font-size:.78rem" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Hover</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" name="AccentHover" value="@Model.AccentHover" class="form-control form-control-color" style="width:50px;height:38px;border-radius:10px" />
+                                <input type="text" value="@Model.AccentHover" class="form-control form-control-sm" style="font-family:monospace;font-size:.78rem" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Dark variant</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="color" name="AccentDark" value="@Model.AccentDark" class="form-control form-control-color" style="width:50px;height:38px;border-radius:10px" />
+                                <input type="text" value="@Model.AccentDark" class="form-control form-control-sm" style="font-family:monospace;font-size:.78rem" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Quick Presets -->
+                    <div class="mt-3">
+                        <label class="form-label small fw-bold">Preset nhanh</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-sm px-3" style="background:#0066cc;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#0066cc','#0071e3','#2997ff')">Apple Blue</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#5856d6;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#5856d6','#6866e0','#7d7aff')">Indigo</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#af52de;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#af52de','#c06ce8','#da8fff')">Purple</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#ff2d55;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#ff2d55','#ff4569','#ff6482')">Pink</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#ff9500;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#ff9500','#ffa726','#ffb74d')">Orange</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#30d158;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#30d158','#4ade80','#6ee7b7')">Green</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#64748b;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#64748b','#94a3b8','#cbd5e1')">Slate</button>
+                            <button type="button" class="btn btn-sm px-3" style="background:#0891b2;color:#fff;border-radius:20px;font-size:.72rem" onclick="setPreset('#0891b2','#06b6d4','#22d3ee')">Teal</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🎨 Surface & Semantic Colors -->
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-fill-drip"></i> Màu nền & Ngữ nghĩa</h5></div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Nền chính</label>
+                            <input type="color" name="CanvasColor" value="@Model.CanvasColor" class="form-control form-control-color" style="width:100%;height:38px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Nền phụ</label>
+                            <input type="color" name="ParchmentColor" value="@Model.ParchmentColor" class="form-control form-control-color" style="width:100%;height:38px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Màu chữ</label>
+                            <input type="color" name="InkColor" value="@Model.InkColor" class="form-control form-control-color" style="width:100%;height:38px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Dark Mode</label>
+                            <div class="form-check form-switch mt-1">
+                                <input type="hidden" name="DarkMode" value="false" />
+                                <input class="form-check-input" type="checkbox" name="DarkMode" value="true" @(Model.DarkMode ? "checked" : "") style="width:48px;height:24px;cursor:pointer" />
+                                <label class="form-check-label ms-2 small">@(Model.DarkMode ? "Bật" : "Tắt")</label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr style="border-color:var(--divider);margin:16px 0" />
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@Model.SuccessColor;margin-right:4px"></span>Thành công</label>
+                            <input type="color" name="SuccessColor" value="@Model.SuccessColor" class="form-control form-control-color" style="width:100%;height:34px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@Model.WarningColor;margin-right:4px"></span>Cảnh báo</label>
+                            <input type="color" name="WarningColor" value="@Model.WarningColor" class="form-control form-control-color" style="width:100%;height:34px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@Model.DangerColor;margin-right:4px"></span>Nguy hiểm</label>
+                            <input type="color" name="DangerColor" value="@Model.DangerColor" class="form-control form-control-color" style="width:100%;height:34px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:@Model.InfoColor;margin-right:4px"></span>Thông tin</label>
+                            <input type="color" name="InfoColor" value="@Model.InfoColor" class="form-control form-control-color" style="width:100%;height:34px;border-radius:10px" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📐 Sidebar & Branding -->
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-bars"></i> Sidebar & Thương hiệu</h5></div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Nền sidebar</label>
+                            <input type="color" name="SidebarBg" value="@Model.SidebarBg" class="form-control form-control-color" style="width:100%;height:38px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Chữ sidebar</label>
+                            <input type="color" name="SidebarText" value="@Model.SidebarText" class="form-control form-control-color" style="width:100%;height:38px;border-radius:10px" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold"><i class="fa-solid fa-icons me-1"></i>Icon logo</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--apple-blue);color:#fff;border-radius:10px;font-size:1rem">
+                                    <i class="@Model.LogoIcon"></i>
+                                </span>
+                                <input type="text" name="LogoIcon" value="@Model.LogoIcon" class="form-control form-control-sm" placeholder="fa-solid fa-brain" style="font-family:monospace;font-size:.78rem" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tên thương hiệu</label>
+                            <input type="text" name="BrandName" value="@Model.BrandName" class="form-control" placeholder="OmniBizAI" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tagline</label>
+                            <input type="text" name="BrandTagline" value="@Model.BrandTagline" class="form-control" placeholder="Smart Operations" />
+                        </div>
+                    </div>
+                    <!-- Icon suggestions -->
+                    <div class="mt-3">
+                        <label class="form-label small fw-bold">Gợi ý icon</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var icon in new[] { "fa-solid fa-brain", "fa-solid fa-rocket", "fa-solid fa-bolt", "fa-solid fa-gem", "fa-solid fa-cube", "fa-solid fa-shield-halved", "fa-solid fa-star", "fa-solid fa-fire", "fa-solid fa-leaf", "fa-solid fa-building", "fa-solid fa-chart-line", "fa-solid fa-wand-magic-sparkles" })
+                            {
+                                <button type="button" class="btn btn-sm btn-light icon-pick" style="width:36px;height:36px;border-radius:10px;font-size:.9rem;padding:0;display:flex;align-items:center;justify-content:center" title="@icon" onclick="document.querySelector('[name=LogoIcon]').value='@icon'"><i class="@icon"></i></button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔤 Typography & Layout -->
+            <div class="content-card mb-4 animate-fade-in">
+                <div class="card-header-custom"><h5><i class="fa-solid fa-font"></i> Typography & Layout</h5></div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Font family</label>
+                            <select name="FontFamily" class="form-select">
+                                @foreach (var f in new[] { "Inter", "Roboto", "Outfit", "Poppins", "Nunito", "Open Sans", "Lato", "Montserrat", "Source Sans 3", "IBM Plex Sans" })
+                                {
+                                    <option value="@f" selected="@(f == Model.FontFamily)" style="font-family:'@f'">@f</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Cỡ chữ (px)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" name="FontSize" value="@Model.FontSize" min="14" max="20" step="1" class="form-range" style="flex:1" oninput="this.nextElementSibling.textContent=this.value+'px'" />
+                                <span class="badge bg-light text-dark" style="min-width:40px;font-size:.72rem">@(Model.FontSize)px</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Bo góc (px)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" name="BorderRadius" value="@Model.BorderRadius" min="0" max="24" step="2" class="form-range" style="flex:1" oninput="this.nextElementSibling.textContent=this.value+'px'" />
+                                <span class="badge bg-light text-dark" style="min-width:40px;font-size:.72rem">@(Model.BorderRadius)px</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Độ rộng sidebar (px)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" name="SidebarWidth" value="@Model.SidebarWidth" min="220" max="320" step="10" class="form-range" style="flex:1" oninput="this.nextElementSibling.textContent=this.value+'px'" />
+                                <span class="badge bg-light text-dark" style="min-width:50px;font-size:.72rem">@(Model.SidebarWidth)px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Preview -->
+        <div class="col-lg-4">
+            <div style="position:sticky;top:70px">
+                <!-- Live Preview Card -->
+                <div class="content-card mb-4 animate-fade-in">
+                    <div class="card-header-custom"><h5><i class="fa-solid fa-eye"></i> Xem trước</h5></div>
+                    <div class="card-body-custom" id="previewPanel">
+                        <!-- Mini sidebar preview -->
+                        <div style="background:@Model.SidebarBg;border-radius:12px;padding:12px;margin-bottom:12px;color:@Model.SidebarText">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div style="width:28px;height:28px;background:@Model.AccentColor;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem">
+                                    <i class="@Model.LogoIcon"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:700;font-size:.72rem">@Model.BrandName</div>
+                                    <div style="font-size:.55rem;opacity:.7">@Model.BrandTagline</div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column gap-1" style="font-size:.68rem">
+                                <div style="padding:5px 8px;border-radius:8px;background:rgba(255,255,255,.1);font-weight:500"><i class="fa-solid fa-gauge-high me-2" style="opacity:.7"></i>Dashboard</div>
+                                <div style="padding:5px 8px;opacity:.7"><i class="fa-solid fa-briefcase me-2"></i>Vận hành</div>
+                                <div style="padding:5px 8px;opacity:.7"><i class="fa-solid fa-chart-pie me-2"></i>Tài chính</div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons preview -->
+                        <div class="d-flex gap-2 mb-3 flex-wrap">
+                            <button type="button" class="btn btn-primary btn-sm" style="border-radius:8px;font-size:.72rem"><i class="fa-solid fa-plus me-1"></i>Primary</button>
+                            <button type="button" class="btn btn-success btn-sm" style="border-radius:8px;font-size:.72rem">Success</button>
+                            <button type="button" class="btn btn-warning btn-sm" style="border-radius:8px;font-size:.72rem">Warning</button>
+                            <button type="button" class="btn btn-danger btn-sm" style="border-radius:8px;font-size:.72rem">Danger</button>
+                        </div>
+
+                        <!-- Status badges preview -->
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Hoàn thành</span>
+                            <span class="status-badge-soft badge-at-risk"><span class="status-dot"></span>Đang xử lý</span>
+                            <span class="status-badge-soft badge-behind"><span class="status-dot"></span>Trễ hạn</span>
+                        </div>
+
+                        <!-- Stats preview -->
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="stat-card" style="padding:10px">
+                                    <div class="stat-icon blue" style="width:28px;height:28px;font-size:.65rem;margin-bottom:6px"><i class="fa-solid fa-chart-line"></i></div>
+                                    <div style="font-weight:700;font-size:.85rem">1,234</div>
+                                    <div style="font-size:.62rem;color:var(--text-muted)">Doanh thu</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card" style="padding:10px">
+                                    <div class="stat-icon green" style="width:28px;height:28px;font-size:.65rem;margin-bottom:6px"><i class="fa-solid fa-check"></i></div>
+                                    <div style="font-weight:700;font-size:.85rem">87%</div>
+                                    <div style="font-size:.62rem;color:var(--text-muted)">Hoàn thành</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <button type="submit" class="btn btn-primary w-100 py-3" style="border-radius:14px;font-weight:700;font-size:1rem;letter-spacing:.02em">
+                    <i class="fa-solid fa-save me-2"></i>Lưu cấu hình giao diện
+                </button>
+
+                <div class="text-center mt-3">
+                    <a href="@Url.Action("Appearance")" class="text-muted small"><i class="fa-solid fa-rotate-left me-1"></i>Khôi phục về mặc định</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+// Sync color picker ↔ text
+document.querySelectorAll('input[type=color]').forEach(cp => {
+    const next = cp.nextElementSibling;
+    if (next && next.type === 'text') {
+        cp.addEventListener('input', () => next.value = cp.value);
+    }
+});
+
+function setPreset(main, hover, dark) {
+    const form = document.querySelector('form');
+    const setVal = (n, v) => { const el = form.querySelector(`[name="${n}"][type="color"]`); if(el){el.value=v;const t=el.nextElementSibling;if(t&&t.type==='text')t.value=v;} };
+    setVal('AccentColor', main);
+    setVal('AccentHover', hover);
+    setVal('AccentDark', dark);
+}
+</script>
+}

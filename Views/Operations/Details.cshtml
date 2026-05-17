@@ -85,8 +85,8 @@
                     <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:.72rem">
                         @{
                             var steps = new[] {
-                                ("Draft", "Bản nháp"), ("Submitted", "Đã gửi"), ("Approved", "Đã duyệt"),
-                                ("InProgress", "Đang xử lý"), ("Completed", "Hoàn thành")
+                                ("Draft", EnumHelper.Label<OperationStatus>("Draft")), ("Submitted", EnumHelper.Label<OperationStatus>("Submitted")), ("Approved", EnumHelper.Label<OperationStatus>("Approved")),
+                                ("InProgress", EnumHelper.Label<OperationStatus>("InProgress")), ("Completed", EnumHelper.Label<OperationStatus>("Completed"))
                             };
                             var currentIndex = Array.FindIndex(steps, s => s.Item1 == Model.Status);
                             var isTerminal = Model.Status is "Rejected" or "Cancelled";
@@ -153,9 +153,7 @@
                             "Cancelled" => "badge-behind",
                             _ => ""
                         };
-                        var taskLabel = task.Status switch {
-                            "Todo" => "Cần làm", "InProgress" => "Đang xử lý", "Blocked" => "Đang vướng", "Done" => "Hoàn thành", "Cancelled" => "Đã hủy", _ => task.Status
-                        };
+                        var taskLabel = EnumHelper.Label<WorkItemStatus>(task.Status);
                         <div style="padding:14px 24px;border-bottom:1px solid var(--divider);display:flex;justify-content:space-between;align-items:center">
                             <div>
                                 <div style="font-weight:500;margin-bottom:3px">@task.Title</div>
@@ -222,7 +220,7 @@
                     @foreach (var task in Model.ApprovalTasks)
                     {
                         var apvBadge = task.Status switch { "Approved" => "badge-on-track", "Rejected" => "badge-behind", _ => "badge-at-risk" };
-                        var apvLabel = task.Status switch { "Approved" => "Đã duyệt", "Rejected" => "Từ chối", "Pending" => "Chờ duyệt", _ => task.Status };
+                        var apvLabel = EnumHelper.Label<ApprovalStatus>(task.Status);
                         <div style="padding:12px 0;border-bottom:1px solid var(--divider)">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span style="font-weight:600;font-size:.85rem">@task.StepName</span>

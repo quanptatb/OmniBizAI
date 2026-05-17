@@ -1613,6 +1613,63 @@ public class ParameterItem
     public bool IsEditable { get; set; }
 }
 
+// ===== THEME / APPEARANCE SETTINGS =====
+public class ThemeSettingsViewModel
+{
+    // Brand Colors
+    public string AccentColor { get; set; } = "#0066cc";
+    public string AccentHover { get; set; } = "#0071e3";
+    public string AccentDark { get; set; } = "#2997ff";
+    // Surfaces
+    public string CanvasColor { get; set; } = "#ffffff";
+    public string ParchmentColor { get; set; } = "#f5f5f7";
+    public string InkColor { get; set; } = "#1d1d1f";
+    // Sidebar
+    public string SidebarBg { get; set; } = "#1d1d1f";
+    public string SidebarText { get; set; } = "#ffffff";
+    // Semantic
+    public string SuccessColor { get; set; } = "#34c759";
+    public string WarningColor { get; set; } = "#ff9f0a";
+    public string DangerColor { get; set; } = "#ff3b30";
+    public string InfoColor { get; set; } = "#5ac8fa";
+    // Typography
+    public string FontFamily { get; set; } = "Inter";
+    public string FontSize { get; set; } = "17";
+    // Layout
+    public string BorderRadius { get; set; } = "12";
+    public string SidebarWidth { get; set; } = "260";
+    // Branding
+    public string LogoIcon { get; set; } = "fa-solid fa-brain";
+    public string BrandName { get; set; } = "OmniBizAI";
+    public string BrandTagline { get; set; } = "Smart Operations";
+    // Dark mode
+    public bool DarkMode { get; set; }
+}
+
+public class EnumLabelManagementViewModel
+{
+    public List<EnumLabelGroupVm> Groups { get; set; } = new();
+}
+
+public class EnumLabelGroupVm
+{
+    public string EnumTypeName { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public List<EnumLabelItemVm> Items { get; set; } = new();
+}
+
+public class EnumLabelItemVm
+{
+    public string FullKey { get; set; } = "";
+    public string EnumValue { get; set; } = "";
+    public string DefaultLabel { get; set; } = "";
+    public string? CustomLabel { get; set; }
+    public Guid? ParameterId { get; set; }
+    public bool IsOverridden { get; set; }
+    /// <summary>Effective label: custom if set, else default</summary>
+    public string EffectiveLabel => CustomLabel ?? DefaultLabel;
+}
+
 // ===== NOTIFICATIONS =====
 public class NotificationItem
 {

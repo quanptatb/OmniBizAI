@@ -33,10 +33,8 @@
                 <div class="col-md-6">
                     <label class="form-label">Mức ưu tiên <span class="text-danger">*</span></label>
                     <select asp-for="Priority" class="form-select">
-                        <option value="1">Thấp</option>
-                        <option value="2">Bình thường</option>
-                        <option value="3">Cao</option>
-                        <option value="4">Nghiêm trọng</option>
+                        @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
+                        { <option value="@((int)Enum.Parse<PriorityLevel>(p.Value))">@p.Text</option> }
                     </select>
                 </div>
                 <div class="col-md-6">

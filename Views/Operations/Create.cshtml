@@ -50,10 +50,8 @@
                         <div class="col-md-6">
                             <label asp-for="Priority" class="form-label">Mức độ ưu tiên <span style="color:var(--danger)">*</span></label>
                             <select asp-for="Priority" class="form-select">
-                                <option value="1">Thấp</option>
-                                <option value="2" selected>Bình thường</option>
-                                <option value="3">Cao</option>
-                                <option value="4">Nghiêm trọng</option>
+                                @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
+                                { <option value="@((int)Enum.Parse<PriorityLevel>(p.Value))" selected="@(p.Value == "Normal")">@p.Text</option> }
                             </select>
                             <span asp-validation-for="Priority" class="text-danger small mt-1"></span>
                         </div>

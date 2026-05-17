@@ -16,7 +16,7 @@
 <!-- Filter -->
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div class="d-flex gap-2 flex-wrap">
-        @{ var filters = new[] { ("","Tất cả"), ("Draft","Bản nháp"), ("Submitted","Chờ duyệt"), ("Approved","Đã duyệt"), ("Paid","Đã TT"), ("Rejected","Từ chối") }; }
+        @{ var filters = new[] { ("","Tất cả"), ("Draft", EnumHelper.Label<PaymentStatus>("Draft")), ("Submitted", EnumHelper.Label<PaymentStatus>("Submitted")), ("Approved", EnumHelper.Label<PaymentStatus>("Approved")), ("Paid", EnumHelper.Label<PaymentStatus>("Paid")), ("Rejected", EnumHelper.Label<PaymentStatus>("Rejected")) }; }
         @foreach (var (val, lbl) in filters) {
             var isAct = (Model.StatusFilter ?? "") == val;
             <a asp-action="PaymentRequests" asp-route-status="@val" class="btn btn-sm @(isAct ? "btn-primary" : "btn-light")" style="font-size:.78rem">@lbl</a>
