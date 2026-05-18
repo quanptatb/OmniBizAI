@@ -288,6 +288,12 @@ SELECT Id, @T, FullName, Email, JobTitle, OrgUnitId, 1, @CompanyStart, 0
 FROM #StaffData
 WHERE NOT EXISTS (SELECT 1 FROM AppUsers au WHERE au.Id = #StaffData.Id);
 
+-- Tạo EmployeeProfiles cho tất cả AppUsers chưa có
+INSERT INTO EmployeeProfiles (Id, TenantId, UserId, EmployeeCode, StartDate, CreatedAt, IsDeleted)
+SELECT NEWID(), @T, Id, 'EMP-' + RIGHT('0000' + CAST(ROW_NUMBER() OVER(ORDER BY Id) AS NVARCHAR), 4), @CompanyStart, @CompanyStart, 0
+FROM AppUsers
+WHERE NOT EXISTS (SELECT 1 FROM EmployeeProfiles WHERE UserId = AppUsers.Id);
+
 DROP TABLE #StaffData;
 
 PRINT N'✅ Part 2: Staff employees setup hoàn tất.';
