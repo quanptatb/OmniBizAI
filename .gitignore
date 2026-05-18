@@ -36,7 +36,12 @@ bld/
 #wwwroot/
 
 # Visual Studio Code
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
 # ReSharper is a .NET coding add-in
 _ReSharper*/
@@ -45,6 +50,17 @@ _ReSharper*/
 
 # Mac
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
 
 # OmniBizAI App Specific
 App_Data/Backups/
@@ -53,6 +69,9 @@ App_Data/Temp/
 *.db-shm
 *.db-wal
 *.sqlite
+appsettings.Development.json
+appsettings.Local.json
+*.user.ini
 
 # Application Insights
 *.ai
@@ -98,3 +117,14 @@ node_modules/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Environments
+.env
+.env.local
+.env.*.local
+
+# ---------------------------------------------------------------------------
+# BẢO VỆ THƯ MỤC DOCS (KHÔNG XÓA / KHÔNG IGNORE DOCS VÀ REPORT)
+# ---------------------------------------------------------------------------
+!docs/
+!docs/**/*
