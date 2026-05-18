@@ -69,8 +69,6 @@ App_Data/Temp/
 *.db-shm
 *.db-wal
 *.sqlite
-appsettings.Development.json
-appsettings.Local.json
 *.user.ini
 
 # Application Insights
