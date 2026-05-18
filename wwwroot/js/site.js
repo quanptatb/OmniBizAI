@@ -264,3 +264,62 @@ function formatTimeAgo(dateStr) {
 
 function escNotif(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+// ═══ NAVIGATION MODES ═════════════════════════════════════════════
+
+window.toggleNavModeMenu = function() {
+    const menu = document.getElementById('navModeMenu');
+    if (menu) {
+        menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+    }
+};
+
+window.setNavMode = function(mode) {
+    document.documentElement.setAttribute('data-nav-mode', mode);
+    localStorage.setItem('omnibiz-nav-mode', mode);
+    
+    // Manage sidebar visibility/collapsing logically based on mode
+    if (mode === 'launcher') {
+        document.documentElement.classList.remove('sidebar-collapsed');
+    } else if (mode === 'classic') {
+        const s = localStorage.getItem('omnibiz-sidebar');
+        if (s === 'collapsed') document.documentElement.classList.add('sidebar-collapsed');
+    }
+    
+    // Close the dropdown menu
+    const menu = document.getElementById('navModeMenu');
+    if (menu) menu.style.display = 'none';
+};
+
+window.toggleAppLauncher = function() {
+    const overlay = document.getElementById('appLauncherOverlay');
+    if (overlay) {
+        if (overlay.classList.contains('show')) {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.style.display = 'none', 250);
+        } else {
+            overlay.style.display = 'flex';
+            // slight delay to allow display block to apply before opacity transition
+            setTimeout(() => overlay.classList.add('show'), 10);
+        }
+    }
+};
+
+// Close dropdowns/panels on outside click
+document.addEventListener('click', (e) => {
+    // Mode Picker
+    const modePicker = document.querySelector('.nav-mode-picker');
+    const modeMenu = document.getElementById('navModeMenu');
+    if (modePicker && modeMenu && modeMenu.style.display !== 'none' && !modePicker.contains(e.target)) {
+        modeMenu.style.display = 'none';
+    }
+});
+
+// Escape key to close app launcher
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('appLauncherOverlay');
+        if (overlay && overlay.classList.contains('show')) {
+            toggleAppLauncher();
+        }
+    }
+});

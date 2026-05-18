@@ -710,3 +710,133 @@ a:hover{text-decoration:underline}
 .status-badge-soft.badge-at-risk{background:var(--warning-bg);color:#a66300;border-color:rgba(255,159,10,.2)}
 .status-badge-soft.badge-behind{background:var(--danger-bg);color:#d70015;border-color:rgba(255,59,48,.2)}
 
+/* ═══ NAVIGATION MODES ═════════════════════════════════════════════ */
+
+/* 1. Launcher Mode */
+html[data-nav-mode="launcher"] .sidebar {
+    display: none !important;
+}
+html[data-nav-mode="launcher"] .main-wrapper {
+    margin-left: 0 !important;
+}
+html[data-nav-mode="launcher"] #sidebarToggle {
+    display: none !important;
+}
+html[data-nav-mode="launcher"] #appLauncherBtn {
+    display: flex !important;
+    background: none; border: none; cursor: pointer;
+    font-size: 1.25rem; color: var(--text-secondary);
+    padding: 6px 8px; border-radius: var(--r-sm);
+    transition: all var(--ease-fast);
+}
+html[data-nav-mode="launcher"] #appLauncherBtn:hover {
+    background: rgba(0,0,0,.04); color: var(--text-primary);
+}
+
+/* App Launcher Overlay */
+.app-launcher-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    z-index: 9999;
+    display: none; flex-direction: column;
+    opacity: 0; transition: opacity var(--ease);
+    padding: 32px 48px;
+    overflow-y: auto;
+}
+.app-launcher-overlay.show {
+    display: flex; opacity: 1;
+}
+.launcher-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px;
+}
+.launcher-header h3 {
+    margin: 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 12px;
+}
+.launcher-close {
+    background: rgba(0,0,0,.05); border: none; width: 40px; height: 40px; border-radius: 50%;
+    font-size: 1.2rem; cursor: pointer; color: var(--text-primary);
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--ease-fast);
+}
+.launcher-close:hover { background: rgba(0,0,0,.1); }
+
+.launcher-body {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;
+    max-width: 1200px; margin: 0 auto; width: 100%;
+}
+.launcher-section h4 {
+    font-size: .75rem; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px;
+    border-bottom: 1px solid var(--hairline); padding-bottom: 8px;
+}
+.launcher-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+}
+.launcher-card {
+    background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: var(--r-md); padding: 16px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+    color: var(--text-primary); text-decoration: none;
+    transition: all var(--ease-fast);
+    box-shadow: var(--shadow-card);
+}
+.launcher-card i {
+    font-size: 1.75rem; color: var(--apple-blue);
+    background: rgba(0,113,227,.08); padding: 12px; border-radius: var(--r-sm);
+}
+.launcher-card span { font-size: .85rem; font-weight: 600; }
+.launcher-card:hover {
+    box-shadow: var(--shadow-elevated); transform: translateY(-2px);
+    border-color: var(--apple-blue);
+}
+
+/* 2. Card Sidebar Mode */
+html[data-nav-mode="card-sidebar"] .sidebar {
+    width: 320px; /* Wider for cards */
+}
+html[data-nav-mode="card-sidebar"] .main-wrapper {
+    margin-left: 320px;
+}
+html[data-nav-mode="card-sidebar"] .nav-group-toggle {
+    display: none !important; /* Hide accordions */
+}
+html[data-nav-mode="card-sidebar"] .nav-group-items {
+    display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px;
+    padding: 0 12px; max-height: none !important; overflow: visible; opacity: 1;
+}
+html[data-nav-mode="card-sidebar"] .nav-item {
+    flex-direction: column; justify-content: center; text-align: center; gap: 6px;
+    padding: 12px 6px; height: auto;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+}
+html[data-nav-mode="card-sidebar"] .nav-item i {
+    font-size: 1.25rem; margin-bottom: 4px; opacity: .8;
+}
+html[data-nav-mode="card-sidebar"] .nav-item span {
+    font-size: .7rem; white-space: normal; line-height: 1.2;
+}
+html[data-nav-mode="card-sidebar"] .nav-item:hover {
+    background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2);
+}
+html[data-nav-mode="card-sidebar"] .nav-item.active {
+    background: rgba(0,113,227,.2); border-color: var(--apple-blue);
+}
+
+/* Nav Mode Picker Toggle */
+.nav-mode-picker .nav-mode-menu {
+    position: absolute; top: 100%; right: 0; background: var(--canvas);
+    border: 1px solid var(--hairline); border-radius: var(--r-sm);
+    box-shadow: var(--shadow-elevated); padding: 8px; z-index: 1050;
+    min-width: 180px; display: flex; flex-direction: column; gap: 4px;
+    margin-top: 8px;
+}
+.nav-mode-menu button {
+    background: none; border: none; text-align: left; padding: 8px 12px;
+    border-radius: var(--r-sm); cursor: pointer; font-size: .85rem;
+    color: var(--text-primary); transition: all var(--ease-fast);
+    display: flex; align-items: center; gap: 8px;
+}
+.nav-mode-menu button:hover { background: var(--parchment); color: var(--apple-blue); }
