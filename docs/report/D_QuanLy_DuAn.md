@@ -1,141 +1,154 @@
 # TÀI LIỆU QUẢN LÝ DỰ ÁN — OMNIBIZAI
 
-> Phiên bản: 1.0 | Ngày: 18/05/2026
+> Phiên bản: 1.1 | Ngày: 18/05/2026
 
 ---
 
-## 1. Kế hoạch thực hiện
+## 1. Kế hoạch thực hiện (Đã hoàn thành đến 18/05/2026)
 
-| Giai đoạn | Thời gian | Nội dung |
-|---|---|---|
-| Sprint 0 | Tuần 1–2 | Khảo sát, phân tích yêu cầu, thiết kế kiến trúc |
-| Sprint 1 | Tuần 3–4 | Core: Tenant, Auth, Identity, Org Structure, Dashboard |
-| Sprint 2 | Tuần 5–6 | Operations, Workflow, Kanban, Approvals |
-| Sprint 3 | Tuần 7–8 | Finance, Procurement, PO, Goods Receipt/Issue |
-| Sprint 4 | Tuần 9–10 | CRM, Customers, Vendors, Products, Sales Opportunity |
-| Sprint 5 | Tuần 11–12 | KPI/OKR, Check-In, Evaluation, Mission/Vision |
-| Sprint 6 | Tuần 13–14 | HR, Leave, Reports, AI Copilot, Notifications |
-| Sprint 7 | Tuần 15–16 | UI Polish, Testing, Seed Data, Documentation |
+| Giai đoạn | Thời gian | Nội dung | Trạng thái |
+|---|---|---|---|
+| Sprint 0 | Tuần 1–2 | Khảo sát, phân tích yêu cầu, thiết kế kiến trúc | ✅ Đã hoàn thành |
+| Sprint 1 | Tuần 3–4 | Core: Tenant, Auth, Identity, Org Structure, Dashboard | ✅ Đã hoàn thành |
+| Sprint 2 | Tuần 5–6 | Operations, Workflow, Kanban, Approvals | ✅ Đã hoàn thành |
+| Sprint 3 | Tuần 7–8 | Finance, Procurement, PO, Goods Receipt/Issue | ✅ Đã hoàn thành |
+| Sprint 4 | Tuần 9–10 | CRM, Customers, Vendors, Products, Sales Opportunity | ✅ Đã hoàn thành |
+| Sprint 5 | Tuần 11–12 | KPI/OKR, Check-In, Evaluation, Mission/Vision | ✅ Đã hoàn thành |
+| Sprint 6 | Tuần 13–14 | HR, Leave, Reports, AI Copilot, Notifications | ✅ Đã hoàn thành |
+| Sprint 7 | Tuần 15–16 | UI Polish, Testing, Seed Data, Documentation | ✅ Đã hoàn thành |
 
 ---
 
-## 2. Phân công thành viên
+## 2. Phân công thành viên (Nhóm 7 người)
 
-| STT | Thành viên | MSSV | Vai trò | Module phụ trách |
+| STT | Thành viên | Vai trò | Chuyên môn | Mô tả công việc |
 |---|---|---|---|---|
-| 1 | [Thành viên 1] | [...] | Nhóm trưởng | Core, Auth, Dashboard, Settings |
-| 2 | [Thành viên 2] | [...] | Thành viên | Operations, Workflow, Approvals |
-| 3 | [Thành viên 3] | [...] | Thành viên | Finance, Procurement, Inventory |
-| 4 | [Thành viên 4] | [...] | Thành viên | CRM, KPI/OKR, Reports, AI |
+| 1 | Quân | Nhóm trưởng | Quản lý, Fullstack | Quản lý dự án, phân công task, review code, chuẩn bị Slide & Demo, hỗ trợ Core/Auth. |
+| 2 | Như | Thành viên | Dev FE | UI/UX, Component Library, Dashboard, Responsive, Apple Design System. |
+| 3 | Huy Nhật | Thành viên | Dev FE | UI/UX, Kanban Workflow drag-drop, Animations, Video Demo. |
+| 4 | An | Thành viên | Dev BE | API Core, Authentication, Phân quyền RBAC, Multi-tenant. |
+| 5 | Bảo | Thành viên | Dev BE | Operations, Workflow, Luồng phê duyệt (Approvals), Database Seed Data. |
+| 6 | Phong | Thành viên | Dev BE | Tối ưu Database, Export Reports, Tích hợp AI Copilot (Gemini), Notifications. |
+| 7 | Khánh | Thành viên | Tester | Xây dựng Test Plan, kịch bản test, QA, rà soát Tiêu chí nghiệm thu, Log bugs. |
 
 ---
 
-## 3. Timeline / Gantt Chart
+## 3. Timeline / Gantt Chart (Cập nhật 19/05 - 15/07)
 
 ```mermaid
 gantt
-    title Tiến độ dự án OmniBizAI
+    title Tiến độ dự án OmniBizAI (Phase 2 - Cải thiện & Bàn giao)
     dateFormat YYYY-MM-DD
-    section Phân tích
-        Khảo sát yêu cầu       :done, a1, 2026-02-01, 7d
-        Thiết kế kiến trúc      :done, a2, after a1, 7d
-    section Phát triển
-        Core & Auth             :done, b1, 2026-02-15, 14d
-        Operations & Workflow   :done, b2, after b1, 14d
-        Finance & Procurement   :done, b3, after b2, 14d
-        CRM & Products          :done, b4, after b3, 14d
-        KPI/OKR & Evaluation    :done, b5, after b4, 14d
-        HR & Reports & AI       :done, b6, after b5, 14d
-    section Hoàn thiện
-        UI Polish & Testing     :done, c1, after b6, 14d
-        Documentation           :active, c2, 2026-05-15, 7d
-        Demo & Bàn giao         :d1, after c2, 7d
+    
+    section Giai đoạn 1 (Đã HT)
+        Phân tích & Thiết kế      :done, 2026-02-01, 14d
+        Phát triển Core & Modules :done, 2026-02-15, 84d
+        UI Polish & Testing       :done, 2026-05-01, 18d
+    
+    section Cải thiện (19/05-16/06)
+        Tối ưu Performance BE     :active, p1, 2026-05-19, 14d
+        Fix Bugs & Refactor FE    :active, p2, 2026-05-19, 14d
+        Tích hợp nâng cao (AI, Realtime) :p3, 2026-06-02, 14d
+        Cross-testing & UAT       :p4, 2026-06-02, 14d
+        
+    section Bàn giao (17/06-15/07)
+        Đóng gói & Viết Docs cuối :d1, 2026-06-17, 10d
+        Quay Video & Làm Slide    :d2, 2026-06-27, 7d
+        Bảo vệ thử (Mock Demo)    :d3, 2026-07-04, 7d
+        Bảo vệ chính thức         :milestone, 2026-07-15, 0d
 ```
 
 ---
 
 ## 4. Sprint Plan (Agile/Scrum)
 
-### Quy trình mỗi Sprint (2 tuần)
-1. **Sprint Planning** (Ngày 1): Xác định backlog, phân công task
-2. **Daily Standup**: Báo cáo tiến độ hàng ngày
-3. **Development**: Coding, code review
-4. **Sprint Review** (Ngày 13): Demo chức năng
-5. **Sprint Retrospective** (Ngày 14): Rút kinh nghiệm
-
-### Công cụ quản lý
-- **Source Control**: Git + GitHub
-- **Task Management**: GitHub Issues / Trello
-- **Communication**: Zalo Group / Discord
-- **IDE**: Visual Studio 2022 / VS Code + Rider
+*(Các quy trình Scrum và công cụ vẫn giữ nguyên như giai đoạn 1, tập trung vào GitHub Issues để track bug do Tester báo cáo).*
 
 ---
 
-## 5. Nhật ký công việc (tóm tắt)
-
-| Tuần | Nội dung chính | Kết quả |
-|---|---|---|
-| 1–2 | Phân tích yêu cầu, khảo sát hệ thống tương tự | Hoàn thành SRS |
-| 3–4 | Thiết kế DB (~95 bảng), cài đặt project, Identity | Core chạy được |
-| 5–6 | CRUD Operations, Kanban drag-drop, Approval flow | Module vận hành OK |
-| 7–8 | Procurement → PO → GR/GI pipeline, Cash Book | Tài chính & kho vận OK |
-| 9–10 | CRM (Customer, Vendor, Product), Sales Opportunity | CRM hoàn thành |
-| 11–12 | KPI/OKR (migrate từ hệ thống cũ), Evaluation | KPI/OKR tích hợp OK |
-| 13–14 | HR, Leave, Reports (7 loại), AI Copilot, Notifications | Hệ thống đầy đủ |
-| 15–16 | Apple Design System CSS, Seed Data, Bug fix, Docs | Sẵn sàng demo |
-
----
-
-## 6. Rủi ro dự án
-
-| # | Rủi ro | Mức độ | Xác suất | Tác động |
-|---|---|---|---|---|
-| 1 | .NET 10 Preview không ổn định | Cao | Trung bình | Lỗi runtime không mong muốn |
-| 2 | Thiếu kinh nghiệm multi-tenant | Trung bình | Cao | Data leak giữa tenant |
-| 3 | Tích hợp AI (Gemini) bị rate limit | Thấp | Trung bình | AI Copilot không hoạt động |
-| 4 | Thành viên bận việc cá nhân | Trung bình | Cao | Trễ deadline sprint |
-| 5 | SQL Server cascade delete conflicts | Cao | Cao | Migration thất bại |
-
----
-
-## 7. Biện pháp xử lý rủi ro
-
-| # | Rủi ro | Biện pháp |
-|---|---|---|
-| 1 | .NET 10 Preview | Pin phiên bản cụ thể, không upgrade giữa chừng |
-| 2 | Multi-tenant leak | Global Query Filter + code review kỹ TenantId |
-| 3 | AI rate limit | Implement fallback message, cache kết quả |
-| 4 | Thành viên bận | Buffer 1 tuần mỗi sprint, cross-training |
-| 5 | Cascade delete | `DeleteBehavior.Restrict` toàn cục |
-
----
-
-## 8. Tiêu chí nghiệm thu
+## 5. Tiêu chí nghiệm thu (Trạng thái hiện tại)
 
 | # | Tiêu chí | Đạt/Không |
 |---|---|---|
-| 1 | Đăng nhập/đăng xuất thành công với 7 vai trò | ☐ |
-| 2 | CRUD đầy đủ cho tất cả module chính | ☐ |
-| 3 | Luồng phê duyệt hoạt động đúng | ☐ |
-| 4 | Kanban drag-drop hoạt động | ☐ |
-| 5 | Báo cáo hiển thị đúng dữ liệu | ☐ |
-| 6 | AI Copilot trả lời được câu hỏi | ☐ |
-| 7 | Phân quyền đúng theo vai trò | ☐ |
-| 8 | Giao diện responsive, đẹp | ☐ |
-| 9 | Seed data chạy không lỗi | ☐ |
-| 10 | Tài liệu đầy đủ | ☐ |
+| 1 | Đăng nhập/đăng xuất thành công với 7 vai trò | ✅ Đạt |
+| 2 | CRUD đầy đủ cho tất cả module chính | ✅ Đạt |
+| 3 | Luồng phê duyệt hoạt động đúng | ✅ Đạt |
+| 4 | Kanban drag-drop hoạt động | ✅ Đạt |
+| 5 | Báo cáo hiển thị đúng dữ liệu | ✅ Đạt |
+| 6 | AI Copilot trả lời được câu hỏi | ✅ Đạt |
+| 7 | Phân quyền đúng theo vai trò | ✅ Đạt |
+| 8 | Giao diện responsive, đẹp | ✅ Đạt |
+| 9 | Seed data chạy không lỗi | ✅ Đạt |
+| 10 | Tài liệu đầy đủ | ✅ Đạt |
 
 ---
 
-## 9. Checklist bàn giao
+## 6. Checklist bàn giao (Trạng thái hiện tại)
 
-- [ ] Source code đẩy lên GitHub (branch `main`)
-- [ ] File `.gitignore` chuẩn
-- [ ] Seed data script (`seed_data.sql`) chạy được
-- [ ] Tài liệu kỹ thuật (File B)
-- [ ] Hướng dẫn sử dụng (File C)
-- [ ] Báo cáo tốt nghiệp (File A)
-- [ ] Sơ đồ Mermaid (File F)
-- [ ] Video demo (nếu có)
-- [ ] Slide thuyết trình
-- [ ] Database backup file
+- [x] Source code đẩy lên GitHub (branch `main`)
+- [x] File `.gitignore` chuẩn
+- [x] Seed data script (`seed_data.sql`) chạy được
+- [x] Tài liệu kỹ thuật (File B)
+- [x] Hướng dẫn sử dụng (File C)
+- [x] Báo cáo tốt nghiệp (File A)
+- [x] Sơ đồ Mermaid (File F)
+- [ ] Video demo (Chưa quay)
+- [ ] Slide thuyết trình (Đang chuẩn bị)
+- [x] Database backup file
+
+---
+
+## 7. KẾ HOẠCH BỔ SUNG CHI TIẾT (19/05/2026 - 15/07/2026)
+
+Giai đoạn này tập trung vào **Refactor code, Tối ưu hóa hiệu năng, Fix Bug mở rộng, và Hoàn thiện bảo vệ dự án**.
+
+### Tháng 1: Tối ưu hóa và Mở rộng (19/05 - 16/06)
+
+**Tuần 1 (19/05 - 25/05): Tối ưu Performance & UI/UX Fixes**
+- **Hàng ngày:** Triage bugs từ Khánh (Tester). Daily standup 15p.
+- **Quân:** Quản lý tiến độ, review code PRs, đánh giá lại kiến trúc DB.
+- **Như & Huy Nhật:** Rà soát toàn bộ UI trên mobile/tablet. Fix các lỗi overflow, padding của thẻ Kanban. Nâng cấp CSS transitions cho mượt hơn.
+- **An & Bảo:** Tối ưu hóa các query N+1 trong Entity Framework bằng `.Include()` hoặc Projection. Cải thiện tốc độ load Dashboard.
+- **Phong:** Kiểm tra lại toàn bộ report logic. Cache kết quả báo cáo dùng Redis/MemoryCache (nếu cần).
+- **Khánh:** Chạy Performance test cơ bản, ghi nhận các trang load chậm (> 3s). Test trên mobile.
+
+**Tuần 2 (26/05 - 01/06): Nâng cấp AI Copilot & Real-time**
+- **Hàng ngày:** Fix bugs tồn đọng.
+- **Quân & Phong:** Nâng cấp AI Copilot — thêm ngữ cảnh (context) từ DB để AI trả lời chính xác hơn về dữ liệu công ty thay vì trả lời chung chung.
+- **An & Bảo:** Tích hợp SignalR (hoặc Polling) cho thông báo (Notifications) để cập nhật real-time khi có người duyệt đơn.
+- **Như & Huy Nhật:** Làm UI cho panel Notifications real-time. Nâng cấp giao diện Chat AI.
+- **Khánh:** Viết Test case cho tính năng Real-time và AI Copilot nâng cao. Thực hiện Regression testing.
+
+**Tuần 3 (02/06 - 08/06): Security & Data Integrity**
+- **Quân & An:** Security audit. Rà soát lại JWT / Cookie Authentication. Kiểm tra kỹ CSRF, XSS. Đảm bảo 100% không leak data qua lại giữa các Tenant (Global Query Filter check).
+- **Bảo & Phong:** Rà soát lại luồng xóa (Soft Delete) có bị lỗi Cascade không. Đảm bảo toàn bộ bảng đều tuân thủ `IsDeleted = true`.
+- **Như & Huy Nhật:** Xử lý các màn hình báo lỗi (404, 500, Access Denied) cho đẹp mắt và chuẩn UX.
+- **Khánh:** Test thâm nhập cơ bản (thử đổi ID trên URL xem có xem được data của tenant khác không).
+
+**Tuần 4 (09/06 - 16/06): Code Freeze & UAT (User Acceptance Testing)**
+- **Cả nhóm:** Code freeze (không thêm tính năng mới, chỉ fix bug).
+- **Khánh:** Chạy toàn bộ test cases lần cuối (Full pass). Báo cáo UAT Report.
+- **Quân:** Tổng hợp bug list. Đóng gói mã nguồn (Release v1.0).
+- **Dev FE/BE:** Clear toàn bộ technical debt, comment code rõ ràng, xóa console.log / debug code.
+
+### Tháng 2: Đóng gói và Bảo vệ (17/06 - 15/07)
+
+**Tuần 5 (17/06 - 23/06): Hoàn thiện Tài liệu (Final Polish)**
+- **Quân:** Rà soát lại toàn bộ File A (Báo cáo Word), File B (Technical Docs) lần cuối. Đảm bảo format chuẩn form nhà trường.
+- **Khánh & Phong:** Hoàn thiện File E (Kiểm thử) bổ sung kết quả UAT và Performance.
+- **Như & Huy Nhật:** Chụp screenshot đẹp nhất của ứng dụng đưa vào File C (Hướng dẫn sử dụng) và Slide.
+
+**Tuần 6 (24/06 - 30/06): Chuẩn bị Media & Slide**
+- **Huy Nhật & Như:** Lên kịch bản và quay Video Demo dự án (5-7 phút). Chỉnh sửa video, lồng tiếng/phụ đề.
+- **Quân & An:** Làm Slide thuyết trình (Canva / PowerPoint). Cấu trúc: Đặt vấn đề -> Giải pháp -> Kiến trúc -> Demo -> Q&A.
+- **Bảo & Phong:** Xây dựng lại bộ Seed Data "đẹp" nhất phục vụ cho việc Demo trực tiếp (có số liệu doanh thu, biểu đồ đẹp, Kanban có nhiều task).
+
+**Tuần 7 (01/07 - 07/07): Mock Demo (Bảo vệ thử)**
+- **Hàng ngày:** Tập luyện thuyết trình.
+- **02/07:** Mock Demo lần 1 nội bộ nhóm. Căn thời gian thuyết trình (mỗi người 3-5 phút).
+- **05/07:** Mock Demo lần 2. Mời GVHD hoặc bạn bè dự thính, đặt câu hỏi phản biện.
+- **Khánh:** Chuẩn bị bộ câu hỏi "Q&A" dự phòng (GV thường hỏi gì về EF Core, Multi-tenant, AI?). Phân công người trả lời.
+
+**Tuần 8 (08/07 - 15/07): Bảo vệ chính thức**
+- **08/07 - 14/07:** Nộp toàn bộ file cứng (Báo cáo Word in bìa), file mềm (Source code, Database backup, Video).
+- **15/07 (Dự kiến):** Lên Hội đồng bảo vệ dự án tốt nghiệp. Mặc trang phục lịch sự. Demo trực tiếp trên môi trường Local/Cloud ổn định nhất.
