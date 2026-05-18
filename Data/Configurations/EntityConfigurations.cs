@@ -23,6 +23,8 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
     {
         builder.HasKey(e => e.Id);
         builder.HasIndex(e => new { e.TenantId, e.Email }).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.IsDeleted, e.Status })
+            .HasDatabaseName("IX_AppUsers_Dashboard_Status");
         builder.Property(e => e.FullName).HasMaxLength(200).IsRequired();
         builder.Property(e => e.Email).HasMaxLength(255).IsRequired();
         builder.Property(e => e.JobTitle).HasMaxLength(150);
@@ -61,6 +63,14 @@ public class OperationRequestConfiguration : IEntityTypeConfiguration<OperationR
     {
         builder.HasKey(e => e.Id);
         builder.HasIndex(e => new { e.TenantId, e.RequestNo }).IsUnique();
+        builder.HasIndex(e => new { e.TenantId, e.IsDeleted, e.CreatedAt })
+            .HasDatabaseName("IX_OperationRequests_Dashboard_CreatedAt");
+        builder.HasIndex(e => new { e.TenantId, e.IsDeleted, e.Status, e.DueDate })
+            .HasDatabaseName("IX_OperationRequests_Dashboard_Status_DueDate");
+        builder.HasIndex(e => new { e.TenantId, e.IsDeleted, e.Status, e.UpdatedAt })
+            .HasDatabaseName("IX_OperationRequests_Dashboard_Status_UpdatedAt");
+        builder.HasIndex(e => new { e.TenantId, e.IsDeleted, e.OrganizationUnitId })
+            .HasDatabaseName("IX_OperationRequests_Dashboard_OrganizationUnit");
         builder.Property(e => e.RequestNo).HasMaxLength(50).IsRequired();
         builder.Property(e => e.Type).HasMaxLength(50).IsRequired();
         builder.Property(e => e.Title).HasMaxLength(250).IsRequired();
@@ -84,6 +94,8 @@ public class ApprovalTaskConfiguration : IEntityTypeConfiguration<ApprovalTask>
     {
         builder.HasKey(e => e.Id);
         builder.HasIndex(e => new { e.TenantId, e.TargetType, e.TargetId });
+        builder.HasIndex(e => new { e.TenantId, e.IsDeleted, e.Status })
+            .HasDatabaseName("IX_ApprovalTasks_Dashboard_Status");
         builder.Property(e => e.TargetType).HasMaxLength(80).IsRequired();
         builder.Property(e => e.StepCode).HasMaxLength(80).IsRequired();
         builder.Property(e => e.AssignedRole).HasMaxLength(80);
@@ -133,6 +145,8 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
     public void Configure(EntityTypeBuilder<AuditLog> builder)
     {
         builder.HasKey(e => e.Id);
+        builder.HasIndex(e => new { e.TenantId, e.CreatedAt })
+            .HasDatabaseName("IX_AuditLogs_Dashboard_CreatedAt");
         builder.Property(e => e.UserName).HasMaxLength(200);
         builder.Property(e => e.EntityName).HasMaxLength(150).IsRequired();
         builder.Property(e => e.Action).HasMaxLength(100).IsRequired();

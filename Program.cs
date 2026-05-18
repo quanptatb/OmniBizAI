@@ -11,6 +11,7 @@ builder.Logging.AddDebug();
 
 // ── Services ─────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");

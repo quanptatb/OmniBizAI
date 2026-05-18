@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using OmniBizAI.Data;
 using OmniBizAI.Models.Entities;
 using OmniBizAI.Models.Entities.Enums;
@@ -45,56 +46,160 @@ public class TenantContextService : ITenantContext
 }
 
 // ─── Dashboard ──────────────────────────────────────────────────────────────
-public class DashboardService(ApplicationDbContext db, ITenantContext tenant)
+public class DashboardService(ApplicationDbContext db, ITenantContext tenant, IMemoryCache cache)
 {
+    private static readonly TimeSpan DashboardCacheDuration = TimeSpan.FromSeconds(30);
+
     public async Task<DashboardViewModel> GetDashboardAsync()
     {
         var tid = tenant.TenantId;
-        var requests = await db.OperationRequests.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
+        var cacheKey = $"Dashboard:{tid}";
+        var snapshot = await cache.GetOrCreateAsync(cacheKey, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = DashboardCacheDuration;
+            return await BuildDashboardSnapshotAsync(tid);
+        }) ?? new DashboardViewModel();
+
+        return ApplyUserContext(snapshot);
+    }
+
+    private async Task<DashboardViewModel> BuildDashboardSnapshotAsync(Guid tenantId)
+    {
         var today = DateOnly.FromDateTime(DateTime.Today);
+        var currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var trendStartMonth = currentMonth.AddMonths(-5);
+        var trendEndMonth = currentMonth.AddMonths(1);
+        var trendStart = new DateTimeOffset(trendStartMonth, TimeZoneInfo.Local.GetUtcOffset(trendStartMonth));
+        var trendEnd = new DateTimeOffset(trendEndMonth, TimeZoneInfo.Local.GetUtcOffset(trendEndMonth));
+
+        var operationRequests = db.OperationRequests
+            .AsNoTracking()
+            .Where(r => r.TenantId == tenantId && !r.IsDeleted);
+
+        var requestMetrics = await operationRequests
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                Overdue = g.Count(r => r.DueDate.HasValue
+                    && r.DueDate.Value < today
+                    && r.Status != OperationStatus.Completed
+                    && r.Status != OperationStatus.Cancelled)
+            })
+            .FirstOrDefaultAsync();
+
+        var statusRows = await operationRequests
+            .GroupBy(r => r.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var createdTrendRows = await operationRequests
+            .Where(r => r.CreatedAt >= trendStart && r.CreatedAt < trendEnd)
+            .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Created = g.Count() })
+            .ToListAsync();
+
+        var completedTrendRows = await operationRequests
+            .Where(r => r.Status == OperationStatus.Completed
+                && r.UpdatedAt.HasValue
+                && r.UpdatedAt.Value >= trendStart
+                && r.UpdatedAt.Value < trendEnd)
+            .GroupBy(r => new { r.UpdatedAt!.Value.Year, r.UpdatedAt.Value.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Completed = g.Count() })
+            .ToListAsync();
+
+        var createdByMonth = createdTrendRows.ToDictionary(x => (x.Year, x.Month), x => x.Created);
+        var completedByMonth = completedTrendRows.ToDictionary(x => (x.Year, x.Month), x => x.Completed);
+        var monthStarts = Enumerable.Range(0, 6).Select(i => trendStartMonth.AddMonths(i)).ToList();
+
+        var recentRequestRows = await operationRequests
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(5)
+            .GroupJoin(
+                db.AppUsers.AsNoTracking().Where(u => u.TenantId == tenantId && !u.IsDeleted),
+                r => r.RequestedByUserId,
+                u => u.Id,
+                (r, users) => new { Request = r, Users = users })
+            .SelectMany(
+                x => x.Users.DefaultIfEmpty(),
+                (x, user) => new
+                {
+                    x.Request.Id,
+                    x.Request.RequestNo,
+                    x.Request.Title,
+                    x.Request.Type,
+                    x.Request.Status,
+                    x.Request.Priority,
+                    CreatedBy = user != null ? user.FullName : "",
+                    x.Request.CreatedAt,
+                    x.Request.DueDate
+                })
+            .ToListAsync();
 
         var vm = new DashboardViewModel
         {
-            UserFullName = tenant.UserFullName,
-            UserRole = tenant.Roles.FirstOrDefault() ?? "",
-            TenantName = tenant.TenantName,
-            TotalOperationRequests = requests.Count,
-            OverdueTasks = requests.Count(r => r.DueDate < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled),
-            PendingApprovals = await db.ApprovalTasks.CountAsync(t => t.TenantId == tid && t.Status == ApprovalStatus.Pending && !t.IsDeleted),
-            ActiveUsers = await db.AppUsers.CountAsync(u => u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted),
-            RequestsByStatus = requests.GroupBy(r => r.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
-            DeptWorkload = await db.OperationRequests.Where(r => r.TenantId == tid && !r.IsDeleted)
-                .Join(db.OrganizationUnits, r => r.OrganizationUnitId, o => o.Id, (r, o) => o.Name)
-                .GroupBy(n => n).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = g.Count() }).ToListAsync(),
-            MonthlyTrend = Enumerable.Range(-5, 6).Select(i => DateTime.Today.AddMonths(i))
-                .Select(m => new MonthlyTrendItem
+            TotalOperationRequests = requestMetrics?.Total ?? 0,
+            OverdueTasks = requestMetrics?.Overdue ?? 0,
+            PendingApprovals = await db.ApprovalTasks.AsNoTracking()
+                .CountAsync(t => t.TenantId == tenantId && t.Status == ApprovalStatus.Pending && !t.IsDeleted),
+            ActiveUsers = await db.AppUsers.AsNoTracking()
+                .CountAsync(u => u.TenantId == tenantId && u.Status == UserStatus.Active && !u.IsDeleted),
+            RequestsByStatus = statusRows
+                .Select(g => new StatusCountItem { Status = g.Status.ToString(), Count = g.Count })
+                .ToList(),
+            MonthlyTrend = monthStarts.Select(m => new MonthlyTrendItem
+            {
+                Month = m.ToString("MM/yyyy"),
+                Created = createdByMonth.GetValueOrDefault((m.Year, m.Month)),
+                Completed = completedByMonth.GetValueOrDefault((m.Year, m.Month))
+            }).ToList(),
+            RecentRequests = recentRequestRows.Select(r => new RecentRequestItem
+            {
+                Id = r.Id,
+                RequestNo = r.RequestNo,
+                Title = r.Title,
+                Type = r.Type,
+                Status = r.Status.ToString(),
+                Priority = r.Priority.ToString(),
+                CreatedBy = r.CreatedBy,
+                CreatedAt = r.CreatedAt,
+                DueDate = r.DueDate
+            }).ToList(),
+            RecentAudits = await db.AuditLogs.AsNoTracking()
+                .Where(a => a.TenantId == tenantId)
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(8)
+                .Select(a => new RecentAuditItem
                 {
-                    Month = m.ToString("MM/yyyy"),
-                    Created = requests.Count(r => r.CreatedAt.Year == m.Year && r.CreatedAt.Month == m.Month),
-                    Completed = requests.Count(r => r.Status == OperationStatus.Completed && r.UpdatedAt?.Year == m.Year && r.UpdatedAt?.Month == m.Month)
-                }).ToList(),
+                    Action = a.Action,
+                    UserName = a.UserName,
+                    EntityType = a.EntityName,
+                    OccurredAt = a.CreatedAt
+                })
+                .ToListAsync()
         };
-
-        vm.RecentRequests = await db.OperationRequests
-            .Where(r => r.TenantId == tid && !r.IsDeleted).OrderByDescending(r => r.CreatedAt).Take(5)
-            .Join(db.AppUsers, r => r.RequestedByUserId, u => u.Id, (r, u) => new RecentRequestItem
-            { Id = r.Id, RequestNo = r.RequestNo, Title = r.Title, Type = r.Type, Status = r.Status.ToString(), Priority = r.Priority.ToString(), CreatedBy = u.FullName, CreatedAt = r.CreatedAt, DueDate = r.DueDate })
-            .ToListAsync();
-
-        vm.RecentAudits = await db.AuditLogs.Where(a => a.TenantId == tid).OrderByDescending(a => a.CreatedAt).Take(8)
-            .Join(db.AppUsers.Where(u => u.TenantId == tid), a => a.UserId, u => u.Id, (a, u) => new RecentAuditItem
-            { Action = a.Action, UserName = u.FullName, EntityType = a.EntityName, OccurredAt = a.CreatedAt })
-            .ToListAsync();
-
-        vm.KpiSummaries = await db.KpiDefinitions.Where(k => k.TenantId == tid && k.IsActive && !k.IsDeleted).Take(4)
-            .Select(k => new KpiSummaryItem { Code = k.Code, Name = k.Name, Unit = k.Unit, Target = 100, Actual = null }).ToListAsync();
-
-        var budgets = await db.Budgets.Where(b => b.TenantId == tid && b.Status == BudgetStatus.Active && !b.IsDeleted).ToListAsync();
-        vm.TotalBudget = budgets.Sum(b => b.PlannedAmount);
-        vm.UsedBudget = budgets.Sum(b => b.Expenses.Sum(e => e.Amount));
 
         return vm;
     }
+
+    private DashboardViewModel ApplyUserContext(DashboardViewModel snapshot) => new()
+    {
+        UserFullName = tenant.UserFullName,
+        UserRole = tenant.Roles.FirstOrDefault() ?? "",
+        TenantName = tenant.TenantName,
+        TotalOperationRequests = snapshot.TotalOperationRequests,
+        PendingApprovals = snapshot.PendingApprovals,
+        OverdueTasks = snapshot.OverdueTasks,
+        ActiveUsers = snapshot.ActiveUsers,
+        RequestsByStatus = snapshot.RequestsByStatus.ToList(),
+        DeptWorkload = snapshot.DeptWorkload.ToList(),
+        MonthlyTrend = snapshot.MonthlyTrend.ToList(),
+        RecentRequests = snapshot.RecentRequests.ToList(),
+        RecentAudits = snapshot.RecentAudits.ToList(),
+        KpiSummaries = snapshot.KpiSummaries.ToList(),
+        TotalBudget = snapshot.TotalBudget,
+        UsedBudget = snapshot.UsedBudget
+    };
 }
 
 // ─── OperationRequest ────────────────────────────────────────────────────────
