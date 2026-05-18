@@ -422,4 +422,92 @@ INSERT INTO AuditLogs (Id, TenantId, UserId, UserName, [Action], EntityName, Ent
   (NEWID(), @T, @U04, N'Phạm Đức Anh', 'Update', 'WorkItem', @WorkItem1, '{"Status": "Todo"}', '{"Status": "InProgress"}', DATEADD(minute, -15, @Now), 0);
 
 PRINT N'✅ Part 4: CRM, Finance, Approvals, Evaluation, AI & Audit setup hoàn tất.';
+
+-- ============================================================================
+-- 5. EXTENDED DATA (Catalog, CRM, Procurement, Inventory, Cash, Leave, etc.)
+-- ============================================================================
+
+-- 5.1 Catalog (Categories, Products, UoM)
+DECLARE @UoM1 UNIQUEIDENTIFIER = 'U1000000-0000-0000-0000-000000000001';
+IF NOT EXISTS (SELECT 1 FROM UnitsOfMeasure WHERE Id = @UoM1)
+INSERT INTO UnitsOfMeasure (Id, TenantId, Code, [Name], IsActive, CreatedAt, IsDeleted) VALUES
+  (@UoM1, @T, 'LIC', N'License', 1, @Now, 0),
+  (NEWID(), @T, 'PCS', N'Cái / Chiếc', 1, @Now, 0);
+
+DECLARE @Cat1 UNIQUEIDENTIFIER = 'C1000000-0000-0000-0000-000000000001';
+DECLARE @Cat2 UNIQUEIDENTIFIER = 'C1000000-0000-0000-0000-000000000002';
+IF NOT EXISTS (SELECT 1 FROM ProductCategories WHERE Id = @Cat1)
+INSERT INTO ProductCategories (Id, TenantId, Code, [Name], SortOrder, IsActive, CreatedAt, IsDeleted) VALUES
+  (@Cat1, @T, 'SW', N'Software Solutions', 1, 1, @Now, 0),
+  (@Cat2, @T, 'HW', N'Hardware Equipment', 2, 1, @Now, 0);
+
+DECLARE @Prod1 UNIQUEIDENTIFIER = 'P1000000-0000-0000-0000-000000000001';
+DECLARE @Prod2 UNIQUEIDENTIFIER = 'P1000000-0000-0000-0000-000000000002';
+IF NOT EXISTS (SELECT 1 FROM ProductServices WHERE Id = @Prod1)
+INSERT INTO ProductServices (Id, TenantId, ProductCategoryId, UnitOfMeasureId, Code, [Name], [Type], BasePrice, IsActive, CreatedAt, IsDeleted) VALUES
+  (@Prod1, @T, @Cat1, @UoM1, 'SW-ERP', N'OmniBiz ERP Suite', 'Service', 150000000.0, 1, @Now, 0),
+  (@Prod2, @T, @Cat2, NULL, 'HW-SRV', N'Dell PowerEdge Server', 'Product', 80000000.0, 1, @Now, 0);
+
+-- 5.2 CRM (Opportunities, Interactions)
+DECLARE @Opp1 UNIQUEIDENTIFIER = 'O1000000-0000-0000-0000-000000000001';
+IF NOT EXISTS (SELECT 1 FROM SalesOpportunities WHERE Id = @Opp1)
+INSERT INTO SalesOpportunities (Id, TenantId, Title, CustomerId, Amount, Stage, Probability, ExpectedCloseDate, OwnerUserId, CreatedAt, IsDeleted) VALUES
+  (@Opp1, @T, N'Triển khai ERP cho Vingroup', @Cust2, 500000000.0, 'Proposal', 70, DATEADD(day, 30, @Now), @U07, @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM CrmInteractions WHERE OpportunityId = @Opp1)
+INSERT INTO CrmInteractions (Id, TenantId, CustomerId, OpportunityId, InteractionType, Notes, InteractionDate, HandledByUserId, CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, @Cust2, @Opp1, 'Meeting', N'Gặp mặt trực tiếp chốt yêu cầu', DATEADD(day, -2, @Now), @U07, @Now, 0);
+
+-- 5.3 Procurement & Inventory
+DECLARE @ProcReq UNIQUEIDENTIFIER = 'PR000000-0000-0000-0000-000000000001';
+IF NOT EXISTS (SELECT 1 FROM ProcurementRequests WHERE Id = @ProcReq)
+INSERT INTO ProcurementRequests (Id, TenantId, RequestNo, RequestedByUserId, OrganizationUnitId, TotalAmount, [Status], Priority, ExpectedDate, CreatedAt, IsDeleted) VALUES
+  (@ProcReq, @T, 'PR-2026-001', @U04, @IT, 80000000.0, 3, 2, DATEADD(day, 10, @Now), @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM ProcurementRequestLines WHERE ProcurementRequestId = @ProcReq)
+INSERT INTO ProcurementRequestLines (Id, TenantId, ProcurementRequestId, ProductId, Description, Quantity, UnitPrice, TotalPrice, CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, @ProcReq, @Prod2, N'Mua server mới', 1, 80000000.0, 80000000.0, @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM GoodsReceipts WHERE ReceiptNo = 'GR-2026-001')
+INSERT INTO GoodsReceipts (Id, TenantId, ReceiptNo, VendorId, PurchaseOrderId, ReceiptDate, ReceivedByUserId, [Status], CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, 'GR-2026-001', @Vendor1, NULL, @Now, @U09, 2, @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM StockAlerts WHERE ProductId = @Prod2)
+INSERT INTO StockAlerts (Id, TenantId, ProductId, AlertType, Message, [Status], CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, @Prod2, 'LowStock', N'Server tồn kho bằng 0', 1, @Now, 0);
+
+-- 5.4 Cash Transactions
+IF NOT EXISTS (SELECT 1 FROM CashTransactions WHERE TransactionNo = 'CT-2026-IN-01')
+INSERT INTO CashTransactions (Id, TenantId, TransactionNo, TransactionType, Category, Amount, TransactionDate, RecordedByUserId, [Status], CreatedAt, IsDeleted, Description) VALUES
+  (NEWID(), @T, 'CT-2026-IN-01', 'Income', N'Bán hàng', 150000000.0, CAST(@Now AS DATE), @U15, 2, @Now, 0, N'Thu tiền phần mềm'),
+  (NEWID(), @T, 'CT-2026-OUT-01', 'Expense', N'Văn phòng', 2000000.0, CAST(@Now AS DATE), @U15, 2, @Now, 0, N'Mua văn phòng phẩm');
+
+-- 5.5 Leave Requests
+IF NOT EXISTS (SELECT 1 FROM LeaveRequests WHERE UserId = @U04)
+INSERT INTO LeaveRequests (Id, TenantId, UserId, LeaveType, StartDate, EndDate, TotalDays, Reason, [Status], CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, @U04, 1, DATEADD(day, 5, @Now), DATEADD(day, 6, @Now), 2, N'Nghỉ phép cá nhân', 2, @Now, 0);
+
+-- 5.6 Settings, Parameters, Tags
+IF NOT EXISTS (SELECT 1 FROM SystemParameters WHERE Code = 'SYS_LOCALE')
+INSERT INTO SystemParameters (Id, TenantId, Code, [Value], Description, IsReadOnly, CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, 'SYS_LOCALE', 'vi-VN', N'Ngôn ngữ hệ thống', 1, @Now, 0),
+  (NEWID(), @T, 'CURRENCY', 'VND', N'Tiền tệ mặc định', 0, @Now, 0);
+
+DECLARE @Tag1 UNIQUEIDENTIFIER = 'T1000000-0000-0000-0000-000000000001';
+IF NOT EXISTS (SELECT 1 FROM Tags WHERE Id = @Tag1)
+INSERT INTO Tags (Id, TenantId, Name, ColorCode, CreatedAt, IsDeleted) VALUES
+  (@Tag1, @T, 'VIP', '#FF3B30', @Now, 0),
+  (NEWID(), @T, 'Urgent', '#FF9F0A', @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM EntityTags WHERE TagId = @Tag1)
+INSERT INTO EntityTags (TenantId, EntityType, EntityId, TagId) VALUES
+  (@T, 'Customer', @Cust2, @Tag1);
+
+-- 5.7 Work Calendar
+IF NOT EXISTS (SELECT 1 FROM WorkCalendars WHERE TenantId = @T)
+INSERT INTO WorkCalendars (Id, TenantId, Title, Date, IsHoliday, IsWorkingDay, Note, CreatedAt, IsDeleted) VALUES
+  (NEWID(), @T, N'Tết Dương Lịch', '2026-01-01', 1, 0, N'Nghỉ lễ đầu năm', @Now, 0),
+  (NEWID(), @T, N'Quốc Khánh', '2026-09-02', 1, 0, N'Nghỉ lễ Quốc Khánh', @Now, 0);
+
+PRINT N'✅ Part 5: Extended Data (Catalog, CRM, Procurement, Inventory, Cash, Leave, etc.) setup hoàn tất.';
 PRINT N'🎉 Seed Data Master Script hoàn tất.';

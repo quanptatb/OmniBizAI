@@ -58,8 +58,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZXNldFBhc3N3b3JkQ29uZmlybWF0aW9uLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/AiInsights/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWlJbnNpZ2h0c1xEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/AiInsights/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWlJbnNpZ2h0c1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/AiInsights/Recommendations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWlJbnNpZ2h0c1xSZWNvbW1lbmRhdGlvbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/AnomalyAlerts/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQW5vbWFseUFsZXJ0c1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Approvals/Details.cshtml]
@@ -72,6 +84,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Audit/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXVkaXRcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Backup/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmFja3VwXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/CashBook/Create.cshtml]
@@ -424,6 +440,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/Executive.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xFeGVjdXRpdmUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/ExportCenter.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xFeHBvcnRDZW50ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Cua/Desktop/proj/OmniBizAI/Views/Reports/Finance.cshtml]

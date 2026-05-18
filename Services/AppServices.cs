@@ -1146,10 +1146,11 @@ public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, Ge
     async Task<BizCtx> BuildContextAsync(Guid tid, DateOnly today)
     {
         var som = new DateOnly(today.Year, today.Month, 1);
+        var somDto = new DateTimeOffset(som.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         return new BizCtx(
             await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted),
             await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.DueDate < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled),
-            await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.Status == OperationStatus.Completed && r.UpdatedAt.HasValue && DateOnly.FromDateTime(r.UpdatedAt.Value.DateTime) >= som),
+            await db.OperationRequests.CountAsync(r => r.TenantId == tid && !r.IsDeleted && r.Status == OperationStatus.Completed && r.UpdatedAt.HasValue && r.UpdatedAt.Value >= somDto),
             await db.ApprovalTasks.CountAsync(t => t.TenantId == tid && t.Status == ApprovalStatus.Pending && !t.IsDeleted),
             await db.AppUsers.CountAsync(u => u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted),
             await db.OrganizationUnits.CountAsync(o => o.TenantId == tid && o.IsActive && !o.IsDeleted),
