@@ -3081,3 +3081,72 @@ public class ChangePasswordViewModel
     public string ConfirmPassword { get; set; } = "";
 }
 
+
+public class ResourceManagementDashboardViewModel
+{
+    public HumanResourceOverviewViewModel Human { get; set; } = new();
+    public EquipmentResourceOverviewViewModel Equipment { get; set; } = new();
+    public InventoryResourceOverviewViewModel Inventory { get; set; } = new();
+    public InfrastructureResourceOverviewViewModel Infrastructure { get; set; } = new();
+}
+
+public class HumanResourceOverviewViewModel
+{
+    public int TotalEmployees { get; set; }
+    public int OnLeaveToday { get; set; }
+    public int PendingLeaves { get; set; }
+    public decimal AvgPerformanceScore { get; set; }
+}
+
+public class EquipmentResourceOverviewViewModel
+{
+    public int TotalMaintenanceRequests { get; set; }
+    public int ActiveMaintenanceRequests { get; set; }
+    public int CompletedMaintenanceRequests { get; set; }
+    public int OverdueMaintenanceRequests { get; set; }
+}
+
+public class InventoryResourceOverviewViewModel
+{
+    public int TotalProducts { get; set; }
+    public int ActiveStockAlerts { get; set; }
+    public int GoodsReceiptCount { get; set; }
+    public int GoodsIssueCount { get; set; }
+}
+
+public class InfrastructureResourceOverviewViewModel
+{
+    public int TotalDepartments { get; set; }
+    public int TotalPositions { get; set; }
+    public int TotalWorkCalendars { get; set; }
+    public int TotalCustomerSites { get; set; }
+}
+
+public class MaintenanceDashboardViewModel
+{
+    public string? Mode { get; set; }
+    public int TotalRequests { get; set; }
+    public int PreventiveCount { get; set; }
+    public int CorrectiveCount { get; set; }
+    public int OverdueCount { get; set; }
+    public int CompletedCount { get; set; }
+    public int TotalSparePartLines { get; set; }
+    public decimal TotalSparePartQuantity { get; set; }
+    public int IotSignalCount { get; set; }
+    public List<MaintenanceRequestItemViewModel> Requests { get; set; } = new();
+}
+
+public class MaintenanceRequestItemViewModel
+{
+    public Guid Id { get; set; }
+    public string RequestNo { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public DateOnly? DueDate { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public decimal? TotalAmount { get; set; }
+    public int SparePartLines { get; set; }
+    public decimal SparePartQuantity { get; set; }
+}

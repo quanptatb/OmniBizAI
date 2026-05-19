@@ -1,0 +1,66 @@
+@model OmniBizAI.ViewModels.ResourceManagementDashboardViewModel
+@{
+    ViewData["Title"] = "Quản lý tài nguyên";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Quản lý tài nguyên</span>";
+}
+
+<div class="content-card mb-3">
+    <div class="card-body-custom">
+        <h5 class="mb-1"><i class="fa-solid fa-industry me-2" style="color:var(--apple-blue)"></i>Quản lý tài nguyên vận hành</h5>
+        <div style="color:var(--text-muted)">Theo dõi 4 nhóm tài nguyên cốt lõi: Nhân lực, Thiết bị/Máy móc, Vật tư/Kho, Cơ sở hạ tầng.</div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>👥 Nhân lực</h6>
+            <div class="small text-muted mb-2">Ca làm việc, năng lực, chứng chỉ, hiệu suất</div>
+            <ul class="mb-0">
+                <li>Tổng nhân sự: <b>@Model.Human.TotalEmployees</b></li>
+                <li>Đang nghỉ hôm nay: <b>@Model.Human.OnLeaveToday</b></li>
+                <li>Đơn nghỉ chờ duyệt: <b>@Model.Human.PendingLeaves</b></li>
+                <li>Điểm hiệu suất TB: <b>@Model.Human.AvgPerformanceScore.ToString("0.0")</b></li>
+            </ul>
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>🛠️ Thiết bị / Máy móc</h6>
+            <div class="small text-muted mb-2">Trạng thái, lịch bảo trì, tuổi thọ</div>
+            <ul class="mb-0">
+                <li>Yêu cầu bảo trì: <b>@Model.Equipment.TotalMaintenanceRequests</b></li>
+                <li>Đang xử lý: <b>@Model.Equipment.ActiveMaintenanceRequests</b></li>
+                <li>Hoàn thành: <b>@Model.Equipment.CompletedMaintenanceRequests</b></li>
+                <li>Quá hạn: <b>@Model.Equipment.OverdueMaintenanceRequests</b></li>
+            </ul>
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>📦 Vật tư / Kho</h6>
+            <div class="small text-muted mb-2">Tồn kho, nhập xuất, cảnh báo tồn kho thấp</div>
+            <ul class="mb-0">
+                <li>Sản phẩm quản lý: <b>@Model.Inventory.TotalProducts</b></li>
+                <li>Cảnh báo tồn kho: <b>@Model.Inventory.ActiveStockAlerts</b></li>
+                <li>Phiếu nhập: <b>@Model.Inventory.GoodsReceiptCount</b></li>
+                <li>Phiếu xuất: <b>@Model.Inventory.GoodsIssueCount</b></li>
+            </ul>
+        </div></div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>🏢 Cơ sở hạ tầng</h6>
+            <div class="small text-muted mb-2">Mặt bằng, phòng ban, vị trí làm việc</div>
+            <ul class="mb-0">
+                <li>Phòng ban: <b>@Model.Infrastructure.TotalDepartments</b></li>
+                <li>Vị trí làm việc/chức danh: <b>@Model.Infrastructure.TotalPositions</b></li>
+                <li>Lịch làm việc: <b>@Model.Infrastructure.TotalWorkCalendars</b></li>
+                <li>Điểm cơ sở (site): <b>@Model.Infrastructure.TotalCustomerSites</b></li>
+            </ul>
+        </div></div>
+    </div>
+</div>
