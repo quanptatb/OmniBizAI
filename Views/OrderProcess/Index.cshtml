@@ -1,0 +1,43 @@
+@model OmniBizAI.ViewModels.OrderProcessDashboardViewModel
+@{
+    ViewData["Title"] = "Quản lý đơn hàng & quy trình";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Đơn hàng & Quy trình</span>";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">📦 Quản lý Đơn hàng & Quy trình</h4>
+    <a asp-controller="Operations" asp-action="Create" class="btn btn-primary btn-sm">+ Tiếp nhận đơn mới</a>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.TotalOrders</div><div class="stat-label">Tổng đơn</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.ProcessingOrders</div><div class="stat-label">Đang xử lý</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.CompletedOrders</div><div class="stat-label">Hoàn thành</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">@Model.PendingApprovals</div><div class="stat-label">Phê duyệt nhiều cấp chờ</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">@Model.QaCheckedOrders</div><div class="stat-label">Đơn đã có kiểm soát QC/QA</div></div></div>
+</div>
+<div class="content-card mb-3"><div class="card-body-custom d-flex gap-2 align-items-center">
+    <a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(Model.StatusFilter)?"btn-primary":"btn-light")">Tất cả</a>
+    <a asp-action="Index" asp-route-status="Submitted" class="btn btn-sm @(Model.StatusFilter=="Submitted"?"btn-primary":"btn-light")">Mới tiếp nhận</a>
+    <a asp-action="Index" asp-route-status="InProgress" class="btn btn-sm @(Model.StatusFilter=="InProgress"?"btn-primary":"btn-light")">Đang xử lý</a>
+    <a asp-action="Index" asp-route-status="Completed" class="btn btn-sm @(Model.StatusFilter=="Completed"?"btn-primary":"btn-light")">Hoàn thành</a>
+    <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-sm btn-light ms-auto">Mở Workflow Kanban</a>
+</div></div>
+<div class="content-card"><div class="card-body-custom p-0 table-responsive">
+<table class="data-table">
+<thead><tr><th class="ps-3">Mã đơn</th><th>Nội dung</th><th>Workflow</th><th>QC/QA</th><th>Truy xuất</th><th class="text-end pe-3"></th></tr></thead>
+<tbody>
+@foreach (var o in Model.Items)
+{
+<tr>
+<td class="ps-3">@o.RequestNo</td>
+<td><div style="font-weight:600">@o.Title</div><div class="small text-muted">@o.Type • @o.Status</div></td>
+<td><span>@o.ApprovedLevels/@o.ApprovalLevels duyệt</span><div class="small text-muted">@o.PendingApprovalLevels chờ duyệt</div></td>
+<td>@(o.QcPassRate.HasValue ? o.QcPassRate + "% đạt" : "Chưa có dữ liệu")</td>
+<td><code>@o.TraceabilityCode</code></td>
+<td class="text-end pe-3"><a asp-controller="Operations" asp-action="Details" asp-route-id="@o.Id" class="btn btn-sm btn-light">Chi tiết</a></td>
+</tr>
+}
+@if (!Model.Items.Any())
+{ <tr><td colspan="6" class="text-center py-4 text-muted">Không có đơn hàng phù hợp.</td></tr> }
+</tbody>
+</table>
+</div></div>
