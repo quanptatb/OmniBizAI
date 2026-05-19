@@ -3121,3 +3121,32 @@ public class InfrastructureResourceOverviewViewModel
     public int TotalWorkCalendars { get; set; }
     public int TotalCustomerSites { get; set; }
 }
+
+public class MaintenanceDashboardViewModel
+{
+    public string? Mode { get; set; }
+    public int TotalRequests { get; set; }
+    public int PreventiveCount { get; set; }
+    public int CorrectiveCount { get; set; }
+    public int OverdueCount { get; set; }
+    public int CompletedCount { get; set; }
+    public int TotalSparePartLines { get; set; }
+    public decimal TotalSparePartQuantity { get; set; }
+    public int IotSignalCount { get; set; }
+    public List<MaintenanceRequestItemViewModel> Requests { get; set; } = new();
+}
+
+public class MaintenanceRequestItemViewModel
+{
+    public Guid Id { get; set; }
+    public string RequestNo { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public DateOnly? DueDate { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public decimal? TotalAmount { get; set; }
+    public int SparePartLines { get; set; }
+    public decimal SparePartQuantity { get; set; }
+}

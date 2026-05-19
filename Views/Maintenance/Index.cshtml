@@ -1,0 +1,49 @@
+@model OmniBizAI.ViewModels.MaintenanceDashboardViewModel
+@{
+    ViewData["Title"] = "Quản lý bảo trì";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Bảo trì</span>";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="fa-solid fa-screwdriver-wrench me-2" style="color:var(--apple-blue)"></i>Quản lý bảo trì</h4>
+    <div class="d-flex gap-2">
+        <a asp-controller="Operations" asp-action="Create" asp-route-type="Maintenance_PM" class="btn btn-outline-primary btn-sm">+ Tạo PM</a>
+        <a asp-controller="Operations" asp-action="Create" asp-route-type="Maintenance_CM" class="btn btn-primary btn-sm">+ Tạo CM</a>
+    </div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.TotalRequests</div><div class="stat-label">Tổng yêu cầu</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.PreventiveCount</div><div class="stat-label">PM định kỳ</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.CorrectiveCount</div><div class="stat-label">CM sự cố</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.CompletedCount</div><div class="stat-label">Hoàn thành</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.OverdueCount</div><div class="stat-label">Quá hạn</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.IotSignalCount</div><div class="stat-label">Tín hiệu IoT</div></div></div>
+</div>
+<div class="content-card mb-3"><div class="card-body-custom d-flex gap-2">
+    <a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(Model.Mode)?"btn-primary":"btn-light")">Tất cả</a>
+    <a asp-action="Index" asp-route-mode="PM" class="btn btn-sm @(Model.Mode=="PM"?"btn-primary":"btn-light")">PM</a>
+    <a asp-action="Index" asp-route-mode="CM" class="btn btn-sm @(Model.Mode=="CM"?"btn-primary":"btn-light")">CM</a>
+    <div class="ms-auto small text-muted">Phụ tùng thay thế: <b>@Model.TotalSparePartLines</b> dòng / <b>@Model.TotalSparePartQuantity</b> SL</div>
+</div></div>
+<div class="content-card">
+    <div class="card-body-custom p-0 table-responsive">
+        <table class="data-table">
+            <thead><tr><th class="ps-3">Mã</th><th>Hạng mục</th><th>Loại</th><th>Trạng thái</th><th>Phụ tùng</th><th>Hạn</th><th class="text-end pe-3"></th></tr></thead>
+            <tbody>
+            @foreach (var r in Model.Requests)
+            {
+                <tr>
+                    <td class="ps-3">@r.RequestNo</td>
+                    <td>@r.Title</td>
+                    <td>@(r.Type == "Maintenance_PM" ? "PM" : r.Type == "Maintenance_CM" ? "CM" : "Maintenance")</td>
+                    <td>@r.Status</td>
+                    <td>@r.SparePartLines dòng / @r.SparePartQuantity</td>
+                    <td>@(r.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                    <td class="text-end pe-3"><a asp-controller="Operations" asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-light">Chi tiết</a></td>
+                </tr>
+            }
+            @if (!Model.Requests.Any())
+            { <tr><td colspan="7" class="text-center py-4 text-muted">Chưa có dữ liệu bảo trì.</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
