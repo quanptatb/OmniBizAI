@@ -129,6 +129,11 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<ReportDefinition> ReportDefinitions => Set<ReportDefinition>();
     public DbSet<DashboardWidget> DashboardWidgets => Set<DashboardWidget>();
 
+    // Planning & Scheduling
+    public DbSet<Equipment> Equipments => Set<Equipment>();
+    public DbSet<OperationPlan> OperationPlans => Set<OperationPlan>();
+    public DbSet<PlanTask> PlanTasks => Set<PlanTask>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

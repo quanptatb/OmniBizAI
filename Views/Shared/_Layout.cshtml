@@ -50,6 +50,11 @@
                 </a>
 
                 <div class="nav-section-label">VẬN HÀNH</div>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OperationPlans" ? "active" : "")"
+                   asp-controller="OperationPlans" asp-action="Index">
+                    <i class="fa-solid fa-calendar-alt"></i>
+                    <span>Kế hoạch & Lịch trình</span>
+                </a>
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Operations" ? "active" : "")"
                    asp-controller="Operations" asp-action="Index">
                     <i class="fa-solid fa-list-check"></i>

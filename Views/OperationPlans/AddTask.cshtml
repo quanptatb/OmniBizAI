@@ -1,0 +1,83 @@
+@model OmniBizAI.ViewModels.PlanTaskCreateViewModel
+@{
+    ViewData["Title"] = "Thêm Công Việc Mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">Thêm Công Việc Mới</h2>
+    <a asp-action="Details" asp-route-id="@Model.PlanId" class="btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50"></i> Quay lại kế hoạch
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông tin công việc</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="AddTask" method="post">
+                    <input type="hidden" asp-for="PlanId" />
+                    
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-bold">Tên công việc <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="Ví dụ: Kiểm tra chất lượng máy A" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartTime" class="form-label fw-bold">Bắt đầu <span class="text-danger">*</span></label>
+                            <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="StartTime" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndTime" class="form-label fw-bold">Hạn hoàn thành (Deadline) <span class="text-danger">*</span></label>
+                            <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="EndTime" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="AssignedUserId" class="form-label fw-bold">Phân công cho nhân sự</label>
+                            <select asp-for="AssignedUserId" class="form-select">
+                                <option value="">-- Chọn nhân sự (Không bắt buộc) --</option>
+                                @foreach (var u in Model.Users)
+                                {
+                                    <option value="@u.Value">@u.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EquipmentId" class="form-label fw-bold">Thiết bị / Máy móc</label>
+                            <select asp-for="EquipmentId" class="form-select">
+                                <option value="">-- Chọn thiết bị (Không bắt buộc) --</option>
+                                @foreach (var e in Model.Equipments)
+                                {
+                                    <option value="@e.Value">@e.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-bold">Mô tả công việc</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Chi tiết các bước thực hiện..."></textarea>
+                    </div>
+                    
+                    <hr />
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary px-4">Lưu Công Việc</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

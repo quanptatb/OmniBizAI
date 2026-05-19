@@ -1,0 +1,66 @@
+@model OmniBizAI.ViewModels.OperationPlanCreateViewModel
+@{
+    ViewData["Title"] = "Khởi tạo Kế hoạch mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">Khởi tạo Kế hoạch</h2>
+    <a asp-action="Index" class="btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50"></i> Quay lại
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông tin kế hoạch</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-bold">Tên kế hoạch <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="Ví dụ: Kế hoạch sản xuất tháng 6/2026" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="PlanType" class="form-label fw-bold">Loại Kế hoạch</label>
+                            <select asp-for="PlanType" class="form-select">
+                                <option value="Daily">Kế hoạch Ngày</option>
+                                <option value="Weekly">Kế hoạch Tuần</option>
+                                <option value="Monthly">Kế hoạch Tháng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="StartDate" class="form-label fw-bold">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input asp-for="StartDate" type="date" class="form-control" />
+                            <span asp-validation-for="StartDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="EndDate" class="form-label fw-bold">Ngày kết thúc <span class="text-danger">*</span></label>
+                            <input asp-for="EndDate" type="date" class="form-control" />
+                            <span asp-validation-for="EndDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">Ghi chú / Mục tiêu chung</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú thêm về kế hoạch này..."></textarea>
+                    </div>
+                    
+                    <hr />
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary px-4">Lưu Kế Hoạch</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -51,6 +51,7 @@ builder.Services.AddScoped<OperationRequestService>();
 builder.Services.AddScoped<WorkKanbanService>();
 builder.Services.AddScoped<ApprovalService>();
 builder.Services.AddScoped<AiInsightService>();
+builder.Services.AddScoped<OperationPlanService>();
 
 // KPI/OKR Services (merged from Manage-KPI-or-OKR-System)
 builder.Services.AddScoped<OkrService>();

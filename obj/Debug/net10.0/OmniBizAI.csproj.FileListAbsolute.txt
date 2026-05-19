@@ -170,7 +170,6 @@ C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\scopedcss\projectbundle\Om
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\seket66tel-{0}-vdbi9uel12-vdbi9uel12.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\lhby38vocg-{0}-58r7kt65xe-58r7kt65xe.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\ay0o8fpmjs-{0}-61n19gt1b8-61n19gt1b8.gz
-C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\xb8xh16tom-{0}-ouvfmhenmw-ouvfmhenmw.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\cgd9ykcks9-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\iyqadpnk42-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\djrgg8gepy-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -243,3 +242,4 @@ C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\refint\OmniBizAI.dll
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\OmniBizAI.pdb
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\OmniBizAI.genruntimeconfig.cache
 C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\ref\OmniBizAI.dll
+C:\Users\Cua\Desktop\proj\OmniBizAI\obj\Debug\net10.0\compressed\xb8xh16tom-{0}-0l38pa509q-0l38pa509q.gz

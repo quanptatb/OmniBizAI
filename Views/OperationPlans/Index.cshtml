@@ -1,0 +1,74 @@
+@model List<OmniBizAI.ViewModels.OperationPlanListViewModel>
+@{
+    ViewData["Title"] = "Quản lý Lịch trình & Kế hoạch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">Quản lý Lịch trình & Kế hoạch</h2>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50"></i> Lập Kế Hoạch
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã KH</th>
+                        <th>Tên Kế Hoạch</th>
+                        <th>Loại</th>
+                        <th>Thời Gian</th>
+                        <th>Tiến Độ</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">Chưa có kế hoạch nào được lập.</td></tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><strong>@item.Code</strong></td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none fw-bold">@item.Title</a>
+                                <div class="text-muted small">@item.TaskCount công việc</div>
+                            </td>
+                            <td><span class="badge bg-secondary">@item.PlanType</span></td>
+                            <td>
+                                <div class="small"><i class="fas fa-calendar-alt text-muted"></i> @item.StartDate.ToString("dd/MM/yyyy") - @item.EndDate.ToString("dd/MM/yyyy")</div>
+                            </td>
+                            <td style="min-width: 150px;">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2 small fw-bold">@item.ProgressPercent%</span>
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar @(item.ProgressPercent == 100 ? "bg-success" : (item.ProgressPercent < 30 ? "bg-danger" : "bg-primary"))" 
+                                             role="progressbar" style="width: @item.ProgressPercent%" 
+                                             aria-valuenow="@item.ProgressPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if(item.Status == "Draft") { <span class="badge bg-secondary">Nháp</span> }
+                                else if(item.Status == "Approved") { <span class="badge bg-info">Đã Duyệt</span> }
+                                else if(item.Status == "InProgress") { <span class="badge bg-primary">Đang Thực Hiện</span> }
+                                else if(item.Status == "Completed") { <span class="badge bg-success">Hoàn Thành</span> }
+                                else { <span class="badge bg-dark">@item.Status</span> }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                    Chi tiết <i class="fas fa-chevron-right ms-1"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

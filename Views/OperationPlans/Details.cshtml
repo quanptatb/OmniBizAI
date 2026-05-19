@@ -1,0 +1,139 @@
+@model OmniBizAI.ViewModels.OperationPlanDetailViewModel
+@{
+    ViewData["Title"] = $"Kế hoạch: {Model.Code}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var aiAnalysis = TempData["AiAnalysis"] as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">
+        @Model.Title 
+        @if(Model.Status == "Draft") { <span class="badge bg-secondary ms-2 fs-6">Nháp</span> }
+        else if(Model.Status == "Approved") { <span class="badge bg-info ms-2 fs-6">Đã Duyệt</span> }
+        else if(Model.Status == "InProgress") { <span class="badge bg-primary ms-2 fs-6">Đang Thực Hiện</span> }
+        else if(Model.Status == "Completed") { <span class="badge bg-success ms-2 fs-6">Hoàn Thành</span> }
+    </h2>
+    <div>
+        <form asp-action="Analyze" asp-route-id="@Model.Id" method="post" class="d-inline">
+            <button type="submit" class="btn btn-warning shadow-sm me-2">
+                <i class="fas fa-magic fa-sm text-dark"></i> Phân tích AI Copilot
+            </button>
+        </form>
+        <a asp-action="Index" class="btn btn-secondary shadow-sm">Quay lại</a>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(aiAnalysis))
+{
+    <div class="alert alert-warning shadow-sm mb-4 border-left-warning">
+        <h5 class="alert-heading text-warning fw-bold"><i class="fas fa-robot me-2"></i> AI Copilot Đề Xuất</h5>
+        <hr>
+        <div class="text-dark" style="white-space: pre-wrap;">@aiAnalysis</div>
+    </div>
+}
+
+<div class="row">
+    <!-- Cột thông tin chung -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Kế Hoạch</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="text-muted small fw-bold text-uppercase">Mã KH</span>
+                    <div class="fw-bold fs-5">@Model.Code</div>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted small fw-bold text-uppercase">Loại Kế Hoạch</span>
+                    <div>@Model.PlanType</div>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted small fw-bold text-uppercase">Thời gian thực hiện</span>
+                    <div>@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="mb-4">
+                    <span class="text-muted small fw-bold text-uppercase">Tiến độ tổng thể (@Model.ProgressPercent%)</span>
+                    <div class="progress mt-1" style="height: 12px;">
+                        <div class="progress-bar @(Model.ProgressPercent == 100 ? "bg-success" : (Model.ProgressPercent < 30 ? "bg-danger" : "bg-primary"))" 
+                             role="progressbar" style="width: @Model.ProgressPercent%" 
+                             aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                @if(!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="mb-3">
+                        <span class="text-muted small fw-bold text-uppercase">Ghi chú</span>
+                        <div class="fst-italic text-secondary bg-light p-2 rounded border">@Model.Notes</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột danh sách công việc -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Danh Sách Công Việc (@Model.Tasks.Count)</h6>
+                <a asp-action="AddTask" asp-route-id="@Model.Id" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus fa-sm"></i> Thêm Công Việc
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @if (!Model.Tasks.Any())
+                    {
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-tasks fa-3x mb-3 text-gray-300"></i>
+                            <p>Kế hoạch này chưa có công việc nào.</p>
+                            <a asp-action="AddTask" asp-route-id="@Model.Id" class="btn btn-outline-primary mt-2">Bắt đầu thêm công việc</a>
+                        </div>
+                    }
+                    @foreach (var task in Model.Tasks)
+                    {
+                        var isDelayed = task.Status == "Delayed";
+                        <div class="list-group-item p-3 @(isDelayed ? "bg-danger bg-opacity-10" : "")">
+                            <div class="row align-items-center">
+                                <div class="col-md-5">
+                                    <h6 class="fw-bold mb-1 text-dark">
+                                        @task.Name 
+                                        @if(isDelayed) { <span class="badge bg-danger ms-1">Trễ Hạn</span> }
+                                    </h6>
+                                    <div class="small text-muted mb-2">@task.Description</div>
+                                    <div class="d-flex align-items-center gap-2 small text-primary">
+                                        @if(!string.IsNullOrEmpty(task.AssignedUserName)) {
+                                            <span title="Người phụ trách"><i class="fas fa-user-circle"></i> @task.AssignedUserName</span>
+                                        }
+                                        @if(!string.IsNullOrEmpty(task.EquipmentName)) {
+                                            <span title="Thiết bị" class="ms-2"><i class="fas fa-cogs"></i> @task.EquipmentName</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-center mt-3 mt-md-0">
+                                    <div class="small fw-bold text-muted mb-1"><i class="far fa-clock"></i> Thời gian</div>
+                                    <div class="small @(isDelayed ? "text-danger fw-bold" : "text-dark")">
+                                        @task.StartTime.ToString("dd/MM HH:mm") - @task.EndTime.ToString("dd/MM HH:mm")
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                                    <div class="small fw-bold text-muted mb-1">Tiến độ (@task.ProgressPercent%)</div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar @(task.ProgressPercent == 100 ? "bg-success" : (isDelayed ? "bg-danger" : "bg-primary"))" 
+                                             role="progressbar" style="width: @task.ProgressPercent%" 
+                                             aria-valuenow="@task.ProgressPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        @if(task.Status == "Todo") { <span class="badge bg-secondary">Cần làm</span> }
+                                        else if(task.Status == "InProgress") { <span class="badge bg-primary">Đang làm</span> }
+                                        else if(task.Status == "Done") { <span class="badge bg-success">Xong</span> }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
