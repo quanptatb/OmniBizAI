@@ -61,14 +61,14 @@
 <div class="content-card mb-4">
     <div class="card-body-custom py-3">
         <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6 col-12">
                 <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0" style="border-radius:8px 0 0 8px"><i class="fa-solid fa-search" style="font-size:.75rem;color:var(--text-muted)"></i></span>
                     <input type="text" name="search" value="@Model.SearchTerm" class="form-control bg-light border-start-0" placeholder="Mã, mô tả..." style="border-radius:0 8px 8px 0">
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label text-muted small fw-bold">Loại</label>
                 <select name="type" class="form-select" style="border-radius:8px">
                     <option value="">Tất cả</option>
@@ -76,18 +76,18 @@
                     <option value="Expense" selected="@(Model.TypeFilter == "Expense")">📤 Chi</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-3 col-6">
                 <label class="form-label text-muted small fw-bold">Trạng thái</label>
                 <select name="status" class="form-select" style="border-radius:8px">
                     @foreach (var s in EnumHelper.GetSelectList<CashTransactionStatus>(Model.StatusFilter, includeAll: true))
                     { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-4 col-12">
                 <label class="form-label text-muted small fw-bold">Từ ngày</label>
                 <input type="date" name="from" value="@Model.FromDate?.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:8px" />
             </div>
-            <div class="col-md-3 d-flex gap-2">
+            <div class="col-lg-3 col-md-8 col-12 d-flex gap-2 btn-responsive-group">
                 <button type="submit" class="btn btn-primary flex-grow-1" style="border-radius:8px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
                 <a asp-action="Index" class="btn btn-light border" style="border-radius:8px"><i class="fa-solid fa-rotate-left"></i></a>
                 <div class="dropdown">

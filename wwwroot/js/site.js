@@ -167,10 +167,101 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('click', (e) => {
         const panel = document.getElementById('notifPanel');
         const btn = document.getElementById('notifBtn');
-        if (panel && panel.style.display !== 'none' && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
-            panel.style.display = 'none';
+        if (panel && panel.classList.contains('show') && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+            panel.classList.remove('show');
         }
     });
+
+    // ── Kanban Drag & Drop ──────────────────────────────────────
+    const kanbanBoard = document.querySelector('.kanban-board');
+    if (kanbanBoard) {
+        initializeKanbanDragAndDrop();
+    }
+
+    function initializeKanbanDragAndDrop() {
+        const cards = kanbanBoard.querySelectorAll('.kanban-card');
+        const columnLists = kanbanBoard.querySelectorAll('.kanban-card-list');
+
+        const classToStatusMap = {
+            'col-todo': 'Todo',
+            'col-progress': 'InProgress',
+            'col-blocked': 'Blocked',
+            'col-done': 'Done',
+            'col-cancelled': 'Cancelled'
+        };
+
+        let draggedCard = null;
+        let validStatuses = [];
+
+        cards.forEach(card => {
+            card.setAttribute('draggable', 'true');
+
+            card.addEventListener('dragstart', (e) => {
+                draggedCard = card;
+                card.classList.add('dragging');
+
+                validStatuses = Array.from(
+                    card.querySelectorAll('.kanban-actions form input[name="Status"]')
+                ).map(input => input.value);
+
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', '');
+            });
+
+            card.addEventListener('dragend', () => {
+                draggedCard = null;
+                validStatuses = [];
+                card.classList.remove('dragging');
+                columnLists.forEach(list => list.classList.remove('drag-over'));
+            });
+        });
+
+        columnLists.forEach(list => {
+            const column = list.closest('.kanban-column');
+            if (!column) return;
+
+            let colStatus = null;
+            for (const [cls, statusVal] of Object.entries(classToStatusMap)) {
+                if (column.classList.contains(cls)) {
+                    colStatus = statusVal;
+                    break;
+                }
+            }
+
+            list.addEventListener('dragover', (e) => {
+                if (!draggedCard || !colStatus) return;
+
+                if (validStatuses.includes(colStatus)) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    list.classList.add('drag-over');
+                }
+            });
+
+            list.addEventListener('dragleave', () => {
+                list.classList.remove('drag-over');
+            });
+
+            list.addEventListener('drop', (e) => {
+                e.preventDefault();
+                list.classList.remove('drag-over');
+
+                if (!draggedCard || !colStatus) return;
+
+                const targetForm = Array.from(
+                    draggedCard.querySelectorAll('.kanban-actions form')
+                ).find(form => {
+                    const statusInput = form.querySelector('input[name="Status"]');
+                    return statusInput && statusInput.value === colStatus;
+                });
+
+                if (targetForm) {
+                    draggedCard.style.opacity = '0.5';
+                    targetForm.submit();
+                }
+            });
+        });
+    }
 });
 
 // ═══ NOTIFICATION FUNCTIONS ═════════════════════════════════════════
@@ -178,9 +269,13 @@ document.addEventListener('DOMContentLoaded', function () {
 function toggleNotifPanel() {
     const panel = document.getElementById('notifPanel');
     if (!panel) return;
-    const isVisible = panel.style.display !== 'none';
-    panel.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) loadNotifPanel();
+    const isVisible = panel.classList.contains('show');
+    if (isVisible) {
+        panel.classList.remove('show');
+    } else {
+        panel.classList.add('show');
+        loadNotifPanel();
+    }
 }
 
 async function pollNotifCount() {
@@ -269,7 +364,7 @@ function escNotif(s) { if (!s) return ''; const d = document.createElement('div'
 window.toggleNavModeMenu = function() {
     const menu = document.getElementById('navModeMenu');
     if (menu) {
-        menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+        menu.classList.toggle('show');
     }
 };
 
@@ -287,7 +382,7 @@ window.setNavMode = function(mode) {
     
     // Close the dropdown menu
     const menu = document.getElementById('navModeMenu');
-    if (menu) menu.style.display = 'none';
+    if (menu) menu.classList.remove('show');
 };
 
 window.toggleAppLauncher = function() {
@@ -309,8 +404,8 @@ document.addEventListener('click', (e) => {
     // Mode Picker
     const modePicker = document.querySelector('.nav-mode-picker');
     const modeMenu = document.getElementById('navModeMenu');
-    if (modePicker && modeMenu && modeMenu.style.display !== 'none' && !modePicker.contains(e.target)) {
-        modeMenu.style.display = 'none';
+    if (modePicker && modeMenu && modeMenu.classList.contains('show') && !modePicker.contains(e.target)) {
+        modeMenu.classList.remove('show');
     }
 });
 
