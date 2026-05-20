@@ -78,6 +78,11 @@
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Giám sát & Dashboard</span>
                 </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OperationsWorkforce" ? "active" : "")"
+                   asp-controller="OperationsWorkforce" asp-action="Index">
+                    <i class="fa-solid fa-people-group"></i>
+                    <span>Nhân sự vận hành</span>
+                </a>
 
                 @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
                 {

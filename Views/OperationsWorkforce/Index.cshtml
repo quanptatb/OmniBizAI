@@ -1,0 +1,45 @@
+@model OmniBizAI.ViewModels.OperationsWorkforceDashboardViewModel
+@{
+    ViewData["Title"] = "Quản lý nhân sự vận hành";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Nhân sự vận hành</span>";
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">@Model.TotalEmployees</div><div class="stat-label">Tổng nhân sự</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">@Model.OnShiftToday</div><div class="stat-label">Đi làm hôm nay</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">@Model.OnLeaveToday</div><div class="stat-label">Nghỉ phép</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">@Model.ExpiringCertificates</div><div class="stat-label">Chứng chỉ/HĐ sắp hết hạn</div></div></div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6"><div class="content-card h-100"><div class="card-body-custom">
+        <h6>🕒 Chấm công, ca kíp (3 shift + tăng ca)</h6>
+        <div class="table-responsive"><table class="data-table"><thead><tr><th>Phòng ban</th><th>Ca 1</th><th>Ca 2</th><th>Ca 3</th><th>Tăng ca</th></tr></thead><tbody>
+        @foreach (var s in Model.ShiftCoverage)
+        { <tr><td>@s.Department</td><td>@s.Shift1</td><td>@s.Shift2</td><td>@s.Shift3</td><td>@s.OvertimeCount</td></tr> }
+        </tbody></table></div>
+    </div></div></div>
+
+    <div class="col-lg-6"><div class="content-card h-100"><div class="card-body-custom">
+        <h6>📈 Đánh giá hiệu suất</h6>
+        <ul>
+            <li>KPI cá nhân: <b>@Model.PersonalKpiAssignments</b></li>
+            <li>KPI tổ/nhóm (proxy): <b>@Model.TeamKpiProxy</b></li>
+            <li>KPI phòng ban: <b>@Model.DepartmentKpiAssignments</b></li>
+        </ul>
+
+        <h6 class="mt-3">🎓 Đào tạo & chứng chỉ</h6>
+        <ul>
+            <li>Hồ sơ chứng chỉ/hợp đồng đang theo dõi: <b>@Model.ActiveCertificates</b></li>
+            <li>Sắp hết hạn (30 ngày): <b>@Model.ExpiringCertificates</b></li>
+        </ul>
+    </div></div></div>
+</div>
+
+<div class="content-card"><div class="card-body-custom">
+    <h6>🔐 Phân quyền vận hành (ai được làm gì, ở đâu)</h6>
+    <div class="table-responsive"><table class="data-table"><thead><tr><th>Phạm vi</th><th>Số phân quyền</th></tr></thead><tbody>
+    @foreach (var r in Model.RoleScope)
+    { <tr><td>@r.Scope</td><td>@r.AssignmentCount</td></tr> }
+    </tbody></table></div>
+</div></div>

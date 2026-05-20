@@ -3218,3 +3218,36 @@ public class MonitoringAlertSendViewModel
     public string? PhoneTo { get; set; }
     public string? ZaloTo { get; set; }
 }
+
+public class OperationsWorkforceDashboardViewModel
+{
+    public int TotalEmployees { get; set; }
+    public int OnShiftToday { get; set; }
+    public int OnLeaveToday { get; set; }
+    public List<ShiftCoverageItem> ShiftCoverage { get; set; } = new();
+
+    public int PersonalKpiAssignments { get; set; }
+    public int TeamKpiProxy { get; set; }
+    public int DepartmentKpiAssignments { get; set; }
+
+    public int ActiveCertificates { get; set; }
+    public int ExpiringCertificates { get; set; }
+
+    public List<OpsRoleScopeItem> RoleScope { get; set; } = new();
+}
+
+public class ShiftCoverageItem
+{
+    public string Department { get; set; } = "";
+    public int Shift1 { get; set; }
+    public int Shift2 { get; set; }
+    public int Shift3 { get; set; }
+    public int OvertimeCount { get; set; }
+    public int Total => Shift1 + Shift2 + Shift3;
+}
+
+public class OpsRoleScopeItem
+{
+    public string Scope { get; set; } = "";
+    public int AssignmentCount { get; set; }
+}
