@@ -36,10 +36,10 @@ public class ResourceManagementController : Controller
             },
             Equipment = new EquipmentResourceOverviewViewModel
             {
-                TotalMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance"),
-                ActiveMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance" && (x.Status == OperationStatus.Submitted || x.Status == OperationStatus.InProgress)),
-                CompletedMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance" && x.Status == OperationStatus.Completed),
-                OverdueMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance" && x.DueDate.HasValue && x.DueDate < today && x.Status != OperationStatus.Completed)
+                TotalMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && (x.Type == "Maintenance" || x.Type == "Maintenance_PM" || x.Type == "Maintenance_CM")),
+                ActiveMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && (x.Type == "Maintenance" || x.Type == "Maintenance_PM" || x.Type == "Maintenance_CM") && (x.Status == OperationStatus.Submitted || x.Status == OperationStatus.InProgress)),
+                CompletedMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && (x.Type == "Maintenance" || x.Type == "Maintenance_PM" || x.Type == "Maintenance_CM") && x.Status == OperationStatus.Completed),
+                OverdueMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && (x.Type == "Maintenance" || x.Type == "Maintenance_PM" || x.Type == "Maintenance_CM") && x.DueDate.HasValue && x.DueDate < today && x.Status != OperationStatus.Completed)
             },
             Inventory = new InventoryResourceOverviewViewModel
             {
