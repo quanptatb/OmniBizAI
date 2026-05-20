@@ -1,0 +1,59 @@
+@model OmniBizAI.ViewModels.MonitoringDashboardViewModel
+@{
+    ViewData["Title"] = "Giám sát & Dashboard";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Giám sát</span>";
+}
+<div class="row g-3 mb-3">
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.Kpi.TotalRequests</div><div class="stat-label">Tổng KPI</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.Kpi.InProgressRequests</div><div class="stat-label">Đang xử lý</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.Kpi.CompletedRequests</div><div class="stat-label">Hoàn thành</div></div></div>
+    <div class="col-md-2"><div class="stat-card"><div class="stat-value">@Model.Kpi.OverdueRequests</div><div class="stat-label">Trễ hạn</div></div></div>
+    <div class="col-md-4"><div class="stat-card"><div class="stat-value">@Model.Kpi.CompletionRate%</div><div class="stat-label">Tỷ lệ hoàn thành realtime</div></div></div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-lg-6"><div class="content-card h-100"><div class="card-body-custom">
+        <h6>📈 OEE / Năng suất / Tỷ lệ lỗi</h6>
+        <div>Availability: <b>@Model.Oee.Availability%</b></div>
+        <div>Performance: <b>@Model.Oee.Performance%</b></div>
+        <div>Quality: <b>@Model.Oee.Quality%</b></div>
+        <div>OEE tổng: <b>@Model.Oee.Overall%</b></div>
+    </div></div></div>
+    <div class="col-lg-6"><div class="content-card h-100"><div class="card-body-custom">
+        <h6>🧭 Bản đồ nhiệt tải công việc</h6>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var h in Model.Heatmap)
+            {
+                var alpha = Math.Min(0.9, 0.15 + h.Intensity * 0.05);
+                <span style="padding:6px 10px;border-radius:8px;background:rgba(0,102,204,@alpha);color:#fff">@h.Label (@h.Intensity)</span>
+            }
+        </div>
+    </div></div></div>
+</div>
+<div class="content-card mb-3"><div class="card-body-custom">
+    <h6>🗓️ Gantt chart tiến độ (danh sách mốc)</h6>
+    <div class="table-responsive"><table class="data-table"><thead><tr><th>Mã</th><th>Hạng mục</th><th>Bắt đầu</th><th>Kết thúc</th><th>TT</th></tr></thead><tbody>
+    @foreach (var g in Model.Gantt)
+    { <tr><td>@g.RequestNo</td><td>@g.Title</td><td>@g.StartDate.ToString("dd/MM/yyyy")</td><td>@(g.EndDate?.ToString("dd/MM/yyyy") ?? "—")</td><td>@g.Status</td></tr> }
+    </tbody></table></div>
+</div></div>
+<div class="row g-3">
+<div class="col-lg-7"><div class="content-card h-100"><div class="card-body-custom">
+    <h6>⚠️ Cảnh báo tự động gần đây</h6>
+    <ul class="mb-0">
+        @foreach (var a in Model.RecentAlerts)
+        { <li>@a.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm") - <b>@a.Severity</b> - @a.Title</li> }
+    </ul>
+</div></div></div>
+<div class="col-lg-5"><div class="content-card h-100"><div class="card-body-custom">
+    <h6>📣 Gửi cảnh báo Email/SMS/Zalo</h6>
+    <form asp-action="SendAlert" method="post">
+        <input name="Title" class="form-control mb-2" placeholder="Tiêu đề cảnh báo" required />
+        <textarea name="Message" class="form-control mb-2" rows="3" placeholder="Nội dung" required></textarea>
+        <input name="EmailTo" class="form-control mb-2" placeholder="Email nhận (tuỳ chọn)" />
+        <input name="PhoneTo" class="form-control mb-2" placeholder="SĐT SMS (tuỳ chọn)" />
+        <input name="ZaloTo" class="form-control mb-2" placeholder="Zalo ID/Phone (tuỳ chọn)" />
+        <button class="btn btn-primary btn-sm" type="submit">Gửi cảnh báo</button>
+    </form>
+    <small class="text-muted">SMS/Zalo hiện lưu hook audit để tích hợp gateway thực tế.</small>
+</div></div></div>
+</div>
