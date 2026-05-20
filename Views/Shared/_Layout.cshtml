@@ -68,6 +68,10 @@
                     <i class="fa-solid fa-industry"></i>
                     <span>Quản lý tài nguyên</span>
                 </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OrderProcess" ? "active" : "")"
+                   asp-controller="OrderProcess" asp-action="Index">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>Đơn hàng & Quy trình</span>
 
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "ResourceManagement" ? "active" : "")"
                    asp-controller="ResourceManagement" asp-action="Index">

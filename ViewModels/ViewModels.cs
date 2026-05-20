@@ -3150,3 +3150,31 @@ public class MaintenanceRequestItemViewModel
     public int SparePartLines { get; set; }
     public decimal SparePartQuantity { get; set; }
 }
+
+public class OrderProcessDashboardViewModel
+{
+    public string? StatusFilter { get; set; }
+    public int TotalOrders { get; set; }
+    public int ProcessingOrders { get; set; }
+    public int CompletedOrders { get; set; }
+    public int PendingApprovals { get; set; }
+    public int QaCheckedOrders { get; set; }
+    public List<OrderProcessItemViewModel> Items { get; set; } = new();
+}
+
+public class OrderProcessItemViewModel
+{
+    public Guid Id { get; set; }
+    public string RequestNo { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public DateOnly? DueDate { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public int ApprovalLevels { get; set; }
+    public int ApprovedLevels { get; set; }
+    public int PendingApprovalLevels { get; set; }
+    public decimal? QcPassRate { get; set; }
+    public string TraceabilityCode { get; set; } = "";
+}
