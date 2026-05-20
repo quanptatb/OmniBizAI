@@ -1,0 +1,197 @@
+@model OmniBizAI.ViewModels.SalesOrderCreateViewModel
+@{
+    ViewData["Title"] = "Tạo Đơn Hàng Mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .premium-form-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        padding: 30px;
+    }
+    .line-item-row {
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+    .line-item-row:hover {
+        background: rgba(255, 255, 255, 0.6);
+        border-color: rgba(0, 113, 227, 0.15);
+    }
+</style>
+
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Breadcrumb & Title -->
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small"><i class="fa-solid fa-chevron-left me-1"></i> Quay lại danh sách</a>
+        <h1 class="h3 fw-bold text-gray-800 mt-2">Tạo Đơn Hàng Mới</h1>
+        <p class="text-muted mb-0 small">Thiết lập thông tin khách hàng, thời gian bàn giao và cấu hình sản phẩm vận hành</p>
+    </div>
+
+    <!-- Form -->
+    <form asp-action="Create" method="post" id="orderForm">
+        @Html.AntiForgeryToken()
+        
+        <div class="premium-form-card shadow-sm mb-4">
+            <h5 class="fw-bold mb-4" style="color: #1d1d1f;"><i class="fa-solid fa-file-invoice text-primary me-2"></i>Thông tin đơn hàng chính</h5>
+            
+            <div class="row g-3">
+                <!-- Customer Selection -->
+                <div class="col-12 col-md-6">
+                    <label asp-for="CustomerId" class="form-label fw-bold small text-muted">Khách hàng</label>
+                    <select asp-for="CustomerId" class="form-select" style="border-radius: 10px; padding: 10px;" required>
+                        <option value="">-- Chọn khách hàng --</option>
+                        @foreach (var c in Model.Customers)
+                        {
+                            <option value="@c.Value">@c.Text</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                </div>
+
+                <!-- Notes / Remarks -->
+                <div class="col-12 col-md-6">
+                    <label asp-for="Notes" class="form-label fw-bold small text-muted">Ghi chú</label>
+                    <input asp-for="Notes" class="form-control" placeholder="Ghi chú về yêu cầu giao hàng..." style="border-radius: 10px; padding: 10px;">
+                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                </div>
+
+                <!-- Order Date -->
+                <div class="col-12 col-md-6">
+                    <label asp-for="OrderDate" class="form-label fw-bold small text-muted">Ngày đặt hàng</label>
+                    <input asp-for="OrderDate" type="date" class="form-control" value="@Model.OrderDate.ToString("yyyy-MM-dd")" style="border-radius: 10px; padding: 10px;" required>
+                    <span asp-validation-for="OrderDate" class="text-danger small"></span>
+                </div>
+
+                <!-- Delivery Date -->
+                <div class="col-12 col-md-6">
+                    <label asp-for="DeliveryDate" class="form-label fw-bold small text-muted">Ngày giao hàng dự kiến</label>
+                    <input asp-for="DeliveryDate" type="date" class="form-control" value="@Model.DeliveryDate.ToString("yyyy-MM-dd")" style="border-radius: 10px; padding: 10px;" required>
+                    <span asp-validation-for="DeliveryDate" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Line Items -->
+        <div class="premium-form-card shadow-sm mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0" style="color: #1d1d1f;"><i class="fa-solid fa-list-ol text-primary me-2"></i>Danh sách sản phẩm dòng</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddRow" style="border-radius: 8px;">
+                    <i class="fa-solid fa-plus me-1"></i> Thêm sản phẩm
+                </button>
+            </div>
+
+            <!-- Header Labels -->
+            <div class="row g-3 d-none d-md-flex mb-2 text-muted fw-bold small">
+                <div class="col-md-6">Sản phẩm / Dịch vụ</div>
+                <div class="col-md-3">Số lượng</div>
+                <div class="col-md-2">Đơn giá (VND)</div>
+                <div class="col-md-1 text-center">Xóa</div>
+            </div>
+
+            <!-- Items container -->
+            <div id="linesContainer">
+                <div class="line-item-row" id="row_0">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label d-md-none fw-bold small text-muted">Sản phẩm</label>
+                            <select name="Lines[0].ProductServiceId" class="form-select product-select" style="border-radius: 10px;" required>
+                                <option value="">-- Chọn sản phẩm --</option>
+                                @foreach (var p in Model.Products)
+                                {
+                                    <option value="@p.Value">@p.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label d-md-none fw-bold small text-muted">Số lượng</label>
+                            <input name="Lines[0].Quantity" type="number" step="0.01" class="form-control quantity-input" value="1" min="0.01" style="border-radius: 10px;" required>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label d-md-none fw-bold small text-muted">Đơn giá</label>
+                            <input name="Lines[0].UnitPrice" type="number" step="1000" class="form-control unitprice-input" placeholder="Tự điền chuẩn" style="border-radius: 10px;">
+                        </div>
+                        <div class="col-12 col-md-1 text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-delete-row" data-row-id="0" style="border-radius: 8px;">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-end gap-3">
+            <a asp-action="Index" class="btn btn-light px-4 py-2 border" style="border-radius: 12px;">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary px-5 py-2" style="border-radius: 12px;">
+                <i class="fa-solid fa-floppy-disk me-2"></i> Khởi tạo Đơn hàng
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Dynamic Row Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let rowCount = 1;
+        const container = document.getElementById("linesContainer");
+        const btnAdd = document.getElementById("btnAddRow");
+        
+        // Add Row
+        btnAdd.addEventListener("click", function () {
+            const newRow = document.createElement("div");
+            newRow.className = "line-item-row";
+            newRow.id = `row_${rowCount}`;
+            newRow.innerHTML = `
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-6">
+                        <select name="Lines[${rowCount}].ProductServiceId" class="form-select product-select" style="border-radius: 10px;" required>
+                            <option value="">-- Chọn sản phẩm --</option>
+                            @foreach (var p in Model.Products)
+                            {
+                                <option value="@p.Value">@p.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input name="Lines[${rowCount}].Quantity" type="number" step="0.01" class="form-control quantity-input" value="1" min="0.01" style="border-radius: 10px;" required>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <input name="Lines[${rowCount}].UnitPrice" type="number" step="1000" class="form-control unitprice-input" placeholder="Tự điền chuẩn" style="border-radius: 10px;">
+                    </div>
+                    <div class="col-12 col-md-1 text-center">
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-delete-row" data-row-id="${rowCount}" style="border-radius: 8px;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newRow);
+            rowCount++;
+        });
+
+        // Delete Row (Event Delegation)
+        container.addEventListener("click", function (e) {
+            const btn = e.target.closest(".btn-delete-row");
+            if (btn) {
+                const rowId = btn.getAttribute("data-row-id");
+                const rowElement = document.getElementById(`row_${rowId}`);
+                if (rowElement) {
+                    // Prevent deleting the very last row
+                    if (container.children.length > 1) {
+                        rowElement.remove();
+                    } else {
+                        alert("Đơn hàng phải chứa ít nhất 1 dòng sản phẩm!");
+                    }
+                }
+            }
+        });
+    });
+</script>

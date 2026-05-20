@@ -1,0 +1,122 @@
+@model List<OmniBizAI.ViewModels.EquipmentSummaryItem>
+@{
+    ViewData["Title"] = "Danh Sách Thiết Bị";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-cogs text-primary me-2"></i>Thiết Bị & Máy Móc</h2>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Dashboard</a>
+        <a asp-action="CreateEquipment" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Thêm Thiết Bị</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Filter bar -->
+<div class="card shadow mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Tìm theo tên, mã..." value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Available" selected="@(ViewBag.StatusFilter == "Available")">Sẵn sàng</option>
+                    <option value="InUse" selected="@(ViewBag.StatusFilter == "InUse")">Đang sử dụng</option>
+                    <option value="Maintenance" selected="@(ViewBag.StatusFilter == "Maintenance")">Đang bảo trì</option>
+                    <option value="Retired" selected="@(ViewBag.StatusFilter == "Retired")">Đã thanh lý</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">-- Tất cả loại --</option>
+                    <option value="Máy móc">Máy móc</option>
+                    <option value="Xe cộ">Xe cộ</option>
+                    <option value="Thiết bị IT">Thiết bị IT</option>
+                    <option value="Dụng cụ">Dụng cụ</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">Lọc</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã / Tên</th>
+                        <th>Loại</th>
+                        <th>Vị trí</th>
+                        <th>NSX / Model</th>
+                        <th>Bảo trì tiếp theo</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-5">Chưa có thiết bị nào được đăng ký.</td></tr>
+                    }
+                    @foreach (var eq in Model)
+                    {
+                        var isOverdue = eq.NextMaintenanceDate.HasValue && eq.NextMaintenanceDate.Value < today && eq.Status != "Maintenance";
+                        <tr class="@(isOverdue ? "table-danger" : "")">
+                            <td>
+                                <a asp-action="EquipmentDetail" asp-route-id="@eq.Id" class="fw-bold text-decoration-none text-dark">@eq.Name</a>
+                                <div class="text-muted small">@eq.Code</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@eq.Type</span></td>
+                            <td class="text-muted small">@eq.Location</td>
+                            <td class="small">
+                                @eq.Manufacturer
+                                @if (!string.IsNullOrEmpty(eq.Model)) { <div class="text-muted">@eq.Model</div> }
+                            </td>
+                            <td>
+                                @if (eq.NextMaintenanceDate.HasValue)
+                                {
+                                    <span class="@(isOverdue ? "text-danger fw-bold" : "text-muted") small">
+                                        @if (isOverdue) { <i class="fas fa-exclamation-triangle"></i> }
+                                        @eq.NextMaintenanceDate.Value.ToString("dd/MM/yyyy")
+                                    </span>
+                                }
+                                else { <span class="text-muted small">—</span> }
+                            </td>
+                            <td>
+                                @switch (eq.Status)
+                                {
+                                    case "Available": <span class="badge bg-success">Sẵn sàng</span> break;
+                                    case "InUse": <span class="badge bg-primary">Đang dùng</span> break;
+                                    case "Maintenance": <span class="badge bg-warning text-dark">Bảo trì</span> break;
+                                    case "Retired": <span class="badge bg-secondary">Thanh lý</span> break;
+                                    default: <span class="badge bg-light text-dark">@eq.Status</span> break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="EquipmentDetail" asp-route-id="@eq.Id" class="btn btn-sm btn-outline-primary me-1">Chi tiết</a>
+                                <a asp-action="ScheduleMaintenance" asp-route-equipmentId="@eq.Id" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-tools"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

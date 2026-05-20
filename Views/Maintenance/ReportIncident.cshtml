@@ -1,0 +1,58 @@
+@model OmniBizAI.ViewModels.IncidentCreateViewModel
+@{ ViewData["Title"] = "Báo Cáo Sự Cố"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Báo Cáo Sự Cố Thiết Bị</h2>
+    <a asp-action="Incidents" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center"><div class="col-lg-8">
+<div class="card shadow border-danger">
+    <div class="card-header bg-danger text-white"><h6 class="m-0">Thông Tin Sự Cố</h6></div>
+    <div class="card-body">
+        <form asp-action="ReportIncident" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Thiết bị bị sự cố *</label>
+                <select asp-for="EquipmentId" class="form-select" required>
+                    <option value="">-- Chọn thiết bị --</option>
+                    @foreach (var e in Model.Equipments) { <option value="@e.Value">@e.Text</option> }
+                </select>
+                <span asp-validation-for="EquipmentId" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Mô tả sự cố *</label>
+                <input asp-for="Title" class="form-control" placeholder="Ví dụ: Máy bơm bị rò rỉ dầu, Động cơ phát tiếng ồn bất thường..." />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Chi tiết sự cố</label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả thêm về tình trạng, triệu chứng..."></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Mức độ nghiêm trọng *</label>
+                    <select asp-for="Severity" class="form-select">
+                        <option value="Low">🟢 Thấp - Không ảnh hưởng sản xuất</option>
+                        <option value="Medium" selected>🟡 Trung bình - Giảm hiệu suất</option>
+                        <option value="High">🟠 Cao - Cần xử lý sớm</option>
+                        <option value="Critical">🔴 Nghiêm trọng - Ngừng máy hoàn toàn</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Phân công kỹ thuật viên</label>
+                    <select asp-for="AssignedTechnicianId" class="form-select">
+                        <option value="">-- Chưa phân công --</option>
+                        @foreach (var t in Model.Technicians) { <option value="@t.Value">@t.Text</option> }
+                    </select>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Thời điểm xảy ra sự cố</label>
+                <input asp-for="OccurredAt" type="datetime-local" class="form-control" />
+            </div>
+            <hr />
+            <div class="alert alert-warning small py-2"><i class="fas fa-info-circle me-2"></i>Với sự cố mức <strong>Cao / Nghiêm trọng</strong>, thiết bị sẽ tự động chuyển sang trạng thái <strong>Đang bảo trì</strong>.</div>
+            <div class="text-end"><button type="submit" class="btn btn-danger px-5">🚨 Gửi Báo Cáo Sự Cố</button></div>
+        </form>
+    </div>
+</div>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

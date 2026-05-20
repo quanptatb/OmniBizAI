@@ -1,0 +1,276 @@
+@using OmniBizAI.Models.Entities.Enums
+@model OmniBizAI.ViewModels.SalesOrderIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý Đơn hàng & Quy trình";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .order-stat-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .order-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
+    }
+    .order-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .premium-table-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .search-filter-row {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    
+    /* Apple-style soft badges */
+    .so-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+    .so-badge-draft { background: #f5f5f7; color: #86868b; }
+    .so-badge-submitted { background: #e3f2fd; color: #0071e3; }
+    .so-badge-approved { background: #f3e5f5; color: #af52de; }
+    .so-badge-inproduction { background: #fff3e0; color: #ff9500; }
+    .so-badge-qualitychecking { background: #e0f2f1; color: #008080; }
+    .so-badge-completed { background: #e8f5e9; color: #34c759; }
+    .so-badge-cancelled { background: #ffebee; color: #ff3b30; }
+
+    .so-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: currentColor;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Title & Action -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 text-gray-800 fw-bold mb-1">Quản lý Đơn hàng & Quy trình</h1>
+            <p class="text-muted mb-0 small">Theo dõi đơn hàng, phê duyệt workflow 2 cấp, kiểm soát QC & truy xuất nguồn gốc</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary px-4 py-2" style="border-radius: 12px;">
+            <i class="fa-solid fa-plus me-2"></i> Tạo đơn hàng mới
+        </a>
+    </div>
+
+    <!-- Alert Messaging -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px; background-color: #e8f5e9; color: #2e7d32;">
+            <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px; background-color: #ffebee; color: #c62828;">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-bold uppercase">TỔNG ĐƠN HÀNG</span>
+                    <div class="order-stat-icon" style="background-color: rgba(0, 113, 227, 0.1); color: #0071e3;">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.TotalOrders</h3>
+                <span class="text-muted small">Đơn hàng trong hệ thống</span>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-bold uppercase">CHỜ PHÊ DUYỆT</span>
+                    <div class="order-stat-icon" style="background-color: rgba(175, 82, 222, 0.1); color: #af52de;">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.PendingApprovalCount</h3>
+                <span class="text-muted small">Cần trưởng bộ phận / giám đốc duyệt</span>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-bold uppercase">ĐANG SẢN XUẤT</span>
+                    <div class="order-stat-icon" style="background-color: rgba(255, 149, 0, 0.1); color: #ff9500;">
+                        <i class="fa-solid fa-industry"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.InProductionCount</h3>
+                <span class="text-muted small">Đang chạy công đoạn & QC</span>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="order-stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="text-muted small fw-bold uppercase">ĐÃ HOÀN THÀNH</span>
+                    <div class="order-stat-icon" style="background-color: rgba(52, 199, 89, 0.1); color: #34c759;">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.CompletedCount</h3>
+                <span class="text-muted small">Đạt QC, sẵn sàng bàn giao</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Area -->
+    <div class="search-filter-row mb-4">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" name="search" value="@Model.Search" class="form-control border-start-0" placeholder="Tìm theo mã đơn hàng, khách hàng, ghi chú..." style="border-radius: 0 10px 10px 0;">
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <select name="statusFilter" class="form-select" style="border-radius: 10px;">
+                    <option value="">Tất cả trạng thái đơn hàng</option>
+                    @foreach (var val in Enum.GetValues<SalesOrderStatus>())
+                    {
+                        var selected = Model.StatusFilter == val.ToString() ? "selected" : "";
+                        var VietnameseName = val switch
+                        {
+                            SalesOrderStatus.Draft => "Bản nháp",
+                            SalesOrderStatus.Submitted => "Chờ phê duyệt",
+                            SalesOrderStatus.Approved => "Đã duyệt",
+                            SalesOrderStatus.InProduction => "Đang sản xuất",
+                            SalesOrderStatus.QualityChecking => "Đang kiểm tra QC",
+                            SalesOrderStatus.Completed => "Hoàn thành",
+                            SalesOrderStatus.Cancelled => "Đã hủy",
+                            _ => val.ToString()
+                        };
+                        @if (Model.StatusFilter == val.ToString())
+                        {
+                            <option value="@val" selected>@VietnameseName</option>
+                        }
+                        else
+                        {
+                            <option value="@val">@VietnameseName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-dark flex-grow-1" style="border-radius: 10px;"><i class="fa-solid fa-filter me-1"></i> Lọc</button>
+                <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 10px;">Xóa</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="premium-table-card shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Mã đơn hàng</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt hàng</th>
+                        <th>Hạn giao hàng</th>
+                        <th>Giá trị đơn hàng</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center pe-4" style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Orders.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-regular fa-folder-open fa-2x mb-3 d-block text-muted" style="opacity: 0.5;"></i>
+                                Không tìm thấy đơn hàng nào khớp với điều kiện lọc.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var order in Model.Orders)
+                    {
+                        var badgeClass = order.Status switch
+                        {
+                            SalesOrderStatus.Draft => "so-badge-draft",
+                            SalesOrderStatus.Submitted => "so-badge-submitted",
+                            SalesOrderStatus.Approved => "so-badge-approved",
+                            SalesOrderStatus.InProduction => "so-badge-inproduction",
+                            SalesOrderStatus.QualityChecking => "so-badge-qualitychecking",
+                            SalesOrderStatus.Completed => "so-badge-completed",
+                            SalesOrderStatus.Cancelled => "so-badge-cancelled",
+                            _ => "so-badge-draft"
+                        };
+                        var VietnameseName = order.Status switch
+                        {
+                            SalesOrderStatus.Draft => "Bản nháp",
+                            SalesOrderStatus.Submitted => "Chờ duyệt",
+                            SalesOrderStatus.Approved => "Đã duyệt",
+                            SalesOrderStatus.InProduction => "Đang sản xuất",
+                            SalesOrderStatus.QualityChecking => "Kiểm tra QC",
+                            SalesOrderStatus.Completed => "Hoàn thành",
+                            SalesOrderStatus.Cancelled => "Đã hủy",
+                            _ => order.Status.ToString()
+                        };
+
+                        <tr>
+                            <td class="ps-4">
+                                <a asp-action="Details" asp-route-id="@order.Id" class="fw-bold text-dark text-decoration-none">
+                                    @order.OrderNo
+                                </a>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@order.CustomerName</div>
+                            </td>
+                            <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                            <td>@order.DeliveryDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <span class="fw-bold text-primary">@order.TotalAmount.ToString("N0") VND</span>
+                            </td>
+                            <td>
+                                <span class="so-badge @badgeClass">
+                                    <span class="so-dot"></span>
+                                    @VietnameseName
+                                </span>
+                            </td>
+                            <td class="text-center pe-4">
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-light border" style="border-radius: 8px;">
+                                    Quản lý <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

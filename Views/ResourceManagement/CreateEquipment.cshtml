@@ -1,0 +1,42 @@
+@model OmniBizAI.ViewModels.EquipmentCreateViewModel
+@{ ViewData["Title"] = "Thêm Thiết Bị"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">Thêm Thiết Bị Mới</h2>
+    <a asp-action="Equipments" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center">
+<div class="col-lg-8">
+<div class="card shadow">
+    <div class="card-body">
+        <form asp-action="CreateEquipment" method="post">
+            <div class="row mb-3">
+                <div class="col-md-8"><label class="form-label fw-bold">Tên thiết bị *</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger small"></span></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Loại *</label>
+                    <select asp-for="Type" class="form-select">
+                        <option value="Máy móc">Máy móc</option><option value="Xe cộ">Xe cộ</option>
+                        <option value="Thiết bị IT">Thiết bị IT</option><option value="Dụng cụ">Dụng cụ</option><option value="Khác">Khác</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><label class="form-label fw-bold">Nhà sản xuất</label><input asp-for="Manufacturer" class="form-control" /></div>
+                <div class="col-md-6"><label class="form-label fw-bold">Model</label><input asp-for="Model" class="form-control" /></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><label class="form-label fw-bold">Số Serial</label><input asp-for="SerialNumber" class="form-control" /></div>
+                <div class="col-md-6"><label class="form-label fw-bold">Vị trí</label><input asp-for="Location" class="form-control" placeholder="Ví dụ: Xưởng A, Tầng 2..." /></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4"><label class="form-label fw-bold">Ngày mua</label><input asp-for="PurchaseDate" type="date" class="form-control" /></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Giá mua (VNĐ)</label><input asp-for="PurchasePrice" type="number" class="form-control" /></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Tuổi thọ (năm)</label><input asp-for="LifespanYears" type="number" class="form-control" /></div>
+            </div>
+            <div class="mb-3"><label class="form-label fw-bold">Lịch bảo trì tiếp theo</label><input asp-for="NextMaintenanceDate" type="date" class="form-control" /></div>
+            <div class="mb-4"><label class="form-label fw-bold">Ghi chú</label><textarea asp-for="Notes" class="form-control" rows="2"></textarea></div>
+            <hr /><div class="text-end"><button type="submit" class="btn btn-primary px-4">Lưu Thiết Bị</button></div>
+        </form>
+    </div>
+</div>
+</div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

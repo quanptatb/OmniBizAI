@@ -1,0 +1,156 @@
+@model List<OmniBizAI.ViewModels.SensorReadingViewModel>
+@{
+    ViewData["Title"] = "Giám Sát Cảm Biến IoT";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var equipmentId = ViewBag.EquipmentId as Guid? ?? Guid.Empty;
+    var equipmentName = ViewBag.EquipmentName as string ?? "Thiết bị";
+    var hasWarnings = Model.Any(r => r.Status != "Normal");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-1 text-gray-800"><i class="fas fa-satellite-dish text-primary me-2"></i>Giám Sát IoT / Cảm Biến</h2>
+        <div class="text-muted small"><i class="fas fa-cog me-1"></i>@equipmentName</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form asp-action="SimulateSensor" method="post">
+            <input type="hidden" name="equipmentId" value="@equipmentId" />
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-sync me-1"></i>Cập nhật dữ liệu (Giả lập)
+            </button>
+        </form>
+        @if (hasWarnings)
+        {
+            <a asp-action="ReportIncident" class="btn btn-danger btn-sm">
+                <i class="fas fa-exclamation-triangle me-1"></i>Báo cáo sự cố
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Status Banner -->
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Chưa có dữ liệu cảm biến. Nhấn <strong>Cập nhật dữ liệu</strong> để tạo dữ liệu giả lập.
+    </div>
+}
+else if (hasWarnings)
+{
+    <div class="alert alert-danger d-flex align-items-center">
+        <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+        <div>
+            <strong>Cảnh báo!</strong> Có @Model.Count(r => r.Status != "Normal") cảm biến đang ở mức bất thường.
+            Kiểm tra ngay và xem xét tạo lệnh bảo trì nếu cần thiết.
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-success d-flex align-items-center">
+        <i class="fas fa-check-circle fa-2x me-3"></i>
+        <div><strong>Tất cả cảm biến bình thường.</strong> Thiết bị hoạt động ổn định.</div>
+    </div>
+}
+
+<!-- Sensor Cards -->
+<div class="row g-3 mb-4">
+    @foreach (var s in Model)
+    {
+        var (cardClass, iconClass, statusLabel) = s.Status switch {
+            "Critical" => ("border-danger shadow-danger", "text-danger", "NGUY HIỂM"),
+            "Warning"  => ("border-warning", "text-warning", "CẢNH BÁO"),
+            _          => ("border-0", "text-success", "Bình thường")
+        };
+
+        var iconName = s.SensorType switch {
+            "Temperature" => "fa-thermometer-half",
+            "Vibration"   => "fa-wave-square",
+            "Pressure"    => "fa-compress-arrows-alt",
+            "RPM"         => "fa-tachometer-alt",
+            "Current"     => "fa-bolt",
+            _             => "fa-chart-line"
+        };
+
+        var sensorLabel = s.SensorType switch {
+            "Temperature" => "Nhiệt độ",
+            "Vibration"   => "Rung động",
+            "Pressure"    => "Áp suất",
+            "RPM"         => "Tốc độ vòng",
+            "Current"     => "Dòng điện",
+            _             => s.SensorType
+        };
+
+        <div class="col-md-4 col-lg-2-4">
+            <div class="card shadow h-100 @cardClass @(s.Status == "Critical" ? "border-3" : "")">
+                <div class="card-body text-center py-3">
+                    <div class="mb-2 @iconClass"><i class="fas @iconName fa-2x"></i></div>
+                    <div class="text-muted small fw-bold text-uppercase mb-1">@sensorLabel</div>
+                    <div class="display-6 fw-bold @(s.Status == "Critical" ? "text-danger" : s.Status == "Warning" ? "text-warning" : "text-dark")">
+                        @s.Value.ToString("F1")
+                    </div>
+                    <div class="text-muted small">@s.Unit</div>
+                    <div class="mt-2">
+                        @if (s.Status == "Critical") {
+                            <span class="badge bg-danger px-3">🔴 NGUY HIỂM</span>
+                        } else if (s.Status == "Warning") {
+                            <span class="badge bg-warning text-dark px-3">🟡 CẢNH BÁO</span>
+                        } else {
+                            <span class="badge bg-success px-3">🟢 Bình thường</span>
+                        }
+                    </div>
+                    @if (s.ThresholdWarning.HasValue || s.ThresholdCritical.HasValue)
+                    {
+                        <div class="mt-2 small text-muted border-top pt-1">
+                            @if (s.ThresholdWarning.HasValue) { <div>Cảnh báo: @s.ThresholdWarning @s.Unit</div> }
+                            @if (s.ThresholdCritical.HasValue) { <div>Nguy hiểm: @s.ThresholdCritical @s.Unit</div> }
+                        </div>
+                    }
+                    <div class="text-muted" style="font-size:11px">@s.ReadingTime.LocalDateTime.ToString("HH:mm:ss")</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Gauge visualization (CSS-based) -->
+@if (Model.Any())
+{
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-bar me-2"></i>Biểu Đồ Mức Độ So Với Ngưỡng</h6>
+        </div>
+        <div class="card-body">
+            @foreach (var s in Model.Where(s => s.ThresholdCritical.HasValue))
+            {
+                var pct = (int)Math.Min(100, (s.Value / s.ThresholdCritical!.Value) * 100);
+                var barColor = s.Status == "Critical" ? "danger" : s.Status == "Warning" ? "warning" : "success";
+                var sensorLabel = s.SensorType switch {
+                    "Temperature" => "Nhiệt độ", "Vibration" => "Rung động",
+                    "Pressure" => "Áp suất", "RPM" => "Tốc độ vòng", "Current" => "Dòng điện", _ => s.SensorType
+                };
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold small">@sensorLabel</span>
+                        <span class="small text-muted">@s.Value.ToString("F1") / @s.ThresholdCritical @s.Unit (@pct%)</span>
+                    </div>
+                    <div class="progress" style="height:12px">
+                        <div class="progress-bar bg-@barColor @(pct > 90 ? "progress-bar-striped progress-bar-animated" : "")"
+                             style="width:@pct%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="text-muted small text-end">
+    <i class="fas fa-info-circle me-1"></i>
+    Dữ liệu IoT hiển thị là giả lập (demo). Trong thực tế, cần tích hợp API cảm biến thực tế (MQTT, OPC-UA, REST).
+</div>
+
+<style>
+.col-lg-2-4 { width: 20%; }
+@@media (max-width: 992px) { .col-lg-2-4 { width: 33.33%; } }
+@@media (max-width: 576px) { .col-lg-2-4 { width: 50%; } }
+</style>

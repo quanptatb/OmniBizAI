@@ -1,0 +1,44 @@
+@model OmniBizAI.ViewModels.SparePartCreateViewModel
+@{ ViewData["Title"] = "Thêm Phụ Tùng"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Thêm Phụ Tùng Vào Kho</h2>
+    <a asp-action="SpareParts" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center"><div class="col-lg-7">
+<div class="card shadow">
+    <div class="card-body">
+        <form asp-action="CreateSparePart" method="post">
+            <div class="row mb-3">
+                <div class="col-md-8"><label class="form-label fw-bold">Tên phụ tùng *</label><input asp-for="Name" class="form-control" placeholder="Ví dụ: Vòng bi SKF 6205..." /><span asp-validation-for="Name" class="text-danger small"></span></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Đơn vị</label>
+                    <select asp-for="Unit" class="form-select">
+                        <option value="Cái">Cái</option><option value="Bộ">Bộ</option><option value="Mét">Mét</option>
+                        <option value="Lít">Lít</option><option value="Kg">Kg</option><option value="Cuộn">Cuộn</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><label class="form-label fw-bold">Nhà sản xuất</label><input asp-for="Manufacturer" class="form-control" placeholder="SKF, Bosch, Siemens..." /></div>
+                <div class="col-md-6"><label class="form-label fw-bold">Mã linh kiện (Part No.)</label><input asp-for="PartNumber" class="form-control" placeholder="SKF-6205, ABB-3GHZ..." /></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Danh mục</label>
+                <select asp-for="Category" class="form-select">
+                    <option value="Bearing">Vòng bi (Bearing)</option><option value="Seal">Phớt dầu (Seal)</option>
+                    <option value="Filter">Lọc (Filter)</option><option value="Belt">Dây đai (Belt)</option>
+                    <option value="Electrical">Linh kiện điện</option><option value="Mechanical">Cơ khí</option>
+                    <option value="Hydraulic">Thủy lực</option><option value="Other">Khác</option>
+                </select>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4"><label class="form-label fw-bold">Số lượng ban đầu</label><input asp-for="InitialStock" type="number" class="form-control" /></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Tồn kho tối thiểu *</label><input asp-for="MinimumStock" type="number" class="form-control" /><span asp-validation-for="MinimumStock" class="text-danger small"></span></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Đơn giá (VNĐ)</label><input asp-for="UnitPrice" type="number" class="form-control" /></div>
+            </div>
+            <div class="mb-4"><label class="form-label fw-bold">Ghi chú</label><textarea asp-for="Notes" class="form-control" rows="2" placeholder="Thông số kỹ thuật, nơi mua..."></textarea></div>
+            <hr /><div class="text-end"><button type="submit" class="btn btn-secondary px-5">Thêm Vào Kho</button></div>
+        </form>
+    </div>
+</div>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

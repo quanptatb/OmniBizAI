@@ -244,6 +244,8 @@ public class SettingsService(ApplicationDbContext db, ITenantContext tenant)
 
     // ── Theme / Appearance ───────────────────────────────────────────────────
 
+    private static readonly Dictionary<Guid, ThemeSettingsViewModel> _themeCache = new();
+
     private static readonly Dictionary<string, string> _themeDefaults = new()
     {
         ["AccentColor"] = "#0066cc", ["AccentHover"] = "#0071e3", ["AccentDark"] = "#2997ff",
@@ -256,14 +258,49 @@ public class SettingsService(ApplicationDbContext db, ITenantContext tenant)
         ["DarkMode"] = "false"
     };
 
+    private static ThemeSettingsViewModel CloneTheme(ThemeSettingsViewModel vm)
+    {
+        return new ThemeSettingsViewModel
+        {
+            AccentColor = vm.AccentColor,
+            AccentHover = vm.AccentHover,
+            AccentDark = vm.AccentDark,
+            CanvasColor = vm.CanvasColor,
+            ParchmentColor = vm.ParchmentColor,
+            InkColor = vm.InkColor,
+            SidebarBg = vm.SidebarBg,
+            SidebarText = vm.SidebarText,
+            SuccessColor = vm.SuccessColor,
+            WarningColor = vm.WarningColor,
+            DangerColor = vm.DangerColor,
+            InfoColor = vm.InfoColor,
+            FontFamily = vm.FontFamily,
+            FontSize = vm.FontSize,
+            BorderRadius = vm.BorderRadius,
+            SidebarWidth = vm.SidebarWidth,
+            LogoIcon = vm.LogoIcon,
+            BrandName = vm.BrandName,
+            BrandTagline = vm.BrandTagline,
+            DarkMode = vm.DarkMode
+        };
+    }
+
     public async Task<ThemeSettingsViewModel> GetThemeAsync()
     {
         var tid = tenant.TenantId;
+        lock (_themeCache)
+        {
+            if (_themeCache.TryGetValue(tid, out var cached))
+            {
+                return CloneTheme(cached);
+            }
+        }
+
         var themeParams = await db.SystemParameters
             .Where(p => p.TenantId == tid && !p.IsDeleted && p.Group == "Theme")
             .ToDictionaryAsync(p => p.Key, p => p.Value ?? "");
 
-        return new ThemeSettingsViewModel
+        var vm = new ThemeSettingsViewModel
         {
             AccentColor = themeParams.GetValueOrDefault("AccentColor", _themeDefaults["AccentColor"]),
             AccentHover = themeParams.GetValueOrDefault("AccentHover", _themeDefaults["AccentHover"]),
@@ -286,6 +323,13 @@ public class SettingsService(ApplicationDbContext db, ITenantContext tenant)
             BrandTagline = themeParams.GetValueOrDefault("BrandTagline", _themeDefaults["BrandTagline"]),
             DarkMode = themeParams.GetValueOrDefault("DarkMode", "false") == "true"
         };
+
+        lock (_themeCache)
+        {
+            _themeCache[tid] = vm;
+        }
+
+        return CloneTheme(vm);
     }
 
     public async Task SaveThemeAsync(ThemeSettingsViewModel vm)
@@ -324,6 +368,11 @@ public class SettingsService(ApplicationDbContext db, ITenantContext tenant)
 
         db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "UpdateTheme", EntityName = "SystemParameter", EntityId = tid, CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
+
+        lock (_themeCache)
+        {
+            _themeCache[tid] = CloneTheme(vm);
+        }
     }
 
     /// <summary>

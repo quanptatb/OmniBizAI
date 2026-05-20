@@ -1,0 +1,47 @@
+@model OmniBizAI.ViewModels.ExecutePmViewModel
+@{ ViewData["Title"] = "Thực Hiện PM"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0"><i class="fas fa-play-circle text-success me-2"></i>Ghi Nhận Thực Hiện Bảo Trì PM</h2>
+    <a asp-action="PmSchedules" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center"><div class="col-lg-6">
+<div class="card shadow border-success">
+    <div class="card-header bg-success text-white"><h6 class="m-0">Kết Quả Thực Hiện</h6></div>
+    <div class="card-body">
+        <form asp-action="ExecutePm" method="post">
+            <input type="hidden" asp-for="PmScheduleId" />
+            <div class="mb-3">
+                <label class="form-label fw-bold">Ngày hoàn thành *</label>
+                <input asp-for="CompletedDate" type="date" class="form-control" />
+                <span asp-validation-for="CompletedDate" class="text-danger small"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Kỹ thuật viên thực hiện</label>
+                <select asp-for="TechnicianUserId" class="form-select">
+                    <option value="">-- Như đã phân công --</option>
+                    @foreach (var t in Model.Technicians) { <option value="@t.Value">@t.Text</option> }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Công việc đã thực hiện</label>
+                <textarea asp-for="WorkDone" class="form-control" rows="3" placeholder="Mô tả những gì đã làm, phụ tùng đã thay..."></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Chi phí bảo trì (VNĐ)</label>
+                    <input asp-for="Cost" type="number" class="form-control" placeholder="0" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Ngày PM tiếp theo</label>
+                    <input asp-for="NextDueDate" type="date" class="form-control" />
+                </div>
+            </div>
+            <hr />
+            <button type="submit" class="btn btn-success w-100 py-2">
+                <i class="fas fa-check-circle me-2"></i>Xác Nhận Hoàn Thành PM
+            </button>
+        </form>
+    </div>
+</div>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

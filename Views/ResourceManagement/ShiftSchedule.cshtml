@@ -1,0 +1,112 @@
+@model OmniBizAI.ViewModels.ShiftScheduleViewModel
+@{
+    ViewData["Title"] = "Lịch Ca Làm Việc";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">
+        <i class="fas fa-calendar-day text-success me-2"></i>
+        Lịch Ca - @Model.TargetDate.ToString("dddd, dd/MM/yyyy")
+    </h2>
+    <div class="d-flex gap-2">
+        <a asp-action="ShiftSchedule" asp-route-date="@Model.TargetDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-sm">← Hôm trước</a>
+        <a asp-action="ShiftSchedule" class="btn btn-outline-primary btn-sm">Hôm nay</a>
+        <a asp-action="ShiftSchedule" asp-route-date="@Model.TargetDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-sm">Hôm sau →</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="row">
+    <!-- Bảng phân công -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-success">Phân Công Ca (@Model.Assignments.Count nhân viên)</h6>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Assignments.Any())
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-users fa-3x mb-3 d-block text-gray-300"></i>
+                        Chưa có phân công nào cho ngày này.
+                    </div>
+                }
+                <div class="list-group list-group-flush">
+                    @foreach (var a in Model.Assignments)
+                    {
+                        var statusColor = a.Status switch {
+                            "CheckedIn" => "success",
+                            "CheckedOut" => "primary",
+                            "Absent" => "danger",
+                            "Late" => "warning",
+                            _ => "secondary"
+                        };
+                        var statusLabel = a.Status switch {
+                            "Scheduled" => "Đã lên lịch",
+                            "CheckedIn" => "Đã vào ca",
+                            "CheckedOut" => "Đã ra ca",
+                            "Absent" => "Vắng mặt",
+                            "Late" => "Đi muộn",
+                            _ => a.Status
+                        };
+                        <div class="list-group-item d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-@statusColor">@statusLabel</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">@a.UserName</div>
+                                <div class="text-muted small"><i class="fas fa-clock me-1"></i>@a.ShiftName: @a.ShiftStart.ToString("HH:mm") – @a.ShiftEnd.ToString("HH:mm")</div>
+                            </div>
+                            <div class="text-end text-muted small">
+                                @if (a.ActualCheckIn.HasValue) { <div>Vào: @a.ActualCheckIn.Value.ToString("HH:mm")</div> }
+                                @if (a.ActualCheckOut.HasValue) { <div>Ra: @a.ActualCheckOut.Value.ToString("HH:mm")</div> }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form phân công -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Phân Công Ca</h6>
+            </div>
+            <div class="card-body">
+                <form asp-action="AssignShift" method="post">
+                    <input type="hidden" name="WorkDate" value="@Model.TargetDate.ToString("yyyy-MM-dd")" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ca làm việc</label>
+                        <select name="ShiftId" class="form-select" required>
+                            <option value="">-- Chọn ca --</option>
+                            @foreach (var s in Model.Shifts)
+                            {
+                                <option value="@s.Value">@s.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nhân viên</label>
+                        <select name="UserId" class="form-select" required>
+                            <option value="">-- Chọn nhân viên --</option>
+                            @foreach (var u in Model.Users)
+                            {
+                                <option value="@u.Value">@u.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-user-check me-2"></i>Phân Công
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

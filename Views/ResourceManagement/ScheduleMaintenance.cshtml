@@ -1,0 +1,39 @@
+@model OmniBizAI.ViewModels.ScheduleMaintenanceViewModel
+@{ ViewData["Title"] = "Lên Lịch Bảo Trì"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-tools text-warning me-2"></i>Lên Lịch Bảo Trì</h2>
+    <a asp-action="EquipmentDetail" asp-route-id="@Model.EquipmentId" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center"><div class="col-lg-6">
+<div class="card shadow">
+    <div class="card-body">
+        <form asp-action="ScheduleMaintenance" method="post">
+            <input type="hidden" asp-for="EquipmentId" />
+            <div class="mb-3">
+                <label class="form-label fw-bold">Loại bảo trì *</label>
+                <select asp-for="MaintenanceType" class="form-select">
+                    <option value="Preventive">Bảo trì định kỳ (Preventive)</option>
+                    <option value="Corrective">Sửa chữa (Corrective)</option>
+                    <option value="Emergency">Khẩn cấp (Emergency)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Ngày thực hiện *</label>
+                <input asp-for="ScheduledDate" type="date" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Kỹ thuật viên phụ trách</label>
+                <select asp-for="TechnicianUserId" class="form-select">
+                    <option value="">-- Chọn kỹ thuật viên --</option>
+                    @foreach (var t in Model.Technicians) { <option value="@t.Value">@t.Text</option> }
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Mô tả công việc bảo trì</label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả chi tiết những gì cần thực hiện..."></textarea>
+            </div>
+            <hr /><div class="text-end"><button type="submit" class="btn btn-warning text-dark px-4">Lên Lịch Bảo Trì</button></div>
+        </form>
+    </div>
+</div>
+</div></div>

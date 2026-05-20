@@ -1,0 +1,107 @@
+@model List<OmniBizAI.ViewModels.IncidentSummaryItem>
+@{
+    ViewData["Title"] = "Quản Lý Sự Cố";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Sự Cố Bảo Trì (CM)</h2>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Dashboard</a>
+        <a asp-action="ReportIncident" class="btn btn-danger btn-sm"><i class="fas fa-plus me-1"></i>Báo Cáo Sự Cố</a>
+    </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card text-center border-0 bg-light shadow-sm"><div class="card-body py-2"><div class="h4 fw-bold text-dark">@ViewBag.Total</div><div class="text-muted small">Tổng số</div></div></div></div>
+    <div class="col-md-3"><div class="card text-center border-0 bg-danger text-white shadow-sm"><div class="card-body py-2"><div class="h4 fw-bold">@ViewBag.Open</div><div class="small opacity-75">Đang mở</div></div></div></div>
+    <div class="col-md-3"><div class="card text-center border-0 bg-primary text-white shadow-sm"><div class="card-body py-2"><div class="h4 fw-bold">@ViewBag.InProgress</div><div class="small opacity-75">Đang xử lý</div></div></div></div>
+    <div class="col-md-3"><div class="card text-center border-0 bg-success text-white shadow-sm"><div class="card-body py-2"><div class="h4 fw-bold">@ViewBag.Resolved</div><div class="small opacity-75">Đã giải quyết</div></div></div></div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4"><input type="text" name="search" class="form-control form-control-sm" placeholder="Tìm tiêu đề, thiết bị..." value="@ViewBag.Search" /></div>
+            <div class="col-md-3">
+                <select name="severity" class="form-select form-select-sm">
+                    <option value="">-- Tất cả mức độ --</option>
+                    <option value="Critical" selected="@(ViewBag.SeverityFilter == "Critical")">🔴 Nghiêm trọng</option>
+                    <option value="High" selected="@(ViewBag.SeverityFilter == "High")">🟠 Cao</option>
+                    <option value="Medium" selected="@(ViewBag.SeverityFilter == "Medium")">🟡 Trung bình</option>
+                    <option value="Low" selected="@(ViewBag.SeverityFilter == "Low")">🟢 Thấp</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Open" selected="@(ViewBag.StatusFilter == "Open")">Đang mở</option>
+                    <option value="InProgress" selected="@(ViewBag.StatusFilter == "InProgress")">Đang xử lý</option>
+                    <option value="Resolved" selected="@(ViewBag.StatusFilter == "Resolved")">Đã giải quyết</option>
+                    <option value="Closed" selected="@(ViewBag.StatusFilter == "Closed")">Đã đóng</option>
+                </select>
+            </div>
+            <div class="col-md-2"><button type="submit" class="btn btn-outline-danger btn-sm w-100">Lọc</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mức độ</th>
+                        <th>Tiêu đề sự cố</th>
+                        <th>Thiết bị</th>
+                        <th>Thời gian xảy ra</th>
+                        <th>Kỹ thuật viên</th>
+                        <th>Ngừng máy</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-5"><i class="fas fa-check-circle text-success fa-2x mb-2 d-block"></i>Không có sự cố nào!</td></tr>
+                    }
+                    @foreach (var i in Model)
+                    {
+                        var (sevColor, sevLabel) = i.Severity switch {
+                            "Critical" => ("danger", "Nghiêm trọng"),
+                            "High" => ("warning text-dark", "Cao"),
+                            "Medium" => ("primary", "Trung bình"),
+                            _ => ("secondary", "Thấp")
+                        };
+                        var (statColor, statLabel) = i.Status switch {
+                            "Open" => ("danger", "Mở"),
+                            "InProgress" => ("primary", "Đang xử lý"),
+                            "Resolved" => ("success", "Đã xử lý"),
+                            _ => ("secondary", "Đã đóng")
+                        };
+                        <tr>
+                            <td><span class="badge bg-@sevColor">@sevLabel</span></td>
+                            <td>
+                                <a asp-action="IncidentDetail" asp-route-id="@i.Id" class="fw-bold text-dark text-decoration-none">@i.Title</a>
+                            </td>
+                            <td class="text-muted small">@i.EquipmentName</td>
+                            <td class="small">@i.OccurredAt?.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="small">@(i.TechnicianName ?? "—")</td>
+                            <td class="small @(i.DowntimeHours > 4 ? "text-danger fw-bold" : "")">
+                                @(i.DowntimeHours.HasValue ? $"{i.DowntimeHours}h" : "—")
+                            </td>
+                            <td><span class="badge bg-@statColor">@statLabel</span></td>
+                            <td class="text-end">
+                                <a asp-action="IncidentDetail" asp-route-id="@i.Id" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

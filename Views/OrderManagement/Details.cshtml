@@ -1,0 +1,708 @@
+@using OmniBizAI.Models.Entities.Enums
+@using OmniBizAI.ViewModels
+@model OmniBizAI.ViewModels.SalesOrderDetailViewModel
+@{
+    ViewData["Title"] = $"Đơn hàng {Model.OrderNo}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var users = ViewBag.Users as List<SelectOption> ?? new List<SelectOption>();
+}
+
+<style>
+    /* Premium Glassmorphic Cards */
+    .premium-detail-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 18px;
+        padding: 26px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        margin-bottom: 24px;
+    }
+    .premium-detail-card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Apple HSL Soft Badges */
+    .so-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .so-badge-draft { background: #f5f5f7; color: #86868b; }
+    .so-badge-submitted { background: #e3f2fd; color: #0071e3; }
+    .so-badge-approved { background: #f3e5f5; color: #af52de; }
+    .so-badge-inproduction { background: #fff3e0; color: #ff9500; }
+    .so-badge-qualitychecking { background: #e0f2f1; color: #008080; }
+    .so-badge-completed { background: #e8f5e9; color: #34c759; }
+    .so-badge-cancelled { background: #ffebee; color: #ff3b30; }
+
+    .so-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background-color: currentColor;
+    }
+
+    /* Production Pipeline UI */
+    .pipeline-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .pipeline-step-item {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        border-radius: 14px;
+        padding: 18px;
+        transition: all 0.2s ease-in-out;
+        position: relative;
+    }
+    .pipeline-step-item:hover {
+        background: rgba(255, 255, 255, 0.7);
+        border-color: rgba(0, 113, 227, 0.15);
+        transform: scale(1.005);
+    }
+    .pipeline-step-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .pipeline-step-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+    .step-num-todo { background: #f5f5f7; color: #86868b; }
+    .step-num-inprogress { background: #e3f2fd; color: #0071e3; }
+    .step-num-completed { background: #e8f5e9; color: #34c759; }
+
+    /* QC Status indicators */
+    .qc-badge {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .qc-badge-pending { background: #fffde7; color: #f57f17; border: 1px solid rgba(245, 127, 23, 0.2); }
+    .qc-badge-passed { background: #e8f5e9; color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.2); }
+    .qc-badge-failed { background: #ffebee; color: #c62828; border: 1px solid rgba(198, 40, 40, 0.2); }
+
+    /* Traceability Timeline UI */
+    .timeline-wrapper {
+        position: relative;
+        padding-left: 24px;
+        border-left: 2px dashed rgba(0, 113, 227, 0.25);
+        margin-left: 10px;
+    }
+    .timeline-node {
+        position: relative;
+        margin-bottom: 24px;
+    }
+    .timeline-node::before {
+        content: '';
+        position: absolute;
+        left: -31px;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #0071e3;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+    }
+    .timeline-node-time {
+        font-size: 0.75rem;
+        color: #86868b;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    .timeline-node-card {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        border-radius: 12px;
+        padding: 14px 18px;
+    }
+
+    /* Standard transition animations */
+    .btn-apple-animate {
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .btn-apple-animate:hover {
+        transform: translateY(-2px);
+    }
+    .btn-apple-animate:active {
+        transform: translateY(0);
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Breadcrumb & Back -->
+    <div class="mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <a asp-action="Index" class="text-decoration-none text-muted small"><i class="fa-solid fa-chevron-left me-1"></i> Quay lại danh sách đơn hàng</a>
+            <h1 class="h3 fw-bold text-gray-800 mt-2 mb-1">Chi Tiết Đơn Hàng: @Model.OrderNo</h1>
+            <p class="text-muted mb-0 small">Phân công nhân sự, cập nhật tiến độ công đoạn, đánh giá QA/QC và truy xuất hành trình</p>
+        </div>
+        
+        <!-- Order status badges and top level actions -->
+        <div class="d-flex align-items-center gap-2">
+            @{
+                var mainBadgeClass = Model.Status switch
+                {
+                    SalesOrderStatus.Draft => "so-badge-draft",
+                    SalesOrderStatus.Submitted => "so-badge-submitted",
+                    SalesOrderStatus.Approved => "so-badge-approved",
+                    SalesOrderStatus.InProduction => "so-badge-inproduction",
+                    SalesOrderStatus.QualityChecking => "so-badge-qualitychecking",
+                    SalesOrderStatus.Completed => "so-badge-completed",
+                    SalesOrderStatus.Cancelled => "so-badge-cancelled",
+                    _ => "so-badge-draft"
+                };
+                var vnStatusName = Model.Status switch
+                {
+                    SalesOrderStatus.Draft => "Bản nháp",
+                    SalesOrderStatus.Submitted => "Chờ duyệt",
+                    SalesOrderStatus.Approved => "Đã duyệt",
+                    SalesOrderStatus.InProduction => "Đang sản xuất",
+                    SalesOrderStatus.QualityChecking => "Kiểm định QC",
+                    SalesOrderStatus.Completed => "Đã hoàn thành",
+                    SalesOrderStatus.Cancelled => "Đã hủy",
+                    _ => Model.Status.ToString()
+                };
+            }
+            <span class="so-badge @mainBadgeClass shadow-sm py-2">
+                <span class="so-dot"></span>
+                @vnStatusName
+            </span>
+            
+            @if (Model.WorkflowStatus != null)
+            {
+                <span class="badge bg-light text-dark border py-2 px-3 small rounded-pill">
+                    <i class="fa-solid fa-network-wired text-primary me-1"></i> Luồng duyệt: @Model.WorkflowStatus
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Alert Messaging -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px; background-color: #e8f5e9; color: #2e7d32;">
+            <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px; background-color: #fffde7; color: #f57f17;">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["WarningMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px; background-color: #ffebee; color: #c62828;">
+            <i class="fa-solid fa-circle-xmark me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Core Actions Panel (Appears at top for draft or approved orders) -->
+    @if (Model.Status == SalesOrderStatus.Draft || Model.Status == SalesOrderStatus.Approved)
+    {
+        <div class="premium-detail-card shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3" style="background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(240,248,255,0.7) 100%);">
+            <div>
+                <h5 class="fw-bold mb-1" style="color: #1d1d1f;"><i class="fa-solid fa-circle-play text-primary me-2"></i>Hành động vận hành khả dụng</h5>
+                @if (Model.Status == SalesOrderStatus.Draft)
+                {
+                    <p class="text-muted mb-0 small">Đơn hàng này hiện ở trạng thái **Bản nháp**. Vui lòng gửi duyệt để khởi chạy quy trình phê duyệt 2 cấp tự động.</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0 small">Đơn hàng đã được **Phê duyệt**. Bạn có thể khởi động quy trình sản xuất và kích hoạt kiểm định chất lượng (QA/QC).</p>
+                }
+            </div>
+            
+            <div>
+                @if (Model.Status == SalesOrderStatus.Draft)
+                {
+                    <form asp-action="Submit" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary btn-apple-animate px-4 py-2" style="border-radius: 12px;">
+                            <i class="fa-solid fa-paper-plane me-2"></i> Gửi phê duyệt (2 Cấp)
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="StartProduction" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-apple-animate px-4 py-2" style="border-radius: 12px; background-color: #34c759; border-color: #34c759;">
+                            <i class="fa-solid fa-industry me-2"></i> Bắt đầu sản xuất & QC
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Main Responsive Grid -->
+    <div class="row g-4">
+        <!-- Left Side: Order info, Pipeline, and Traceability -->
+        <div class="col-12 col-lg-8">
+            
+            <!-- Card 1: Order Metadata & Lines -->
+            <div class="premium-detail-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0" style="color: #1d1d1f;"><i class="fa-solid fa-file-lines text-primary me-2"></i>Thông tin đơn hàng & Sản phẩm dòng</h5>
+                </div>
+                
+                <!-- Main Grid info -->
+                <div class="row g-3 mb-4 p-3 bg-light rounded-3" style="font-size: 0.9rem;">
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block small">Khách hàng</span>
+                        <strong class="text-dark">@Model.CustomerName</strong>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block small">Ngày lập đơn</span>
+                        <strong class="text-dark">@Model.OrderDate.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block small">Hạn giao hàng</span>
+                        <strong class="text-dark">@Model.DeliveryDate.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block small">Tổng tiền thanh toán</span>
+                        <strong class="text-primary fs-5">@Model.TotalAmount.ToString("N0") VND</strong>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                    {
+                        <div class="col-12 border-top pt-2 mt-2">
+                            <span class="text-muted d-block small">Ghi chú đặc biệt</span>
+                            <span class="text-dark" style="font-style: italic;">@Model.Notes</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" style="font-size: 0.88rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm / Dịch vụ</th>
+                                <th class="text-center" style="width: 100px;">Số lượng</th>
+                                <th class="text-end" style="width: 150px;">Đơn giá</th>
+                                <th class="text-end" style="width: 150px;">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var line in Model.Lines)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@line.ProductName</div>
+                                        <span class="text-muted small text-uppercase">Mã: @line.ProductCode</span>
+                                    </td>
+                                    <td class="text-center">@line.Quantity.ToString("G29")</td>
+                                    <td class="text-end">@line.UnitPrice.ToString("N0") VND</td>
+                                    <td class="text-end fw-bold text-dark">@line.TotalPrice.ToString("N0") VND</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Card 2: Production Pipeline -->
+            <div class="premium-detail-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: #1d1d1f;"><i class="fa-solid fa-diagram-next text-primary me-2"></i>Quy trình vận hành & Sơ đồ công đoạn</h5>
+                        <p class="text-muted small mb-0 mt-1">Quản lý phân công nhân sự và thay đổi trạng thái từng bước sản xuất</p>
+                    </div>
+                </div>
+
+                @if (!Model.ProductionSteps.Any())
+                {
+                    <div class="text-center py-5 text-muted bg-light rounded-3">
+                        <i class="fa-solid fa-clock-rotate-left fa-2x mb-3 text-muted" style="opacity: 0.4;"></i>
+                        <p class="mb-0">Quy trình sản xuất chưa khởi tạo.</p>
+                        @if (Model.Status == SalesOrderStatus.Approved)
+                        {
+                            <span class="small d-block text-muted mt-1">Sử dụng nút **Bắt đầu sản xuất** ở trên để sinh các công đoạn tự động.</span>
+                        }
+                        else
+                        {
+                            <span class="small d-block text-muted mt-1">Đơn hàng cần được phê duyệt trước khi bắt đầu quy trình vận hành.</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="pipeline-container mt-3">
+                        @foreach (var step in Model.ProductionSteps)
+                        {
+                            var itemBorderClass = step.Status switch
+                            {
+                                ProductionStepStatus.Todo => "",
+                                ProductionStepStatus.InProgress => "border-primary",
+                                ProductionStepStatus.Completed => "border-success",
+                                _ => ""
+                            };
+                            
+                            var stepNumClass = step.Status switch
+                            {
+                                ProductionStepStatus.Todo => "step-num-todo",
+                                ProductionStepStatus.InProgress => "step-num-inprogress",
+                                ProductionStepStatus.Completed => "step-num-completed",
+                                _ => "step-num-todo"
+                            };
+
+                            var statusLabel = step.Status switch
+                            {
+                                ProductionStepStatus.Todo => "Chờ làm (Todo)",
+                                ProductionStepStatus.InProgress => "Đang xử lý (In Progress)",
+                                ProductionStepStatus.Completed => "Hoàn thành (Completed)",
+                                _ => step.Status.ToString()
+                            };
+
+                            var qcBadgeClass = step.QcStatus switch
+                            {
+                                QcStatus.Pending => "qc-badge-pending",
+                                QcStatus.Passed => "qc-badge-passed",
+                                QcStatus.Failed => "qc-badge-failed",
+                                _ => "qc-badge-pending"
+                            };
+
+                            var qcLabel = step.QcStatus switch
+                            {
+                                QcStatus.Pending => "Đang chờ QC",
+                                QcStatus.Passed => "QC Đạt",
+                                QcStatus.Failed => "QC Không Đạt",
+                                _ => step.QcStatus.ToString()
+                            };
+
+                            <div class="pipeline-step-item shadow-sm border @itemBorderClass">
+                                <div class="pipeline-step-header">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="pipeline-step-number @stepNumClass">
+                                            @step.Sequence
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-dark">@step.StepName</h6>
+                                            <span class="text-muted small">Công đoạn @step.Sequence</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge @(step.Status == ProductionStepStatus.Completed ? "bg-success" : step.Status == ProductionStepStatus.InProgress ? "bg-primary" : "bg-secondary") rounded-pill px-2 py-1 small">
+                                            @statusLabel
+                                        </span>
+                                        <span class="qc-badge @qcBadgeClass">
+                                            @qcLabel
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Step details (Assignee & QC info) -->
+                                <div class="row g-2 mt-2 pt-2 border-top align-items-center" style="font-size: 0.85rem;">
+                                    <div class="col-12 col-md-6">
+                                        <i class="fa-solid fa-user-gear text-muted me-1"></i> Nhân viên: 
+                                        @if (!string.IsNullOrEmpty(step.AssignedUserName))
+                                        {
+                                            <strong class="text-dark">@step.AssignedUserName</strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted italic">Chưa phân công</span>
+                                        }
+                                    </div>
+                                    <div class="col-12 col-md-6 text-md-end text-muted small">
+                                        @if (step.QcStatus != QcStatus.Pending && !string.IsNullOrEmpty(step.QcUserName))
+                                        {
+                                            <span>QC: <strong>@step.QcUserName</strong> vào @(step.QcCheckedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                                        }
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(step.QcNotes))
+                                    {
+                                        <div class="col-12 bg-white p-2 rounded border mt-2 small">
+                                            <i class="fa-solid fa-quote-left text-muted me-1 small"></i> Nhận xét QC: <span class="text-dark">@step.QcNotes</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- INLINE MANAGEMENT FORM (Visible to staff & managers during production) -->
+                                @if (Model.Status == SalesOrderStatus.InProduction || Model.Status == SalesOrderStatus.QualityChecking)
+                                {
+                                    <div class="mt-3 pt-3 border-top bg-light p-3 rounded-3">
+                                        <form asp-action="UpdateStep" method="post" class="row g-2 align-items-center">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="stepId" value="@step.Id" />
+                                            <input type="hidden" name="orderId" value="@Model.Id" />
+                                            
+                                            <div class="col-12 col-sm-5">
+                                                <label class="form-label text-muted small mb-1">Phân công nhân sự</label>
+                                                <select name="assignedUserId" class="form-select form-select-sm" style="border-radius: 8px;">
+                                                    <option value="">-- Phân công nhân viên --</option>
+                                                    @foreach (var user in users)
+                                                    {
+                                                        if (step.AssignedUserId?.ToString() == user.Value)
+                                                        {
+                                                            <option value="@user.Value" selected>@user.Text</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@user.Value">@user.Text</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="col-12 col-sm-4">
+                                                <label class="form-label text-muted small mb-1">Trạng thái</label>
+                                                <select name="status" class="form-select form-select-sm" style="border-radius: 8px;">
+                                                    @foreach (var val in Enum.GetValues<ProductionStepStatus>())
+                                                    {
+                                                        var vnStat = val switch {
+                                                            ProductionStepStatus.Todo => "Chờ làm (Todo)",
+                                                            ProductionStepStatus.InProgress => "Đang làm (In Progress)",
+                                                            ProductionStepStatus.Completed => "Hoàn thành (Completed)",
+                                                            _ => val.ToString()
+                                                        };
+                                                        if (step.Status == val)
+                                                        {
+                                                            <option value="@val" selected>@vnStat</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@val">@vnStat</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+
+                                            <div class="col-12 col-sm-3 d-grid align-self-end mt-3 mt-sm-0">
+                                                <button type="submit" class="btn btn-dark btn-sm px-2 py-2" style="border-radius: 8px; font-size: 0.8rem;">
+                                                    <i class="fa-solid fa-rotate me-1"></i> Cập nhật
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Card 3: Traceability Log -->
+            <div class="premium-detail-card">
+                <h5 class="fw-bold mb-3" style="color: #1d1d1f;"><i class="fa-solid fa-shield-halved text-primary me-2"></i>Nhật ký truy xuất nguồn gốc sản phẩm & Lịch sử sê-ri</h5>
+                <p class="text-muted small mb-4">Các điểm chạm bảo mật (touchpoints) trong hành trình sản xuất và vận hành đơn hàng này</p>
+
+                @if (!Model.Traceabilities.Any())
+                {
+                    <div class="text-center py-4 text-muted bg-light rounded-3">
+                        <i class="fa-solid fa-qrcode fa-2x mb-3 text-muted" style="opacity: 0.4;"></i>
+                        <p class="mb-0">Nhật ký truy xuất nguồn gốc trống.</p>
+                        <span class="small d-block text-muted mt-1">Các sự kiện và hành động vận hành sẽ được ghi lại tại đây khi bạn chạy công đoạn sản xuất.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="timeline-wrapper">
+                        @foreach (var trace in Model.Traceabilities)
+                        {
+                            <div class="timeline-node">
+                                <div class="timeline-node-time">
+                                    <i class="fa-regular fa-clock me-1"></i> @trace.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss") (GMT)
+                                </div>
+                                <div class="timeline-node-card shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <strong class="text-primary small" style="letter-spacing: 0.5px;">MÃ LÔ: @trace.BatchNo</strong>
+                                        <span class="badge bg-light text-dark border small">@trace.ProductName</span>
+                                    </div>
+                                    <p class="text-dark small mb-0" style="line-height: 1.45;">@trace.OriginDetails</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- Right Side: Approvals history and Active QC Assessment -->
+        <div class="col-12 col-lg-4">
+            
+            <!-- Card 4: QA/QC Assessment Form -->
+            @if (Model.Status == SalesOrderStatus.InProduction || Model.Status == SalesOrderStatus.QualityChecking)
+            {
+                // We show this form so that completed steps can be assessed for QA/QC
+                var stepsAwaitingQc = Model.ProductionSteps
+                    .Where(s => s.Status == ProductionStepStatus.Completed && s.QcStatus != QcStatus.Passed)
+                    .ToList();
+
+                <div class="premium-detail-card shadow-sm border border-warning" style="background: rgba(255, 253, 240, 0.8);">
+                    <h5 class="fw-bold text-warning mb-2"><i class="fa-solid fa-clipboard-check me-2"></i>Thẩm định chất lượng QA/QC</h5>
+                    <p class="text-muted small mb-3">Chuyên viên kiểm định đánh giá đạt hoặc không đạt cho các công đoạn sản xuất đã hoàn thành.</p>
+                    
+                    @if (!stepsAwaitingQc.Any())
+                    {
+                        <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
+                            <i class="fa-solid fa-circle-info me-1"></i> Hiện tại chưa có công đoạn nào được chuyển sang trạng thái **Hoàn thành** để chờ thẩm định chất lượng QA/QC.
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="SubmitQc" method="post" class="mt-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.Id" />
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark small">1. Chọn công đoạn thẩm định</label>
+                                <select name="ProductionStepId" class="form-select form-select-sm" style="border-radius: 8px; padding: 8px;" required>
+                                    @foreach (var step in stepsAwaitingQc)
+                                    {
+                                        <option value="@step.Id">Bước @step.Sequence: @step.StepName</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark small">2. Đánh giá chất lượng</label>
+                                <div class="d-flex gap-4 mt-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="QcStatus" id="qc_passed" value="@QcStatus.Passed" checked>
+                                        <label class="form-check-label fw-semibold text-success small" for="qc_passed">
+                                            <i class="fa-solid fa-circle-check me-1"></i> ĐẠT (Passed)
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="QcStatus" id="qc_failed" value="@QcStatus.Failed">
+                                        <label class="form-check-label fw-semibold text-danger small" for="qc_failed">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i> KHÔNG ĐẠT (Failed)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark small">3. Ghi chú kiểm định</label>
+                                <textarea name="QcNotes" class="form-control form-control-sm" rows="3" placeholder="Nhập ghi chú chi tiết, kết quả đo lường, thông số hoặc lý do không đạt..." style="border-radius: 8px;" required></textarea>
+                            </div>
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-warning btn-apple-animate fw-bold text-dark py-2" style="border-radius: 10px;">
+                                    <i class="fa-solid fa-square-check me-1"></i> Gửi kết quả thẩm định QC
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            }
+
+            <!-- Card 5: Approval Workflow History (Integrated with central Approvals) -->
+            <div class="premium-detail-card">
+                <h5 class="fw-bold mb-3" style="color: #1d1d1f;"><i class="fa-solid fa-network-wired text-primary me-2"></i>Nhật ký phê duyệt Workflow</h5>
+                <p class="text-muted small mb-4">Lịch sử phê duyệt quy trình 2 cấp của đơn hàng này</p>
+
+                @if (!Model.ApprovalHistory.Any())
+                {
+                    <div class="text-center py-4 text-muted bg-light rounded-3 small">
+                        <i class="fa-regular fa-calendar-check fa-xl mb-2 text-muted" style="opacity: 0.5;"></i>
+                        <p class="mb-0">Không có bản ghi phê duyệt nào.</p>
+                        <span class="small d-block text-muted mt-1">Trạng thái sẽ thay đổi sau khi gửi duyệt đơn hàng.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var task in Model.ApprovalHistory)
+                        {
+                            var cardBorderClass = task.Status switch
+                            {
+                                "Pending" => "border-start border-3 border-primary",
+                                "Approved" => "border-start border-3 border-success",
+                                "Rejected" => "border-start border-3 border-danger",
+                                _ => ""
+                            };
+                            
+                            var statusText = task.Status switch
+                            {
+                                "Pending" => "Đang chờ duyệt",
+                                "Approved" => "Đã chấp thuận",
+                                "Rejected" => "Từ chối",
+                                _ => task.Status
+                            };
+
+                            var statusBadgeColor = task.Status switch
+                            {
+                                "Pending" => "bg-primary",
+                                "Approved" => "bg-success",
+                                "Rejected" => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+
+                            <div class="p-3 bg-light rounded-3 shadow-sm @cardBorderClass" style="font-size: 0.85rem;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong class="text-dark">@task.StepName</strong>
+                                    <span class="badge @statusBadgeColor rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                        @statusText
+                                    </span>
+                                </div>
+                                <div class="text-muted small">
+                                    <span class="d-block"><i class="fa-regular fa-circle-user me-1"></i> Vai trò duyệt: <strong>@task.AssignedRole</strong></span>
+                                    @if (!string.IsNullOrEmpty(task.AssignedToName))
+                                    {
+                                        <span class="d-block"><i class="fa-solid fa-user-check me-1"></i> Người duyệt: <strong>@task.AssignedToName</strong></span>
+                                    }
+                                    <span class="d-block"><i class="fa-regular fa-calendar me-1"></i> Tạo lúc: @task.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                    @if (task.DecidedAt.HasValue)
+                                    {
+                                        <span class="d-block"><i class="fa-regular fa-calendar-check me-1"></i> Quyết định lúc: @task.DecidedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(task.DecisionNote))
+                                {
+                                    <div class="mt-2 p-2 bg-white rounded border small italic">
+                                        <strong>Lý do/Ghi chú:</strong> @task.DecisionNote
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Helpful Navigation tips -->
+            <div class="p-3 bg-light rounded-3 small" style="border: 1px solid rgba(0,0,0,0.04);">
+                <h6 class="fw-bold mb-2 small text-dark"><i class="fa-solid fa-circle-question text-primary me-2"></i>Quy trình Vận hành mẫu</h6>
+                <ol class="ps-3 mb-0 text-muted" style="line-height: 1.5;">
+                    <li>Người bán lập đơn hàng dạng **Nháp**.</li>
+                    <li>Ấn **Gửi phê duyệt** để bắt đầu quy trình duyệt 2 cấp.</li>
+                    <li>Trưởng bộ phận & Ban giám đốc duyệt từ màn hình chung **Phê duyệt**.</li>
+                    <li>Sau khi duyệt, ấn **Bắt đầu sản xuất** để sinh 5 công đoạn và sê-ri lô hàng.</li>
+                    <li>Nhân viên cập nhật trạng thái các công đoạn. Khi công đoạn đạt **Hoàn thành**, QC thực hiện thẩm định **ĐẠT** hoặc **KHÔNG ĐẠT**.</li>
+                    <li>Khi tất cả công đoạn đạt chuẩn QC, đơn hàng tự động chuyển sang **Đã hoàn thành**.</li>
+                </ol>
+            </div>
+
+        </div>
+    </div>
+</div>

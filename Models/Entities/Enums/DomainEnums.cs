@@ -310,3 +310,28 @@ public enum GradingRankCode
     C = 6,
     D = 7
 }
+
+public enum SalesOrderStatus
+{
+    Draft = 1,
+    Submitted = 2,
+    Approved = 3,
+    InProduction = 4,
+    QualityChecking = 5,
+    Completed = 6,
+    Cancelled = 7
+}
+
+public enum ProductionStepStatus
+{
+    Todo = 1,
+    InProgress = 2,
+    Completed = 3
+}
+
+public enum QcStatus
+{
+    Pending = 1,
+    Passed = 2,
+    Failed = 3
+}

@@ -1,0 +1,37 @@
+@model OmniBizAI.ViewModels.CertificateCreateViewModel
+@{ ViewData["Title"] = "Thêm Chứng Chỉ"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">Thêm Chứng Chỉ Nhân Viên</h2>
+    <a asp-action="Certificates" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center"><div class="col-lg-7">
+<div class="card shadow">
+    <div class="card-body">
+        <form asp-action="AddCertificate" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nhân viên *</label>
+                <select asp-for="UserId" class="form-select" required>
+                    <option value="">-- Chọn nhân viên --</option>
+                    @foreach (var u in Model.Users) { <option value="@u.Value">@u.Text</option> }
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label fw-bold">Tên chứng chỉ *</label><input asp-for="CertificateName" class="form-control" placeholder="VD: Chứng chỉ Vận hành cẩu trục" /><span asp-validation-for="CertificateName" class="text-danger small"></span></div>
+            <div class="row mb-3">
+                <div class="col-md-8"><label class="form-label fw-bold">Tổ chức cấp</label><input asp-for="IssuingOrganization" class="form-control" /></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Số chứng chỉ</label><input asp-for="CertificateNumber" class="form-control" /></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4"><label class="form-label fw-bold">Loại</label>
+                    <select asp-for="Category" class="form-select">
+                        <option value="Professional">Chuyên môn</option><option value="Safety">An toàn LĐ</option>
+                        <option value="Technical">Kỹ thuật</option><option value="Language">Ngoại ngữ</option>
+                    </select>
+                </div>
+                <div class="col-md-4"><label class="form-label fw-bold">Ngày cấp</label><input asp-for="IssuedDate" type="date" class="form-control" /></div>
+                <div class="col-md-4"><label class="form-label fw-bold">Ngày hết hạn</label><input asp-for="ExpiryDate" type="date" class="form-control" /></div>
+            </div>
+            <hr /><div class="text-end"><button type="submit" class="btn btn-warning text-dark px-4">Lưu Chứng Chỉ</button></div>
+        </form>
+    </div>
+</div>
+</div></div>

@@ -1,0 +1,152 @@
+@model OmniBizAI.ViewModels.EquipmentDetailViewModel
+@{
+    ViewData["Title"] = $"Thiết bị: {Model.Name}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-cog text-primary me-2"></i>@Model.Name</h2>
+    <div>
+        <a asp-action="Equipments" class="btn btn-secondary btn-sm me-2">← Danh sách</a>
+        <a asp-controller="Maintenance" asp-action="SensorMonitor" asp-route-equipmentId="@Model.Id"
+           class="btn btn-outline-primary btn-sm me-2">
+            <i class="fas fa-satellite-dish me-1"></i>IoT Monitor
+        </a>
+        <a asp-action="ScheduleMaintenance" asp-route-equipmentId="@Model.Id" class="btn btn-warning btn-sm">
+            <i class="fas fa-tools me-1"></i>Lên lịch bảo trì
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        @TempData["SuccessMessage"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 fw-bold text-primary">Thông Tin Thiết Bị</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width:80px;height:80px;">
+                        <i class="fas fa-cogs fa-2x text-primary"></i>
+                    </div>
+                    <div class="mt-2">
+                        @switch (Model.Status)
+                        {
+                            case "Available": <span class="badge bg-success fs-6">Sẵn sàng</span> break;
+                            case "InUse": <span class="badge bg-primary fs-6">Đang dùng</span> break;
+                            case "Maintenance": <span class="badge bg-warning text-dark fs-6">Đang bảo trì</span> break;
+                            case "Retired": <span class="badge bg-secondary fs-6">Đã thanh lý</span> break;
+                        }
+                    </div>
+                </div>
+                <table class="table table-borderless table-sm">
+                    <tr><td class="text-muted">Mã</td><td class="fw-bold">@Model.Code</td></tr>
+                    <tr><td class="text-muted">Loại</td><td>@Model.Type</td></tr>
+                    @if (!string.IsNullOrEmpty(Model.Location)) {
+                        <tr><td class="text-muted">Vị trí</td><td>@Model.Location</td></tr>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Manufacturer)) {
+                        <tr><td class="text-muted">NSX</td><td>@Model.Manufacturer</td></tr>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Model)) {
+                        <tr><td class="text-muted">Model</td><td>@Model.Model</td></tr>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.SerialNumber)) {
+                        <tr><td class="text-muted">Serial</td><td><code>@Model.SerialNumber</code></td></tr>
+                    }
+                    @if (Model.PurchaseDate.HasValue) {
+                        <tr><td class="text-muted">Ngày mua</td><td>@Model.PurchaseDate.Value.ToString("dd/MM/yyyy")</td></tr>
+                    }
+                    @if (Model.PurchasePrice.HasValue) {
+                        <tr><td class="text-muted">Giá mua</td><td>@Model.PurchasePrice.Value.ToString("N0") VNĐ</td></tr>
+                    }
+                    @if (Model.LifespanYears.HasValue) {
+                        <tr><td class="text-muted">Tuổi thọ</td><td>@Model.LifespanYears năm</td></tr>
+                    }
+                    @if (Model.NextMaintenanceDate.HasValue) {
+                        var overdue = Model.NextMaintenanceDate.Value < today;
+                        <tr>
+                            <td class="text-muted">Bảo trì tiếp</td>
+                            <td class="@(overdue ? "text-danger fw-bold" : "")">
+                                @if (overdue) { <i class="fas fa-exclamation-triangle"></i> }
+                                @Model.NextMaintenanceDate.Value.ToString("dd/MM/yyyy")
+                            </td>
+                        </tr>
+                    }
+                </table>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="border rounded p-2 bg-light small text-muted fst-italic">@Model.Notes</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                <h6 class="m-0 fw-bold text-primary"><i class="fas fa-history me-2"></i>Lịch Sử Bảo Trì (@Model.MaintenanceRecords.Count)</h6>
+                <a asp-action="ScheduleMaintenance" asp-route-equipmentId="@Model.Id" class="btn btn-sm btn-warning">
+                    <i class="fas fa-plus me-1"></i>Lên lịch mới
+                </a>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.MaintenanceRecords.Any())
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-tools fa-3x mb-3 text-gray-300 d-block"></i>
+                        Chưa có lịch sử bảo trì nào.
+                    </div>
+                }
+                @foreach (var m in Model.MaintenanceRecords)
+                {
+                    <div class="p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="fw-bold text-dark me-2">
+                                    @switch (m.MaintenanceType)
+                                    {
+                                        case "Preventive": @("Bảo trì định kỳ") break;
+                                        case "Corrective": @("Sửa chữa") break;
+                                        case "Emergency": @("Khẩn cấp") break;
+                                        default: @m.MaintenanceType break;
+                                    }
+                                </span>
+                                @switch (m.Status)
+                                {
+                                    case "Scheduled": <span class="badge bg-info">Đã lên lịch</span> break;
+                                    case "InProgress": <span class="badge bg-primary">Đang thực hiện</span> break;
+                                    case "Completed": <span class="badge bg-success">Hoàn thành</span> break;
+                                    case "Cancelled": <span class="badge bg-secondary">Đã hủy</span> break;
+                                }
+                            </div>
+                            <div class="text-end small text-muted">
+                                @m.ScheduledDate.ToString("dd/MM/yyyy")
+                                @if (m.CompletedDate.HasValue) { <span class="text-success ms-2">→ @m.CompletedDate.Value.ToString("dd/MM/yy")</span> }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(m.Description)) {
+                            <div class="text-muted small mt-1">@m.Description</div>
+                        }
+                        @if (!string.IsNullOrEmpty(m.WorkDone)) {
+                            <div class="mt-1 small"><span class="text-success fw-bold">Công việc đã làm:</span> @m.WorkDone</div>
+                        }
+                        <div class="d-flex gap-3 mt-1 small text-muted">
+                            @if (!string.IsNullOrEmpty(m.TechnicianName)) { <span><i class="fas fa-user-cog"></i> @m.TechnicianName</span> }
+                            @if (m.Cost.HasValue) { <span><i class="fas fa-money-bill-wave"></i> @m.Cost.Value.ToString("N0") VNĐ</span> }
+                            @if (m.NextMaintenanceDate.HasValue) { <span><i class="fas fa-calendar-plus"></i> KH tiếp: @m.NextMaintenanceDate.Value.ToString("dd/MM/yyyy")</span> }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

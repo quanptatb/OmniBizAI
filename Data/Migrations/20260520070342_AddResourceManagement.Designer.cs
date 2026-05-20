@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OmniBizAI.Data;
 
@@ -11,9 +12,11 @@ using OmniBizAI.Data;
 namespace OmniBizAI.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260520070342_AddResourceManagement")]
+    partial class AddResourceManagement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1631,69 +1634,6 @@ namespace OmniBizAI.Data.Migrations
                     b.ToTable("Equipments");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.EquipmentSensorReading", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("EquipmentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset>("ReadingTime")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("SensorType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<double?>("ThresholdCritical")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("ThresholdWarning")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<double>("Value")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EquipmentId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("EquipmentSensorReadings");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.EvaluationPeriod", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3142,137 +3082,6 @@ namespace OmniBizAI.Data.Migrations
                     b.ToTable("LeaveRequests");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.MaintenanceIncident", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AssignedTechnicianId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("DowntimeHours")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("EquipmentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("MaintenanceRecordId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("OccurredAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("ReportedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Resolution")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("ResolvedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("RootCause")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Severity")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedTechnicianId");
-
-                    b.HasIndex("EquipmentId");
-
-                    b.HasIndex("MaintenanceRecordId");
-
-                    b.HasIndex("ReportedByUserId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("MaintenanceIncidents");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.MaintenancePartUsage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("MaintenanceRecordId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("QuantityUsed")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("SparePartId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal?>("UnitCostAtTime")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MaintenanceRecordId");
-
-                    b.HasIndex("SparePartId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("MaintenancePartUsages");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.MaintenanceRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4350,79 +4159,6 @@ namespace OmniBizAI.Data.Migrations
                     b.ToTable("PlanTasks");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.PmSchedule", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AssignedTechnicianId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Checklist")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("EquipmentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("EstimatedDurationMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Frequency")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("FrequencyValue")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Instructions")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateOnly?>("LastPerformedDate")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly?>("NextDueDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("TaskName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedTechnicianId");
-
-                    b.HasIndex("EquipmentId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("PmSchedules");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.Position", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4704,123 +4440,6 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("UnitOfMeasureId");
 
                     b.ToTable("ProductServices");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.ProductTraceability", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("BatchNo")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OriginDetails")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ProductServiceId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SalesOrderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductServiceId");
-
-                    b.HasIndex("SalesOrderId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("ProductTraceabilities");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.ProductionStep", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AssignedUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("QcCheckedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("QcNotes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("QcStatus")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("QcUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SalesOrderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Sequence")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StepName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedUserId");
-
-                    b.HasIndex("QcUserId");
-
-                    b.HasIndex("SalesOrderId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("ProductionSteps");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PurchaseOrder", b =>
@@ -5185,118 +4804,6 @@ namespace OmniBizAI.Data.Migrations
                     b.ToTable("SalesOpportunities");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOrder", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CustomerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateOnly>("DeliveryDate")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateOnly>("OrderDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("OrderNo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("WorkflowInstanceId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("WorkflowInstanceId");
-
-                    b.ToTable("SalesOrders");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOrderLine", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("ProductServiceId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<Guid>("SalesOrderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductServiceId");
-
-                    b.HasIndex("SalesOrderId");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("SalesOrderLines");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.ShiftAssignment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5353,76 +4860,6 @@ namespace OmniBizAI.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ShiftAssignments");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SparePart", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Category")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Manufacturer")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("MinimumStock")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PartNumber")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal?>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("SpareParts");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.StockAlert", b =>
@@ -7250,25 +6687,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.EquipmentSensorReading", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.Equipment", "Equipment")
-                        .WithMany()
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Equipment");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.EvaluationPeriod", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
@@ -7930,73 +7348,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.MaintenanceIncident", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "AssignedTechnician")
-                        .WithMany()
-                        .HasForeignKey("AssignedTechnicianId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OmniBizAI.Models.Entities.Equipment", "Equipment")
-                        .WithMany()
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.MaintenanceRecord", "MaintenanceRecord")
-                        .WithMany()
-                        .HasForeignKey("MaintenanceRecordId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "ReportedByUser")
-                        .WithMany()
-                        .HasForeignKey("ReportedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AssignedTechnician");
-
-                    b.Navigation("Equipment");
-
-                    b.Navigation("MaintenanceRecord");
-
-                    b.Navigation("ReportedByUser");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.MaintenancePartUsage", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.MaintenanceRecord", "MaintenanceRecord")
-                        .WithMany()
-                        .HasForeignKey("MaintenanceRecordId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.SparePart", "SparePart")
-                        .WithMany("PartUsages")
-                        .HasForeignKey("SparePartId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("MaintenanceRecord");
-
-                    b.Navigation("SparePart");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.MaintenanceRecord", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.Equipment", "Equipment")
@@ -8436,32 +7787,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.PmSchedule", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "AssignedTechnician")
-                        .WithMany()
-                        .HasForeignKey("AssignedTechnicianId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OmniBizAI.Models.Entities.Equipment", "Equipment")
-                        .WithMany()
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AssignedTechnician");
-
-                    b.Navigation("Equipment");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.Position", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.OrganizationUnit", "OrganizationUnit")
@@ -8573,66 +7898,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
 
                     b.Navigation("UnitOfMeasure");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.ProductTraceability", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.ProductService", "ProductService")
-                        .WithMany()
-                        .HasForeignKey("ProductServiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.SalesOrder", "SalesOrder")
-                        .WithMany("Traceabilities")
-                        .HasForeignKey("SalesOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ProductService");
-
-                    b.Navigation("SalesOrder");
-
-                    b.Navigation("Tenant");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.ProductionStep", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "AssignedUser")
-                        .WithMany()
-                        .HasForeignKey("AssignedUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OmniBizAI.Models.Entities.AppUser", "QcUser")
-                        .WithMany()
-                        .HasForeignKey("QcUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OmniBizAI.Models.Entities.SalesOrder", "SalesOrder")
-                        .WithMany("ProductionSteps")
-                        .HasForeignKey("SalesOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AssignedUser");
-
-                    b.Navigation("QcUser");
-
-                    b.Navigation("SalesOrder");
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.PurchaseOrder", b =>
@@ -8769,59 +8034,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOrder", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.WorkflowInstance", "WorkflowInstance")
-                        .WithMany()
-                        .HasForeignKey("WorkflowInstanceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("Tenant");
-
-                    b.Navigation("WorkflowInstance");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOrderLine", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.ProductService", "ProductService")
-                        .WithMany()
-                        .HasForeignKey("ProductServiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.SalesOrder", "SalesOrder")
-                        .WithMany("Lines")
-                        .HasForeignKey("SalesOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ProductService");
-
-                    b.Navigation("SalesOrder");
-
-                    b.Navigation("Tenant");
-                });
-
             modelBuilder.Entity("OmniBizAI.Models.Entities.ShiftAssignment", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.WorkShift", "Shift")
@@ -8847,17 +8059,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("Tenant");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SparePart", b =>
-                {
-                    b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.StockAlert", b =>
@@ -9502,20 +8703,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("PermissionAssignments");
 
                     b.Navigation("UserAssignments");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SalesOrder", b =>
-                {
-                    b.Navigation("Lines");
-
-                    b.Navigation("ProductionSteps");
-
-                    b.Navigation("Traceabilities");
-                });
-
-            modelBuilder.Entity("OmniBizAI.Models.Entities.SparePart", b =>
-                {
-                    b.Navigation("PartUsages");
                 });
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.Tag", b =>

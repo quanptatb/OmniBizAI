@@ -1,0 +1,115 @@
+@model List<OmniBizAI.ViewModels.SparePartItem>
+@{
+    ViewData["Title"] = "Kho Phụ Tùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var lowStockCount = Model.Count(p => p.IsLowStock);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-1 text-gray-800"><i class="fas fa-warehouse text-secondary me-2"></i>Kho Phụ Tùng Thay Thế</h2>
+        @if (lowStockCount > 0)
+        {
+            <span class="badge bg-warning text-dark">⚠️ @lowStockCount phụ tùng tồn kho thấp</span>
+        }
+    </div>
+    <a asp-action="CreateSparePart" class="btn btn-secondary btn-sm"><i class="fas fa-plus me-1"></i>Thêm Phụ Tùng</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5"><input type="text" name="search" class="form-control form-control-sm" placeholder="Tìm theo tên, mã, mã linh kiện..." value="@ViewBag.Search" /></div>
+            <div class="col-md-4">
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">-- Tất cả loại --</option>
+                    <option value="Bearing">Vòng bi (Bearing)</option>
+                    <option value="Seal">Phớt dầu (Seal)</option>
+                    <option value="Filter">Lọc (Filter)</option>
+                    <option value="Belt">Dây đai (Belt)</option>
+                    <option value="Electrical">Linh kiện điện</option>
+                    <option value="Mechanical">Cơ khí</option>
+                    <option value="Hydraulic">Thủy lực</option>
+                    <option value="Other">Khác</option>
+                </select>
+            </div>
+            <div class="col-md-3"><button type="submit" class="btn btn-outline-secondary btn-sm w-100">Lọc</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã / Tên phụ tùng</th>
+                        <th>Loại</th>
+                        <th>NSX / Mã linh kiện</th>
+                        <th class="text-center">Tồn kho</th>
+                        <th class="text-center">Tối thiểu</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Nhập/Xuất</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-5">
+                            <i class="fas fa-boxes fa-3x mb-3 d-block text-gray-300"></i>Chưa có phụ tùng nào trong kho.
+                        </td></tr>
+                    }
+                    @foreach (var p in Model)
+                    {
+                        <tr class="@(p.IsLowStock ? "table-warning" : "")">
+                            <td>
+                                <div class="fw-bold">@p.Name</div>
+                                <div class="text-muted small"><code>@p.Code</code></div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border small">@(p.Category ?? "—")</span></td>
+                            <td class="small text-muted">
+                                @p.Manufacturer
+                                @if (!string.IsNullOrEmpty(p.PartNumber)) { <div><code class="small">@p.PartNumber</code></div> }
+                            </td>
+                            <td class="text-center fw-bold @(p.IsLowStock ? "text-danger" : "text-success")">
+                                @p.StockQuantity <span class="text-muted fw-normal small">@p.Unit</span>
+                            </td>
+                            <td class="text-center text-muted small">@p.MinimumStock @p.Unit</td>
+                            <td class="text-end small">@(p.UnitPrice.HasValue ? p.UnitPrice.Value.ToString("N0") + " đ" : "—")</td>
+                            <td class="text-center">
+                                @if (p.IsLowStock)
+                                { <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>Thấp</span> }
+                                else
+                                { <span class="badge bg-success">Đủ hàng</span> }
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <form asp-action="AdjustStock" method="post" class="d-inline">
+                                        <input type="hidden" name="PartId" value="@p.Id" />
+                                        <input type="hidden" name="Reason" value="Nhập kho" />
+                                        <input type="number" name="Delta" value="1" min="1" class="form-control form-control-sm d-inline" style="width:60px" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Nhập kho">+</button>
+                                    </form>
+                                    <form asp-action="AdjustStock" method="post" class="d-inline">
+                                        <input type="hidden" name="PartId" value="@p.Id" />
+                                        <input type="hidden" name="Delta" value="-1" />
+                                        <input type="hidden" name="Reason" value="Xuất kho" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xuất kho 1">−</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

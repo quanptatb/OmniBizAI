@@ -1,0 +1,80 @@
+@model List<OmniBizAI.ViewModels.WorkShiftViewModel>
+@{
+    ViewData["Title"] = "Ca Làm Việc";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-calendar-check text-success me-2"></i>Quản Lý Ca Làm Việc</h2>
+    <div>
+        <a asp-action="ShiftSchedule" class="btn btn-outline-primary btn-sm me-2">
+            <i class="fas fa-calendar-day me-1"></i>Lịch Ca Hôm Nay
+        </a>
+        <a asp-action="CreateShift" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-1"></i>Tạo Ca Mới
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="row g-3">
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fas fa-calendar-times fa-3x mb-3 d-block text-gray-300"></i>
+            Chưa có ca làm việc nào. Bắt đầu tạo ca làm việc để phân công nhân sự.
+        </div>
+    }
+    @foreach (var shift in Model)
+    {
+        var colorClass = shift.ShiftType switch {
+            "Night" => "border-left-dark",
+            "Overtime" => "border-left-warning",
+            _ => "border-left-success"
+        };
+        <div class="col-md-4">
+            <div class="card shadow h-100 @colorClass">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="fw-bold text-dark mb-0">@shift.Name</h5>
+                        @if (shift.IsActive) { <span class="badge bg-success">Đang dùng</span> }
+                        else { <span class="badge bg-secondary">Ngưng</span> }
+                    </div>
+                    <div class="d-flex align-items-center text-muted mb-3">
+                        <i class="fas fa-clock me-2 text-success"></i>
+                        <span class="fs-5 fw-bold text-dark">@shift.StartTime.ToString("HH:mm") – @shift.EndTime.ToString("HH:mm")</span>
+                    </div>
+                    <div class="row text-center border-top pt-2">
+                        <div class="col-4">
+                            <div class="text-muted small">Giờ/ca</div>
+                            <div class="fw-bold">@shift.WorkHours <span class="text-muted small">h</span></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Loại ca</div>
+                            <div class="fw-bold small">
+                                @switch (shift.ShiftType) {
+                                    case "Regular": @("Thường") break;
+                                    case "Overtime": @("Tăng ca") break;
+                                    case "Night": @("Ca đêm") break;
+                                    default: @shift.ShiftType break;
+                                }
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Hôm nay</div>
+                            <div class="fw-bold">@shift.TodayAssignmentCount <span class="text-muted small">NV</span></div>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(shift.Notes))
+                    {
+                        <div class="mt-2 text-muted small fst-italic border-top pt-2">@shift.Notes</div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

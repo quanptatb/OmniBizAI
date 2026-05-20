@@ -1,0 +1,106 @@
+@model List<OmniBizAI.ViewModels.PmScheduleSummaryItem>
+@{
+    ViewData["Title"] = "Kế Hoạch PM";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-calendar-check text-primary me-2"></i>Bảo Trì Phòng Ngừa (PM)</h2>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Dashboard</a>
+        <a asp-action="CreatePmSchedule" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Tạo Lịch PM</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<!-- Filter -->
+<div class="card shadow mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <div class="form-check ms-2">
+                    <input class="form-check-input" type="checkbox" name="overdueOnly" value="true" id="chkOverdue" @(ViewBag.OverdueOnly == true ? "checked" : "") />
+                    <label class="form-check-label text-danger fw-bold" for="chkOverdue">Chỉ hiện công việc quá hạn</label>
+                </div>
+            </div>
+            <div class="col-md-3"><button type="submit" class="btn btn-outline-primary btn-sm w-100">Lọc</button></div>
+        </form>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card shadow"><div class="card-body text-center py-5 text-muted">
+        <i class="fas fa-calendar-times fa-3x mb-3 d-block text-gray-300"></i>
+        Chưa có kế hoạch bảo trì định kỳ nào. <a asp-action="CreatePmSchedule">Tạo lịch PM đầu tiên</a>.
+    </div></div>
+}
+else
+{
+<div class="card shadow">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Công việc PM</th>
+                        <th>Thiết bị</th>
+                        <th>Tần suất</th>
+                        <th>Lần cuối thực hiện</th>
+                        <th>Ngày đến hạn</th>
+                        <th>Thời gian (phút)</th>
+                        <th>Kỹ thuật viên</th>
+                        <th class="text-end">Thực hiện</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pm in Model)
+                    {
+                        var days = pm.NextDueDate.HasValue ? (pm.NextDueDate.Value.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days : 999;
+                        <tr class="@(pm.IsOverdue ? "table-danger" : days <= 3 ? "table-warning" : "")">
+                            <td>
+                                <div class="fw-bold">@pm.TaskName</div>
+                                @if (!pm.IsActive) { <span class="badge bg-secondary">Ngừng</span> }
+                            </td>
+                            <td class="small text-muted">@pm.EquipmentName</td>
+                            <td class="small">
+                                @switch (pm.Frequency) {
+                                    case "Daily": @("Hàng ngày") break;
+                                    case "Weekly": @("Hàng tuần") break;
+                                    case "Monthly": @("Hàng tháng") break;
+                                    case "Quarterly": @("Hàng quý") break;
+                                    case "Yearly": @("Hàng năm") break;
+                                    case "Every_X_Hours": @($"Mỗi {pm.FrequencyValue}h") break;
+                                    default: @pm.Frequency break;
+                                }
+                            </td>
+                            <td class="small text-muted">@(pm.LastPerformedDate?.ToString("dd/MM/yyyy") ?? "Chưa thực hiện")</td>
+                            <td>
+                                @if (pm.IsOverdue) {
+                                    <span class="text-danger fw-bold small"><i class="fas fa-exclamation-triangle me-1"></i>@pm.NextDueDate?.ToString("dd/MM/yyyy") (Quá hạn)</span>
+                                } else if (days == 0) {
+                                    <span class="text-warning fw-bold small">Hôm nay!</span>
+                                } else {
+                                    <span class="small">@pm.NextDueDate?.ToString("dd/MM/yyyy")</span>
+                                }
+                            </td>
+                            <td class="small text-muted">@(pm.EstimatedDurationMinutes.HasValue ? $"{pm.EstimatedDurationMinutes} phút" : "—")</td>
+                            <td class="small">@(pm.TechnicianName ?? "—")</td>
+                            <td class="text-end">
+                                <a asp-action="ExecutePm" asp-route-id="@pm.Id" class="btn btn-sm btn-success">
+                                    <i class="fas fa-play me-1"></i>Thực hiện
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+}

@@ -134,6 +134,27 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<OperationPlan> OperationPlans => Set<OperationPlan>();
     public DbSet<PlanTask> PlanTasks => Set<PlanTask>();
 
+    // Resource Management
+    public DbSet<WorkShift> WorkShifts => Set<WorkShift>();
+    public DbSet<ShiftAssignment> ShiftAssignments => Set<ShiftAssignment>();
+    public DbSet<EmployeeCertificate> EmployeeCertificates => Set<EmployeeCertificate>();
+    public DbSet<MaintenanceRecord> MaintenanceRecords => Set<MaintenanceRecord>();
+    public DbSet<Workspace> Workspaces => Set<Workspace>();
+
+    // Maintenance Management (Full)
+    public DbSet<SparePart> SpareParts => Set<SparePart>();
+    public DbSet<MaintenancePartUsage> MaintenancePartUsages => Set<MaintenancePartUsage>();
+    public DbSet<PmSchedule> PmSchedules => Set<PmSchedule>();
+    public DbSet<MaintenanceIncident> MaintenanceIncidents => Set<MaintenanceIncident>();
+    public DbSet<EquipmentSensorReading> EquipmentSensorReadings => Set<EquipmentSensorReading>();
+
+    // Order & Process Management
+    public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
+    public DbSet<SalesOrderLine> SalesOrderLines => Set<SalesOrderLine>();
+    public DbSet<ProductionStep> ProductionSteps => Set<ProductionStep>();
+    public DbSet<ProductTraceability> ProductTraceabilities => Set<ProductTraceability>();
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

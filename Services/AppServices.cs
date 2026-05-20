@@ -799,19 +799,46 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
         var allTasks = await query.Include(t => t.AssignedToUser)
             .OrderByDescending(t => t.CreatedAt).ToListAsync();
 
-        var reqIds = allTasks.Select(t => t.TargetId).Distinct().ToList();
+        var reqIds = allTasks.Where(t => t.TargetType != "SalesOrder").Select(t => t.TargetId).Distinct().ToList();
         var reqs = await db.OperationRequests
             .Include(r => r.OrganizationUnit)
             .Where(r => reqIds.Contains(r.Id))
             .ToDictionaryAsync(r => r.Id);
 
+        var soIds = allTasks.Where(t => t.TargetType == "SalesOrder").Select(t => t.TargetId).Distinct().ToList();
+        var salesOrders = await db.SalesOrders
+            .Include(o => o.Customer)
+            .Where(o => soIds.Contains(o.Id))
+            .ToDictionaryAsync(o => o.Id);
+
         // Creator lookup
-        var creatorIds = reqs.Values.Where(r => r.CreatedByUserId.HasValue).Select(r => r.CreatedByUserId!.Value).Distinct().ToList();
+        var creatorIds = reqs.Values.Where(r => r.CreatedByUserId.HasValue).Select(r => r.CreatedByUserId!.Value)
+            .Concat(salesOrders.Values.Where(o => o.CreatedByUserId.HasValue).Select(o => o.CreatedByUserId!.Value))
+            .Distinct().ToList();
         var creators = await db.AppUsers.Where(u => creatorIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.FullName);
 
         ApprovalTaskItem Map(ApprovalTask t) {
+            if (t.TargetType == "SalesOrder" && salesOrders.TryGetValue(t.TargetId, out var so))
+            {
+                var createdByName = so.CreatedByUserId.HasValue && creators.TryGetValue(so.CreatedByUserId.Value, out var n) ? n : null;
+                return new ApprovalTaskItem
+                {
+                    Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
+                    StepName = t.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt đơn hàng" : "Ban giám đốc duyệt đơn hàng",
+                    Status = t.Status.ToString(), AssignedRole = t.AssignedRole,
+                    AssignedToName = t.AssignedToUser?.FullName,
+                    DecisionNote = t.DecisionNote, DecidedAt = t.DecidedAt, CreatedAt = t.CreatedAt,
+                    RequestTitle = $"Đơn hàng {so.OrderNo}", RequestNo = so.OrderNo,
+                    RequestPriority = "Normal",
+                    RequestCreatedAt = so.CreatedAt,
+                    RequestDescription = $"Khách hàng: {so.Customer?.Name ?? "N/A"}. Tổng tiền: {so.TotalAmount:N0} VND. {so.Notes}",
+                    RequestDepartment = "Kinh doanh / Sản xuất",
+                    RequestCreatedBy = createdByName
+                };
+            }
+
             reqs.TryGetValue(t.TargetId, out var req);
-            var createdByName = req?.CreatedByUserId.HasValue == true && creators.TryGetValue(req.CreatedByUserId!.Value, out var n) ? n : null;
+            var reqCreatedByName = req?.CreatedByUserId.HasValue == true && creators.TryGetValue(req.CreatedByUserId!.Value, out var rn) ? rn : null;
             return new ApprovalTaskItem
             {
                 Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
@@ -824,7 +851,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 RequestCreatedAt = req?.CreatedAt ?? DateTimeOffset.MinValue,
                 RequestDescription = req?.Description,
                 RequestDepartment = req?.OrganizationUnit?.Name,
-                RequestCreatedBy = createdByName
+                RequestCreatedBy = reqCreatedByName
             };
         }
 
@@ -862,10 +889,48 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
             .FirstOrDefaultAsync(a => a.Id == id && a.TenantId == tid && !a.IsDeleted);
         if (t == null) return null;
 
-        var req = await db.OperationRequests.Include(r => r.OrganizationUnit)
-            .FirstOrDefaultAsync(r => r.Id == t.TargetId);
-        var createdByName = req?.CreatedByUserId.HasValue == true
-            ? await db.AppUsers.Where(u => u.Id == req.CreatedByUserId!.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+        string title = "";
+        string no = "";
+        string? desc = null;
+        string priority = "Normal";
+        string? dept = null;
+        string? createdByName = null;
+        DateTimeOffset reqCreatedAt = DateTimeOffset.MinValue;
+        string status = "";
+
+        if (t.TargetType == "SalesOrder")
+        {
+            var so = await db.SalesOrders.Include(o => o.Customer)
+                .FirstOrDefaultAsync(o => o.Id == t.TargetId);
+            if (so != null)
+            {
+                title = $"Đơn hàng {so.OrderNo}";
+                no = so.OrderNo;
+                desc = $"Khách hàng: {so.Customer?.Name ?? "N/A"}. Tổng tiền: {so.TotalAmount:N0} VND. {so.Notes}";
+                dept = "Kinh doanh / Sản xuất";
+                reqCreatedAt = so.CreatedAt;
+                status = so.Status.ToString();
+                createdByName = so.CreatedByUserId.HasValue
+                    ? await db.AppUsers.Where(u => u.Id == so.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+            }
+        }
+        else
+        {
+            var req = await db.OperationRequests.Include(r => r.OrganizationUnit)
+                .FirstOrDefaultAsync(r => r.Id == t.TargetId);
+            if (req != null)
+            {
+                title = req.Title;
+                no = req.RequestNo;
+                desc = req.Description;
+                priority = req.Priority.ToString();
+                dept = req.OrganizationUnit?.Name;
+                reqCreatedAt = req.CreatedAt;
+                status = req.Status.ToString();
+                createdByName = req.CreatedByUserId.HasValue
+                    ? await db.AppUsers.Where(u => u.Id == req.CreatedByUserId!.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+            }
+        }
 
         // Get all steps in this workflow
         var allSteps = t.WorkflowInstance?.ApprovalTasks?
@@ -873,7 +938,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
             .Select(a => new ApprovalStepItem
             {
                 Id = a.Id, StepCode = a.StepCode,
-                StepName = a.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban lãnh đạo duyệt",
+                StepName = a.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban giám đốc duyệt",
                 Status = a.Status.ToString(),
                 AssignedToName = a.AssignedToUser?.FullName, AssignedRole = a.AssignedRole,
                 DecisionNote = a.DecisionNote, DecidedAt = a.DecidedAt, CreatedAt = a.CreatedAt,
@@ -890,18 +955,18 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
         return new ApprovalTaskDetailViewModel
         {
             Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
-            StepName = t.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban lãnh đạo duyệt",
+            StepName = t.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban giám đốc duyệt",
             Status = t.Status.ToString(),
             StatusLabel = t.Status switch { ApprovalStatus.Pending => "Chờ duyệt", ApprovalStatus.Approved => "Đã duyệt", ApprovalStatus.Rejected => "Từ chối", ApprovalStatus.Skipped => "Bỏ qua", ApprovalStatus.Cancelled => "Đã hủy", _ => t.Status.ToString() },
             AssignedRole = t.AssignedRole, AssignedToName = t.AssignedToUser?.FullName, AssignedToUserId = t.AssignedToUserId,
             DecisionNote = t.DecisionNote, DecidedAt = t.DecidedAt, CreatedAt = t.CreatedAt,
-            RequestTitle = req?.Title ?? "", RequestNo = req?.RequestNo ?? "",
-            RequestDescription = req?.Description, RequestPriority = req?.Priority.ToString() ?? "",
-            RequestDepartment = req?.OrganizationUnit?.Name,
+            RequestTitle = title, RequestNo = no,
+            RequestDescription = desc, RequestPriority = priority,
+            RequestDepartment = dept,
             RequestCreatedBy = createdByName,
-            RequestCreatedAt = req?.CreatedAt ?? DateTimeOffset.MinValue,
-            RequestStatus = req?.Status.ToString() ?? "",
-            WorkflowName = t.WorkflowInstance?.WorkflowDefinition?.Name,
+            RequestCreatedAt = reqCreatedAt,
+            RequestStatus = status,
+            WorkflowName = t.WorkflowInstance?.WorkflowDefinition?.Name ?? "Quy trình phê duyệt đơn hàng",
             WorkflowStatus = t.WorkflowInstance?.Status.ToString(),
             AllSteps = allSteps, AvailableAssignees = assignees
         };
@@ -909,24 +974,93 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
 
     public async Task<bool> ApproveAsync(Guid taskId, string? note)
     {
-        var t = await db.ApprovalTasks.FindAsync(taskId);
+        var t = await db.ApprovalTasks.Include(a => a.WorkflowInstance).FirstOrDefaultAsync(a => a.Id == taskId);
         if (t is null || t.TenantId != tenant.TenantId || t.Status != ApprovalStatus.Pending) return false;
-        t.Status = ApprovalStatus.Approved; t.DecisionNote = note; t.DecidedAt = DateTimeOffset.UtcNow; t.UpdatedAt = DateTimeOffset.UtcNow;
-        var req = await db.OperationRequests.FindAsync(t.TargetId);
-        if (req != null) { req.Status = OperationStatus.Approved; req.UpdatedAt = DateTimeOffset.UtcNow; }
+
+        t.Status = ApprovalStatus.Approved;
+        t.DecisionNote = note;
+        t.DecidedAt = DateTimeOffset.UtcNow;
+        t.UpdatedAt = DateTimeOffset.UtcNow;
+
+        if (t.TargetType == "SalesOrder")
+        {
+            var so = await db.SalesOrders.FindAsync(t.TargetId);
+            if (so != null)
+            {
+                if (t.StepCode == "DEPARTMENT_REVIEW")
+                {
+                    // Department Manager approved, now escalate to Executive
+                    var nextTask = new ApprovalTask
+                    {
+                        TenantId = tenant.TenantId,
+                        WorkflowInstanceId = t.WorkflowInstanceId,
+                        TargetType = "SalesOrder",
+                        TargetId = so.Id,
+                        StepCode = "EXECUTIVE_REVIEW",
+                        AssignedRole = "EXECUTIVE",
+                        Status = ApprovalStatus.Pending
+                    };
+                    db.ApprovalTasks.Add(nextTask);
+                    so.UpdatedAt = DateTimeOffset.UtcNow;
+                }
+                else if (t.StepCode == "EXECUTIVE_REVIEW")
+                {
+                    // Executive approved, Order is fully approved
+                    so.Status = SalesOrderStatus.Approved;
+                    so.UpdatedAt = DateTimeOffset.UtcNow;
+
+                    if (t.WorkflowInstance != null)
+                    {
+                        t.WorkflowInstance.Status = WorkflowInstanceStatus.Completed;
+                        t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
+                    }
+                }
+            }
+        }
+        else
+        {
+            var req = await db.OperationRequests.FindAsync(t.TargetId);
+            if (req != null) { req.Status = OperationStatus.Approved; req.UpdatedAt = DateTimeOffset.UtcNow; }
+        }
+
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Approve", EntityName = "ApprovalTask", EntityId = taskId, NewValuesJson = "{\"Status\":\"Approved\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> RejectAsync(Guid taskId, string reason)
     {
-        var t = await db.ApprovalTasks.FindAsync(taskId);
+        var t = await db.ApprovalTasks.Include(a => a.WorkflowInstance).FirstOrDefaultAsync(a => a.Id == taskId);
         if (t is null || t.TenantId != tenant.TenantId || t.Status != ApprovalStatus.Pending) return false;
-        t.Status = ApprovalStatus.Rejected; t.DecisionNote = reason; t.DecidedAt = DateTimeOffset.UtcNow; t.UpdatedAt = DateTimeOffset.UtcNow;
-        var req = await db.OperationRequests.FindAsync(t.TargetId);
-        if (req != null) { req.Status = OperationStatus.Rejected; req.UpdatedAt = DateTimeOffset.UtcNow; }
+
+        t.Status = ApprovalStatus.Rejected;
+        t.DecisionNote = reason;
+        t.DecidedAt = DateTimeOffset.UtcNow;
+        t.UpdatedAt = DateTimeOffset.UtcNow;
+
+        if (t.TargetType == "SalesOrder")
+        {
+            var so = await db.SalesOrders.FindAsync(t.TargetId);
+            if (so != null)
+            {
+                so.Status = SalesOrderStatus.Cancelled;
+                so.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+            if (t.WorkflowInstance != null)
+            {
+                t.WorkflowInstance.Status = WorkflowInstanceStatus.Rejected;
+                t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
+            }
+        }
+        else
+        {
+            var req = await db.OperationRequests.FindAsync(t.TargetId);
+            if (req != null) { req.Status = OperationStatus.Rejected; req.UpdatedAt = DateTimeOffset.UtcNow; }
+        }
+
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Reject", EntityName = "ApprovalTask", EntityId = taskId, NewValuesJson = $"{{\"Status\":\"Rejected\",\"Reason\":\"{reason}\"}}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        return true;
     }
 
     public async Task<(bool Success, string Message)> ReassignAsync(Guid taskId, Guid newUserId)
@@ -954,16 +1088,35 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
 
     public async Task<(bool Success, string Message)> ReturnForRevisionAsync(Guid taskId, string reason)
     {
-        var t = await db.ApprovalTasks.FindAsync(taskId);
+        var t = await db.ApprovalTasks.Include(a => a.WorkflowInstance).FirstOrDefaultAsync(a => a.Id == taskId);
         if (t is null || t.TenantId != tenant.TenantId || t.Status != ApprovalStatus.Pending)
             return (false, "Không thể trả lại.");
+
         t.Status = ApprovalStatus.Skipped;
         t.DecisionNote = $"Trả lại: {reason}";
         t.DecidedAt = DateTimeOffset.UtcNow;
         t.UpdatedAt = DateTimeOffset.UtcNow;
-        // Set request back to pending/draft
-        var req = await db.OperationRequests.FindAsync(t.TargetId);
-        if (req != null) { req.Status = OperationStatus.Draft; req.UpdatedAt = DateTimeOffset.UtcNow; }
+
+        if (t.TargetType == "SalesOrder")
+        {
+            var so = await db.SalesOrders.FindAsync(t.TargetId);
+            if (so != null)
+            {
+                so.Status = SalesOrderStatus.Draft;
+                so.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+            if (t.WorkflowInstance != null)
+            {
+                t.WorkflowInstance.Status = WorkflowInstanceStatus.Cancelled;
+                t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
+            }
+        }
+        else
+        {
+            var req = await db.OperationRequests.FindAsync(t.TargetId);
+            if (req != null) { req.Status = OperationStatus.Draft; req.UpdatedAt = DateTimeOffset.UtcNow; }
+        }
+
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "ReturnForRevision", EntityName = "ApprovalTask", EntityId = taskId, NewValuesJson = $"{{\"Status\":\"Skipped\",\"Reason\":\"{reason}\"}}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
         return (true, "Đã trả lại yêu cầu để chỉnh sửa.");

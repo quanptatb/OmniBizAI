@@ -1,0 +1,155 @@
+@model OmniBizAI.ViewModels.MaintenanceIncidentDetailViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var sevColor = Model.Severity switch { "Critical" => "danger", "High" => "warning", "Medium" => "primary", _ => "secondary" };
+    var sevLabel = Model.Severity switch { "Critical" => "Nghiêm trọng", "High" => "Cao", "Medium" => "Trung bình", _ => "Thấp" };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0 text-gray-800">
+        <span class="badge bg-@sevColor me-2">@sevLabel</span>@Model.Title
+    </h2>
+    <a asp-action="Incidents" class="btn btn-secondary btn-sm">← Danh sách</a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="row">
+    <!-- Chi tiết sự cố -->
+    <div class="col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3"><h6 class="m-0 fw-bold text-danger">Chi Tiết Sự Cố</h6></div>
+            <div class="card-body">
+                <table class="table table-borderless table-sm mb-3">
+                    <tr><td class="text-muted">Thiết bị</td><td class="fw-bold">@Model.EquipmentName</td></tr>
+                    <tr><td class="text-muted">Trạng thái</td><td>
+                        @switch(Model.Status){
+                            case "Open": <span class="badge bg-danger">Đang mở</span> break;
+                            case "InProgress": <span class="badge bg-primary">Đang xử lý</span> break;
+                            case "Resolved": <span class="badge bg-success">Đã giải quyết</span> break;
+                            default: <span class="badge bg-secondary">@Model.Status</span> break;
+                        }
+                    </td></tr>
+                    <tr><td class="text-muted">Xảy ra lúc</td><td>@Model.OccurredAt?.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                    @if (Model.ResolvedAt.HasValue) {
+                        <tr><td class="text-muted">Giải quyết lúc</td><td class="text-success">@Model.ResolvedAt?.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                    }
+                    <tr><td class="text-muted">Người báo cáo</td><td>@Model.ReportedByName</td></tr>
+                    <tr><td class="text-muted">Kỹ thuật viên</td><td>@(Model.TechnicianName ?? "Chưa phân công")</td></tr>
+                    @if (Model.DowntimeHours.HasValue) {
+                        <tr><td class="text-muted">Ngừng máy</td><td class="fw-bold @(Model.DowntimeHours > 4 ? "text-danger" : "")">@Model.DowntimeHours giờ</td></tr>
+                    }
+                </table>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-3"><label class="form-label fw-bold small text-muted">MÔ TẢ SỰ CỐ</label><div class="p-2 bg-light rounded small">@Model.Description</div></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.RootCause))
+                {
+                    <div class="mb-3"><label class="form-label fw-bold small text-muted">NGUYÊN NHÂN GỐC RỄ</label><div class="p-2 bg-light rounded small">@Model.RootCause</div></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Resolution))
+                {
+                    <div class="mb-3"><label class="form-label fw-bold small text-muted">CÁCH GIẢI QUYẾT</label><div class="p-2 bg-success bg-opacity-10 rounded small">@Model.Resolution</div></div>
+                }
+            </div>
+        </div>
+
+        <!-- AI Analysis -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                <h6 class="m-0 fw-bold" style="color:#7c3aed"><i class="fas fa-brain me-2"></i>AI Phân Tích</h6>
+                @if (Model.Status != "Closed")
+                {
+                    <form asp-action="AnalyzeIncident" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-sm btn-outline-purple" style="color:#7c3aed;border-color:#7c3aed">
+                            <i class="fas fa-magic me-1"></i>Phân tích AI
+                        </button>
+                    </form>
+                }
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.AiAnalysis))
+                {
+                    <div class="p-2 rounded" style="background:#f5f3ff;border-left:4px solid #7c3aed;font-size:14px;white-space:pre-wrap;">@Model.AiAnalysis</div>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Nhấn "Phân tích AI" để nhận gợi ý nguyên nhân và giải pháp từ Gemini AI.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Giải quyết sự cố -->
+    <div class="col-lg-7">
+        @if (Model.Status != "Resolved" && Model.Status != "Closed")
+        {
+            <div class="card shadow mb-4 border-success">
+                <div class="card-header py-3 bg-success text-white"><h6 class="m-0 fw-bold">✅ Xác Nhận Giải Quyết Sự Cố</h6></div>
+                <div class="card-body">
+                    <form asp-action="ResolveIncident" method="post">
+                        <input type="hidden" name="IncidentId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nguyên nhân gốc rễ</label>
+                            <textarea name="RootCause" class="form-control" rows="2" placeholder="Ổ bi mòn, lỗi điện, nhân viên vận hành sai..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Cách giải quyết *</label>
+                            <textarea name="Resolution" class="form-control" rows="3" placeholder="Đã thay thế... đã sửa chữa..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Thời gian ngừng máy (giờ)</label>
+                            <input type="number" name="DowntimeHours" step="0.5" class="form-control" placeholder="Ví dụ: 2.5" />
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-check-circle me-2"></i>Xác Nhận Đã Giải Quyết
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- Timeline -->
+        <div class="card shadow">
+            <div class="card-header py-3"><h6 class="m-0 fw-bold text-primary">Timeline Xử Lý</h6></div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;flex-shrink:0"><i class="fas fa-exclamation fa-sm"></i></div>
+                        <div>
+                            <div class="fw-bold">Sự cố được báo cáo</div>
+                            <div class="text-muted small">@Model.OccurredAt?.LocalDateTime.ToString("dd/MM/yyyy HH:mm") bởi @Model.ReportedByName</div>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.TechnicianName))
+                    {
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;flex-shrink:0"><i class="fas fa-user-cog fa-sm"></i></div>
+                            <div>
+                                <div class="fw-bold">Phân công kỹ thuật viên</div>
+                                <div class="text-muted small">@Model.TechnicianName phụ trách xử lý</div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.ResolvedAt.HasValue)
+                    {
+                        <div class="d-flex gap-3">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;flex-shrink:0"><i class="fas fa-check fa-sm"></i></div>
+                            <div>
+                                <div class="fw-bold text-success">Sự cố đã được giải quyết</div>
+                                <div class="text-muted small">@Model.ResolvedAt?.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

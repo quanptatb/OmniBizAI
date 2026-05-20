@@ -1,0 +1,73 @@
+@model OmniBizAI.ViewModels.PmScheduleCreateViewModel
+@{ ViewData["Title"] = "Tạo Lịch PM"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Tạo Kế Hoạch Bảo Trì Định Kỳ (PM)</h2>
+    <a asp-action="PmSchedules" class="btn btn-secondary btn-sm">← Quay lại</a>
+</div>
+<div class="row justify-content-center"><div class="col-lg-8">
+<div class="card shadow">
+    <div class="card-body">
+        <form asp-action="CreatePmSchedule" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Thiết bị *</label>
+                <select asp-for="EquipmentId" class="form-select" required>
+                    <option value="">-- Chọn thiết bị --</option>
+                    @foreach (var e in Model.Equipments) { <option value="@e.Value">@e.Text</option> }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tên công việc PM *</label>
+                <input asp-for="TaskName" class="form-control" placeholder="Ví dụ: Thay dầu bôi trơn, Vệ sinh lọc gió, Kiểm tra dây đai..." />
+                <span asp-validation-for="TaskName" class="text-danger small"></span>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tần suất *</label>
+                    <select asp-for="Frequency" class="form-select" id="freqSelect">
+                        <option value="Daily">Hàng ngày</option>
+                        <option value="Weekly">Hàng tuần</option>
+                        <option value="Monthly" selected>Hàng tháng</option>
+                        <option value="Quarterly">Hàng quý (3 tháng)</option>
+                        <option value="Yearly">Hàng năm</option>
+                        <option value="Every_X_Hours">Theo giờ vận hành</option>
+                    </select>
+                </div>
+                <div class="col-md-6" id="freqValueGroup" style="display:none">
+                    <label class="form-label fw-bold">Số giờ / lần</label>
+                    <input asp-for="FrequencyValue" type="number" class="form-control" placeholder="Ví dụ: 500" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Ngày PM đầu tiên</label>
+                    <input asp-for="FirstDueDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Thời gian ước tính (phút)</label>
+                    <input asp-for="EstimatedDurationMinutes" type="number" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Kỹ thuật viên phụ trách</label>
+                    <select asp-for="AssignedTechnicianId" class="form-select">
+                        <option value="">-- Chưa phân công --</option>
+                        @foreach (var t in Model.Technicians) { <option value="@t.Value">@t.Text</option> }
+                    </select>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Hướng dẫn thực hiện</label>
+                <textarea asp-for="Instructions" class="form-control" rows="4" placeholder="Bước 1: Tắt nguồn thiết bị&#10;Bước 2: Tháo nắp..."></textarea>
+            </div>
+            <hr /><div class="text-end"><button type="submit" class="btn btn-primary px-5">Tạo Kế Hoạch PM</button></div>
+        </form>
+    </div>
+</div>
+</div></div>
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+document.getElementById('freqSelect').addEventListener('change', function() {
+    document.getElementById('freqValueGroup').style.display = this.value === 'Every_X_Hours' ? 'block' : 'none';
+});
+</script>
+}
