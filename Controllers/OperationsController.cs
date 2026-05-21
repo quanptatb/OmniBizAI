@@ -33,9 +33,10 @@ public class OperationsController : Controller
     }
 
     [Authorize(Roles = "STAFF,DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(string? type = null)
     {
         var vm = await _service.GetCreateFormAsync();
+        if (!string.IsNullOrWhiteSpace(type)) vm.Type = type;
         return View(vm);
     }
 

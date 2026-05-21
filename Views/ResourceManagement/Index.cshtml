@@ -1,202 +1,76 @@
-@model OmniBizAI.ViewModels.ResourceDashboardViewModel
+@model OmniBizAI.ViewModels.ResourceManagementDashboardViewModel
 @{
-    ViewData["Title"] = "Quản Lý Tài Nguyên";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Quản lý tài nguyên";
+    ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Quản lý tài nguyên</span>";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0 text-gray-800"><i class="fa-solid fa-layer-group text-primary me-2"></i>Quản Lý Tài Nguyên</h2>
-</div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<!-- KPI Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <a asp-action="Equipments" class="text-decoration-none">
-            <div class="card border-left-primary shadow h-100 py-2 card-hover">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Thiết Bị</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.EquipmentCount <small class="text-muted fs-6">thiết bị</small></div>
-                            @if (Model.OverdueMaintenanceCount > 0)
-                            {
-                                <div class="text-danger small mt-1"><i class="fas fa-exclamation-triangle"></i> @Model.OverdueMaintenanceCount cần bảo trì gấp</div>
-                            }
-                            @if (Model.EquipmentInMaintenance > 0)
-                            {
-                                <div class="text-warning small"><i class="fas fa-tools"></i> @Model.EquipmentInMaintenance đang bảo trì</div>
-                            }
-                        </div>
-                        <div class="col-auto"><i class="fas fa-cogs fa-2x text-gray-300"></i></div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <a asp-action="WorkShifts" class="text-decoration-none">
-            <div class="card border-left-success shadow h-100 py-2 card-hover">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ca Làm Việc</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ActiveShiftCount <small class="text-muted fs-6">ca đang hoạt động</small></div>
-                            <div class="text-success small mt-1"><i class="fas fa-user-clock"></i> @Model.TodayAssignmentCount nhân viên hôm nay</div>
-                        </div>
-                        <div class="col-auto"><i class="fas fa-calendar-check fa-2x text-gray-300"></i></div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <a asp-action="Certificates" class="text-decoration-none">
-            <div class="card border-left-warning shadow h-100 py-2 card-hover">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Chứng Chỉ & Năng Lực</div>
-                            @if (Model.ExpiredCertificateCount > 0)
-                            {
-                                <div class="h5 mb-0 font-weight-bold text-danger">@Model.ExpiredCertificateCount <small class="fs-6">đã hết hạn</small></div>
-                            }
-                            else
-                            {
-                                <div class="h5 mb-0 font-weight-bold text-success">Tốt</div>
-                            }
-                            @if (Model.ExpiringCertificateCount > 0)
-                            {
-                                <div class="text-warning small mt-1"><i class="fas fa-bell"></i> @Model.ExpiringCertificateCount sắp hết hạn (30 ngày)</div>
-                            }
-                        </div>
-                        <div class="col-auto"><i class="fas fa-certificate fa-2x text-gray-300"></i></div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <a asp-action="Workspaces" class="text-decoration-none">
-            <div class="card border-left-info shadow h-100 py-2 card-hover">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Cơ Sở Hạ Tầng</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.WorkspaceCount <small class="text-muted fs-6">khu vực</small></div>
-                            <div class="text-info small mt-1"><i class="fas fa-map-marker-alt"></i> Phòng ban, mặt bằng, vị trí</div>
-                        </div>
-                        <div class="col-auto"><i class="fas fa-building fa-2x text-gray-300"></i></div>
-                    </div>
-                </div>
-            </div>
-        </a>
+<div class="content-card mb-3">
+    <div class="card-body-custom">
+        <h5 class="mb-1"><i class="fa-solid fa-industry me-2" style="color:var(--apple-blue)"></i>Quản lý tài nguyên vận hành</h5>
+        <div style="color:var(--text-muted)">Theo dõi 4 nhóm tài nguyên cốt lõi: Nhân lực, Thiết bị/Máy móc, Vật tư/Kho, Cơ sở hạ tầng.</div>
     </div>
 </div>
 
-<div class="row">
-    <!-- Bảo trì sắp tới -->
-    <div class="col-lg-6">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-warning"><i class="fas fa-tools me-2"></i>Bảo Trì Sắp Tới (7 ngày)</h6>
-                <a asp-action="Equipments" asp-route-status="Maintenance" class="btn btn-sm btn-outline-warning">Xem tất cả</a>
-            </div>
-            <div class="card-body p-0">
-                @if (!Model.UpcomingMaintenance.Any())
-                {
-                    <div class="text-center text-muted py-4"><i class="fas fa-check-circle fa-2x mb-2 text-success d-block"></i>Không có lịch bảo trì nào trong 7 ngày tới.</div>
-                }
-                @foreach (var item in Model.UpcomingMaintenance)
-                {
-                    var daysLeft = (item.ScheduledDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days;
-                    <div class="d-flex align-items-center p-3 border-bottom">
-                        <div class="me-3">
-                            <span class="badge @(daysLeft <= 1 ? "bg-danger" : daysLeft <= 3 ? "bg-warning text-dark" : "bg-primary") rounded-pill px-3 py-2">
-                                @(daysLeft == 0 ? "Hôm nay" : daysLeft == 1 ? "Ngày mai" : $"{daysLeft} ngày")
-                            </span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark">@item.EquipmentName</div>
-                            <div class="text-muted small">@item.EquipmentCode · @item.MaintenanceType · @item.ScheduledDate.ToString("dd/MM/yyyy")</div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Thiết bị mới nhất -->
-    <div class="col-lg-6">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-cogs me-2"></i>Thiết Bị Gần Đây</h6>
-                <a asp-action="CreateEquipment" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Thêm</a>
-            </div>
-            <div class="card-body p-0">
-                @if (!Model.RecentEquipments.Any())
-                {
-                    <div class="text-center text-muted py-4">Chưa có thiết bị nào.</div>
-                }
-                @foreach (var eq in Model.RecentEquipments)
-                {
-                    <div class="d-flex align-items-center p-3 border-bottom">
-                        <div class="me-3">
-                            @if (eq.Status == "Available") { <span class="badge bg-success">Sẵn sàng</span> }
-                            else if (eq.Status == "InUse") { <span class="badge bg-primary">Đang dùng</span> }
-                            else if (eq.Status == "Maintenance") { <span class="badge bg-warning text-dark">Bảo trì</span> }
-                            else { <span class="badge bg-secondary">@eq.Status</span> }
-                        </div>
-                        <div class="flex-grow-1">
-                            <a asp-action="EquipmentDetail" asp-route-id="@eq.Id" class="fw-bold text-dark text-decoration-none">@eq.Name</a>
-                            <div class="text-muted small">@eq.Code · @eq.Type @(!string.IsNullOrEmpty(eq.Location) ? $"· {eq.Location}" : "")</div>
-                        </div>
-                        @if (eq.NextMaintenanceDate.HasValue)
-                        {
-                            var overdue = eq.NextMaintenanceDate.Value < DateOnly.FromDateTime(DateTime.Today);
-                            <div class="text-end small @(overdue ? "text-danger fw-bold" : "text-muted")">
-                                <i class="fas fa-wrench"></i> @eq.NextMaintenanceDate.Value.ToString("dd/MM/yy")
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick links -->
 <div class="row g-3">
-    <div class="col-md-3">
-        <a asp-action="ShiftSchedule" class="btn btn-outline-success w-100 py-3">
-            <i class="fas fa-calendar-week d-block mb-1 fs-4"></i>Lịch Ca Hôm Nay
-        </a>
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>👥 Nhân lực</h6>
+            <div class="small text-muted mb-2">Ca làm việc, năng lực, chứng chỉ, hiệu suất</div>
+            <ul class="mb-2">
+                <li>Tổng nhân sự: <b>@Model.Human.TotalEmployees</b></li>
+                <li>Đang nghỉ hôm nay: <b>@Model.Human.OnLeaveToday</b></li>
+                <li>Đơn nghỉ chờ duyệt: <b>@Model.Human.PendingLeaves</b></li>
+                <li>Điểm hiệu suất TB: <b>@Model.Human.AvgPerformanceScore.ToString("0.0")</b></li>
+            </ul>
+            <div class="d-flex gap-2">
+                <a asp-action="WorkShifts" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-calendar-days me-1"></i>Ca làm việc</a>
+                <a asp-action="Certificates" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-certificate me-1"></i>Chứng chỉ</a>
+            </div>
+        </div></div>
     </div>
-    <div class="col-md-3">
-        <a asp-action="Certificates" asp-route-expiredOnly="true" class="btn btn-outline-warning w-100 py-3">
-            <i class="fas fa-exclamation-triangle d-block mb-1 fs-4"></i>Chứng Chỉ Hết Hạn
-        </a>
+
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>🛠️ Thiết bị / Máy móc</h6>
+            <div class="small text-muted mb-2">Trạng thái, lịch bảo trì, tuổi thọ</div>
+            <ul class="mb-2">
+                <li>Yêu cầu bảo trì: <b>@Model.Equipment.TotalMaintenanceRequests</b></li>
+                <li>Đang xử lý: <b>@Model.Equipment.ActiveMaintenanceRequests</b></li>
+                <li>Hoàn thành: <b>@Model.Equipment.CompletedMaintenanceRequests</b></li>
+                <li>Quá hạn: <b>@Model.Equipment.OverdueMaintenanceRequests</b></li>
+            </ul>
+            <div>
+                <a asp-action="Equipments" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-screwdriver-wrench me-1"></i>Thiết bị & Máy móc</a>
+            </div>
+        </div></div>
     </div>
-    <div class="col-md-3">
-        <a asp-action="Workspaces" class="btn btn-outline-info w-100 py-3">
-            <i class="fas fa-building d-block mb-1 fs-4"></i>Sơ Đồ Mặt Bằng
-        </a>
+
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>📦 Vật tư / Kho</h6>
+            <div class="small text-muted mb-2">Tồn kho, nhập xuất, cảnh báo tồn kho thấp</div>
+            <ul class="mb-0">
+                <li>Sản phẩm quản lý: <b>@Model.Inventory.TotalProducts</b></li>
+                <li>Cảnh báo tồn kho: <b>@Model.Inventory.ActiveStockAlerts</b></li>
+                <li>Phiếu nhập: <b>@Model.Inventory.GoodsReceiptCount</b></li>
+                <li>Phiếu xuất: <b>@Model.Inventory.GoodsIssueCount</b></li>
+            </ul>
+        </div></div>
     </div>
-    <div class="col-md-3">
-        <a asp-action="CreateEquipment" class="btn btn-outline-primary w-100 py-3">
-            <i class="fas fa-plus-circle d-block mb-1 fs-4"></i>Thêm Thiết Bị
-        </a>
+
+    <div class="col-lg-6">
+        <div class="content-card h-100"><div class="card-body-custom">
+            <h6>🏢 Cơ sở hạ tầng</h6>
+            <div class="small text-muted mb-2">Mặt bằng, phòng ban, vị trí làm việc</div>
+            <ul class="mb-2">
+                <li>Phòng ban: <b>@Model.Infrastructure.TotalDepartments</b></li>
+                <li>Vị trí làm việc/chức danh: <b>@Model.Infrastructure.TotalPositions</b></li>
+                <li>Lịch làm việc: <b>@Model.Infrastructure.TotalWorkCalendars</b></li>
+                <li>Điểm cơ sở (site): <b>@Model.Infrastructure.TotalCustomerSites</b></li>
+            </ul>
+            <div>
+                <a asp-action="Workspaces" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-map me-1"></i>Khu vực & Sơ đồ</a>
+            </div>
+        </div></div>
     </div>
 </div>
-
-<style>
-.card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.card-hover:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.15) !important; }
-</style>
