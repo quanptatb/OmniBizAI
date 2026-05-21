@@ -153,6 +153,36 @@ public class OperationRequestListItem
     public DateOnly? DueDate { get; set; }
     public decimal? TotalAmount { get; set; }
     public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled";
+
+    // SLA computed properties
+    public int? DaysRemaining => DueDate.HasValue ? DueDate.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber : null;
+    public int ProcessingDays => (DateTime.Today - CreatedAt.Date).Days;
+    public string SlaStatus
+    {
+        get
+        {
+            if (Status == "Completed") return "Completed";
+            if (Status == "Cancelled") return "Cancelled";
+            if (!DueDate.HasValue) return "OnTrack";
+            var rem = DaysRemaining ?? 0;
+            if (rem < 0) return "Overdue";
+            if (rem <= 2) return "AtRisk";
+            return "OnTrack";
+        }
+    }
+    public string SlaLabel
+    {
+        get
+        {
+            if (Status == "Completed") return "Đã hoàn thành";
+            if (Status == "Cancelled") return "Đã huỷ";
+            if (!DueDate.HasValue) return "Không có hạn";
+            var rem = DaysRemaining ?? 0;
+            if (rem < 0) return $"Quá hạn {Math.Abs(rem)} ngày";
+            if (rem <= 2) return $"Sắp trễ hạn (Còn {rem} ngày)";
+            return $"Còn {rem} ngày";
+        }
+    }
 }
 
 public class OperationRequestCreateViewModel
@@ -219,6 +249,42 @@ public class OperationRequestDetailViewModel
     public bool CanComplete { get; set; }
     public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled";
 
+    // SLA computed properties
+    public int? DaysRemaining => DueDate.HasValue ? DueDate.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber : null;
+    public int ProcessingDays => (DateTime.Today - CreatedAt.Date).Days;
+    public string SlaStatus
+    {
+        get
+        {
+            if (Status == "Completed") return "Completed";
+            if (Status == "Cancelled") return "Cancelled";
+            if (!DueDate.HasValue) return "OnTrack";
+            var rem = DaysRemaining ?? 0;
+            if (rem < 0) return "Overdue";
+            if (rem <= 2) return "AtRisk";
+            return "OnTrack";
+        }
+    }
+    public string SlaLabel
+    {
+        get
+        {
+            if (Status == "Completed") return "Đã hoàn thành";
+            if (Status == "Cancelled") return "Đã huỷ";
+            if (!DueDate.HasValue) return "Không có hạn";
+            var rem = DaysRemaining ?? 0;
+            if (rem < 0) return $"Quá hạn {Math.Abs(rem)} ngày";
+            if (rem <= 2) return $"Sắp trễ hạn (Còn {rem} ngày)";
+            return $"Còn {rem} ngày";
+        }
+    }
+
+    public List<OperationCommentViewModel> Comments { get; set; } = new();
+
+    public bool CanHold => Status == "InProgress";
+    public bool CanResume => Status == "OnHold";
+    public bool CanReopen => Status == "Completed" || Status == "Cancelled";
+
     public string StatusLabel => Status switch
     {
         "Draft" => "Bản nháp",
@@ -240,6 +306,51 @@ public class OperationRequestDetailViewModel
         "Critical" => "Nghiêm trọng",
         _ => Priority
     };
+}
+
+public class OperationCommentViewModel
+{
+    public Guid Id { get; set; }
+    public string Content { get; set; } = "";
+    public string AuthorName { get; set; } = "";
+    public Guid AuthorUserId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public class OperationStatisticsViewModel
+{
+    public decimal CompletionRate { get; set; }
+    public double AvgProcessingDays { get; set; }
+    public decimal SlaComplianceRate { get; set; }
+    public List<PriorityStatItem> ByPriority { get; set; } = new();
+    public List<DepartmentStatItem> ByDepartment { get; set; } = new();
+    public List<WeeklyTrendItem> WeeklyTrend { get; set; } = new();
+}
+
+public class PriorityStatItem
+{
+    public string Priority { get; set; } = "";
+    public string PriorityLabel { get; set; } = "";
+    public int Count { get; set; }
+}
+
+public class DepartmentStatItem
+{
+    public string DepartmentName { get; set; } = "";
+    public int Count { get; set; }
+}
+
+public class WeeklyTrendItem
+{
+    public string DateLabel { get; set; } = "";
+    public int CreatedCount { get; set; }
+    public int CompletedCount { get; set; }
+}
+
+public class RenameColumnRequest
+{
+    public Guid ColumnId { get; set; }
+    public string Title { get; set; } = "";
 }
 
 public class OperationRequestEditViewModel
@@ -1141,10 +1252,13 @@ public class WorkItemEditViewModel
     public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
     public DateOnly? DueDate { get; set; }
     public WorkItemStatus Status { get; set; }
+    
+    public Guid? KanbanColumnId { get; set; }
 
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> Assignees { get; set; } = new();
     public List<SelectOption> StatusOptions { get; set; } = new();
+    public List<SelectOption> ColumnOptions { get; set; } = new();
 }
 
 public class WorkItemDetailViewModel

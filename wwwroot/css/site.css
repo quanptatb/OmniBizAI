@@ -840,3 +840,31 @@ html[data-nav-mode="card-sidebar"] .nav-item.active {
     display: flex; align-items: center; gap: 8px;
 }
 .nav-mode-menu button:hover { background: var(--parchment); color: var(--apple-blue); }
+
+/* --- Restructured Sidebar and Nested Supporting Modules Styles --- */
+html[data-nav-mode="card-sidebar"] #supportingBranch {
+    display: block !important;
+    grid-column: span 2;
+    padding: 0 !important;
+}
+html[data-nav-mode="card-sidebar"] #supportingBranch > .nav-group-toggle {
+    display: none !important;
+}
+html[data-nav-mode="card-sidebar"] #supportingBranch > .nav-group-items {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 12px;
+    max-height: none !important;
+    overflow: visible;
+    opacity: 1;
+    margin-bottom: 12px;
+}
+.sidebar-nav .nav-group-items .nav-group-toggle {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.sidebar-nav .nav-group-items .nav-group-items .nav-item {
+    font-size: 0.78rem;
+    padding-left: 18px;
+}

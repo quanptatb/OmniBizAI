@@ -19,110 +19,43 @@ public class CustomerCareController : Controller
 
     // ── List ──────────────────────────────────────────────────────────────────
     public async Task<IActionResult> Index(string? search, string? type, string? status, Guid? customer)
-    {
-        var vm = await _service.GetInteractionsAsync(search, type, status, customer);
-        return View(vm);
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Create GET ────────────────────────────────────────────────────────────
     public async Task<IActionResult> Create(Guid? customerId)
-    {
-        var vm = await _service.GetInteractionCreateFormAsync(customerId);
-        return View(vm);
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Create POST ───────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CustomerCareCreateViewModel vm)
-    {
-        if (!ModelState.IsValid)
-        {
-            var form = await _service.GetInteractionCreateFormAsync(vm.CustomerId);
-            vm.Customers = form.Customers; vm.Users = form.Users; vm.Contacts = form.Contacts;
-            return View(vm);
-        }
-        var id = await _service.CreateInteractionAsync(vm);
-        await _notif.SendToManagersAsync(
-            $"📞 {_tenant.UserFullName} tạo tương tác CSKH",
-            $"{_tenant.UserFullName} đã tạo tương tác: {vm.Subject}",
-            "CrmInteraction", id);
-        TempData["SuccessMessage"] = "Tạo tương tác CSKH thành công.";
-        return RedirectToAction(nameof(Details), new { id });
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Details ───────────────────────────────────────────────────────────────
     public async Task<IActionResult> Details(Guid id)
-    {
-        var vm = await _service.GetInteractionDetailAsync(id);
-        if (vm == null) return NotFound();
-        return View(vm);
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Edit GET ──────────────────────────────────────────────────────────────
     public async Task<IActionResult> Edit(Guid id)
-    {
-        var vm = await _service.GetInteractionEditFormAsync(id);
-        if (vm == null) return NotFound();
-        return View(vm);
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Edit POST ─────────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(CustomerCareEditViewModel vm)
-    {
-        if (!ModelState.IsValid)
-        {
-            var form = await _service.GetInteractionEditFormAsync(vm.Id);
-            if (form != null) { vm.Contacts = form.Contacts; vm.Users = form.Users; vm.CustomerName = form.CustomerName; }
-            return View(vm);
-        }
-        if (!await _service.UpdateInteractionAsync(vm)) { TempData["ErrorMessage"] = "Không thể cập nhật."; return View(vm); }
-        TempData["SuccessMessage"] = "Cập nhật tương tác thành công.";
-        return RedirectToAction(nameof(Details), new { id = vm.Id });
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Complete ──────────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Complete(CompleteInteractionViewModel vm)
-    {
-        if (!await _service.CompleteInteractionAsync(vm)) { TempData["ErrorMessage"] = "Không thể hoàn thành."; }
-        else { TempData["SuccessMessage"] = "Đã hoàn thành tương tác."; }
-        return RedirectToAction(nameof(Details), new { id = vm.Id });
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Start ─────────────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Start(Guid id)
-    {
-        if (!await _service.StartInteractionAsync(id)) { TempData["ErrorMessage"] = "Không thể bắt đầu."; }
-        else { TempData["SuccessMessage"] = "Đã bắt đầu tương tác."; }
-        return RedirectToAction(nameof(Details), new { id });
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Cancel ─────────────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(Guid id)
-    {
-        if (!await _service.CancelInteractionAsync(id)) { TempData["ErrorMessage"] = "Không thể hủy."; }
-        else { TempData["SuccessMessage"] = "Đã hủy tương tác."; }
-        return RedirectToAction(nameof(Details), new { id });
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── Delete ─────────────────────────────────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN,DEPARTMENT_MANAGER")]
     public async Task<IActionResult> Delete(Guid id)
-    {
-        if (!await _service.DeleteInteractionAsync(id)) { TempData["ErrorMessage"] = "Không thể xóa."; }
-        else { TempData["SuccessMessage"] = "Đã xóa tương tác."; }
-        return RedirectToAction(nameof(Index));
-    }
+    { return RedirectToAction("Index", "Customers"); }
 
-    // ── AJAX: Get contacts for customer ──────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> GetContacts(Guid customerId)
-    {
-        var contacts = await _service.GetContactsForCustomerAsync(customerId);
-        return Json(contacts);
-    }
+    { return RedirectToAction("Index", "Customers"); }
 }

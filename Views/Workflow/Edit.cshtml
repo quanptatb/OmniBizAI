@@ -36,11 +36,11 @@
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
                         <div class="col-md-4">
-                            <label asp-for="Status" class="form-label fw-bold">Trạng thái</label>
-                            <select asp-for="Status" class="form-select">
-                                @foreach (var s in Model.StatusOptions)
+                            <label asp-for="KanbanColumnId" class="form-label fw-bold">Cột Kanban</label>
+                            <select asp-for="KanbanColumnId" class="form-select">
+                                @foreach (var c in Model.ColumnOptions)
                                 {
-                                    <option value="@s.Value" selected="@(s.Value == Model.Status.ToString())">@s.Text</option>
+                                    <option value="@c.Value" selected="@(c.Value == Model.KanbanColumnId?.ToString())">@c.Text</option>
                                 }
                             </select>
                         </div>

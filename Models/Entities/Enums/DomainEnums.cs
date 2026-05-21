@@ -38,7 +38,8 @@ public enum OperationStatus
     InProgress = 5,
     Completed = 6,
     Rejected = 7,
-    Cancelled = 8
+    Cancelled = 8,
+    OnHold = 9
 }
 
 public enum WorkItemStatus

@@ -51,6 +51,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     // Operations & Work
     public DbSet<OperationRequest> OperationRequests => Set<OperationRequest>();
     public DbSet<OperationRequestLine> OperationRequestLines => Set<OperationRequestLine>();
+    public DbSet<OperationComment> OperationComments => Set<OperationComment>();
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
     public DbSet<WorkItemAssignment> WorkItemAssignments => Set<WorkItemAssignment>();
     public DbSet<WorkItemChecklist> WorkItemChecklists => Set<WorkItemChecklist>();

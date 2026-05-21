@@ -63,16 +63,20 @@ public class OperationPlansController : Controller
             return View(vm);
         }
 
-        if (await _service.CreateTaskAsync(vm))
+        var (success, message) = await _service.CreateTaskAsync(vm);
+        if (success)
         {
-            TempData["SuccessMessage"] = "Đã phân công công việc mới.";
+            TempData["SuccessMessage"] = message;
+            return RedirectToAction(nameof(Details), new { id = vm.PlanId });
         }
         else
         {
-            TempData["ErrorMessage"] = "Không thể thêm công việc.";
+            TempData["ErrorMessage"] = message;
+            var form = await _service.GetCreateTaskFormAsync(vm.PlanId);
+            vm.Users = form.Users;
+            vm.Equipments = form.Equipments;
+            return View(vm);
         }
-
-        return RedirectToAction(nameof(Details), new { id = vm.PlanId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]

@@ -43,4 +43,5 @@ public class OperationRequest : TenantEntity
     public ICollection<OperationRequestLine> Lines { get; set; } = new List<OperationRequestLine>();
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
     public ICollection<AiInsight> AiInsights { get; set; } = new List<AiInsight>();
+    public ICollection<OperationComment> Comments { get; set; } = new List<OperationComment>();
 }

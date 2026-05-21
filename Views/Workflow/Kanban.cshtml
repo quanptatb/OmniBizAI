@@ -3,11 +3,342 @@
 @{
     ViewData["Title"] = "Kanban workflow";
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Kanban</span>";
+    var colList = Model.Columns.OrderBy(c => c.SortOrder).ToList();
 }
 
+<style>
+    /* Premium Apple-inspired Styles for Kanban */
+    .kanban-page {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: #f5f5f7;
+        min-height: 85vh;
+        border-radius: 20px;
+        padding: 24px;
+        margin-top: 10px;
+    }
+    
+    .kanban-toolbar {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        padding: 20px;
+    }
+
+    .kanban-title {
+        font-weight: 700;
+        font-size: 26px;
+        color: #1d1d1f;
+        letter-spacing: -0.5px;
+    }
+
+    .kanban-metrics span {
+        margin-right: 15px;
+        font-size: 13px;
+        color: #86868b;
+        background: rgba(0, 0, 0, 0.04);
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Scrollable Kanban Board Layout */
+    .kanban-board-container {
+        overflow-x: auto;
+        padding-bottom: 15px;
+        margin-top: 20px;
+        display: flex;
+        align-items: flex-start;
+        min-height: 65vh;
+    }
+
+    .kanban-board-scrollable {
+        display: flex;
+        gap: 20px;
+        padding: 5px;
+    }
+
+    .kanban-column {
+        width: 310px;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-top: 4px solid #8e8e93; /* fallback dynamic */
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+        display: flex;
+        flex-direction: column;
+        max-height: 70vh;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kanban-column:hover {
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .kanban-column-header {
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .column-title-container {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        cursor: pointer;
+    }
+
+    .column-title-container h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1d1d1f;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .column-title-container h2:hover::after {
+        content: " ✎";
+        font-size: 11px;
+        color: #007aff;
+        opacity: 0.8;
+    }
+
+    .column-title-container span {
+        font-size: 11px;
+        color: #86868b;
+        margin-top: 2px;
+    }
+
+    .inline-column-input {
+        font-size: 14px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid #007aff;
+        outline: none;
+        width: 90%;
+    }
+
+    .kanban-card-list {
+        padding: 12px;
+        overflow-y: auto;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 150px;
+    }
+
+    .kanban-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+        cursor: grab;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kanban-card:active {
+        cursor: grabbing;
+        transform: scale(0.98);
+    }
+
+    .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .kanban-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .kanban-request {
+        font-size: 11px;
+        font-weight: 700;
+        color: #007aff;
+        background: rgba(0, 122, 255, 0.1);
+        padding: 2px 6px;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    .kanban-priority {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+
+    .priority-low { background: #e5e5ea; color: #8e8e93; }
+    .priority-normal { background: #e8f2ff; color: #007aff; }
+    .priority-high { background: #fff2e6; color: #ff9500; }
+    .priority-critical { background: #ffebeb; color: #ff3b30; }
+
+    .kanban-card h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1d1d1f;
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+
+    .kanban-card p {
+        font-size: 11px;
+        color: #86868b;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .kanban-meta {
+        font-size: 10px;
+        color: #86868b;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .kanban-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .kanban-checklist {
+        background: #f5f5f7;
+        padding: 8px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .kanban-checklist .progress {
+        height: 4px;
+        background: rgba(0,0,0,0.05);
+        border-radius: 2px;
+    }
+
+    .kanban-checklist .progress-bar {
+        background: #34c759;
+        border-radius: 2px;
+    }
+
+    .kanban-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.03);
+        padding-top: 8px;
+        margin-top: 4px;
+    }
+
+    .kanban-actions form {
+        margin: 0;
+    }
+
+    .kanban-empty {
+        text-align: center;
+        padding: 20px 10px;
+        color: #c7c7cc;
+        font-size: 11px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        border: 1px dashed rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        background: rgba(0,0,0,0.01);
+    }
+
+    /* Dashed add-column template */
+    .add-column-dashed {
+        border: 2px dashed rgba(0, 0, 0, 0.15) !important;
+        background: rgba(255, 255, 255, 0.25) !important;
+        border-top: none !important;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        box-shadow: none !important;
+    }
+
+    .btn-add-column {
+        background: none;
+        border: none;
+        color: #86868b;
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 10px 20px;
+        border-radius: 20px;
+        transition: background 0.2s ease, color 0.2s ease;
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .btn-add-column:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #1d1d1f;
+    }
+
+    .add-column-form-box {
+        width: 100%;
+        background: #ffffff;
+        padding: 16px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .color-picker-dot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        display: inline-block;
+        transition: transform 0.15s ease;
+    }
+
+    .color-picker-dot:hover {
+        transform: scale(1.15);
+    }
+
+    .color-picker-dot input:checked + span {
+        border-color: #1d1d1f;
+    }
+
+    .color-picker-dot input:checked {
+        border: 2px solid #1d1d1f;
+        box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    }
+</style>
+
 <div class="kanban-page">
-    <div class="kanban-toolbar content-card mb-4">
-        <div class="kanban-toolbar-main">
+    <!-- Toolbar -->
+    <div class="kanban-toolbar mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
             <div>
                 <h1 class="kanban-title mb-1">Kanban workflow</h1>
                 <div class="kanban-metrics">
@@ -16,22 +347,22 @@
                     <span><i class="fa-solid fa-clock"></i> @Model.OverdueCards quá hạn</span>
                 </div>
             </div>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newWorkItemModal">
-                <i class="fa-solid fa-plus me-2"></i>Tạo thẻ
+            <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#newWorkItemModal">
+                <i class="fa-solid fa-plus me-2"></i>Tạo thẻ công việc
             </button>
         </div>
 
-        <form method="get" asp-action="Kanban" class="kanban-filter row g-3 align-items-end">
+        <form method="get" asp-action="Kanban" class="row g-3 align-items-end">
             <div class="col-lg-5">
                 <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search"></i></span>
-                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-start-0 bg-light" placeholder="Mã yêu cầu, tiêu đề công việc...">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius:10px 0 0 10px"><i class="fa-solid fa-search"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-start-0 bg-light" style="border-radius:0 10px 10px 0" placeholder="Mã yêu cầu, tiêu đề công việc...">
                 </div>
             </div>
             <div class="col-lg-4">
                 <label class="form-label text-muted small fw-bold">Phòng ban</label>
-                <select name="dept" class="form-select bg-light">
+                <select name="dept" class="form-select bg-light" style="border-radius:10px">
                     <option value="">Tất cả phòng ban</option>
                     @foreach (var dept in Model.Departments)
                     {
@@ -40,103 +371,234 @@
                 </select>
             </div>
             <div class="col-lg-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
-                <a asp-action="Kanban" class="btn btn-light border" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
+                <button type="submit" class="btn btn-dark w-100" style="border-radius:10px"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
+                <a asp-action="Kanban" class="btn btn-light border" style="border-radius:10px" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
             </div>
         </form>
     </div>
 
-    <div class="kanban-board">
-        @foreach (var column in Model.Columns)
-        {
-            <section class="kanban-column @column.AccentClass">
-                <div class="kanban-column-header">
-                    <div>
-                        <h2>@column.Title</h2>
-                        <span>@column.Items.Count thẻ</span>
-                    </div>
-                </div>
+    <!-- Board -->
+    <div class="kanban-board-container">
+        <div class="kanban-board-scrollable">
+            @for (int i = 0; i < colList.Count; i++)
+            {
+                var column = colList[i];
+                var accentColor = string.IsNullOrWhiteSpace(column.AccentColor) ? "#8e8e93" : column.AccentColor;
 
-                <div class="kanban-card-list">
-                    @foreach (var card in column.Items)
-                    {
-                        <article class="kanban-card @card.PriorityClass @(card.IsOverdue ? "is-overdue" : "")">
-                            <div class="kanban-card-top">
-                                <a asp-controller="Operations" asp-action="Details" asp-route-id="@card.OperationRequestId" class="kanban-request">@card.RequestNo</a>
-                                <span class="kanban-priority">@card.Priority</span>
-                            </div>
-                            <h3><a asp-action="Details" asp-route-id="@card.Id" style="color:inherit;text-decoration:none">@card.Title</a></h3>
-                            @if (!string.IsNullOrWhiteSpace(card.Description))
-                            {
-                                <p>@card.Description</p>
-                            }
-                            <div class="kanban-meta">
-                                <span><i class="fa-solid fa-sitemap"></i>@card.Department</span>
-                                <span><i class="fa-regular fa-calendar"></i>@(card.DueDate?.ToString("dd/MM/yyyy") ?? "Không hạn")</span>
-                                <span><i class="fa-solid fa-user-check"></i>@(card.AssignedTo ?? "Chưa giao")</span>
-                            </div>
-                            @if (card.ChecklistTotal > 0)
-                            {
-                                var progress = Math.Round((decimal)card.ChecklistDone / card.ChecklistTotal * 100);
-                                <div class="kanban-checklist">
-                                    <div class="d-flex justify-content-between text-xs text-muted mb-1">
-                                        <span>Checklist</span>
-                                        <span>@card.ChecklistDone/@card.ChecklistTotal</span>
-                                    </div>
-                                    <div class="progress" role="progressbar" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">
-                                        <div class="progress-bar" style="width: @progress%"></div>
-                                    </div>
-                                </div>
-                            }
-                            <div class="kanban-actions">
-                                <a asp-action="Details" asp-route-id="@card.Id" class="btn btn-sm btn-light border" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
-                                <a asp-action="Edit" asp-route-id="@card.Id" class="btn btn-sm btn-light border" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></a>
-                                @foreach (var nextStatus in NextStatuses(card.Status))
-                                {
-                                    <form asp-action="Move" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="Id" value="@card.Id" />
-                                        <input type="hidden" name="Status" value="@nextStatus" />
-                                        <input type="hidden" name="Search" value="@Model.SearchTerm" />
-                                        <input type="hidden" name="Dept" value="@Model.DepartmentFilter" />
-                                        <button type="submit" class="btn btn-sm btn-light border" title="@MoveTitle(nextStatus)">
-                                            <i class="fa-solid @MoveIcon(nextStatus)"></i>
-                                        </button>
-                                    </form>
-                                }
-                            </div>
-                        </article>
-                    }
-
-                    @if (!column.Items.Any())
-                    {
-                        <div class="kanban-empty">
-                            <i class="fa-regular fa-square"></i>
-                            <span>Chưa có thẻ</span>
+                <section class="kanban-column" style="border-top-color: @accentColor" data-column-id="@column.Id" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    <div class="kanban-column-header">
+                        <div class="column-title-container" ondblclick="makeEditable(this, '@column.Id')" title="Nhấp đúp để đổi tên">
+                            <h2>@column.Title</h2>
+                            <span>@column.Items.Count thẻ</span>
                         </div>
-                    }
-                </div>
+                        
+                        <!-- Column actions dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-xs btn-link text-muted p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-ellipsis"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius:12px; font-size: 13px">
+                                @if (i > 0)
+                                {
+                                    <li>
+                                        <form asp-action="MoveColumn" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="columnId" value="@column.Id" />
+                                            <input type="hidden" name="direction" value="left" />
+                                            <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <button type="submit" class="dropdown-item"><i class="fa-solid fa-chevron-left me-2"></i>Di chuyển sang trái</button>
+                                        </form>
+                                    </li>
+                                }
+                                @if (i < colList.Count - 1)
+                                {
+                                    <li>
+                                        <form asp-action="MoveColumn" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="columnId" value="@column.Id" />
+                                            <input type="hidden" name="direction" value="right" />
+                                            <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <button type="submit" class="dropdown-item"><i class="fa-solid fa-chevron-right me-2"></i>Di chuyển sang phải</button>
+                                        </form>
+                                    </li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                @if (!column.IsDoneColumn && !column.IsCancelledColumn && i != 0)
+                                {
+                                    <li>
+                                        <form asp-action="DeleteColumn" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa thanh này? Tất cả các thẻ hiện tại sẽ được di chuyển sang cột đầu tiên.')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="columnId" value="@column.Id" />
+                                            <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash me-2"></i>Xóa thanh này</button>
+                                        </form>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li><span class="dropdown-item text-muted disabled"><i class="fa-solid fa-lock me-2"></i>Thanh hệ thống (Khóa)</span></li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="kanban-card-list">
+                        @foreach (var card in column.Items)
+                        {
+                            var priorityClass = "priority-normal";
+                            if (card.Priority != null)
+                            {
+                                priorityClass = card.Priority.ToLower() switch
+                                {
+                                    "low" => "priority-low",
+                                    "normal" => "priority-normal",
+                                    "high" => "priority-high",
+                                    "critical" => "priority-critical",
+                                    _ => "priority-normal"
+                                };
+                            }
+
+                            <article class="kanban-card @priorityClass" draggable="true" ondragstart="drag(event)" data-card-id="@card.Id">
+                                <div class="kanban-card-top">
+                                    @if (card.OperationRequestId != Guid.Empty)
+                                    {
+                                        <a asp-controller="Operations" asp-action="Details" asp-route-id="@card.OperationRequestId" class="kanban-request">@card.RequestNo</a>
+                                    }
+                                    <span class="kanban-priority @priorityClass">@card.Priority</span>
+                                </div>
+                                <h3><a asp-action="Details" asp-route-id="@card.Id" style="color:inherit;text-decoration:none">@card.Title</a></h3>
+                                @if (!string.IsNullOrWhiteSpace(card.Description))
+                                {
+                                    <p>@card.Description</p>
+                                }
+                                <div class="kanban-meta">
+                                    <span><i class="fa-solid fa-sitemap"></i>@card.Department</span>
+                                    <span><i class="fa-regular fa-calendar"></i>@(card.DueDate?.ToString("dd/MM/yyyy") ?? "Không hạn")</span>
+                                    <span><i class="fa-solid fa-user-check"></i>@(card.AssignedTo ?? "Chưa giao")</span>
+                                </div>
+                                @if (card.ChecklistTotal > 0)
+                                {
+                                    var progress = Math.Round((decimal)card.ChecklistDone / card.ChecklistTotal * 100);
+                                    <div class="kanban-checklist">
+                                        <div class="d-flex justify-content-between text-xs text-muted mb-1" style="font-size: 10px">
+                                            <span>Checklist</span>
+                                            <span>@card.ChecklistDone/@card.ChecklistTotal</span>
+                                        </div>
+                                        <div class="progress" role="progressbar" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar" style="width: @progress%"></div>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="kanban-actions">
+                                    <a asp-action="Details" asp-route-id="@card.Id" class="btn btn-sm btn-light border p-1 px-2" style="font-size:10px" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+                                    <a asp-action="Edit" asp-route-id="@card.Id" class="btn btn-sm btn-light border p-1 px-2" style="font-size:10px" title="Chỉnh sửa"><i class="fa-solid fa-pen"></i></a>
+                                    
+                                    @if (i > 0)
+                                    {
+                                        <form asp-action="Move" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="Id" value="@card.Id" />
+                                            <input type="hidden" name="ColumnId" value="@colList[i - 1].Id" />
+                                            <input type="hidden" name="Search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="Dept" value="@Model.DepartmentFilter" />
+                                            <button type="submit" class="btn btn-sm btn-light border p-1 px-2" style="font-size:10px" title="Sang trái">
+                                                <i class="fa-solid fa-arrow-left"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (i < colList.Count - 1)
+                                    {
+                                        <form asp-action="Move" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="Id" value="@card.Id" />
+                                            <input type="hidden" name="ColumnId" value="@colList[i + 1].Id" />
+                                            <input type="hidden" name="Search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="Dept" value="@Model.DepartmentFilter" />
+                                            <button type="submit" class="btn btn-sm btn-light border p-1 px-2" style="font-size:10px" title="Sang phải">
+                                                <i class="fa-solid fa-arrow-right"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </article>
+                        }
+
+                        @if (!column.Items.Any())
+                        {
+                            <div class="kanban-empty">
+                                <i class="fa-regular fa-square"></i>
+                                <span>Chưa có thẻ công việc</span>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+
+            <!-- "+ Thêm thanh mới" Dynamic Column Box -->
+            <section class="kanban-column add-column-dashed">
+                <button type="button" class="btn-add-column" onclick="showAddColumnForm()">
+                    <i class="fa-solid fa-plus"></i> Thêm thanh mới
+                </button>
+                <form id="addColumnForm" asp-action="CreateColumn" method="post" style="display:none" class="add-column-form-box">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="search" value="@Model.SearchTerm" />
+                    <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                    <input type="text" name="title" class="form-control mb-2" placeholder="Tiêu đề thanh mới..." style="border-radius: 8px; font-size:13px" required />
+                    
+                    <div class="color-preset-picker mb-3">
+                        <label class="form-label small text-muted mb-1" style="font-size:11px">Màu cột (Apple Palette):</label>
+                        <div class="d-flex gap-2">
+                            <label class="color-picker-dot" style="background:#007aff" title="Xanh dương">
+                                <input type="radio" name="accentColor" value="#007aff" checked class="form-check-input" style="opacity:0; position:absolute; width:1px; height:1px"/>
+                            </label>
+                            <label class="color-picker-dot" style="background:#34c759" title="Xanh lá">
+                                <input type="radio" name="accentColor" value="#34c759" class="form-check-input" style="opacity:0; position:absolute; width:1px; height:1px"/>
+                            </label>
+                            <label class="color-picker-dot" style="background:#ff9500" title="Cam">
+                                <input type="radio" name="accentColor" value="#ff9500" class="form-check-input" style="opacity:0; position:absolute; width:1px; height:1px"/>
+                            </label>
+                            <label class="color-picker-dot" style="background:#ff3b30" title="Đỏ">
+                                <input type="radio" name="accentColor" value="#ff3b30" class="form-check-input" style="opacity:0; position:absolute; width:1px; height:1px"/>
+                            </label>
+                            <label class="color-picker-dot" style="background:#af52de" title="Tím">
+                                <input type="radio" name="accentColor" value="#af52de" class="form-check-input" style="opacity:0; position:absolute; width:1px; height:1px"/>
+                            </label>
+                            <label class="color-picker-dot" style="background:#8e8e93" title="Xám">
+                                <input type="radio" name="accentColor" value="#8e8e93" class="form-check-input" style="opacity:0; position:absolute; width:1px; height:1px"/>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-dark flex-grow-1" style="border-radius: 8px; font-size:12px">Tạo</button>
+                        <button type="button" class="btn btn-sm btn-light border flex-grow-1" style="border-radius: 8px; font-size:12px" onclick="hideAddColumnForm()">Hủy</button>
+                    </div>
+                </form>
             </section>
-        }
+        </div>
     </div>
 </div>
 
+<!-- Modal Create Card -->
 <div class="modal fade" id="newWorkItemModal" tabindex="-1" aria-labelledby="newWorkItemModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" style="border-radius:20px; border:none; box-shadow:0 10px 40px rgba(0,0,0,0.15)">
             <form asp-action="Create" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="search" value="@Model.SearchTerm" />
                 <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
-                <div class="modal-header">
-                    <h5 class="modal-title" id="newWorkItemModalLabel">Tạo thẻ Kanban</h5>
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="newWorkItemModalLabel" style="font-size:18px">Tạo thẻ Kanban</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body py-4">
                     <div class="row g-3">
                         <div class="col-md-12">
-                            <label class="form-label">Yêu cầu vận hành</label>
-                            <select asp-for="CreateForm.OperationRequestId" name="OperationRequestId" class="form-select" required>
+                            <label class="form-label small fw-bold text-muted">Yêu cầu vận hành</label>
+                            <select asp-for="CreateForm.OperationRequestId" name="OperationRequestId" class="form-select" style="border-radius:10px" required>
                                 <option value="">Chọn yêu cầu</option>
                                 @foreach (var request in Model.OperationRequests)
                                 {
@@ -145,12 +607,12 @@
                             </select>
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label">Tiêu đề công việc</label>
-                            <input asp-for="CreateForm.Title" name="Title" class="form-control" maxlength="250" required />
+                            <label class="form-label small fw-bold text-muted">Tiêu đề công việc</label>
+                            <input asp-for="CreateForm.Title" name="Title" class="form-control" style="border-radius:10px" maxlength="250" required />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Ưu tiên</label>
-                            <select asp-for="CreateForm.Priority" name="Priority" class="form-select">
+                            <label class="form-label small fw-bold text-muted">Ưu tiên</label>
+                            <select asp-for="CreateForm.Priority" name="Priority" class="form-select" style="border-radius:10px">
                                 @foreach (var priority in Enum.GetValues<PriorityLevel>())
                                 {
                                     <option value="@priority">@priority</option>
@@ -158,8 +620,8 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Phòng ban</label>
-                            <select asp-for="CreateForm.OrganizationUnitId" name="OrganizationUnitId" class="form-select">
+                            <label class="form-label small fw-bold text-muted">Phòng ban</label>
+                            <select asp-for="CreateForm.OrganizationUnitId" name="OrganizationUnitId" class="form-select" style="border-radius:10px">
                                 <option value="">Theo yêu cầu vận hành</option>
                                 @foreach (var dept in Model.Departments)
                                 {
@@ -168,8 +630,8 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Người phụ trách</label>
-                            <select asp-for="CreateForm.AssignedToUserId" name="AssignedToUserId" class="form-select">
+                            <label class="form-label small fw-bold text-muted">Người phụ trách</label>
+                            <select asp-for="CreateForm.AssignedToUserId" name="AssignedToUserId" class="form-select" style="border-radius:10px">
                                 <option value="">Chưa giao</option>
                                 @foreach (var user in Model.Assignees)
                                 {
@@ -178,52 +640,160 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Hạn xử lý</label>
-                            <input asp-for="CreateForm.DueDate" name="DueDate" type="date" class="form-control" />
+                            <label class="form-label small fw-bold text-muted">Hạn xử lý</label>
+                            <input asp-for="CreateForm.DueDate" name="DueDate" type="date" class="form-control" style="border-radius:10px" />
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label">Mô tả</label>
-                            <textarea asp-for="CreateForm.Description" name="Description" class="form-control" rows="3" maxlength="2000"></textarea>
+                            <label class="form-label small fw-bold text-muted">Mô tả</label>
+                            <textarea asp-for="CreateForm.Description" name="Description" class="form-control" style="border-radius:10px" rows="3" maxlength="2000"></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Tạo thẻ</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border px-4" style="border-radius:10px" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-dark px-4" style="border-radius:10px"><i class="fa-solid fa-plus me-2"></i>Tạo thẻ</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-@functions {
-    private static IEnumerable<WorkItemStatus> NextStatuses(WorkItemStatus status) => status switch
-    {
-        WorkItemStatus.Todo => new[] { WorkItemStatus.InProgress, WorkItemStatus.Blocked, WorkItemStatus.Cancelled },
-        WorkItemStatus.InProgress => new[] { WorkItemStatus.Blocked, WorkItemStatus.Done, WorkItemStatus.Todo },
-        WorkItemStatus.Blocked => new[] { WorkItemStatus.InProgress, WorkItemStatus.Cancelled },
-        WorkItemStatus.Done => new[] { WorkItemStatus.InProgress },
-        WorkItemStatus.Cancelled => new[] { WorkItemStatus.Todo },
-        _ => Array.Empty<WorkItemStatus>()
-    };
+<script>
+    // Show / Hide Add Column Form
+    function showAddColumnForm() {
+        document.querySelector('.btn-add-column').style.display = 'none';
+        document.getElementById('addColumnForm').style.display = 'block';
+        document.querySelector('#addColumnForm input[name="title"]').focus();
+    }
 
-    private static string MoveIcon(WorkItemStatus status) => status switch
-    {
-        WorkItemStatus.Todo => "fa-arrow-rotate-left",
-        WorkItemStatus.InProgress => "fa-play",
-        WorkItemStatus.Blocked => "fa-ban",
-        WorkItemStatus.Done => "fa-check",
-        WorkItemStatus.Cancelled => "fa-xmark",
-        _ => "fa-arrow-right"
-    };
+    function hideAddColumnForm() {
+        document.getElementById('addColumnForm').style.display = 'none';
+        document.querySelector('.btn-add-column').style.display = 'flex';
+    }
 
-    private static string MoveTitle(WorkItemStatus status) => status switch
-    {
-        WorkItemStatus.Todo => "Chuyển về cần làm",
-        WorkItemStatus.InProgress => "Chuyển sang đang xử lý",
-        WorkItemStatus.Blocked => "Đánh dấu đang vướng",
-        WorkItemStatus.Done => "Đánh dấu hoàn thành",
-        WorkItemStatus.Cancelled => "Hủy công việc",
-        _ => "Chuyển trạng thái"
-    };
-}
+    // Dynamic Apple Color Picker Selection Border style helper
+    const pickerDots = document.querySelectorAll('.color-picker-dot');
+    pickerDots.forEach(dot => {
+        const input = dot.querySelector('input');
+        input.addEventListener('change', () => {
+            pickerDots.forEach(d => d.style.boxShadow = 'none');
+            if(input.checked) {
+                dot.style.boxShadow = '0 0 0 3px rgba(0, 0, 0, 0.2)';
+            }
+        });
+    });
+
+    // Double-click inline column title editing
+    function makeEditable(container, columnId) {
+        const header = container.querySelector('h2');
+        if (container.querySelector('input')) return; // already editing
+
+        const currentTitle = header.innerText.trim();
+        container.innerHTML = `<input type="text" class="form-control inline-column-input" value="${currentTitle}" />`;
+        const input = container.querySelector('input');
+        input.focus();
+        input.select();
+
+        const saveChanges = async () => {
+            const newTitle = input.value.trim();
+            if (!newTitle || newTitle === currentTitle) {
+                container.innerHTML = `<h2>${currentTitle}</h2><span>0 thẻ</span>`; // fallback span, will update on reload
+                window.location.reload(); // simple sync
+                return;
+            }
+
+            try {
+                const response = await fetch('/Workflow/RenameColumn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ columnId: columnId, title: newTitle })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    container.innerHTML = `<h2>${newTitle}</h2><span>Cập nhật...</span>`;
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Đổi tên thất bại.');
+                    window.location.reload();
+                }
+            } catch (err) {
+                alert('Đã xảy ra lỗi khi kết nối máy chủ.');
+                window.location.reload();
+            }
+        };
+
+        input.addEventListener('blur', saveChanges);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                input.blur();
+            } else if (e.key === 'Escape') {
+                container.innerHTML = `<h2>${currentTitle}</h2><span>Hủy...</span>`;
+                window.location.reload();
+            }
+        });
+    }
+
+    // HTML5 Drag and Drop Handlers
+    function drag(ev) {
+        ev.dataTransfer.setData("cardId", ev.target.getAttribute("data-card-id"));
+    }
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const cardId = ev.dataTransfer.getData("cardId");
+        let target = ev.target;
+        
+        while (target && !target.classList.contains('kanban-column')) {
+            target = target.parentElement;
+        }
+        if (!target) return;
+
+        const columnId = target.getAttribute("data-column-id");
+        if (!cardId || !columnId) return;
+
+        // Create form dynamically to post moving card action
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/Workflow/Move';
+
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '__RequestVerificationToken';
+        tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        form.appendChild(tokenInput);
+
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'Id';
+        idInput.value = cardId;
+        form.appendChild(idInput);
+
+        const colInput = document.createElement('input');
+        colInput.type = 'hidden';
+        colInput.name = 'ColumnId';
+        colInput.value = columnId;
+        form.appendChild(colInput);
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'hidden';
+        searchInput.name = 'Search';
+        searchInput.value = document.querySelector('input[name="search"]')?.value || '';
+        form.appendChild(searchInput);
+
+        const deptInput = document.createElement('input');
+        deptInput.type = 'hidden';
+        deptInput.name = 'Dept';
+        deptInput.value = document.querySelector('select[name="dept"]')?.value || '';
+        form.appendChild(deptInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>

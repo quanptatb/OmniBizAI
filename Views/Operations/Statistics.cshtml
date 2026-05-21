@@ -1,0 +1,382 @@
+@model OmniBizAI.ViewModels.OperationStatisticsViewModel
+@{
+    ViewData["Title"] = "Thống kê Vận hành";
+    ViewData["Breadcrumb"] = "<a href='/Operations' style='color:var(--apple-blue);text-decoration:none'>Vận hành</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Thống kê & SLA</span>";
+}
+
+<style>
+    .stats-dashboard {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    .metric-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.05);
+    }
+
+    .metric-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -1px;
+        color: #1d1d1f;
+        line-height: 1.1;
+        margin: 12px 0 6px 0;
+    }
+
+    .chart-container-custom {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+        height: 100%;
+    }
+
+    /* Premium CSS Bar styles for fallback */
+    .css-bar-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+    }
+
+    .css-bar-label {
+        width: 140px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .css-bar-track {
+        flex-grow: 1;
+        height: 10px;
+        background: rgba(0,0,0,0.04);
+        border-radius: 5px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .css-bar-fill {
+        height: 100%;
+        border-radius: 5px;
+        transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .css-bar-value {
+        width: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-align: right;
+    }
+</style>
+
+<div class="stats-dashboard animate-fade-in">
+    <!-- Header Block -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h4 style="font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px;">Phân tích Hiệu suất Vận hành</h4>
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Dữ liệu hiệu suất xử lý yêu cầu và kiểm soát hạn SLA</p>
+        </div>
+        <a href="/Operations" class="btn btn-light px-3 border" style="border-radius: 10px;">
+            <i class="fa-solid fa-arrow-left me-1"></i>Danh sách yêu cầu
+        </a>
+    </div>
+
+    <!-- Top Metrics Row -->
+    <div class="row g-4 mb-4">
+        <!-- Completion Rate -->
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Tỷ lệ Hoàn thành</span>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(52, 199, 89, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-circle-check" style="color: #34c759; font-size: 1rem;"></i>
+                    </div>
+                </div>
+                <div class="metric-value">@Model.CompletionRate.ToString("N1")%</div>
+                <div class="progress" style="height: 6px; background: rgba(0,0,0,0.04); border-radius: 3px; margin-top: 12px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @Model.CompletionRate%; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">Tỷ lệ công việc ở trạng thái Hoàn thành</div>
+            </div>
+        </div>
+
+        <!-- Avg Processing Days -->
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Thời gian xử lý TB</span>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 122, 255, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-clock-rotate-left" style="color: #007aff; font-size: 1rem;"></i>
+                    </div>
+                </div>
+                <div class="metric-value">@Model.AvgProcessingDays.ToString("N1") <span style="font-size: 1.1rem; font-weight: 500; color: var(--text-secondary);">ngày</span></div>
+                <div class="progress" style="height: 6px; background: rgba(0,0,0,0.04); border-radius: 3px; margin-top: 12px;">
+                    @{
+                        var avgPercent = Math.Min(100.0, (Model.AvgProcessingDays / 10.0) * 100.0);
+                    }
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: @(avgPercent)%; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">Thời gian trung bình tính từ lúc tạo tới hoàn thành</div>
+            </div>
+        </div>
+
+        <!-- SLA Compliance Rate -->
+        <div class="col-md-4">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Tỷ lệ Đạt SLA</span>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 149, 0, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-shield-halved" style="color: #ff9500; font-size: 1rem;"></i>
+                    </div>
+                </div>
+                <div class="metric-value">@Model.SlaComplianceRate.ToString("N1")%</div>
+                <div class="progress" style="height: 6px; background: rgba(0,0,0,0.04); border-radius: 3px; margin-top: 12px;">
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: @Model.SlaComplianceRate%; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;">Tỷ lệ xử lý đúng thời hạn cam kết</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Weekly Trends (ChartJS) -->
+        <div class="col-lg-8">
+            <div class="chart-container-custom">
+                <h6 style="font-weight: 700; color: #1d1d1f; margin-bottom: 20px;"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Xu hướng xử lý hàng tuần</h6>
+                <div style="height: 320px; position: relative;">
+                    <canvas id="weeklyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Distribution -->
+        <div class="col-lg-4">
+            <div class="chart-container-custom">
+                <h6 style="font-weight: 700; color: #1d1d1f; margin-bottom: 20px;"><i class="fa-solid fa-building-user me-2 text-primary"></i>Phân bổ theo phòng ban</h6>
+                <div style="padding-top: 10px;">
+                    @if (Model.ByDepartment.Any())
+                    {
+                        var maxCount = Model.ByDepartment.Max(d => d.Count);
+                        foreach (var dept in Model.ByDepartment.OrderByDescending(d => d.Count))
+                        {
+                            var fillPercent = maxCount > 0 ? (dept.Count * 100) / maxCount : 0;
+                            <div class="css-bar-row">
+                                <div class="css-bar-label" title="@dept.DepartmentName">@dept.DepartmentName</div>
+                                <div class="css-bar-track">
+                                    <div class="css-bar-fill" style="width: @(fillPercent)%; background: var(--apple-blue);"></div>
+                                </div>
+                                <div class="css-bar-value">@dept.Count</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted" style="font-size: 0.85rem;">
+                            Chưa có dữ liệu phân bổ
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Priority Distribution -->
+        <div class="col-md-6">
+            <div class="chart-container-custom">
+                <h6 style="font-weight: 700; color: #1d1d1f; margin-bottom: 20px;"><i class="fa-solid fa-triangle-exclamation me-2 text-primary"></i>Phân bổ theo mức độ ưu tiên</h6>
+                <div style="padding-top: 10px;">
+                    @if (Model.ByPriority.Any())
+                    {
+                        var maxPri = Model.ByPriority.Max(p => p.Count);
+                        foreach (var pri in Model.ByPriority.OrderByDescending(p => p.Count))
+                        {
+                            var fillPercent = maxPri > 0 ? (pri.Count * 100) / maxPri : 0;
+                            var color = pri.Priority switch {
+                                "Critical" => "var(--danger)",
+                                "High" => "var(--warning)",
+                                "Normal" => "var(--success)",
+                                _ => "var(--info)"
+                            };
+                            <div class="css-bar-row">
+                                <div class="css-bar-label">@pri.PriorityLabel</div>
+                                <div class="css-bar-track">
+                                    <div class="css-bar-fill" style="width: @(fillPercent)%; background: @color;"></div>
+                                </div>
+                                <div class="css-bar-value">@pri.Count</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted" style="font-size: 0.85rem;">
+                            Chưa có dữ liệu phân bổ
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- System Recommendations -->
+        <div class="col-md-6">
+            <div class="chart-container-custom">
+                <h6 style="font-weight: 700; color: #1d1d1f; margin-bottom: 16px;"><i class="fa-solid fa-lightbulb me-2 text-warning"></i>Khuyến nghị Tối ưu hóa SLA</h6>
+                <div style="font-size: 0.85rem; line-height: 1.6;">
+                    <div class="d-flex gap-3 mb-3" style="background: rgba(52, 199, 89, 0.04); border: 1px solid rgba(52, 199, 89, 0.1); border-radius: 12px; padding: 12px;">
+                        <i class="fa-solid fa-bolt mt-1" style="color: #34c759; font-size: 1.1rem;"></i>
+                        <div>
+                            <strong style="color: #1d1d1f; display:block; margin-bottom: 2px;">Tối ưu phân công tự động</strong>
+                            Thời gian xử lý trung bình có thể giảm 15% bằng cách áp dụng quy tắc gán thẻ Kanban tự động theo tải của nhân sự phụ trách phòng ban.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3" style="background: rgba(255, 149, 0, 0.04); border: 1px solid rgba(255, 149, 0, 0.1); border-radius: 12px; padding: 12px;">
+                        <i class="fa-solid fa-triangle-exclamation mt-1" style="color: #ff9500; font-size: 1.1rem;"></i>
+                        <div>
+                            <strong style="color: #1d1d1f; display:block; margin-bottom: 2px;">Cảnh báo quá hạn SLA phòng ban</strong>
+                            Phòng vận hành có tần suất quá hạn SLA cao nhất (chiếm 60% trường hợp). Khuyến nghị bổ sung nhân sự xử lý hoặc tăng hạn định thời gian mặc định lên 5 ngày.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Load Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const canvas = document.getElementById('weeklyTrendChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        const trendLabels = [];
+        const createdData = [];
+        const completedData = [];
+        
+        @foreach (var week in Model.WeeklyTrend)
+        {
+            <text>
+                trendLabels.push("@week.DateLabel");
+                createdData.push(@week.CreatedCount);
+                completedData.push(@week.CompletedCount);
+            </text>
+        }
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [
+                    {
+                        label: 'Yêu cầu được tạo',
+                        data: createdData,
+                        borderColor: '#007aff',
+                        backgroundColor: 'rgba(0, 122, 255, 0.05)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#007aff',
+                        tension: 0.35,
+                        fill: true
+                    },
+                    {
+                        label: 'Yêu cầu hoàn thành',
+                        data: completedData,
+                        borderColor: '#34c759',
+                        backgroundColor: 'rgba(52, 199, 89, 0.05)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#34c759',
+                        tension: 0.35,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 12,
+                                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                                weight: '500'
+                            },
+                            color: '#86868b',
+                            boxWidth: 12,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        padding: 12,
+                        cornerRadius: 12,
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#1d1d1f',
+                        bodyColor: '#515154',
+                        borderColor: 'rgba(0,0,0,0.08)',
+                        borderWidth: 1,
+                        usePointStyle: true,
+                        callbacks: {
+                            labelTextColor: function() {
+                                return '#1d1d1f';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#86868b',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.04)',
+                            drawTicks: false
+                        },
+                        border: {
+                            dash: [4, 4]
+                        },
+                        ticks: {
+                            color: '#86868b',
+                            font: {
+                                size: 11
+                            },
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>

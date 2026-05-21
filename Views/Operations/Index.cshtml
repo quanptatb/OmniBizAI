@@ -4,6 +4,73 @@
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Danh sách</span>";
 }
 
+<style>
+    /* Segment Tabs styling */
+    .segment-tabs-container {
+        display: flex;
+        gap: 6px;
+        background: rgba(0, 0, 0, 0.03);
+        padding: 5px;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    
+    .segment-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid transparent;
+    }
+    
+    .segment-tab:hover {
+        background: rgba(255, 255, 255, 0.45);
+        color: var(--text-primary);
+    }
+    
+    .segment-tab.active {
+        background: #ffffff;
+        color: #1d1d1f;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        border-color: rgba(0, 0, 0, 0.03);
+    }
+    
+    .segment-tab .badge {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-weight: 700;
+    }
+
+    /* Priority row styles */
+    .row-priority-critical td {
+        background-color: rgba(255, 59, 48, 0.03) !important;
+    }
+    .row-priority-high td {
+        background-color: rgba(255, 149, 0, 0.02) !important;
+    }
+    .row-priority-normal td {
+        background-color: rgba(52, 199, 89, 0.01) !important;
+    }
+    .row-priority-low td {
+        background-color: rgba(0, 122, 255, 0.01) !important;
+    }
+    .row-priority-critical:hover td {
+        background-color: rgba(255, 59, 48, 0.05) !important;
+    }
+    .row-priority-high:hover td {
+        background-color: rgba(255, 149, 0, 0.04) !important;
+    }
+</style>
+
 @{
     string StatusLabel(string s) => EnumHelper.Label<OperationStatus>(s);
     string PriorityLabel(string p) => EnumHelper.Label<PriorityLevel>(p);
@@ -44,6 +111,62 @@
     <div class="col-6 col-md">
         <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-exclamation-triangle"></i></div><div class="stat-value">@Model.OverdueCount</div><div class="stat-label">Quá hạn</div></div>
     </div>
+</div>
+
+<!-- SLA Compliance & Quick Filter Tabs -->
+@{
+    var activeRequestsCount = Model.TotalCount - Model.DraftCount;
+    var complianceRate = 100.0;
+    if (activeRequestsCount > 0)
+    {
+        complianceRate = Math.Max(0.0, (1.0 - (double)Model.OverdueCount / activeRequestsCount) * 100.0);
+    }
+    var complianceColor = complianceRate >= 90 ? "#34c759" : complianceRate >= 70 ? "#ff9500" : "#ff3b30";
+    var complianceBg = complianceRate >= 90 ? "rgba(52,199,89,0.05)" : complianceRate >= 70 ? "rgba(255,149,0,0.05)" : "rgba(255,59,48,0.05)";
+    var complianceBorder = complianceRate >= 90 ? "rgba(52,199,89,0.12)" : complianceRate >= 70 ? "rgba(255,149,0,0.12)" : "rgba(255,59,48,0.12)";
+}
+
+<div class="p-3 mb-4 animate-fade-in" style="background:@complianceBg; border: 1px solid @complianceBorder; border-radius: 16px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+    <div class="row align-items-center g-3">
+        <div class="col-md-4">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-shield-halved" style="color:@complianceColor; font-size:1.2rem"></i>
+                <div>
+                    <div style="font-weight:700; color:#1d1d1f; font-size:0.92rem">Hiệu suất SLA Hệ thống</div>
+                    <div style="font-size:0.78rem; color:var(--text-secondary)">Tỷ lệ yêu cầu hoàn thành đúng hạn cam kết</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="progress" style="height: 10px; background: rgba(0,0,0,0.04); border-radius: 5px; overflow: hidden; margin: 4px 0;">
+                <div class="progress-bar" role="progressbar" style="width: @(complianceRate.ToString("0.0"))%; background-color: @complianceColor; border-radius: 5px; transition: width 0.6s ease;" aria-valuenow="@complianceRate" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+        <div class="col-md-2 text-md-end">
+            <span style="font-size: 1.2rem; font-weight: 800; color: #1d1d1f">@(complianceRate.ToString("0.0"))%</span>
+        </div>
+    </div>
+</div>
+
+<div class="segment-tabs-container mb-4 animate-fade-in">
+    @{
+        var activeStatus = Model.StatusFilter ?? "";
+    }
+    <a href="/Operations?status=&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "" ? "active" : "")">
+        Tất cả <span class="badge" style="background:rgba(0,0,0,0.05); color:var(--text-primary);">@Model.TotalCount</span>
+    </a>
+    <a href="/Operations?status=Submitted&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "Submitted" ? "active" : "")">
+        Chờ duyệt <span class="badge bg-warning text-dark">@Model.SubmittedCount</span>
+    </a>
+    <a href="/Operations?status=InProgress&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "InProgress" ? "active" : "")">
+        Đang xử lý <span class="badge bg-primary text-white">@Model.InProgressCount</span>
+    </a>
+    <a href="/Operations?status=Completed&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "Completed" ? "active" : "")">
+        Hoàn thành <span class="badge bg-success text-white">@Model.CompletedCount</span>
+    </a>
+    <a href="/Operations?status=Overdue&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "Overdue" ? "active" : "")">
+        Quá hạn <span class="badge bg-danger text-white">@Model.OverdueCount</span>
+    </a>
 </div>
 
 <!-- Filters -->
@@ -91,6 +214,7 @@
     <div class="card-header-custom">
         <h5><i class="fa-solid fa-list-check"></i> Danh sách yêu cầu</h5>
         <div class="d-flex gap-2">
+            <a asp-action="Statistics" class="btn btn-light btn-sm" style="border-radius:8px; border: 1px solid rgba(0,0,0,0.08);"><i class="fa-solid fa-chart-pie me-1"></i>Thống kê SLA</a>
             <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light btn-sm" style="border-radius:8px"><i class="fa-solid fa-table-columns me-1"></i>Kanban</a>
             @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
             {
@@ -126,7 +250,15 @@
                         var pc = item.Priority switch {
                             "Low" => "var(--info)", "Normal" => "var(--success)", "High" => "var(--warning)", "Critical" => "var(--danger)", _ => "var(--text-muted)"
                         };
-                        <tr class="@(item.IsOverdue ? "table-row-overdue" : "")">
+                        var rowPriorityClass = item.Priority switch {
+                                "Critical" => "row-priority-critical",
+                                "High" => "row-priority-high",
+                                "Normal" => "row-priority-normal",
+                                "Low" => "row-priority-low",
+                                _ => ""
+                            };
+                            var overdueRowClass = item.IsOverdue ? "table-row-overdue" : "";
+                        <tr class="@rowPriorityClass @overdueRowClass">
                             <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.RequestNo</td>
                             <td>
                                 <div style="font-weight:600;margin-bottom:3px">@item.Title</div>

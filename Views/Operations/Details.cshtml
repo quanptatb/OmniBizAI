@@ -13,6 +13,146 @@
     };
 }
 
+<style>
+/* Modern premium horizontal stepper styles */
+.stepper-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 24px 16px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+}
+
+.stepper-line-bg {
+    position: absolute;
+    top: 42px;
+    left: 45px;
+    right: 45px;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.stepper-line-progress {
+    position: absolute;
+    top: 42px;
+    left: 45px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--success), var(--apple-blue));
+    z-index: 2;
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stepper-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+    flex: 1;
+}
+
+.step-node {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.step-node.completed {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+}
+
+.step-node.active {
+    background: var(--apple-blue);
+    border-color: var(--apple-blue);
+    color: #fff;
+    box-shadow: 0 0 0 5px rgba(0, 122, 255, 0.15);
+    animation: stepper-pulse-blue 2.5s infinite alternate;
+}
+
+.step-node.hold {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: #fff;
+    box-shadow: 0 0 0 5px rgba(255, 149, 0, 0.15);
+    animation: stepper-pulse-orange 2.5s infinite alternate;
+}
+
+.step-node.terminal {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+    box-shadow: 0 0 0 5px rgba(255, 59, 48, 0.15);
+}
+
+.step-label {
+    margin-top: 10px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: center;
+    transition: color 0.3s ease;
+    max-width: 90px;
+    line-height: 1.3;
+}
+
+.step-label.active, .step-label.completed {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+@@keyframes stepper-pulse-blue {
+    0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); }
+    100% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); }
+}
+
+@@keyframes stepper-pulse-orange {
+    0% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.4); }
+    100% { box-shadow: 0 0 0 10px rgba(255, 149, 0, 0); }
+}
+
+.comments-stream {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-left: 8px;
+}
+
+.comment-bubble {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.comment-bubble:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.last-mb-0:last-child {
+    margin-bottom: 0 !important;
+}
+</style>
+
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show mb-3" role="alert" style="border-radius:12px;border:none;background:rgba(52,199,89,.12);color:#1d7a37">
@@ -31,6 +171,77 @@
 <div class="row g-4">
     <!-- MAIN CONTENT -->
     <div class="col-lg-8">
+        <!-- SLA Countdown Banner -->
+        @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+        {
+            var slaBg = Model.SlaStatus switch {
+                "Overdue" => "rgba(255, 59, 48, 0.08)",
+                "AtRisk" => "rgba(255, 149, 0, 0.08)",
+                _ => "rgba(52, 199, 89, 0.08)"
+            };
+            var slaBorder = Model.SlaStatus switch {
+                "Overdue" => "rgba(255, 59, 48, 0.2)",
+                "AtRisk" => "rgba(255, 149, 0, 0.2)",
+                _ => "rgba(52, 199, 89, 0.2)"
+            };
+            var slaColor = Model.SlaStatus switch {
+                "Overdue" => "#ff3b30",
+                "AtRisk" => "#ff9500",
+                _ => "#34c759"
+            };
+            var slaIcon = Model.SlaStatus switch {
+                "Overdue" => "fa-circle-exclamation fa-shake",
+                "AtRisk" => "fa-triangle-exclamation",
+                _ => "fa-clock"
+            };
+            var slaTitle = Model.SlaStatus switch {
+                "Overdue" => "Yêu cầu đã quá hạn xử lý!",
+                "AtRisk" => "Cảnh báo trễ hạn SLA!",
+                _ => "Đang trong tiến độ SLA"
+            };
+
+            <div class="d-flex align-items-center justify-content-between p-3 mb-4 animate-fade-in" style="background:@slaBg; border: 1px solid @slaBorder; border-radius: 16px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border: 1px solid @slaBorder">
+                        <i class="fa-solid @slaIcon" style="font-size:1.2rem; color:@slaColor"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:700; color:#1d1d1f; font-size:0.95rem">@slaTitle</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary)">@Model.SlaLabel · Đã xử lý @Model.ProcessingDays ngày</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    @if (Model.DaysRemaining.HasValue)
+                    {
+                        if (Model.DaysRemaining.Value < 0)
+                        {
+                            <span class="badge" style="background: #ff3b30; color: #fff; padding: 6px 12px; border-radius: 20px; font-weight:600; font-size: 0.78rem;">
+                                Trễ @Math.Abs(Model.DaysRemaining.Value) ngày
+                            </span>
+                        }
+                        else if (Model.DaysRemaining.Value <= 2)
+                        {
+                            <span class="badge" style="background: #ff9500; color: #fff; padding: 6px 12px; border-radius: 20px; font-weight:600; font-size: 0.78rem;">
+                                Còn @Model.DaysRemaining.Value ngày
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge" style="background: #34c759; color: #fff; padding: 6px 12px; border-radius: 20px; font-weight:600; font-size: 0.78rem;">
+                                Còn @Model.DaysRemaining.Value ngày
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge" style="background: var(--text-muted); color: #fff; padding: 6px 12px; border-radius: 20px; font-weight:600; font-size: 0.78rem;">
+                            Không thời hạn
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+
         <!-- Header Card -->
         <div class="content-card mb-4 animate-fade-in">
             <div class="card-header-custom" style="flex-wrap:wrap;gap:12px">
@@ -79,32 +290,89 @@
                     <div style="padding:16px;background:var(--parchment);border-radius:var(--r-sm);border:1px solid var(--divider);font-size:.88rem;line-height:1.6;white-space:pre-line">@(string.IsNullOrWhiteSpace(Model.Description) ? "Không có mô tả" : Model.Description)</div>
                 </div>
 
-                <!-- Status Flow -->
+                <!-- Status Flow Stepper -->
                 <div class="mb-4">
-                    <label class="form-label" style="margin-bottom:8px">Tiến trình xử lý</label>
-                    <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:.72rem">
-                        @{
-                            var steps = new[] {
-                                ("Draft", EnumHelper.Label<OperationStatus>("Draft")), ("Submitted", EnumHelper.Label<OperationStatus>("Submitted")), ("Approved", EnumHelper.Label<OperationStatus>("Approved")),
-                                ("InProgress", EnumHelper.Label<OperationStatus>("InProgress")), ("Completed", EnumHelper.Label<OperationStatus>("Completed"))
-                            };
-                            var currentIndex = Array.FindIndex(steps, s => s.Item1 == Model.Status);
-                            var isTerminal = Model.Status is "Rejected" or "Cancelled";
-                        }
-                        @for (var i = 0; i < steps.Length; i++)
+                    <label class="form-label" style="margin-bottom:12px">Tiến trình xử lý</label>
+                    @{
+                        var stepsList = new List<(string Key, string Label, string Icon)> {
+                            ("Draft", "Bản nháp", "fa-file-signature"),
+                            ("Submitted", "Gửi duyệt", "fa-paper-plane"),
+                            ("Approved", "Đã duyệt", "fa-clipboard-check"),
+                            ("InProgress", "Đang xử lý", "fa-spinner"),
+                            ("Completed", "Hoàn thành", "fa-circle-check")
+                        };
+                        
+                        var currentStatus = Model.Status;
+                        var currentStepIndex = 0;
+                        if (currentStatus == "Draft") currentStepIndex = 0;
+                        else if (currentStatus == "Submitted" || currentStatus == "InReview") currentStepIndex = 1;
+                        else if (currentStatus == "Approved") currentStepIndex = 2;
+                        else if (currentStatus == "InProgress") currentStepIndex = 3;
+                        else if (currentStatus == "OnHold") currentStepIndex = 3;
+                        else if (currentStatus == "Completed") currentStepIndex = 4;
+                        
+                        var isTerminalStatus = currentStatus == "Rejected" || currentStatus == "Cancelled";
+                        var progressPercent = currentStepIndex * 25;
+                        if (currentStatus == "Completed") progressPercent = 100;
+                    }
+                    <div class="stepper-container">
+                        <div class="stepper-line-bg"></div>
+                        <div class="stepper-line-progress" style="width: @(progressPercent)%"></div>
+                        
+                        @for (var i = 0; i < stepsList.Count; i++)
                         {
-                            var (key, label) = steps[i];
-                            var isActive = key == Model.Status;
-                            var isPassed = i < currentIndex && !isTerminal;
-                            var bg = isActive ? "var(--apple-blue)" : isPassed ? "var(--success)" : "var(--divider)";
-                            var fg = isActive || isPassed ? "#fff" : "var(--text-muted)";
-                            <span style="padding:4px 10px;border-radius:var(--r-pill);background:@bg;color:@fg;font-weight:@(isActive ? "600" : "400")">@label</span>
-                            @if (i < steps.Length - 1) { <i class="fa-solid fa-chevron-right" style="font-size:.5rem;color:var(--text-muted)"></i> }
-                        }
-                        @if (isTerminal)
-                        {
-                            <i class="fa-solid fa-chevron-right" style="font-size:.5rem;color:var(--text-muted)"></i>
-                            <span style="padding:4px 10px;border-radius:var(--r-pill);background:var(--danger);color:#fff;font-weight:600">@Model.StatusLabel</span>
+                            var step = stepsList[i];
+                            var stepClass = "";
+                            var iconClass = step.Icon;
+                            
+                            if (currentStatus == "Completed")
+                            {
+                                stepClass = "completed";
+                                iconClass = "fa-check";
+                            }
+                            else if (isTerminalStatus && i == currentStepIndex)
+                            {
+                                stepClass = "terminal";
+                                iconClass = currentStatus == "Rejected" ? "fa-xmark" : "fa-ban";
+                            }
+                            else if (i < currentStepIndex)
+                            {
+                                stepClass = "completed";
+                                iconClass = "fa-check";
+                            }
+                            else if (i == currentStepIndex)
+                            {
+                                if (currentStatus == "OnHold")
+                                {
+                                    stepClass = "hold";
+                                    iconClass = "fa-pause";
+                                }
+                                else
+                                {
+                                    stepClass = "active";
+                                    if (step.Key == "InProgress")
+                                    {
+                                        iconClass = "fa-spinner fa-spin";
+                                    }
+                                }
+                            }
+                            
+                            var stepLabel = step.Label;
+                            if (i == currentStepIndex)
+                            {
+                                if (currentStatus == "OnHold") stepLabel = "Tạm dừng";
+                                else if (currentStatus == "Rejected") stepLabel = "Từ chối";
+                                else if (currentStatus == "Cancelled") stepLabel = "Đã hủy";
+                            }
+                            
+                            <div class="stepper-step">
+                                <div class="step-node @stepClass">
+                                    <i class="fa-solid @iconClass"></i>
+                                </div>
+                                <div class="step-label @(stepClass == "active" || stepClass == "hold" || stepClass == "terminal" ? "active" : stepClass == "completed" ? "completed" : "")">
+                                    @stepLabel
+                                </div>
+                            </div>
                         }
                     </div>
                 </div>
@@ -127,6 +395,34 @@
                         </form>
                     }
                     @if (Model.CanCancel) { <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Hủy yêu cầu</button></form> }
+                    
+                    @if (Model.CanHold)
+                    {
+                        <form asp-action="Hold" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn text-white px-3" style="border-radius:8px; background-color: var(--warning); border: none; font-weight: 500;">
+                                <i class="fa-solid fa-pause me-1"></i>Tạm dừng
+                            </button>
+                        </form>
+                    }
+                    @if (Model.CanResume)
+                    {
+                        <form asp-action="Resume" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn text-white px-3" style="border-radius:8px; background-color: var(--success); border: none; font-weight: 500;">
+                                <i class="fa-solid fa-play me-1"></i>Tiếp tục
+                            </button>
+                        </form>
+                    }
+                    @if (Model.CanReopen)
+                    {
+                        <form asp-action="Reopen" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Mở lại yêu cầu này để tiếp tục xử lý?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary px-3" style="border-radius:8px; font-weight: 500;">
+                                <i class="fa-solid fa-arrow-rotate-left me-1"></i>Mở lại
+                            </button>
+                        </form>
+                    }
                 </div>
             </div>
         </div>
@@ -238,7 +534,7 @@
         <!-- AI Insights -->
         @if (Model.AiInsights.Any())
         {
-            <div class="content-card animate-fade-in">
+            <div class="content-card mb-4 animate-fade-in">
                 <div class="card-header-custom"><h5><i class="fa-solid fa-robot" style="color:var(--apple-blue)"></i> AI Insights</h5></div>
                 <div class="card-body-custom">
                     @foreach (var ai in Model.AiInsights)
@@ -257,6 +553,66 @@
                 </div>
             </div>
         }
+
+        <!-- Discussion / Comments Timeline -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-comments" style="color:var(--apple-blue)"></i> Thảo luận & Ghi chú <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-size:.68rem;margin-left:6px">@Model.Comments.Count</span></h5>
+            </div>
+            <div class="card-body-custom">
+                <!-- New Comment Form -->
+                <form asp-controller="Operations" asp-action="AddComment" method="post" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="requestId" value="@Model.Id" />
+                    <div class="d-flex gap-3">
+                        <div class="comment-avatar-initials" style="width:40px; height:40px; border-radius:50%; background:rgba(0,122,255,0.1); color:var(--apple-blue); font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size: 0.9rem;">
+                            @(!string.IsNullOrEmpty(User.Identity?.Name) ? User.Identity.Name[..1].ToUpper() : "U")
+                        </div>
+                        <div class="flex-grow-1">
+                            <textarea name="content" rows="3" class="form-control" placeholder="Viết bình luận, phản hồi hoặc ghi chú cập nhật tiến độ..." style="border-radius:12px; font-size:0.85rem; resize:none;" required></textarea>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button type="submit" class="btn btn-primary btn-sm px-3" style="border-radius:8px; font-weight:600;">
+                                    <i class="fa-solid fa-paper-plane me-1"></i>Gửi bình luận
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                @if (Model.Comments.Any())
+                {
+                    <hr style="border-color:var(--divider); margin: 20px 0;" />
+                    <div class="comments-stream">
+                        @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                        {
+                            <div class="d-flex gap-3 mb-3 last-mb-0 comment-bubble">
+                                <div class="comment-avatar-initials" style="width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-weight:600; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size: 0.9rem; border: 1px solid var(--divider)">
+                                    @(!string.IsNullOrEmpty(comment.AuthorName) ? comment.AuthorName[..1].ToUpper() : "U")
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div style="background:rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; padding: 14px 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.02)">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span style="font-weight:600; font-size:0.85rem; color:#1d1d1f">@comment.AuthorName</span>
+                                            <small style="color:var(--text-muted); font-size:0.75rem">
+                                                <i class="fa-regular fa-clock me-1"></i>@comment.CreatedAt.ToLocalTime().ToString("HH:mm dd/MM/yyyy")
+                                            </small>
+                                        </div>
+                                        <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; white-space:pre-wrap">@comment.Content</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4" style="color:var(--text-muted); font-size:0.85rem; border-top: 1px dashed var(--divider); margin-top: 20px;">
+                        <i class="fa-regular fa-comment-dots d-block mb-2" style="font-size:1.8rem; opacity:.3"></i>
+                        Chưa có thảo luận nào cho yêu cầu này.
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
     <!-- SIDEBAR -->

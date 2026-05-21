@@ -19,8 +19,8 @@ public class CustomersController : Controller
 
     public async Task<IActionResult> Dashboard()
     {
-        var vm = await _service.GetDashboardAsync();
-        return View(vm);
+        // [Disabled] Redirect to simplified Customer list
+        return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Index(string? search, string? industry)
@@ -72,49 +72,37 @@ public class CustomersController : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
-    public IActionResult AddContact(Guid id, string? name) => View(new AddContactViewModel { CustomerId = id, CustomerName = name ?? "" });
+    public IActionResult AddContact(Guid id, string? name) => RedirectToAction(nameof(Details), new { id });
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> AddContact(AddContactViewModel vm)
     {
-        if (!ModelState.IsValid) return View(vm);
-        if (!await _service.AddContactAsync(vm)) { TempData["ErrorMessage"] = "Thêm liên hệ thất bại."; }
-        else { TempData["SuccessMessage"] = "Thêm liên hệ thành công."; }
         return RedirectToAction(nameof(Details), new { id = vm.CustomerId });
     }
 
-    public IActionResult AddSite(Guid id, string? name) => View(new AddSiteViewModel { CustomerId = id, CustomerName = name ?? "" });
+    public IActionResult AddSite(Guid id, string? name) => RedirectToAction(nameof(Details), new { id });
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> AddSite(AddSiteViewModel vm)
     {
-        if (!ModelState.IsValid) return View(vm);
-        if (!await _service.AddSiteAsync(vm)) { TempData["ErrorMessage"] = "Thêm chi nhánh thất bại."; }
-        else { TempData["SuccessMessage"] = "Thêm chi nhánh thành công."; }
         return RedirectToAction(nameof(Details), new { id = vm.CustomerId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteContact(Guid contactId, Guid customerId)
     {
-        if (!await _service.DeleteContactAsync(contactId)) { TempData["ErrorMessage"] = "Không thể xóa liên hệ."; }
-        else { TempData["SuccessMessage"] = "Đã xóa liên hệ."; }
         return RedirectToAction(nameof(Details), new { id = customerId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteSite(Guid siteId, Guid customerId)
     {
-        if (!await _service.DeleteSiteAsync(siteId)) { TempData["ErrorMessage"] = "Không thể xóa chi nhánh."; }
-        else { TempData["SuccessMessage"] = "Đã xóa chi nhánh."; }
         return RedirectToAction(nameof(Details), new { id = customerId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> TogglePrimary(Guid contactId, Guid customerId)
     {
-        await _service.TogglePrimaryContactAsync(contactId, customerId);
-        TempData["SuccessMessage"] = "Đã đặt liên hệ chính.";
         return RedirectToAction(nameof(Details), new { id = customerId });
     }
 

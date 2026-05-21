@@ -49,7 +49,7 @@
                     <span>Dashboard</span>
                 </a>
 
-                <div class="nav-section-label">VẬN HÀNH</div>
+                <div class="nav-section-label">VẬN HÀNH & QUY TRÌNH</div>
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OperationPlans" ? "active" : "")"
                    asp-controller="OperationPlans" asp-action="Index">
                     <i class="fa-solid fa-calendar-alt"></i>
@@ -105,15 +105,84 @@
                     var settingsOpen = currentController == "Settings";
                     var reportAction = ViewContext.RouteData.Values["action"]?.ToString();
                     var reportOpen = currentController == "Reports";
+                    var supportingOpen = financeOpen || hrOpen || crmOpen;
 
-                    <div class="nav-section-label">TÀI CHÍNH & MUA SẮM</div>
-                    <button type="button" class="nav-group-toggle @(financeOpen ? "expanded" : "")" data-nav-group-toggle data-target="financeBranch" aria-expanded="@(financeOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-wallet"></i><span>Tài chính</span></span>
+                    <div class="nav-section-label">KPI / OKR & ĐÁNH GIÁ</div>
+                    <a class="nav-item @(currentController == "Okr" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Okr" asp-action="Dashboard">
+                        <i class="fa-solid fa-chart-line"></i><span>Tổng quan hiệu suất</span>
+                    </a>
+                    <a class="nav-item @(currentController == "MissionVision" ? "active" : "")" asp-controller="MissionVision" asp-action="Index">
+                        <i class="fa-solid fa-star"></i><span>Sứ mệnh & Tầm nhìn</span>
+                    </a>
+                    <a class="nav-item @(currentController == "Okr" && ViewContext.RouteData.Values["action"]?.ToString() != "Dashboard" ? "active" : "")" asp-controller="Okr" asp-action="Index">
+                        <i class="fa-solid fa-bullseye"></i><span>Mục tiêu OKR</span>
+                    </a>
+                    <a class="nav-item @(currentController == "KpiSetup" ? "active" : "")" asp-controller="KpiSetup" asp-action="Index">
+                        <i class="fa-solid fa-gauge-high"></i><span>Thiết lập KPI</span>
+                    </a>
+                    <a class="nav-item @(currentController == "KpiCheckIn" ? "active" : "")" asp-controller="KpiCheckIn" asp-action="Index">
+                        <i class="fa-solid fa-clipboard-check"></i><span>Check-In KPI</span>
+                    </a>
+                    <a class="nav-item @(currentController == "Evaluation" ? "active" : "")" asp-controller="Evaluation" asp-action="Index">
+                        <i class="fa-solid fa-award"></i><span>Đánh giá hiệu suất</span>
+                    </a>
+
+                    <div class="nav-section-label">AI COPILOT & BÁO CÁO</div>
+                    <a class="nav-item @(currentController == "AiInsights" && ViewContext.RouteData.Values["action"]?.ToString() != "Recommendations" ? "active" : "")" asp-controller="AiInsights" asp-action="Index">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>AI Copilot Trợ lý</span>
+                        <span class="nav-badge-ai">AI</span>
+                    </a>
+                    <a class="nav-item @(currentController == "AiInsights" && ViewContext.RouteData.Values["action"]?.ToString() == "Recommendations" ? "active" : "")" asp-controller="AiInsights" asp-action="Recommendations">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>AI Khuyến nghị</span>
+                    </a>
+                    <a class="nav-item @(currentController == "AnomalyAlerts" ? "active" : "")" asp-controller="AnomalyAlerts" asp-action="Index">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Cảnh báo bất thường</span>
+                    </a>
+                    <button type="button" class="nav-group-toggle @(reportOpen ? "expanded" : "")" data-nav-group-toggle data-target="reportBranch" aria-expanded="@(reportOpen.ToString().ToLower())">
+                        <span class="left"><i class="fa-solid fa-chart-pie"></i><span>Báo cáo đa chiều</span></span>
                         <i class="fa-solid fa-chevron-down chev"></i>
                     </button>
-                    <div id="financeBranch" class="nav-group-items @(financeOpen ? "open" : "")" data-nav-group>
-                        <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Finance" asp-action="Index">
-                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
+                    <div id="reportBranch" class="nav-group-items @(reportOpen ? "open" : "")" data-nav-group>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Executive" ? "active" : "")" asp-controller="Reports" asp-action="Executive">
+                            <i class="fa-solid fa-crown"></i><span>Báo cáo Ban GĐ</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Dashboard" ? "active" : "")" asp-controller="Reports" asp-action="Dashboard">
+                            <i class="fa-solid fa-cogs"></i><span>Báo cáo Vận hành</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Finance" ? "active" : "")" asp-controller="Reports" asp-action="Finance">
+                            <i class="fa-solid fa-wallet"></i><span>Báo cáo Tài chính</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Hr" ? "active" : "")" asp-controller="Reports" asp-action="Hr">
+                            <i class="fa-solid fa-users"></i><span>Báo cáo Nhân sự</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "KpiOkr" ? "active" : "")" asp-controller="Reports" asp-action="KpiOkr">
+                            <i class="fa-solid fa-bullseye"></i><span>Báo cáo KPI/OKR</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Inventory" ? "active" : "")" asp-controller="Reports" asp-action="Inventory">
+                            <i class="fa-solid fa-cubes"></i><span>Báo cáo Kho vận</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "CashFlow" ? "active" : "")" asp-controller="Reports" asp-action="CashFlow">
+                            <i class="fa-solid fa-money-bill-transfer"></i><span>Báo cáo Thu chi</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "Crm" ? "active" : "")" asp-controller="Reports" asp-action="Crm">
+                            <i class="fa-solid fa-handshake"></i><span>Báo cáo CRM</span>
+                        </a>
+                        <a class="nav-item @(currentController == "Reports" && reportAction == "ExportCenter" ? "active" : "")" asp-controller="Reports" asp-action="ExportCenter">
+                            <i class="fa-solid fa-file-export"></i><span>Trung tâm Xuất file</span>
+                        </a>
+                    </div>
+
+                    <button type="button" class="nav-group-toggle @(supportingOpen ? "expanded" : "")" data-nav-group-toggle data-target="supportingBranch" aria-expanded="@(supportingOpen.ToString().ToLower())">
+                        <span class="left"><i class="fa-solid fa-cubes-stacked"></i><span>Nghiệp vụ Bổ trợ</span></span>
+                        <i class="fa-solid fa-chevron-down chev"></i>
+                    </button>
+                    <div id="supportingBranch" class="nav-group-items @(supportingOpen ? "open" : "")" data-nav-group>
+                        <!-- Tài chính (rút gọn) -->
+                        <a class="nav-item @(currentController == "Finance" ? "active" : "")" asp-controller="Finance" asp-action="Index">
+                            <i class="fa-solid fa-wallet"></i><span>Tài chính</span>
                         </a>
                         <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "Budgets" ? "active" : "")" asp-controller="Finance" asp-action="Budgets">
                             <i class="fa-solid fa-piggy-bank"></i><span>Ngân sách</span>
@@ -121,45 +190,14 @@
                         <a class="nav-item @(currentController == "Expenses" ? "active" : "")" asp-controller="Expenses" asp-action="Index">
                             <i class="fa-solid fa-receipt"></i><span>Chi phí</span>
                         </a>
-                        <a class="nav-item @(currentController == "CashBook" ? "active" : "")" asp-controller="CashBook" asp-action="Index">
-                            <i class="fa-solid fa-book-open"></i><span>Sổ thu chi</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Finance" && ViewContext.RouteData.Values["action"]?.ToString() == "PaymentRequests" ? "active" : "")" asp-controller="Finance" asp-action="PaymentRequests">
-                            <i class="fa-solid fa-file-invoice-dollar"></i><span>Đề nghị thanh toán</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Procurement" ? "active" : "")" asp-controller="Procurement" asp-action="Index">
-                            <i class="fa-solid fa-cart-shopping"></i><span>Đề xuất mua sắm</span>
-                        </a>
-                        <a class="nav-item @(currentController == "PurchaseOrders" ? "active" : "")" asp-controller="PurchaseOrders" asp-action="Index">
-                            <i class="fa-solid fa-file-invoice"></i><span>Đơn mua hàng</span>
-                        </a>
-                        <a class="nav-item @(currentController == "GoodsReceipt" ? "active" : "")" asp-controller="GoodsReceipt" asp-action="Index">
-                            <i class="fa-solid fa-warehouse"></i><span>Nhập kho</span>
-                        </a>
-                        <a class="nav-item @(currentController == "GoodsIssue" ? "active" : "")" asp-controller="GoodsIssue" asp-action="Index">
-                            <i class="fa-solid fa-dolly"></i><span>Xuất kho</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Inventory" ? "active" : "")" asp-controller="Inventory" asp-action="Index">
-                            <i class="fa-solid fa-cubes"></i><span>Tồn kho & Cảnh báo</span>
-                        </a>
-                    </div>
-
-                    <div class="nav-section-label">NHÂN SỰ & TỔ CHỨC</div>
-                    <button type="button" class="nav-group-toggle @(hrOpen ? "expanded" : "")" data-nav-group-toggle data-target="hrBranch" aria-expanded="@(hrOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-users"></i><span>Nhân sự</span></span>
-                        <i class="fa-solid fa-chevron-down chev"></i>
-                    </button>
-                    <div id="hrBranch" class="nav-group-items @(hrOpen ? "open" : "")" data-nav-group>
-                        <a class="nav-item @(currentController == "Employees" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Employees" asp-action="Dashboard">
-                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
-                        </a>
+                        <!-- Nhân sự (rút gọn) -->
                         @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
                         {
                             <a class="nav-item @(currentController == "Organization" ? "active" : "")" asp-controller="Organization" asp-action="Index">
                                 <i class="fa-solid fa-sitemap"></i><span>Phòng ban</span>
                             </a>
                         }
-                        <a class="nav-item @(currentController == "Employees" && ViewContext.RouteData.Values["action"]?.ToString() != "Dashboard" ? "active" : "")" asp-controller="Employees" asp-action="Index">
+                        <a class="nav-item @(currentController == "Employees" ? "active" : "")" asp-controller="Employees" asp-action="Index">
                             <i class="fa-solid fa-id-badge"></i><span>Nhân viên</span>
                         </a>
                         <a class="nav-item @(currentController == "Leave" ? "active" : "")" asp-controller="Leave" asp-action="Index">
@@ -174,18 +212,8 @@
                                 <i class="fa-solid fa-user-gear"></i><span>Tài khoản</span>
                             </a>
                         }
-                    </div>
-
-                    <div class="nav-section-label">KHÁCH HÀNG & ĐỐI TÁC</div>
-                    <button type="button" class="nav-group-toggle @(crmOpen ? "expanded" : "")" data-nav-group-toggle data-target="crmBranch" aria-expanded="@(crmOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-handshake"></i><span>CRM</span></span>
-                        <i class="fa-solid fa-chevron-down chev"></i>
-                    </button>
-                    <div id="crmBranch" class="nav-group-items @(crmOpen ? "open" : "")" data-nav-group>
-                        <a class="nav-item @(currentController == "Customers" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Customers" asp-action="Dashboard">
-                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Customers" && ViewContext.RouteData.Values["action"]?.ToString() != "Dashboard" ? "active" : "")" asp-controller="Customers" asp-action="Index">
+                        <!-- CRM (rút gọn) -->
+                        <a class="nav-item @(currentController == "Customers" ? "active" : "")" asp-controller="Customers" asp-action="Index">
                             <i class="fa-solid fa-building"></i><span>Khách hàng</span>
                         </a>
                         <a class="nav-item @(currentController == "Vendors" ? "active" : "")" asp-controller="Vendors" asp-action="Index">
@@ -195,80 +223,6 @@
                             <i class="fa-solid fa-box"></i><span>Sản phẩm & DV</span>
                         </a>
                     </div>
-
-                    <div class="nav-section-label">KPI / OKR & ĐÁNH GIÁ</div>
-                    <button type="button" class="nav-group-toggle @(kpiOkrOpen ? "expanded" : "")" data-nav-group-toggle data-target="kpiOkrBranch" aria-expanded="@(kpiOkrOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-bullseye"></i><span>KPI / OKR</span></span>
-                        <i class="fa-solid fa-chevron-down chev"></i>
-                    </button>
-                    <div id="kpiOkrBranch" class="nav-group-items @(kpiOkrOpen ? "open" : "")" data-nav-group>
-                        <a class="nav-item @(currentController == "Okr" && ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" asp-controller="Okr" asp-action="Dashboard">
-                            <i class="fa-solid fa-chart-line"></i><span>Tổng quan</span>
-                        </a>
-                        <a class="nav-item @(currentController == "MissionVision" ? "active" : "")" asp-controller="MissionVision" asp-action="Index">
-                            <i class="fa-solid fa-star"></i><span>Sứ mệnh & Tầm nhìn</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Okr" && ViewContext.RouteData.Values["action"]?.ToString() != "Dashboard" ? "active" : "")" asp-controller="Okr" asp-action="Index">
-                            <i class="fa-solid fa-bullseye"></i><span>OKR</span>
-                        </a>
-                        <a class="nav-item @(currentController == "KpiSetup" ? "active" : "")" asp-controller="KpiSetup" asp-action="Index">
-                            <i class="fa-solid fa-gauge-high"></i><span>Thiết lập KPI</span>
-                        </a>
-                        <a class="nav-item @(currentController == "KpiCheckIn" ? "active" : "")" asp-controller="KpiCheckIn" asp-action="Index">
-                            <i class="fa-solid fa-clipboard-check"></i><span>Check-In</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Evaluation" ? "active" : "")" asp-controller="Evaluation" asp-action="Index">
-                            <i class="fa-solid fa-award"></i><span>Đánh giá</span>
-                        </a>
-                    </div>
-
-                    <div class="nav-section-label">BÁO CÁO & AI</div>
-                    <button type="button" class="nav-group-toggle @(reportOpen ? "expanded" : "")" data-nav-group-toggle data-target="reportBranch" aria-expanded="@(reportOpen.ToString().ToLower())">
-                        <span class="left"><i class="fa-solid fa-chart-bar"></i><span>Báo cáo</span></span>
-                        <i class="fa-solid fa-chevron-down chev"></i>
-                    </button>
-                    <div id="reportBranch" class="nav-group-items @(reportOpen ? "open" : "")" data-nav-group>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "Executive" ? "active" : "")" asp-controller="Reports" asp-action="Executive">
-                            <i class="fa-solid fa-crown"></i><span>Ban GĐ</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "Dashboard" ? "active" : "")" asp-controller="Reports" asp-action="Dashboard">
-                            <i class="fa-solid fa-cogs"></i><span>Vận hành</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "Finance" ? "active" : "")" asp-controller="Reports" asp-action="Finance">
-                            <i class="fa-solid fa-wallet"></i><span>Tài chính</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "Hr" ? "active" : "")" asp-controller="Reports" asp-action="Hr">
-                            <i class="fa-solid fa-users"></i><span>Nhân sự</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "KpiOkr" ? "active" : "")" asp-controller="Reports" asp-action="KpiOkr">
-                            <i class="fa-solid fa-bullseye"></i><span>KPI/OKR</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "Inventory" ? "active" : "")" asp-controller="Reports" asp-action="Inventory">
-                            <i class="fa-solid fa-cubes"></i><span>Kho vận</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "CashFlow" ? "active" : "")" asp-controller="Reports" asp-action="CashFlow">
-                            <i class="fa-solid fa-money-bill-transfer"></i><span>Thu chi</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "Crm" ? "active" : "")" asp-controller="Reports" asp-action="Crm">
-                            <i class="fa-solid fa-handshake"></i><span>CRM</span>
-                        </a>
-                        <a class="nav-item @(currentController == "Reports" && reportAction == "ExportCenter" ? "active" : "")" asp-controller="Reports" asp-action="ExportCenter">
-                            <i class="fa-solid fa-file-export"></i><span>Xuất báo cáo</span>
-                        </a>
-                    </div>
-                    <a class="nav-item @(currentController == "AiInsights" && ViewContext.RouteData.Values["action"]?.ToString() != "Recommendations" ? "active" : "")" asp-controller="AiInsights" asp-action="Index">
-                        <i class="fa-solid fa-robot"></i>
-                        <span>AI Copilot</span>
-                        <span class="nav-badge-ai">AI</span>
-                    </a>
-                    <a class="nav-item @(currentController == "AiInsights" && ViewContext.RouteData.Values["action"]?.ToString() == "Recommendations" ? "active" : "")" asp-controller="AiInsights" asp-action="Recommendations">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>AI Khuyến nghị</span>
-                    </a>
-                    <a class="nav-item @(currentController == "AnomalyAlerts" ? "active" : "")" asp-controller="AnomalyAlerts" asp-action="Index">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Cảnh báo bất thường</span>
-                    </a>
                 }
 
                 @if (User.IsInRole("AUDITOR") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("TENANT_ADMIN"))
@@ -439,59 +393,54 @@
                 <button class="launcher-close" onclick="toggleAppLauncher()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="launcher-body">
-                <!-- VẬN HÀNH -->
+                <!-- 1. VẬN HÀNH & QUY TRÌNH -->
                 <div class="launcher-section">
-                    <h4>VẬN HÀNH</h4>
+                    <h4>VẬN HÀNH & QUY TRÌNH</h4>
                     <div class="launcher-grid">
+                        <a href="/OperationPlans" class="launcher-card"><i class="fa-solid fa-calendar-alt"></i><span>Kế hoạch & Lịch trình</span></a>
                         <a href="/Operations" class="launcher-card"><i class="fa-solid fa-list-check"></i><span>Yêu cầu vận hành</span></a>
                         <a href="/Workflow/Kanban" class="launcher-card"><i class="fa-solid fa-table-columns"></i><span>Kanban workflow</span></a>
-                        <a href="/Approvals/MyTasks" class="launcher-card"><i class="fa-solid fa-circle-check"></i><span>Phê duyệt</span></a>
+                        <a href="/Approvals/MyTasks" class="launcher-card"><i class="fa-solid fa-circle-check"></i><span>Phê duyệt yêu cầu</span></a>
+                        <a href="/ResourceManagement" class="launcher-card"><i class="fa-solid fa-layer-group"></i><span>Quản lý tài nguyên</span></a>
+                        <a href="/Maintenance" class="launcher-card"><i class="fa-solid fa-screwdriver-wrench"></i><span>Quản lý bảo trì</span></a>
+                        <a href="/OrderManagement" class="launcher-card"><i class="fa-solid fa-boxes-packing"></i><span>Đơn hàng & Quy trình</span></a>
                     </div>
                 </div>
-                <!-- TÀI CHÍNH & MUA SẮM -->
+
+                <!-- 2. KPI / OKR & ĐÁNH GIÁ -->
                 <div class="launcher-section">
-                    <h4>TÀI CHÍNH & MUA SẮM</h4>
+                    <h4>KPI / OKR & ĐÁNH GIÁ</h4>
                     <div class="launcher-grid">
-                        <a href="/Finance" class="launcher-card"><i class="fa-solid fa-chart-line"></i><span>Tài chính</span></a>
+                        <a href="/Okr/Dashboard" class="launcher-card"><i class="fa-solid fa-chart-line"></i><span>Tổng quan hiệu suất</span></a>
+                        <a href="/MissionVision" class="launcher-card"><i class="fa-solid fa-star"></i><span>Sứ mệnh & Tầm nhìn</span></a>
+                        <a href="/Okr" class="launcher-card"><i class="fa-solid fa-bullseye"></i><span>Mục tiêu OKR</span></a>
+                        <a href="/KpiSetup" class="launcher-card"><i class="fa-solid fa-gauge-high"></i><span>Thiết lập KPI</span></a>
+                        <a href="/KpiCheckIn" class="launcher-card"><i class="fa-solid fa-clipboard-check"></i><span>Check-In KPI</span></a>
+                        <a href="/Evaluation" class="launcher-card"><i class="fa-solid fa-award"></i><span>Đánh giá hiệu suất</span></a>
+                    </div>
+                </div>
+
+                <!-- 3. AI COPILOT & BÁO CÁO -->
+                <div class="launcher-section">
+                    <h4>AI COPILOT & BÁO CÁO</h4>
+                    <div class="launcher-grid">
+                        <a href="/AiInsights" class="launcher-card"><i class="fa-solid fa-robot"></i><span>AI Copilot Trợ lý</span></a>
+                        <a href="/AiInsights/Recommendations" class="launcher-card"><i class="fa-solid fa-wand-magic-sparkles"></i><span>AI Khuyến nghị</span></a>
+                        <a href="/AnomalyAlerts" class="launcher-card"><i class="fa-solid fa-shield-halved"></i><span>Cảnh báo bất thường</span></a>
+                        <a href="/Reports/Dashboard" class="launcher-card"><i class="fa-solid fa-chart-pie"></i><span>Báo cáo đa chiều</span></a>
+                    </div>
+                </div>
+
+                <!-- 4. PHÂN HỆ BỔ TRỢ (Rút gọn) -->
+                <div class="launcher-section">
+                    <h4>PHÂN HỆ BỔ TRỢ</h4>
+                    <div class="launcher-grid">
+                        <a href="/Finance" class="launcher-card"><i class="fa-solid fa-wallet"></i><span>Tài chính</span></a>
+                        <a href="/Finance/Budgets" class="launcher-card"><i class="fa-solid fa-piggy-bank"></i><span>Ngân sách</span></a>
                         <a href="/Expenses" class="launcher-card"><i class="fa-solid fa-receipt"></i><span>Chi phí</span></a>
-                        <a href="/CashBook" class="launcher-card"><i class="fa-solid fa-book-open"></i><span>Sổ thu chi</span></a>
-                        <a href="/Procurement" class="launcher-card"><i class="fa-solid fa-cart-shopping"></i><span>Mua sắm</span></a>
-                        <a href="/Inventory" class="launcher-card"><i class="fa-solid fa-cubes"></i><span>Kho vận</span></a>
-                    </div>
-                </div>
-                <!-- NHÂN SỰ -->
-                <div class="launcher-section">
-                    <h4>NHÂN SỰ & TỔ CHỨC</h4>
-                    <div class="launcher-grid">
-                        <a href="/Employees" class="launcher-card"><i class="fa-solid fa-users"></i><span>Nhân sự</span></a>
-                        <a href="/Leave" class="launcher-card"><i class="fa-solid fa-calendar-check"></i><span>Nghỉ phép</span></a>
-                    </div>
-                </div>
-                <!-- CRM -->
-                <div class="launcher-section">
-                    <h4>KHÁCH HÀNG & ĐỐI TÁC</h4>
-                    <div class="launcher-grid">
+                        <a href="/Employees" class="launcher-card"><i class="fa-solid fa-users"></i><span>Nhân viên</span></a>
                         <a href="/Customers" class="launcher-card"><i class="fa-solid fa-building"></i><span>Khách hàng</span></a>
-                        <a href="/Vendors" class="launcher-card"><i class="fa-solid fa-truck"></i><span>Nhà cung cấp</span></a>
                         <a href="/Products" class="launcher-card"><i class="fa-solid fa-box"></i><span>Sản phẩm & DV</span></a>
-                    </div>
-                </div>
-                <!-- KPI / OKR -->
-                <div class="launcher-section">
-                    <h4>KPI / OKR</h4>
-                    <div class="launcher-grid">
-                        <a href="/Okr" class="launcher-card"><i class="fa-solid fa-bullseye"></i><span>OKR</span></a>
-                        <a href="/KpiSetup" class="launcher-card"><i class="fa-solid fa-gauge-high"></i><span>KPI</span></a>
-                        <a href="/Evaluation" class="launcher-card"><i class="fa-solid fa-award"></i><span>Đánh giá</span></a>
-                    </div>
-                </div>
-                <!-- HỆ THỐNG & AI -->
-                <div class="launcher-section">
-                    <h4>HỆ THỐNG & BÁO CÁO</h4>
-                    <div class="launcher-grid">
-                        <a href="/Reports/Dashboard" class="launcher-card"><i class="fa-solid fa-chart-bar"></i><span>Báo cáo</span></a>
-                        <a href="/AiInsights" class="launcher-card"><i class="fa-solid fa-robot"></i><span>AI Copilot</span></a>
-                        <a href="/Settings/Company" class="launcher-card"><i class="fa-solid fa-sliders"></i><span>Cài đặt</span></a>
                     </div>
                 </div>
             </div>

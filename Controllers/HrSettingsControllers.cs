@@ -21,8 +21,8 @@ public class EmployeesController : Controller
 
     public async Task<IActionResult> Dashboard()
     {
-        var vm = await _service.GetDashboardAsync();
-        return View(vm);
+        // [Disabled] Redirect to simplified Employee list
+        return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Index(string? search, Guid? dept)
@@ -77,17 +77,14 @@ public class EmployeesController : Controller
 
     public async Task<IActionResult> AddContract(Guid id)
     {
-        var vm = await _service.GetAddContractFormAsync(id);
-        if (vm is null) return NotFound();
-        return View(vm);
+        // [Disabled] Redirect to Employee details
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> AddContract(AddContractViewModel vm)
     {
-        if (!ModelState.IsValid) { vm.EmployeeName = (await _service.GetAddContractFormAsync(vm.EmployeeProfileId))?.EmployeeName ?? ""; return View(vm); }
-        if (!await _service.AddContractAsync(vm)) { TempData["ErrorMessage"] = "Không thể thêm hợp đồng."; }
-        else { TempData["SuccessMessage"] = "Thêm hợp đồng thành công."; }
+        // [Disabled] Redirect to Employee details
         return RedirectToAction(nameof(Details), new { id = vm.EmployeeProfileId });
     }
 }

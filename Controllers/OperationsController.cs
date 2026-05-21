@@ -215,5 +215,93 @@ public class OperationsController : Controller
         TempData["SuccessMessage"] = "Đã xóa mục hàng.";
         return RedirectToAction(nameof(Details), new { id = requestId });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddComment(Guid requestId, string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            TempData["ErrorMessage"] = "Nội dung bình luận không được để trống.";
+            return RedirectToAction(nameof(Details), new { id = requestId });
+        }
+
+        var success = await _service.AddCommentAsync(requestId, content);
+        if (success)
+        {
+            TempData["SuccessMessage"] = "Đã thêm bình luận.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể thêm bình luận.";
+        }
+        return RedirectToAction(nameof(Details), new { id = requestId });
+    }
+
+    public async Task<IActionResult> Statistics()
+    {
+        var vm = await _service.GetStatisticsAsync();
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Hold(Guid id)
+    {
+        var success = await _service.HoldAsync(id);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"⏸️ {_tenant.UserFullName} tạm dừng yêu cầu",
+                $"{_tenant.UserFullName} đã tạm dừng yêu cầu #{id.ToString()[..8]}.",
+                "OperationRequest", id);
+            TempData["SuccessMessage"] = "Đã tạm dừng yêu cầu xử lý.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể tạm dừng yêu cầu này.";
+        }
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Resume(Guid id)
+    {
+        var success = await _service.ResumeAsync(id);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"▶️ {_tenant.UserFullName} tiếp tục yêu cầu",
+                $"{_tenant.UserFullName} đã tiếp tục yêu cầu #{id.ToString()[..8]}.",
+                "OperationRequest", id);
+            TempData["SuccessMessage"] = "Đã tiếp tục xử lý yêu cầu.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể tiếp tục xử lý yêu cầu này.";
+        }
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reopen(Guid id)
+    {
+        var success = await _service.ReopenAsync(id);
+        if (success)
+        {
+            await _notif.BroadcastAsync(
+                $"🔄 {_tenant.UserFullName} mở lại yêu cầu",
+                $"{_tenant.UserFullName} đã mở lại yêu cầu #{id.ToString()[..8]}.",
+                "OperationRequest", id);
+            TempData["SuccessMessage"] = "Đã mở lại yêu cầu xử lý.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể mở lại yêu cầu này.";
+        }
+        return RedirectToAction(nameof(Details), new { id });
+    }
 }
 

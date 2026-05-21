@@ -144,11 +144,45 @@ public class OperationPlanService
         };
     }
 
-    public async Task<bool> CreateTaskAsync(PlanTaskCreateViewModel vm)
+    public async Task<(bool Success, string Message)> CreateTaskAsync(PlanTaskCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
         var plan = await _db.OperationPlans.FindAsync(vm.PlanId);
-        if (plan == null || plan.TenantId != tid) return false;
+        if (plan == null || plan.TenantId != tid) 
+            return (false, "Kế hoạch vận hành không tồn tại hoặc bạn không có quyền truy cập.");
+
+        if (vm.EndTime <= vm.StartTime)
+        {
+            return (false, "Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+        }
+
+        // Conflict check for Assigned Worker
+        if (vm.AssignedUserId.HasValue)
+        {
+            var workerConflict = await _db.PlanTasks
+                .AnyAsync(t => t.TenantId == tid && !t.IsDeleted 
+                               && t.AssignedUserId == vm.AssignedUserId.Value
+                               && t.StartTime < vm.EndTime && t.EndTime > vm.StartTime);
+            if (workerConflict)
+            {
+                var workerName = await _db.AppUsers.Where(u => u.Id == vm.AssignedUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() ?? "nhân viên";
+                return (false, $"Xung đột lịch trình: {workerName} đã được phân công công việc khác trong khoảng thời gian này.");
+            }
+        }
+
+        // Conflict check for Allocated Equipment
+        if (vm.EquipmentId.HasValue)
+        {
+            var equipmentConflict = await _db.PlanTasks
+                .AnyAsync(t => t.TenantId == tid && !t.IsDeleted
+                               && t.EquipmentId == vm.EquipmentId.Value
+                               && t.StartTime < vm.EndTime && t.EndTime > vm.StartTime);
+            if (equipmentConflict)
+            {
+                var equipmentName = await _db.Equipments.Where(e => e.Id == vm.EquipmentId.Value).Select(e => e.Name).FirstOrDefaultAsync() ?? "thiết bị";
+                return (false, $"Xung đột tài nguyên: {equipmentName} đang được sử dụng cho công việc khác trong khoảng thời gian này.");
+            }
+        }
 
         var task = new PlanTask
         {
@@ -170,7 +204,7 @@ public class OperationPlanService
         if (plan.Status == "Draft") plan.Status = "Approved"; // Auto approve when task added
 
         await _db.SaveChangesAsync();
-        return true;
+        return (true, "Đã phân công công việc mới.");
     }
 
     public async Task<string> AnalyzePlanWithAiAsync(Guid planId)

@@ -939,63 +939,35 @@ public class FinanceController : Controller
         return RedirectToAction(nameof(BudgetDetails), new { id });
     }
 
-    // ── Payment Requests ─────────────────────────────────────────────────────
+    // ── Payment Requests (Disabled) ─────────────────────────────────────────
     public async Task<IActionResult> PaymentRequests(string? status)
-    {
-        var vm = await _svc.GetPaymentListAsync(status);
-        return View(vm);
-    }
+    { return RedirectToAction(nameof(Index)); }
 
-    public async Task<IActionResult> PaymentCreate() => View(await _svc.GetPaymentCreateFormAsync());
+    public async Task<IActionResult> PaymentCreate()
+    { return RedirectToAction(nameof(Index)); }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> PaymentCreate(PaymentRequestCreateViewModel vm)
-    {
-        if (!ModelState.IsValid) { var form = await _svc.GetPaymentCreateFormAsync(); vm.Vendors = form.Vendors; vm.PurchaseOrders = form.PurchaseOrders; return View(vm); }
-        var id = await _svc.CreatePaymentAsync(vm);
-        await _notif.SendToManagersAsync($"💳 {_tenant.UserFullName} tạo đề nghị thanh toán", $"{_tenant.UserFullName} đã tạo đề nghị thanh toán {vm.TotalAmount:N0} VNĐ.", "PaymentRequest", id);
-        TempData["SuccessMessage"] = "Tạo đề nghị thanh toán thành công.";
-        return RedirectToAction(nameof(PaymentDetails), new { id });
-    }
+    { return RedirectToAction(nameof(Index)); }
 
     public async Task<IActionResult> PaymentDetails(Guid id)
-    {
-        var vm = await _svc.GetPaymentDetailAsync(id);
-        if (vm is null) return NotFound();
-        return View(vm);
-    }
+    { return RedirectToAction(nameof(Index)); }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> PaymentSubmit(Guid id)
-    {
-        if (!await _svc.SubmitPaymentAsync(id)) { TempData["ErrorMessage"] = "Không thể gửi duyệt."; }
-        else { await _notif.SendToManagersAsync($"📤 {_tenant.UserFullName} gửi duyệt thanh toán", $"{_tenant.UserFullName} đã gửi đề nghị thanh toán chờ phê duyệt.", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã gửi duyệt thành công."; }
-        return RedirectToAction(nameof(PaymentDetails), new { id });
-    }
+    { return RedirectToAction(nameof(Index)); }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> PaymentApprove(Guid id)
-    {
-        if (!await _svc.ApprovePaymentAsync(id)) { TempData["ErrorMessage"] = "Không thể phê duyệt."; }
-        else { await _notif.BroadcastAsync($"✅ {_tenant.UserFullName} phê duyệt thanh toán", $"{_tenant.UserFullName} đã phê duyệt một đề nghị thanh toán.", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã phê duyệt thành công."; }
-        return RedirectToAction(nameof(PaymentDetails), new { id });
-    }
+    { return RedirectToAction(nameof(Index)); }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> PaymentReject(Guid id, string? reason)
-    {
-        if (!await _svc.RejectPaymentAsync(id, reason)) { TempData["ErrorMessage"] = "Không thể từ chối."; }
-        else { await _notif.BroadcastAsync($"❌ {_tenant.UserFullName} từ chối thanh toán", $"{_tenant.UserFullName} đã từ chối đề nghị thanh toán. Lý do: {reason ?? "N/A"}", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã từ chối."; }
-        return RedirectToAction(nameof(PaymentDetails), new { id });
-    }
+    { return RedirectToAction(nameof(Index)); }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> PaymentMarkPaid(Guid id)
-    {
-        if (!await _svc.MarkPaymentPaidAsync(id)) { TempData["ErrorMessage"] = "Không thể xác nhận thanh toán."; }
-        else { await _notif.BroadcastAsync($"💵 {_tenant.UserFullName} xác nhận thanh toán", $"{_tenant.UserFullName} đã xác nhận hoàn thành thanh toán.", "PaymentRequest", id); TempData["SuccessMessage"] = "Đã xác nhận thanh toán thành công."; }
-        return RedirectToAction(nameof(PaymentDetails), new { id });
-    }
+    { return RedirectToAction(nameof(Index)); }
 }
 
 [Authorize(Roles = "EXECUTIVE,DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]

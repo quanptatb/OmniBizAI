@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
 using OmniBizAI.Services;
 using OmniBizAI.ViewModels;
 
@@ -9,10 +11,12 @@ namespace OmniBizAI.Controllers;
 public class MaintenanceController : Controller
 {
     private readonly MaintenanceService _service;
+    private readonly OmniBizAI.Data.ApplicationDbContext _db;
 
-    public MaintenanceController(MaintenanceService service)
+    public MaintenanceController(MaintenanceService service, OmniBizAI.Data.ApplicationDbContext db)
     {
         _service = service;
+        _db = db;
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────────────────────
@@ -171,5 +175,30 @@ public class MaintenanceController : Controller
         await _service.SimulateSensorDataAsync(equipmentId);
         TempData["SuccessMessage"] = "Đã cập nhật dữ liệu cảm biến (giả lập).";
         return RedirectToAction(nameof(SensorMonitor), new { equipmentId });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> QuickSimulate()
+    {
+        try
+        {
+            var firstEquipment = await _db.Equipments.FirstOrDefaultAsync(e => !e.IsDeleted);
+            if (firstEquipment != null)
+            {
+                await _service.SimulateSensorDataAsync(firstEquipment.Id);
+                return Json(new { 
+                    success = true, 
+                    equipmentId = firstEquipment.Id, 
+                    name = firstEquipment.Name, 
+                    message = $"Đã giả lập thành công dữ liệu cảm biến cảnh báo cho thiết bị: {firstEquipment.Name}." 
+                });
+            }
+            return Json(new { success = false, message = "Không tìm thấy thiết bị nào trong hệ thống để giả lập." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+        }
     }
 }

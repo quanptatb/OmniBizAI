@@ -53,27 +53,32 @@ public class WorkflowController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Move(WorkItemMoveViewModel input)
     {
-        if (input.Id == Guid.Empty || !Enum.IsDefined(typeof(WorkItemStatus), input.Status))
+        if (input.Id == Guid.Empty)
+        {
+            TempData["ErrorMessage"] = "Thông tin Kanban không hợp lệ.";
+            return RedirectToAction(nameof(Kanban), new { search = input.Search, dept = input.Dept });
+        }
+
+        (bool Success, string Message) result = (false, "Lỗi xử lý.");
+        if (input.ColumnId != Guid.Empty)
+        {
+            result = await _kanban.MoveToColumnAsync(input.Id, input.ColumnId);
+        }
+        else if (Enum.IsDefined(typeof(WorkItemStatus), input.Status))
+        {
+            result = await _kanban.MoveAsync(input.Id, input.Status);
+        }
+        else
         {
             TempData["ErrorMessage"] = "Trạng thái Kanban không hợp lệ.";
             return RedirectToAction(nameof(Kanban), new { search = input.Search, dept = input.Dept });
         }
 
-        var result = await _kanban.MoveAsync(input.Id, input.Status);
         if (result.Success)
         {
-            var statusLabel = input.Status switch
-            {
-                WorkItemStatus.Todo => "Cần làm",
-                WorkItemStatus.InProgress => "Đang xử lý",
-                WorkItemStatus.Blocked => "Đang vướng",
-                WorkItemStatus.Done => "Hoàn thành",
-                WorkItemStatus.Cancelled => "Đã hủy",
-                _ => input.Status.ToString()
-            };
             await _notif.SendToManagersAsync(
                 $"📋 {_tenant.UserFullName} di chuyển công việc",
-                $"{_tenant.UserFullName} đã chuyển một thẻ Kanban sang trạng thái \"{statusLabel}\".",
+                $"{_tenant.UserFullName} đã di chuyển một thẻ Kanban.",
                 "WorkItem", input.Id);
         }
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
@@ -166,5 +171,51 @@ public class WorkflowController : Controller
         var result = await _kanban.DeleteChecklistAsync(checklistId);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Details), new { id = workItemId });
+    }
+
+    // ── Kanban Column CRUD ──────────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateColumn(string title, string? accentColor, string? search, Guid? dept)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            TempData["ErrorMessage"] = "Tiêu đề cột không được để trống.";
+            return RedirectToAction(nameof(Kanban), new { search, dept });
+        }
+        var result = await _kanban.CreateColumnAsync(title, accentColor);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Kanban), new { search, dept });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RenameColumn([FromBody] RenameColumnRequest request)
+    {
+        if (request == null || request.ColumnId == Guid.Empty || string.IsNullOrWhiteSpace(request.Title))
+        {
+            return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+        }
+        var result = await _kanban.RenameColumnAsync(request.ColumnId, request.Title);
+        return Json(new { success = result.Success, message = result.Message });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteColumn(Guid columnId, string? search, Guid? dept)
+    {
+        var result = await _kanban.DeleteColumnAsync(columnId);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Kanban), new { search, dept });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveColumn(Guid columnId, string direction, string? search, Guid? dept)
+    {
+        if (direction != "left" && direction != "right")
+        {
+            TempData["ErrorMessage"] = "Hướng di chuyển không hợp lệ.";
+            return RedirectToAction(nameof(Kanban), new { search, dept });
+        }
+        var result = await _kanban.MoveColumnAsync(columnId, direction);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Kanban), new { search, dept });
     }
 }
