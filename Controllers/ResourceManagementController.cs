@@ -36,7 +36,7 @@ public class ResourceManagementController : Controller
                 TotalEmployees = await _db.EmployeeProfiles.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
                 OnLeaveToday = await _db.LeaveRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Status == LeaveStatus.Approved && x.StartDate <= today && x.EndDate >= today),
                 PendingLeaves = await _db.LeaveRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Status == LeaveStatus.Submitted),
-                AvgPerformanceScore = await _db.EvaluationResults.Where(x => x.TenantId == tid && !x.IsDeleted).Select(x => (decimal?)x.FinalScore).AverageAsync() ?? 0
+                AvgPerformanceScore = await _db.EvaluationResults.Where(x => x.TenantId == tid && !x.IsDeleted).Select(x => x.TotalScore).AverageAsync() ?? 0
             },
             Equipment = new EquipmentResourceOverviewViewModel
             {
@@ -48,7 +48,7 @@ public class ResourceManagementController : Controller
             Inventory = new InventoryResourceOverviewViewModel
             {
                 TotalProducts = await _db.ProductServices.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
-                ActiveStockAlerts = await _db.StockAlerts.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.IsActive),
+                ActiveStockAlerts = await _db.StockAlerts.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Status == StockAlertStatus.Active),
                 GoodsReceiptCount = await _db.GoodsReceipts.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
                 GoodsIssueCount = await _db.GoodsIssues.CountAsync(x => x.TenantId == tid && !x.IsDeleted)
             },

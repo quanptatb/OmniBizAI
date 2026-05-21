@@ -48,11 +48,10 @@ public class OrderProcessController : Controller
             .Select(g => new { Id = g.Key, Total = g.Count(), Done = g.Count(v => v.Status == ApprovalStatus.Approved), Pending = g.Count(v => v.Status == ApprovalStatus.Pending) })
             .ToDictionaryAsync(x => x.Id, x => x);
 
-        var qcMap = await _db.GoodsReceipts.Where(x => x.TenantId == tid && !x.IsDeleted)
-            .Join(_db.PurchaseOrders.Where(p => p.TenantId == tid && !p.IsDeleted), gr => gr.PurchaseOrderId, po => po.Id, (gr, po) => new { gr.Id, po.OperationRequestId })
+        var qcMap = await _db.GoodsIssues.Where(x => x.TenantId == tid && !x.IsDeleted)
             .Where(x => x.OperationRequestId.HasValue && ids.Contains(x.OperationRequestId.Value))
-            .GroupJoin(_db.GoodsReceiptLines.Where(l => l.TenantId == tid && !l.IsDeleted), x => x.Id, l => l.GoodsReceiptId,
-                (x, lines) => new { RequestId = x.OperationRequestId!.Value, Ordered = lines.Sum(v => v.OrderedQuantity), Accepted = lines.Sum(v => v.AcceptedQuantity) })
+            .GroupJoin(_db.GoodsIssueLines.Where(l => l.TenantId == tid && !l.IsDeleted), x => x.Id, l => l.GoodsIssueId,
+                (x, lines) => new { RequestId = x.OperationRequestId!.Value, Ordered = lines.Sum(v => v.RequestedQuantity), Accepted = lines.Sum(v => v.IssuedQuantity) })
             .GroupBy(x => x.RequestId)
             .Select(g => new { Id = g.Key, Ordered = g.Sum(v => v.Ordered), Accepted = g.Sum(v => v.Accepted) })
             .ToDictionaryAsync(x => x.Id, x => x);
