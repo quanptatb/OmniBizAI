@@ -86,4 +86,12 @@ public class OperationPlansController : Controller
         TempData["AiAnalysis"] = analysis;
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateTaskStatus(Guid taskId, string newStatus, int? progressPercent)
+    {
+        var (success, message, planId) = await _service.UpdateTaskStatusAsync(taskId, newStatus, progressPercent);
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
+        return RedirectToAction(nameof(Details), new { id = planId });
+    }
 }

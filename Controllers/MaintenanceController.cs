@@ -127,9 +127,31 @@ public class MaintenanceController : Controller
     [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> ResolveIncident(ResolveIncidentViewModel vm)
     {
-        if (await _service.ResolveIncidentAsync(vm))
-            TempData["SuccessMessage"] = "Đã xác nhận giải quyết sự cố.";
+        var (success, message) = await _service.ResolveIncidentAsync(vm);
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
         return RedirectToAction(nameof(IncidentDetail), new { id = vm.IncidentId });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> StartIncident(Guid id)
+    {
+        if (await _service.StartIncidentAsync(id))
+            TempData["SuccessMessage"] = "Đã chuyển sự cố sang đang xử lý.";
+        else
+            TempData["ErrorMessage"] = "Không thể bắt đầu xử lý sự cố.";
+        return RedirectToAction(nameof(IncidentDetail), new { id });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
+    public async Task<IActionResult> CloseIncident(Guid id)
+    {
+        if (await _service.CloseIncidentAsync(id))
+            TempData["SuccessMessage"] = "Đã đóng sự cố.";
+        else
+            TempData["ErrorMessage"] = "Chỉ có thể đóng sự cố đã ở trạng thái Resolved.";
+        return RedirectToAction(nameof(IncidentDetail), new { id });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -182,6 +204,7 @@ public class MaintenanceController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> ExecutePm(ExecutePmViewModel vm)
     {
         if (await _service.ExecutePmTaskAsync(vm))
@@ -211,10 +234,14 @@ public class MaintenanceController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> AdjustStock(StockAdjustViewModel vm)
     {
-        await _service.AdjustStockAsync(vm.PartId, vm.Delta, vm.Reason);
-        TempData["SuccessMessage"] = vm.Delta > 0 ? $"Đã nhập kho +{vm.Delta}" : $"Đã xuất kho {vm.Delta}";
+        var (success, message) = await _service.AdjustStockAsync(vm.PartId, vm.Delta, vm.Reason);
+        if (success)
+            TempData["SuccessMessage"] = message;
+        else
+            TempData["ErrorMessage"] = message;
         return RedirectToAction(nameof(SpareParts));
     }
 
@@ -230,6 +257,7 @@ public class MaintenanceController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> SimulateSensor(Guid equipmentId)
     {
         await _service.SimulateSensorDataAsync(equipmentId);
@@ -238,7 +266,7 @@ public class MaintenanceController : Controller
     }
 
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> QuickSimulate()
     {
         try
