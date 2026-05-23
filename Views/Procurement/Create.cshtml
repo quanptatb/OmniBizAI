@@ -1,12 +1,79 @@
 @model OmniBizAI.ViewModels.ProcurementCreateViewModel
-@{ ViewData["Title"] = "Tạo đề xuất mua sắm"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Procurement' style='color:var(--apple-blue);text-decoration:none'>Mua sắm</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>"; }
-<div class="content-card" style="max-width:780px"><div class="card-header-custom"><h5><i class="fa-solid fa-cart-shopping"></i> Tạo đề xuất mua sắm</h5></div><div class="card-body-custom">
-    <form method="post" asp-action="Create">@Html.AntiForgeryToken()
-        <div class="row g-3">
-            <div class="col-md-12"><label class="form-label">Tiêu đề <span class="text-danger">*</span></label><input asp-for="Title" class="form-input" placeholder="Mô tả nhu cầu mua sắm..." /><span asp-validation-for="Title" class="text-danger" style="font-size:.78rem"></span></div>
-            <div class="col-md-6"><label class="form-label">Phòng ban</label><select asp-for="OrganizationUnitId" class="form-input"><option value="">-- Chọn --</option>@foreach(var d in Model.Departments){<option value="@d.Value">@d.Text</option>}</select></div>
-            <div class="col-md-6"><label class="form-label">Cần trước ngày</label><input asp-for="NeededByDate" class="form-input" type="date" /></div>
+@{
+    ViewData["Title"] = "Tạo đề xuất mua sắm";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Procurement' style='color:var(--apple-blue);text-decoration:none'>Mua sắm</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="row g-4">
+            <!-- Form Card -->
+            <div class="col-md-8">
+                <div class="content-card">
+                    <div class="card-header-custom bg-white">
+                        <h5 class="mb-0"><i class="fa-solid fa-cart-shopping me-2 text-primary"></i>Tạo đề xuất mua sắm mới</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <form method="post" asp-action="Create">
+                            @Html.AntiForgeryToken()
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Tiêu đề đề xuất <span class="text-danger">*</span></label>
+                                    <input asp-for="Title" class="form-control" placeholder="Mô tả tóm tắt nhu cầu mua sắm..." required />
+                                    <span asp-validation-for="Title" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">Phòng ban yêu cầu <span class="text-danger">*</span></label>
+                                    <select asp-for="OrganizationUnitId" class="form-select" required>
+                                        <option value="">-- Chọn phòng ban --</option>
+                                        @foreach(var d in Model.Departments)
+                                        {
+                                            <option value="@d.Value">@d.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="OrganizationUnitId" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">Cần trước ngày <span class="text-danger">*</span></label>
+                                    <input asp-for="NeededByDate" class="form-control" type="date" required />
+                                    <span asp-validation-for="NeededByDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4 pt-3 border-top justify-content-end">
+                                <a asp-action="Index" class="btn btn-light">Hủy bỏ</a>
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-2"></i>Tạo đề xuất</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guidance Column -->
+            <div class="col-md-4">
+                <div class="content-card bg-light border-0">
+                    <div class="card-body-custom">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-circle-info me-2 text-primary"></i>Hướng dẫn quy trình</h6>
+                        <ul class="list-unstyled mb-0" style="font-size: .82rem; line-height: 1.6;">
+                            <li class="mb-2">
+                                <strong class="text-dark">Bước 1: Tạo đề xuất</strong>
+                                <p class="text-muted mb-0">Điền tiêu đề mô tả nhu cầu chung và chọn phòng ban của bạn.</p>
+                            </li>
+                            <li class="mb-2">
+                                <strong class="text-dark">Bước 2: Phê duyệt từ quản lý</strong>
+                                <p class="text-muted mb-0">Hệ thống tự động chuyển tiếp yêu cầu đến trưởng bộ phận của bạn để xem xét.</p>
+                            </li>
+                            <li>
+                                <strong class="text-dark">Bước 3: Lập đơn mua hàng (PO)</strong>
+                                <p class="text-muted mb-0">Sau khi được duyệt, bộ phận mua sắm/kế toán sẽ tạo đơn mua hàng chính thức gửi nhà cung cấp.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Tạo đề xuất</button><a asp-action="Index" class="btn-outline-custom">Hủy</a></div>
-    </form>
-</div></div>
+    </div>
+</div>

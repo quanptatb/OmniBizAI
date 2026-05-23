@@ -1,24 +1,153 @@
 @model OmniBizAI.ViewModels.ProcurementListViewModel
-@{ ViewData["Title"] = "Đề xuất mua sắm"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Mua sắm</span>"; }
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div><h4 class="page-title mb-1">Đề xuất mua sắm</h4><p class="text-muted mb-0" style="font-size:.82rem">@Model.TotalCount đề xuất</p></div>
-    <a asp-action="Create" class="btn-primary-custom"><i class="fa-solid fa-plus me-2"></i>Tạo đề xuất</a>
+@using OmniBizAI.Models.Entities.Enums
+@using OmniBizAI.Helpers
+@{
+    ViewData["Title"] = "Đề xuất mua sắm";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Đề xuất mua sắm</span>";
+    
+    var totalEstimated = Model.Items.Sum(i => i.TotalEstimated);
+    var pendingCount = Model.Items.Count(i => i.Status == "Submitted");
+    var approvedCount = Model.Items.Count(i => i.Status == "Approved");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-cart-shopping me-2 text-primary"></i>Đề xuất mua sắm</h4>
+        <p class="text-muted mb-0" style="font-size:.82rem">Quản lý và theo dõi các đề xuất mua sắm của doanh nghiệp</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus me-2"></i>Tạo đề xuất</a>
 </div>
-<div class="content-card mb-4"><div class="card-body-custom"><form method="get" class="row g-2"><div class="col-md-6"><input type="text" name="search" value="@Model.SearchTerm" class="form-input" placeholder="Tìm theo mã hoặc tiêu đề..." /></div><div class="col-md-3"><select name="status" class="form-input"><option value="">-- Trạng thái --</option>@foreach(var s in EnumHelper.GetSelectList<ProcurementStatus>(Model.StatusFilter)){<option value="@s.Value" selected="@s.Selected">@s.Text</option>}</select></div><div class="col-md-3"><button type="submit" class="btn-outline-custom w-100"><i class="fa-solid fa-search me-1"></i>Tìm</button></div></form></div></div>
-<div class="content-card"><div class="card-body-custom p-0">
-    <table class="data-table">
-        <thead><tr><th class="ps-3">Mã</th><th>Tiêu đề</th><th>Phòng ban</th><th>Người đề xuất</th><th>Tổng ước tính</th><th>Trạng thái</th><th class="pe-3">Cần trước</th></tr></thead>
-        <tbody>
-            @foreach (var p in Model.Items) {
-                <tr>
-                    <td class="ps-3"><a asp-action="Details" asp-route-id="@p.Id" style="font-weight:600;color:var(--apple-blue);text-decoration:none">@p.RequestNo</a></td>
-                    <td style="font-weight:500">@p.Title</td><td style="color:var(--text-secondary);font-size:.82rem">@(p.Department ?? "—")</td><td style="font-size:.82rem">@p.RequestedBy</td>
-                    <td style="font-weight:500">@p.TotalEstimated.ToString("N0") ₫</td>
-                    <td><span class="status-badge-soft @(p.Status == "Approved" ? "badge-on-track" : p.Status == "Draft" ? "badge-at-risk" : p.Status == "Cancelled" ? "badge-late" : "badge-at-risk")"><span class="status-dot"></span>@(EnumHelper.Label<ProcurementStatus>(p.Status))</span></td>
-                    <td class="pe-3" style="font-size:.82rem;color:var(--text-muted)">@(p.NeededByDate?.ToString("dd/MM/yyyy") ?? "—")</td>
-                </tr>
-            }
-            @if (!Model.Items.Any()) { <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted)">Chưa có đề xuất</td></tr> }
-        </tbody>
-    </table>
-</div></div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="stat-value">@Model.TotalCount</div>
+            <div class="stat-label">Tổng đề xuất</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-value">@pendingCount</div>
+            <div class="stat-label">Chờ phê duyệt</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-value">@approvedCount</div>
+            <div class="stat-label">Đã phê duyệt</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="fa-solid fa-tags"></i></div>
+            <div class="stat-value">@totalEstimated.ToString("N0") ₫</div>
+            <div class="stat-label">Tổng giá trị dự kiến</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="content-card mb-4">
+    <div class="card-body-custom">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6 col-sm-12">
+                <label class="form-label">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-start-0 bg-light" placeholder="Tìm theo mã hoặc tiêu đề..." />
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <label class="form-label">Trạng thái</label>
+                <select name="status" class="form-select bg-light">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    @foreach(var s in EnumHelper.GetSelectList<ProcurementStatus>(Model.StatusFilter))
+                    {
+                        <option value="@s.Value" selected="@s.Selected">@s.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-2"></i>Lọc danh sách</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table list -->
+<div class="content-card">
+    <div class="card-body-custom p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
+                <thead>
+                    <tr>
+                        <th class="ps-4" style="width: 120px;">Mã đề xuất</th>
+                        <th>Tiêu đề</th>
+                        <th>Phòng ban</th>
+                        <th>Người đề xuất</th>
+                        <th>Ước tính</th>
+                        <th>Trạng thái</th>
+                        <th>Cần trước ngày</th>
+                        <th class="pe-4 text-end" style="width: 100px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Items) {
+                        var badgeCls = p.Status switch {
+                            "Approved" => "badge-on-track",
+                            "Draft" => "badge-at-risk",
+                            "Submitted" => "badge-behind",
+                            "Cancelled" => "badge-behind",
+                            "Ordered" => "badge-on-track",
+                            "Received" => "badge-on-track",
+                            _ => "badge-at-risk"
+                        };
+                        <tr>
+                            <td class="ps-4">
+                                <a asp-action="Details" asp-route-id="@p.Id" class="fw-bold text-decoration-none" style="color:var(--apple-blue)">@p.RequestNo</a>
+                            </td>
+                            <td>
+                                <div class="fw-medium text-dark">@p.Title</div>
+                            </td>
+                            <td>
+                                <span class="text-secondary small"><i class="fa-regular fa-building me-1"></i>@(p.Department ?? "—")</span>
+                            </td>
+                            <td>
+                                <span class="small">@p.RequestedBy</span>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-primary">@p.TotalEstimated.ToString("N0") ₫</span>
+                            </td>
+                            <td>
+                                <span class="status-badge-soft @badgeCls">
+                                    <span class="status-dot"></span>
+                                    @(EnumHelper.Label<ProcurementStatus>(p.Status))
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-muted small"><i class="fa-regular fa-calendar-check me-1"></i>@(p.NeededByDate?.ToString("dd/MM/yyyy") ?? "—")</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-light btn-sm border" title="Xem chi tiết">
+                                    <i class="fa-solid fa-eye text-secondary"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any()) {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-inbox fa-3x mb-3 d-block opacity-40"></i>
+                                Chưa có đề xuất mua sắm nào được tạo
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
