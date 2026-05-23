@@ -34,6 +34,7 @@
     --info-bg: #edf8ff;
     --sidebar-w: 260px;
     --sidebar-w-collapsed: 72px;
+    --sidebar-w-collapsed-card: 104px;
     --topbar-h: 56px;
     --r-none: 0;
     --r-xs: 6px;
@@ -238,6 +239,32 @@ a:hover{text-decoration:underline}
     transition:all var(--ease-fast);
 }
 .topbar-btn:hover{background:rgba(0,0,0,.04);color:var(--text-primary)}
+.sidebar-collapse-toggle{
+    display:flex;
+    width:40px;
+    height:40px;
+    border-radius:var(--r-md);
+    border:1px solid rgba(0,0,0,.08);
+    background:rgba(255,255,255,.72);
+    box-shadow:0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(255,255,255,.24) inset;
+    backdrop-filter:saturate(180%) blur(18px);
+    -webkit-backdrop-filter:saturate(180%) blur(18px);
+}
+.sidebar-collapse-toggle:hover{
+    background:rgba(255,255,255,.94);
+    border-color:rgba(0,113,227,.12);
+    box-shadow:0 6px 16px rgba(0,0,0,.1), 0 0 0 1px rgba(255,255,255,.32) inset;
+}
+.sidebar-collapse-toggle.is-active{
+    background:var(--canvas);
+    color:var(--apple-blue);
+    border-color:rgba(0,113,227,.16);
+    box-shadow:0 10px 24px rgba(0,0,0,.12), 0 0 0 1px rgba(0,113,227,.05);
+    transform:translateY(-1px);
+}
+.sidebar-collapse-toggle.is-active i{
+    transform:scale(1.02);
+}
 .notif-dot{
     position:absolute;top:7px;right:7px;
     width:7px;height:7px;
@@ -722,6 +749,9 @@ html[data-nav-mode="launcher"] .main-wrapper {
 html[data-nav-mode="launcher"] #sidebarToggle {
     display: none !important;
 }
+html[data-nav-mode="launcher"] #sidebarCollapseToggle {
+    display: none !important;
+}
 html[data-nav-mode="launcher"] #appLauncherBtn {
     display: flex !important;
     background: none; border: none; cursor: pointer;
@@ -867,4 +897,90 @@ html[data-nav-mode="card-sidebar"] #supportingBranch > .nav-group-items {
 .sidebar-nav .nav-group-items .nav-group-items .nav-item {
     font-size: 0.78rem;
     padding-left: 18px;
+}
+
+@media (min-width: 992px) {
+    html.sidebar-collapsed .sidebar {
+        width: var(--sidebar-w-collapsed);
+    }
+    html.sidebar-collapsed .main-wrapper {
+        margin-left: var(--sidebar-w-collapsed);
+    }
+    html.sidebar-collapsed .sidebar-brand {
+        justify-content: center;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    html.sidebar-collapsed .brand-text,
+    html.sidebar-collapsed .nav-section-label,
+    html.sidebar-collapsed .nav-item > span:not(.nav-badge):not(.nav-badge-ai),
+    html.sidebar-collapsed .nav-group-toggle .left span,
+    html.sidebar-collapsed .nav-group-toggle .chev,
+    html.sidebar-collapsed .user-details,
+    html.sidebar-collapsed .nav-badge,
+    html.sidebar-collapsed .nav-badge-ai {
+        display: none !important;
+    }
+    html.sidebar-collapsed .nav-item,
+    html.sidebar-collapsed .nav-group-toggle {
+        justify-content: center;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    html.sidebar-collapsed .nav-item i,
+    html.sidebar-collapsed .nav-group-toggle .left i {
+        width: auto;
+        margin: 0;
+        opacity: 1;
+    }
+    html.sidebar-collapsed .nav-group-toggle .left {
+        justify-content: center;
+        width: 100%;
+    }
+    html.sidebar-collapsed .nav-group-items {
+        padding-left: 0;
+    }
+    html.sidebar-collapsed .nav-group-items .nav-item {
+        padding-left: 10px;
+    }
+    html.sidebar-collapsed .sidebar-footer {
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 8px;
+    }
+    html.sidebar-collapsed .user-info {
+        justify-content: center;
+    }
+
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] .sidebar {
+        width: var(--sidebar-w-collapsed-card);
+    }
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] .main-wrapper {
+        margin-left: var(--sidebar-w-collapsed-card);
+    }
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] .nav-group-items {
+        grid-template-columns: 1fr !important;
+        padding: 0 8px;
+    }
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] #supportingBranch {
+        grid-column: span 1;
+    }
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] #supportingBranch > .nav-group-items {
+        grid-template-columns: 1fr;
+        padding: 0 8px;
+    }
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] .nav-item {
+        min-height: 60px;
+        padding: 12px 6px;
+    }
+    html.sidebar-collapsed[data-nav-mode="card-sidebar"] .nav-item i {
+        font-size: 1.05rem;
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .sidebar-collapse-toggle {
+        display: none !important;
+    }
 }
