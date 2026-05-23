@@ -13,10 +13,11 @@ public class MaintenanceService
     private readonly ITenantContext _tenant;
     private readonly GeminiService _gemini;
     private readonly NotificationService _notif;
+    private readonly NumberSequenceService _seq;
 
-    public MaintenanceService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, NotificationService notif)
+    public MaintenanceService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, NotificationService notif, NumberSequenceService seq)
     {
-        _db = db; _tenant = tenant; _gemini = gemini; _notif = notif;
+        _db = db; _tenant = tenant; _gemini = gemini; _notif = notif; _seq = seq;
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────────────────────
@@ -131,6 +132,33 @@ public class MaintenanceService
             .FirstOrDefaultAsync(i => i.Id == id && i.TenantId == tid && !i.IsDeleted);
         if (inc == null) return null;
 
+        var partsUsed = new List<PartUsageDisplay>();
+        if (inc.MaintenanceRecordId.HasValue)
+        {
+            partsUsed = await _db.MaintenancePartUsages
+                .Include(u => u.SparePart)
+                .Where(u => u.MaintenanceRecordId == inc.MaintenanceRecordId.Value && u.TenantId == tid && !u.IsDeleted)
+                .Select(u => new PartUsageDisplay
+                {
+                    PartCode = u.SparePart!.Code,
+                    PartName = u.SparePart.Name,
+                    Quantity = u.QuantityUsed,
+                    Unit = u.SparePart.Unit,
+                    UnitCostAtTime = u.UnitCostAtTime
+                }).ToListAsync();
+        }
+
+        var availableParts = (inc.Status is "Open" or "InProgress")
+            ? await _db.SpareParts
+                .Where(p => p.TenantId == tid && !p.IsDeleted && p.StockQuantity > 0)
+                .OrderBy(p => p.Code)
+                .Select(p => new SparePartOption
+                {
+                    Id = p.Id, Code = p.Code, Name = p.Name,
+                    Unit = p.Unit, StockQuantity = p.StockQuantity, UnitPrice = p.UnitPrice
+                }).ToListAsync()
+            : new List<SparePartOption>();
+
         return new MaintenanceIncidentDetailViewModel
         {
             Id = inc.Id, Title = inc.Title, Description = inc.Description,
@@ -147,7 +175,9 @@ public class MaintenanceService
             PartsCost = inc.PartsCost,
             LaborCost = inc.LaborCost,
             TotalCost = inc.TotalCost,
-            MaintenanceRecordId = inc.MaintenanceRecordId
+            MaintenanceRecordId = inc.MaintenanceRecordId,
+            PartsUsed = partsUsed,
+            AvailableParts = availableParts
         };
     }
 
@@ -253,18 +283,6 @@ public class MaintenanceService
         if (inc.Status is not ("Open" or "InProgress"))
             return (false, $"Chỉ có thể giải quyết sự cố đang Open hoặc InProgress (hiện tại: {inc.Status}).");
 
-        inc.Status = "Resolved";
-        inc.RootCause = vm.RootCause;
-        inc.Resolution = vm.Resolution;
-        inc.DowntimeHours = vm.DowntimeHours;
-        inc.PartsCost = vm.PartsCost;
-        inc.LaborCost = vm.LaborCost;
-        inc.TotalCost = (vm.PartsCost.HasValue || vm.LaborCost.HasValue)
-            ? (vm.PartsCost ?? 0) + (vm.LaborCost ?? 0)
-            : null;
-        inc.ResolvedAt = DateTimeOffset.UtcNow;
-        inc.UpdatedAt = DateTimeOffset.UtcNow;
-
         var record = new MaintenanceRecord
         {
             TenantId = tid,
@@ -275,12 +293,32 @@ public class MaintenanceService
             Status = "Completed",
             Description = inc.Title,
             WorkDone = vm.Resolution,
-            Cost = inc.TotalCost,
             TechnicianUserId = inc.AssignedTechnicianId,
             CreatedByUserId = _tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow
         };
         _db.MaintenanceRecords.Add(record);
+
+        var (partsOk, partsCostFromUsage, partsErr) = await ConsumePartsAsync(tid, vm.PartsUsed, record.Id, "Sự cố: " + inc.Title);
+        if (!partsOk)
+        {
+            _db.MaintenanceRecords.Remove(record);
+            return (false, partsErr);
+        }
+
+        inc.Status = "Resolved";
+        inc.RootCause = vm.RootCause;
+        inc.Resolution = vm.Resolution;
+        inc.DowntimeHours = vm.DowntimeHours;
+        inc.PartsCost = (vm.PartsCost ?? 0) + partsCostFromUsage;
+        inc.LaborCost = vm.LaborCost;
+        inc.TotalCost = (inc.PartsCost.HasValue || inc.LaborCost.HasValue)
+            ? (inc.PartsCost ?? 0) + (inc.LaborCost ?? 0)
+            : null;
+        inc.ResolvedAt = DateTimeOffset.UtcNow;
+        inc.UpdatedAt = DateTimeOffset.UtcNow;
+
+        record.Cost = inc.TotalCost;
         inc.MaintenanceRecordId = record.Id;
 
         var eq = await _db.Equipments.FirstOrDefaultAsync(e => e.Id == inc.EquipmentId && e.TenantId == tid);
@@ -368,11 +406,11 @@ public class MaintenanceService
         };
     }
 
-    public async Task<bool> ExecutePmTaskAsync(ExecutePmViewModel vm)
+    public async Task<(bool Success, string Message)> ExecutePmTaskAsync(ExecutePmViewModel vm)
     {
         var tid = _tenant.TenantId;
         var pm = await _db.PmSchedules.FirstOrDefaultAsync(p => p.Id == vm.PmScheduleId && p.TenantId == tid && !p.IsDeleted);
-        if (pm == null) return false;
+        if (pm == null) return (false, "Không tìm thấy lịch bảo trì.");
 
         var nextDue = vm.NextDueDate ?? ComputeNextDueDate(vm.CompletedDate, pm.Frequency, pm.FrequencyValue);
 
@@ -394,15 +432,91 @@ public class MaintenanceService
         };
         _db.MaintenanceRecords.Add(record);
 
+        var (partsOk, partsCostFromUsage, partsErr) = await ConsumePartsAsync(tid, vm.PartsUsed, record.Id, "PM: " + pm.TaskName);
+        if (!partsOk)
+        {
+            _db.MaintenanceRecords.Remove(record);
+            return (false, partsErr);
+        }
+
+        record.Cost = (vm.Cost ?? 0) + partsCostFromUsage;
+        if (record.Cost == 0) record.Cost = null;
+
         pm.LastPerformedDate = vm.CompletedDate;
         pm.NextDueDate = nextDue;
+        pm.LastOverdueNotificationAt = null;
         pm.UpdatedAt = DateTimeOffset.UtcNow;
 
         var eq = await _db.Equipments.FirstOrDefaultAsync(e => e.Id == pm.EquipmentId && e.TenantId == tid);
         if (eq != null) { eq.NextMaintenanceDate = nextDue; eq.UpdatedAt = DateTimeOffset.UtcNow; }
 
         await _db.SaveChangesAsync();
-        return true;
+        return (true, "Đã ghi nhận hoàn thành công việc bảo trì.");
+    }
+
+    /// <summary>
+    /// Trừ phụ tùng khỏi kho, tạo MaintenancePartUsage link record, trả về tổng chi phí phụ tùng.
+    /// </summary>
+    private async Task<(bool Success, decimal TotalCost, string ErrorMessage)> ConsumePartsAsync(
+        Guid tid, List<PartUsageInput>? items, Guid maintenanceRecordId, string reason)
+    {
+        if (items == null || items.Count == 0) return (true, 0m, "");
+
+        var validItems = items.Where(i => i.PartId != Guid.Empty && i.Quantity > 0).ToList();
+        if (validItems.Count == 0) return (true, 0m, "");
+
+        var ids = validItems.Select(i => i.PartId).ToList();
+        var parts = await _db.SpareParts
+            .Where(p => ids.Contains(p.Id) && p.TenantId == tid && !p.IsDeleted)
+            .ToListAsync();
+
+        decimal totalCost = 0m;
+        foreach (var input in validItems)
+        {
+            var part = parts.FirstOrDefault(p => p.Id == input.PartId);
+            if (part == null) return (false, 0m, "Phụ tùng không tồn tại trong kho.");
+            if (part.StockQuantity < input.Quantity)
+                return (false, 0m, $"Phụ tùng {part.Code} - {part.Name} không đủ tồn (còn {part.StockQuantity} {part.Unit}, cần {input.Quantity}).");
+
+            var before = part.StockQuantity;
+            part.StockQuantity -= input.Quantity;
+            part.UpdatedAt = DateTimeOffset.UtcNow;
+            part.UpdatedByUserId = _tenant.UserId;
+
+            _db.MaintenancePartUsages.Add(new MaintenancePartUsage
+            {
+                TenantId = tid,
+                MaintenanceRecordId = maintenanceRecordId,
+                SparePartId = part.Id,
+                QuantityUsed = input.Quantity,
+                UnitCostAtTime = part.UnitPrice,
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedByUserId = _tenant.UserId
+            });
+
+            _db.AuditLogs.Add(new AuditLog
+            {
+                TenantId = tid,
+                UserId = _tenant.UserId,
+                UserName = _tenant.UserFullName,
+                Action = "StockOut",
+                EntityName = "SparePart",
+                EntityId = part.Id,
+                OldValuesJson = System.Text.Json.JsonSerializer.Serialize(new { StockQuantity = before }),
+                NewValuesJson = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    StockQuantity = part.StockQuantity,
+                    Delta = -input.Quantity,
+                    Reason = reason,
+                    MaintenanceRecordId = maintenanceRecordId
+                }),
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+
+            totalCost += (part.UnitPrice ?? 0) * input.Quantity;
+        }
+
+        return (true, totalCost, "");
     }
 
     // ─── SPARE PARTS ─────────────────────────────────────────────────────────
@@ -430,11 +544,11 @@ public class MaintenanceService
     public async Task<Guid> CreateSparePartAsync(SparePartCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
-        var seq = await _db.SpareParts.CountAsync(p => p.TenantId == tid) + 1;
+        var code = await _seq.NextCodeAsync("SparePart", "SP-");
         var entity = new SparePart
         {
             TenantId = tid,
-            Code = $"SP-{seq:D4}",
+            Code = code,
             Name = vm.Name, Manufacturer = vm.Manufacturer, PartNumber = vm.PartNumber,
             Category = vm.Category, StockQuantity = vm.InitialStock,
             MinimumStock = vm.MinimumStock, UnitPrice = vm.UnitPrice, Unit = vm.Unit,
@@ -480,7 +594,14 @@ public class MaintenanceService
             CreatedAt = DateTimeOffset.UtcNow
         });
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return (false, "Phụ tùng vừa được người khác cập nhật. Vui lòng làm mới và thử lại.");
+        }
 
         if (delta < 0 && part.StockQuantity <= part.MinimumStock)
         {

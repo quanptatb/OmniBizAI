@@ -194,21 +194,28 @@ public class MaintenanceController : Controller
 
     public async Task<IActionResult> ExecutePm(Guid id)
     {
-        var tid = HttpContext.RequestServices.GetRequiredService<ITenantContext>().TenantId;
-        var db = HttpContext.RequestServices.GetRequiredService<OmniBizAI.Data.ApplicationDbContext>();
-        var techs = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-            db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted)
-                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName })
-        );
-        return View(new ExecutePmViewModel { PmScheduleId = id, Technicians = techs });
+        var tid = _tenant.TenantId;
+        var techs = await _db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted)
+            .OrderBy(u => u.FullName)
+            .Select(u => new SelectOption { Value = u.Id.ToString(), Text = u.FullName })
+            .ToListAsync();
+        var parts = await _db.SpareParts.Where(p => p.TenantId == tid && !p.IsDeleted && p.StockQuantity > 0)
+            .OrderBy(p => p.Code)
+            .Select(p => new SparePartOption
+            {
+                Id = p.Id, Code = p.Code, Name = p.Name, Unit = p.Unit,
+                StockQuantity = p.StockQuantity, UnitPrice = p.UnitPrice
+            })
+            .ToListAsync();
+        return View(new ExecutePmViewModel { PmScheduleId = id, Technicians = techs, AvailableParts = parts });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> ExecutePm(ExecutePmViewModel vm)
     {
-        if (await _service.ExecutePmTaskAsync(vm))
-            TempData["SuccessMessage"] = "Đã ghi nhận hoàn thành công việc bảo trì.";
+        var (success, message) = await _service.ExecutePmTaskAsync(vm);
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
         return RedirectToAction(nameof(PmSchedules));
     }
 

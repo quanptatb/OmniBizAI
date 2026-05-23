@@ -11,13 +11,15 @@ public class OperationPlanService
     private readonly ITenantContext _tenant;
     private readonly GeminiService _gemini;
     private readonly NotificationService _notif;
+    private readonly NumberSequenceService _seq;
 
-    public OperationPlanService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, NotificationService notif)
+    public OperationPlanService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, NotificationService notif, NumberSequenceService seq)
     {
         _db = db;
         _tenant = tenant;
         _gemini = gemini;
         _notif = notif;
+        _seq = seq;
     }
 
     public async Task<List<OperationPlanListViewModel>> GetPlansAsync()
@@ -105,8 +107,7 @@ public class OperationPlanService
     public async Task<Guid> CreatePlanAsync(OperationPlanCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
-        var seq = await _db.OperationPlans.CountAsync(p => p.TenantId == tid) + 1;
-        var code = $"OPP-{seq:D4}";
+        var code = await _seq.NextCodeAsync("OperationPlan", "OPP-");
         var plan = new OperationPlan
         {
             TenantId = tid,
@@ -291,7 +292,14 @@ public class OperationPlanService
         task.UpdatedAt = DateTimeOffset.UtcNow;
         task.UpdatedByUserId = _tenant.UserId;
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return (false, "Công việc vừa được người khác cập nhật. Vui lòng tải lại trang để xem thay đổi mới nhất.", task.PlanId);
+        }
         return (true, $"Đã cập nhật \"{task.Name}\" → {newStatus} ({task.ProgressPercent}%).", task.PlanId);
     }
 }

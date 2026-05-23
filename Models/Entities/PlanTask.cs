@@ -27,4 +27,7 @@ public class PlanTask : TenantEntity
 
     [Range(0, 100)]
     public int ProgressPercent { get; set; } = 0;
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 }

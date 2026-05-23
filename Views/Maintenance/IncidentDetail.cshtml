@@ -158,7 +158,7 @@
                                 <input type="number" name="DowntimeHours" step="0.5" class="form-control" placeholder="2.5" />
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Chi phí phụ tùng (đ)</label>
+                                <label class="form-label fw-bold">Chi phí phụ tùng ngoài (đ)</label>
                                 <input type="number" name="PartsCost" step="1000" min="0" class="form-control" placeholder="2.450.000" />
                             </div>
                             <div class="col-md-4">
@@ -166,6 +166,33 @@
                                 <input type="number" name="LaborCost" step="1000" min="0" class="form-control" placeholder="800.000" />
                             </div>
                         </div>
+
+                        @if (Model.AvailableParts.Any())
+                        {
+                            <div class="mb-3 border rounded p-3 bg-light">
+                                <label class="form-label fw-bold">Phụ tùng dùng từ kho (tự trừ tồn + cộng PartsCost)</label>
+                                <div id="partsContainer">
+                                    <div class="row g-2 mb-2 part-row">
+                                        <div class="col-md-8">
+                                            <select name="PartsUsed[0].PartId" class="form-select form-select-sm">
+                                                <option value="">-- Chọn phụ tùng --</option>
+                                                @foreach (var p in Model.AvailableParts)
+                                                {
+                                                    <option value="@p.Id">@p.Code - @p.Name (tồn: @p.StockQuantity @p.Unit, @(p.UnitPrice?.ToString("N0") ?? "?")đ)</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="number" name="PartsUsed[0].Quantity" min="1" placeholder="Số lượng" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addPartRow()">
+                                    <i class="fas fa-plus me-1"></i>Thêm phụ tùng
+                                </button>
+                            </div>
+                        }
+
                         <button type="submit" class="btn btn-success w-100">
                             <i class="fas fa-check-circle me-2"></i>Xác Nhận Đã Giải Quyết
                         </button>
@@ -209,5 +236,49 @@
                 </div>
             </div>
         </div>
+
+        @if (Model.PartsUsed.Any())
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header py-3"><h6 class="m-0 fw-bold text-primary">Phụ Tùng Đã Dùng</h6></div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Mã</th><th>Tên</th><th class="text-end">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.PartsUsed)
+                            {
+                                <tr>
+                                    <td>@p.PartCode</td>
+                                    <td>@p.PartName</td>
+                                    <td class="text-end">@p.Quantity @p.Unit</td>
+                                    <td class="text-end">@(p.UnitCostAtTime?.ToString("N0") ?? "-")</td>
+                                    <td class="text-end fw-bold">@(p.LineTotal?.ToString("N0") ?? "-") đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     </div>
 </div>
+
+<script>
+    let partRowIndex = 1;
+    function addPartRow() {
+        const container = document.getElementById('partsContainer');
+        if (!container) return;
+        const first = container.querySelector('.part-row');
+        if (!first) return;
+        const clone = first.cloneNode(true);
+        clone.querySelectorAll('[name]').forEach(el => {
+            el.name = el.name.replace(/\[0\]/, '[' + partRowIndex + ']');
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            if (el.type === 'number') el.value = '';
+        });
+        container.appendChild(clone);
+        partRowIndex++;
+    }
+</script>

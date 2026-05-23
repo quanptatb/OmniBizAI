@@ -46,6 +46,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantContext, TenantContextService>();
+builder.Services.AddScoped<NumberSequenceService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<OperationRequestService>();
 builder.Services.AddScoped<WorkKanbanService>();
@@ -54,6 +55,7 @@ builder.Services.AddScoped<AiInsightService>();
 builder.Services.AddScoped<OperationPlanService>();
 builder.Services.AddScoped<ResourceManagementService>();
 builder.Services.AddScoped<MaintenanceService>();
+builder.Services.AddScoped<OeeService>();
 builder.Services.AddScoped<OrderManagementService>();
 
 // KPI/OKR Services (merged from Manage-KPI-or-OKR-System)
@@ -76,6 +78,7 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AnomalyDetectionService>();
 builder.Services.AddScoped<BackupService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddHostedService<PmOverdueNotificationService>();
 
 // AI — Gemini
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
