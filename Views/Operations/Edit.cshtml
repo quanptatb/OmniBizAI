@@ -4,75 +4,377 @@
     ViewData["Breadcrumb"] = "<a href='/Operations' style='color:var(--apple-blue);text-decoration:none'>Vận hành</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Operations/Details/" + Model.Id + "' style='color:var(--apple-blue);text-decoration:none'>" + Model.RequestNo + "</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Chỉnh sửa</span>";
 }
 
-<div class="content-card" style="max-width:720px">
-    <div class="card-header-custom">
-        <h5><i class="fa-solid fa-pen"></i> Chỉnh sửa yêu cầu @Model.RequestNo</h5>
-    </div>
-    <div class="card-body-custom">
-        <form method="post" asp-action="Edit">
+<style>
+    .edit-section-title {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .edit-section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--divider);
+    }
+    .form-control, .form-select {
+        border-radius: var(--r-sm);
+        border: 1.5px solid var(--divider);
+        font-size: .88rem;
+        padding: 9px 13px;
+        transition: border-color .18s, box-shadow .18s;
+        background: var(--canvas);
+        color: var(--text-primary);
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--apple-blue);
+        box-shadow: 0 0 0 3px rgba(0,122,255,.12);
+        outline: none;
+    }
+    .form-label {
+        font-size: .8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        display: block;
+    }
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .info-item:last-child { border-bottom: none; }
+    .info-label {
+        font-size: .72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--text-muted);
+    }
+    .info-value {
+        font-size: .88rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    .tip-item {
+        display: flex;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .tip-item:last-child { border-bottom: none; }
+    .tip-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--r-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .82rem;
+        flex-shrink: 0;
+    }
+    .btn-primary-custom {
+        background: var(--apple-blue);
+        color: #fff;
+        border: none;
+        border-radius: var(--r-sm);
+        padding: 10px 24px;
+        font-size: .88rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: filter .18s, transform .12s, box-shadow .18s;
+        box-shadow: 0 2px 8px rgba(0,122,255,.25);
+    }
+    .btn-primary-custom:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0,122,255,.32);
+    }
+    .btn-cancel-custom {
+        background: var(--parchment);
+        color: var(--text-secondary);
+        border: 1.5px solid var(--divider);
+        border-radius: var(--r-sm);
+        padding: 10px 20px;
+        font-size: .88rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: background .18s, border-color .18s;
+    }
+    .btn-cancel-custom:hover {
+        background: var(--divider);
+        border-color: var(--text-muted);
+        color: var(--text-primary);
+    }
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+</style>
+
+<div class="row g-4 animate-fade-in">
+    <!-- ===== MAIN FORM ===== -->
+    <div class="col-lg-8">
+        <form method="post" asp-action="Edit" id="editOperationForm">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="RequestNo" />
-            <div class="row g-3">
-                <div class="col-12">
-                    <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
-                    <input asp-for="Title" class="form-control" />
-                    <span asp-validation-for="Title" class="text-danger" style="font-size:.78rem"></span>
+
+            <!-- Header Card -->
+            <div class="content-card mb-4">
+                <div class="card-header-custom" style="background:linear-gradient(135deg,rgba(0,122,255,.06) 0%,transparent 60%)">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:40px;height:40px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--apple-blue),#5ac8fa);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="fa-solid fa-pen-to-square" style="color:#fff;font-size:.95rem"></i>
+                        </div>
+                        <div>
+                            <h5 style="font-weight:700;margin:0;letter-spacing:-0.01em">Chỉnh sửa yêu cầu vận hành</h5>
+                            <div style="font-size:.78rem;color:var(--text-muted);margin-top:2px">
+                                <i class="fa-solid fa-hashtag me-1"></i>@Model.RequestNo
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Loại yêu cầu <span class="text-danger">*</span></label>
-                    <select asp-for="Type" class="form-select">
-                        <option value="Maintenance">Bảo trì</option>
-                        <option value="Installation">Lắp đặt</option>
-                        <option value="Repair">Sửa chữa</option>
-                        <option value="Inspection">Kiểm tra</option>
-                        <option value="Support">Hỗ trợ</option>
-                        <option value="Other">Khác</option>
-                    </select>
+                <div class="card-body-custom">
+                    <!-- Section: Thông tin cơ bản -->
+                    <div class="edit-section-title">
+                        <i class="fa-solid fa-circle-info" style="color:var(--apple-blue)"></i>
+                        Thông tin cơ bản
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label">Tiêu đề yêu cầu <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control" placeholder="Mô tả ngắn gọn nội dung yêu cầu vận hành..." />
+                            <span asp-validation-for="Title" class="text-danger" style="font-size:.76rem;margin-top:4px;display:block"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Loại yêu cầu <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select">
+                                <option value="Maintenance">🔧 Bảo trì</option>
+                                <option value="Installation">⚙️ Lắp đặt</option>
+                                <option value="Repair">🛠️ Sửa chữa</option>
+                                <option value="Inspection">🔍 Kiểm tra</option>
+                                <option value="Support">🤝 Hỗ trợ</option>
+                                <option value="Other">📋 Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mức ưu tiên <span class="text-danger">*</span></label>
+                            <select asp-for="Priority" class="form-select" id="prioritySelect">
+                                @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
+                                {
+                                    <option value="@((int)Enum.Parse<PriorityLevel>(p.Value))">@p.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section: Phân công & Thời hạn -->
+                    <div class="edit-section-title">
+                        <i class="fa-solid fa-building-user" style="color:var(--warning)"></i>
+                        Phân công & Thời hạn
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Phòng ban phụ trách <span class="text-danger">*</span></label>
+                            <select asp-for="OrganizationUnitId" class="form-select">
+                                @foreach (var d in Model.Departments)
+                                {
+                                    <option value="@d.Value">@d.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Khách hàng liên quan</label>
+                            <select asp-for="CustomerId" class="form-select">
+                                <option value="">— Không chọn —</option>
+                                @foreach (var c in Model.Customers)
+                                {
+                                    <option value="@c.Value">@c.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fa-regular fa-calendar me-1" style="color:var(--text-muted)"></i>Hạn xử lý
+                            </label>
+                            <input asp-for="DueDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-coins me-1" style="color:var(--text-muted)"></i>Ngân sách (VNĐ)
+                            </label>
+                            <input asp-for="TotalAmount" type="number" step="1000" class="form-control" placeholder="0" />
+                        </div>
+                    </div>
+
+                    <!-- Section: Mô tả -->
+                    <div class="edit-section-title">
+                        <i class="fa-solid fa-align-left" style="color:var(--success)"></i>
+                        Mô tả chi tiết
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <textarea asp-for="Description" class="form-control" rows="5"
+                                      placeholder="Mô tả chi tiết nội dung, yêu cầu kỹ thuật, hoặc bất kỳ thông tin liên quan..."></textarea>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Mức ưu tiên <span class="text-danger">*</span></label>
-                    <select asp-for="Priority" class="form-select">
-                        @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
-                        { <option value="@((int)Enum.Parse<PriorityLevel>(p.Value))">@p.Text</option> }
-                    </select>
+
+                <!-- Footer Actions -->
+                <div style="padding:16px 24px;border-top:1px solid var(--divider);background:var(--parchment);border-radius:0 0 var(--r-lg) var(--r-lg);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                    <span style="font-size:.78rem;color:var(--text-muted)">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Các trường có dấu <span class="text-danger fw-bold">*</span> là bắt buộc
+                    </span>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn-cancel-custom">
+                            <i class="fa-solid fa-xmark"></i>Hủy bỏ
+                        </a>
+                        <button type="submit" class="btn-primary-custom">
+                            <i class="fa-solid fa-floppy-disk"></i>Lưu thay đổi
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Phòng ban phụ trách <span class="text-danger">*</span></label>
-                    <select asp-for="OrganizationUnitId" class="form-select">
-                        @foreach (var d in Model.Departments)
-                        {
-                            <option value="@d.Value">@d.Text</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Khách hàng</label>
-                    <select asp-for="CustomerId" class="form-select">
-                        <option value="">— Không chọn —</option>
-                        @foreach (var c in Model.Customers)
-                        {
-                            <option value="@c.Value">@c.Text</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Hạn xử lý</label>
-                    <input asp-for="DueDate" type="date" class="form-control" />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Ngân sách (VNĐ)</label>
-                    <input asp-for="TotalAmount" type="number" step="1000" class="form-control" />
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Mô tả chi tiết</label>
-                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả yêu cầu vận hành..."></textarea>
-                </div>
-            </div>
-            <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Lưu thay đổi</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-light">Hủy</a>
             </div>
         </form>
     </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="col-lg-4">
+        <!-- Request Info Card -->
+        <div class="content-card mb-4" style="position:sticky;top:80px">
+            <div class="card-header-custom">
+                <h5 style="font-size:.88rem;font-weight:700">
+                    <i class="fa-solid fa-circle-info" style="color:var(--apple-blue)"></i>
+                    Thông tin yêu cầu
+                </h5>
+            </div>
+            <div class="card-body-custom py-0">
+                <div class="info-item">
+                    <span class="info-label">Mã yêu cầu</span>
+                    <span class="info-value" style="color:var(--apple-blue);font-weight:700">@Model.RequestNo</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Xem chi tiết</span>
+                    <span class="info-value">
+                        <a asp-action="Details" asp-route-id="@Model.Id"
+                           style="color:var(--apple-blue);text-decoration:none;font-size:.85rem">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1" style="font-size:.72rem"></i>Mở trang chi tiết
+                        </a>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Priority Indicator -->
+            <div style="padding:14px 20px;border-top:1px solid var(--divider)">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px">Mức ưu tiên hiện tại</div>
+                <div id="priorityIndicator" style="display:flex;gap:8px;align-items:center">
+                    <div id="priorityDot" style="width:10px;height:10px;border-radius:50%;background:var(--success);flex-shrink:0"></div>
+                    <span id="priorityLabel" style="font-size:.85rem;font-weight:600"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="content-card" style="background:linear-gradient(135deg,rgba(0,122,255,.04) 0%,transparent 70%)">
+            <div class="card-header-custom">
+                <h5 style="font-size:.88rem;font-weight:700">
+                    <i class="fa-solid fa-lightbulb" style="color:var(--warning)"></i>
+                    Lưu ý khi chỉnh sửa
+                </h5>
+            </div>
+            <div class="card-body-custom py-0">
+                <div class="tip-item">
+                    <div class="tip-icon" style="background:rgba(0,122,255,.1);color:var(--apple-blue)">
+                        <i class="fa-solid fa-pen"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">Tiêu đề rõ ràng</div>
+                        <div style="font-size:.76rem;color:var(--text-muted);line-height:1.5">Mô tả ngắn gọn, đủ ý để người liên quan hiểu nhanh nội dung yêu cầu.</div>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon" style="background:rgba(255,149,0,.1);color:var(--warning)">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">Ưu tiên chính xác</div>
+                        <div style="font-size:.76rem;color:var(--text-muted);line-height:1.5">Chọn đúng mức độ ưu tiên để hệ thống phân luồng xử lý hiệu quả.</div>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon" style="background:rgba(52,199,89,.1);color:var(--success)">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">Đặt hạn xử lý</div>
+                        <div style="font-size:.76rem;color:var(--text-muted);line-height:1.5">Hạn xử lý giúp theo dõi tiến độ và nhận cảnh báo khi sắp quá hạn.</div>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon" style="background:rgba(88,86,214,.1);color:#5856d6">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.82rem;font-weight:600;margin-bottom:2px">Mô tả đầy đủ</div>
+                        <div style="font-size:.76rem;color:var(--text-muted);line-height:1.5">Ghi rõ chi tiết kỹ thuật, vị trí hoặc yêu cầu đặc biệt trong phần mô tả.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+<script>
+    (function () {
+        const priorityColors = {
+            '0': { color: 'var(--info)', label: 'Thấp' },
+            '1': { color: 'var(--success)', label: 'Bình thường' },
+            '2': { color: 'var(--warning)', label: 'Cao' },
+            '3': { color: 'var(--danger)', label: 'Khẩn cấp' }
+        };
+
+        const select = document.getElementById('prioritySelect');
+        const dot = document.getElementById('priorityDot');
+        const label = document.getElementById('priorityLabel');
+
+        function updatePriority() {
+            const val = select ? select.value : '1';
+            const p = priorityColors[val] || priorityColors['1'];
+            if (dot) dot.style.background = p.color;
+            if (label) { label.textContent = p.label; label.style.color = p.color; }
+        }
+
+        if (select) {
+            select.addEventListener('change', updatePriority);
+            updatePriority();
+        }
+
+        // Animate form fields on load
+        document.querySelectorAll('.form-control, .form-select').forEach(function (el, i) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(6px)';
+            setTimeout(function () {
+                el.style.transition = 'opacity .3s ease, transform .3s ease';
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 60 + i * 30);
+        });
+    })();
+</script>
+}

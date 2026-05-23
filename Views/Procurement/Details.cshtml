@@ -1,29 +1,118 @@
 @model OmniBizAI.ViewModels.ProcurementDetailViewModel
-@{ ViewData["Title"] = Model.RequestNo; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Procurement' style='color:var(--apple-blue);text-decoration:none'>Mua sắm</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.RequestNo + "</span>"; }
-<div class="content-card mb-4"><div class="card-header-custom">
-    <h5><i class="fa-solid fa-cart-shopping"></i> @Model.RequestNo — @Model.Title</h5>
-    <div class="d-flex gap-2">
-        <span class="status-badge-soft @(Model.Status == "Approved" ? "badge-on-track" : Model.Status == "Draft" ? "badge-at-risk" : "badge-late")"><span class="status-dot"></span>@Model.Status</span>
-        @if (Model.CanSubmit) { <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn-primary-custom btn-sm" style="font-size:.78rem;padding:6px 14px">Gửi duyệt</button></form> }
-        @if (Model.CanCancel) { <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn-outline-custom btn-sm" style="font-size:.78rem;padding:6px 14px;color:var(--apple-red)">Hủy</button></form> }
+@using OmniBizAI.Models.Entities.Enums
+@using OmniBizAI.Helpers
+@{
+    ViewData["Title"] = Model.RequestNo;
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/Procurement' style='color:var(--apple-blue);text-decoration:none'>Mua sắm</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>" + Model.RequestNo + "</span>";
+
+    var badgeCls = Model.Status switch {
+        "Approved" => "badge-on-track",
+        "Draft" => "badge-at-risk",
+        "Submitted" => "badge-behind",
+        "Cancelled" => "badge-behind",
+        "Ordered" => "badge-on-track",
+        "Received" => "badge-on-track",
+        _ => "badge-at-risk"
+    };
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Main details card -->
+        <div class="content-card mb-4">
+            <div class="card-header-custom bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-shape bg-light text-primary" style="font-size: 1.25rem;"><i class="fa-solid fa-cart-flatbed-suitcases"></i></div>
+                    <div>
+                        <h5 class="mb-1">@Model.RequestNo</h5>
+                        <p class="text-muted mb-0 small">@Model.Title</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="status-badge-soft @badgeCls me-2">
+                        <span class="status-dot"></span>
+                        @(EnumHelper.Label<ProcurementStatus>(Model.Status))
+                    </span>
+                    @if (Model.CanSubmit) {
+                        <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button>
+                        </form>
+                    }
+                    @if (Model.CanCancel) {
+                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn hủy đề xuất này?')">Hủy yêu cầu</button>
+                        </form>
+                    }
+                    <a asp-action="Index" class="btn btn-light btn-sm border">Quay lại</a>
+                </div>
+            </div>
+            
+            <div class="card-body-custom border-top bg-light-subtle">
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="text-muted small mb-1">Phòng ban yêu cầu</div>
+                        <div class="fw-semibold text-dark"><i class="fa-regular fa-building me-1 text-muted"></i>@(Model.Department ?? "—")</div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="text-muted small mb-1">Người đề xuất</div>
+                        <div class="fw-semibold text-dark"><i class="fa-regular fa-user me-1 text-muted"></i>@Model.RequestedBy</div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="text-muted small mb-1">Thời gian cần trước</div>
+                        <div class="fw-semibold text-dark"><i class="fa-regular fa-calendar me-1 text-muted"></i>@(Model.NeededByDate?.ToString("dd/MM/yyyy") ?? "—")</div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="text-muted small mb-1">Tổng ước tính</div>
+                        <div class="fw-bold text-primary" style="font-size: 1.1rem;">@Model.TotalEstimated.ToString("N0") ₫</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items table card -->
+        <div class="content-card">
+            <div class="card-header-custom bg-white">
+                <h5 class="mb-0"><i class="fa-solid fa-list me-2 text-primary"></i>Danh sách hạng mục đề xuất</h5>
+            </div>
+            <div class="card-body-custom p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr class="table-light">
+                                <th class="ps-4" style="width: 60px;">STT</th>
+                                <th>Sản phẩm / Mô tả chi tiết</th>
+                                <th class="text-center" style="width: 100px;">Số lượng</th>
+                                <th class="text-end" style="width: 180px;">Đơn giá ước tính</th>
+                                <th class="pe-4 text-end" style="width: 200px;">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ var idx = 1; }
+                            @foreach (var l in Model.Lines) {
+                                <tr>
+                                    <td class="ps-4 text-muted">@(idx++)</td>
+                                    <td>
+                                        <div class="fw-medium text-dark">@(l.ProductName ?? l.ItemName ?? "—")</div>
+                                    </td>
+                                    <td class="text-center fw-semibold text-dark">@l.Quantity</td>
+                                    <td class="text-end text-secondary">@(l.EstimatedUnitPrice?.ToString("N0") ?? "0") ₫</td>
+                                    <td class="pe-4 text-end fw-bold text-primary">@l.LineTotal.ToString("N0") ₫</td>
+                                </tr>
+                            }
+                            @if (!Model.Lines.Any()) {
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-cubes fa-3x mb-3 d-block opacity-40"></i>
+                                        Chưa có chi tiết mặt hàng nào được đề xuất
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-</div><div class="card-body-custom">
-    <div class="row g-3">
-        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Phòng ban</label><div>@(Model.Department ?? "—")</div></div>
-        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Người đề xuất</label><div>@Model.RequestedBy</div></div>
-        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Cần trước</label><div>@(Model.NeededByDate?.ToString("dd/MM/yyyy") ?? "—")</div></div>
-        <div class="col-md-3"><label class="form-label" style="color:var(--text-muted);font-size:.78rem">Tổng ước tính</label><div style="font-weight:600;color:var(--apple-blue)">@Model.TotalEstimated.ToString("N0") ₫</div></div>
-    </div>
-</div></div>
-<div class="content-card"><div class="card-header-custom"><h5><i class="fa-solid fa-list"></i> Chi tiết hạng mục</h5></div><div class="card-body-custom p-0">
-    <table class="data-table">
-        <thead><tr><th class="ps-3">#</th><th>Sản phẩm/Hạng mục</th><th>SL</th><th>Đơn giá ước tính</th><th class="pe-3">Thành tiền</th></tr></thead>
-        <tbody>
-            @{ var idx = 1; }
-            @foreach (var l in Model.Lines) {
-                <tr><td class="ps-3">@(idx++)</td><td style="font-weight:500">@(l.ProductName ?? l.ItemName ?? "—")</td><td>@l.Quantity</td><td>@(l.EstimatedUnitPrice?.ToString("N0") ?? "—") ₫</td><td class="pe-3" style="font-weight:600">@l.LineTotal.ToString("N0") ₫</td></tr>
-            }
-            @if (!Model.Lines.Any()) { <tr><td colspan="5" class="text-center py-3" style="color:var(--text-muted)">Chưa có hạng mục</td></tr> }
-        </tbody>
-    </table>
-</div></div>
+</div>

@@ -1,12 +1,82 @@
 @model OmniBizAI.ViewModels.PurchaseOrderCreateViewModel
-@{ ViewData["Title"] = "Tạo đơn mua hàng"; ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/PurchaseOrders' style='color:var(--apple-blue);text-decoration:none'>PO</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>"; }
-<div class="content-card" style="max-width:780px"><div class="card-header-custom"><h5><i class="fa-solid fa-file-invoice"></i> Tạo đơn mua hàng</h5></div><div class="card-body-custom">
-    <form method="post" asp-action="Create">@Html.AntiForgeryToken()
-        <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">Nhà cung cấp <span class="text-danger">*</span></label><select asp-for="VendorId" class="form-input"><option value="">-- Chọn NCC --</option>@foreach(var v in Model.Vendors){<option value="@v.Value">@v.Text</option>}</select><span asp-validation-for="VendorId" class="text-danger" style="font-size:.78rem"></span></div>
-            <div class="col-md-3"><label class="form-label">Ngày đặt</label><input asp-for="OrderDate" class="form-input" type="date" /></div>
-            <div class="col-md-3"><label class="form-label">Từ đề xuất</label><select asp-for="ProcurementRequestId" class="form-input"><option value="">-- Không --</option>@foreach(var p in Model.ProcurementRequests){<option value="@p.Value">@p.Text</option>}</select></div>
+@{
+    ViewData["Title"] = "Tạo đơn mua hàng";
+    ViewData["Breadcrumb"] = "<span>Tài chính</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <a href='/PurchaseOrders' style='color:var(--apple-blue);text-decoration:none'>PO</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="row g-4">
+            <!-- Form Card -->
+            <div class="col-md-8">
+                <div class="content-card">
+                    <div class="card-header-custom bg-white">
+                        <h5 class="mb-0"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Khởi tạo Đơn mua hàng (PO)</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <form method="post" asp-action="Create">
+                            @Html.AntiForgeryToken()
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Nhà cung cấp <span class="text-danger">*</span></label>
+                                    <select asp-for="VendorId" class="form-select" required>
+                                        <option value="">-- Chọn nhà cung cấp --</option>
+                                        @foreach(var v in Model.Vendors){
+                                            <option value="@v.Value">@v.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="VendorId" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">Ngày đặt hàng <span class="text-danger">*</span></label>
+                                    <input asp-for="OrderDate" class="form-control" type="date" required />
+                                    <span asp-validation-for="OrderDate" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">Liên kết từ đề xuất mua sắm</label>
+                                    <select asp-for="ProcurementRequestId" class="form-select">
+                                        <option value="">-- Chọn đề xuất (Không bắt buộc) --</option>
+                                        @foreach(var p in Model.ProcurementRequests){
+                                            <option value="@p.Value">@p.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4 pt-3 border-top justify-content-end">
+                                <a asp-action="Index" class="btn btn-light">Hủy bỏ</a>
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-2"></i>Tạo đơn mua</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guidance Column -->
+            <div class="col-md-4">
+                <div class="content-card bg-light border-0">
+                    <div class="card-body-custom">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-circle-info me-2 text-primary"></i>Lưu ý về PO</h6>
+                        <ul class="list-unstyled mb-0" style="font-size: .82rem; line-height: 1.6;">
+                            <li class="mb-2">
+                                <strong class="text-dark">Đơn giá và số lượng</strong>
+                                <p class="text-muted mb-0">Khi liên kết từ đề xuất mua sắm, các hạng mục hàng hóa sẽ tự động được đồng bộ sang PO mới này.</p>
+                            </li>
+                            <li class="mb-2">
+                                <strong class="text-dark">Xác thực với NCC</strong>
+                                <p class="text-muted mb-0">PO sau khi tạo ở trạng thái Nháp (Draft), cần gửi sang NCC để xác nhận các điều khoản trước khi tiến hành nhận kho.</p>
+                            </li>
+                            <li>
+                                <strong class="text-dark">Theo dõi trạng thái</strong>
+                                <p class="text-muted mb-0">Đơn hàng sẽ chuyển sang Hoàn thành (Completed) sau khi bộ phận kho thực hiện nhập kho đầy đủ số lượng.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-check me-1"></i>Tạo PO</button><a asp-action="Index" class="btn-outline-custom">Hủy</a></div>
-    </form>
-</div></div>
+    </div>
+</div>
