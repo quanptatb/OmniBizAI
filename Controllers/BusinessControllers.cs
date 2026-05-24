@@ -7,7 +7,6 @@ using OmniBizAI.Models.Entities;
 using OmniBizAI.Models.Entities.Enums;
 using OmniBizAI.Services;
 using OmniBizAI.ViewModels;
-
 namespace OmniBizAI.Controllers;
 
 [Authorize(Roles = "TENANT_ADMIN,SYSTEM_ADMIN")]
@@ -1014,8 +1013,14 @@ public class ReportsController : Controller
 {
     private readonly ApplicationDbContext _db;
     private readonly ITenantContext _tenant;
+    private readonly IReportCacheService _cache;
 
-    public ReportsController(ApplicationDbContext db, ITenantContext tenant) { _db = db; _tenant = tenant; }
+    public ReportsController(ApplicationDbContext db, ITenantContext tenant, IReportCacheService cache)
+    {
+        _db = db;
+        _tenant = tenant;
+        _cache = cache;
+    }
 
     public async Task<IActionResult> Dashboard(DateOnly? from, DateOnly? to, Guid? dept)
     {
@@ -1029,239 +1034,266 @@ public class ReportsController : Controller
             .Where(o => o.TenantId == _tenant.TenantId && o.IsActive && !o.IsDeleted)
             .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name }).ToListAsync();
 
-        var tid = _tenant.TenantId;
-        var requests = await _db.OperationRequests
-            .Where(r => r.TenantId == tid && !r.IsDeleted &&
-                r.CreatedAt.Date >= filter.FromDate.ToDateTime(TimeOnly.MinValue) &&
-                r.CreatedAt.Date <= filter.ToDate.ToDateTime(TimeOnly.MaxValue))
-            .Include(r => r.OrganizationUnit).ToListAsync();
+        var cacheKey = $"Dashboard_{filter.FromDate:yyyyMMdd}_{filter.ToDate:yyyyMMdd}_{(dept.HasValue ? dept.Value.ToString() : "All")}";
 
-        if (dept.HasValue) requests = requests.Where(r => r.OrganizationUnitId == dept.Value).ToList();
-
-        var vm = new ReportSummaryViewModel
+        var vm = await _cache.GetOrSetAsync(cacheKey, async () =>
         {
-            Filter = filter,
-            TotalRequests = requests.Count,
-            CompletedRequests = requests.Count(r => r.Status == OperationStatus.Completed),
-            RejectedRequests = requests.Count(r => r.Status == OperationStatus.Rejected),
-            PendingRequests = requests.Count(r => r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview),
-            ByStatus = requests.GroupBy(r => r.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
-            ByDepartment = requests.Where(r => r.OrganizationUnit != null).GroupBy(r => r.OrganizationUnit!.Name).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = g.Count() }).OrderByDescending(x => x.Count).ToList(),
-            MonthlyTrend = requests.GroupBy(r => r.CreatedAt.ToString("yyyy-MM")).OrderBy(g => g.Key).Select(g => new MonthlyTrendItem { Month = g.Key, Created = g.Count(), Completed = g.Count(r => r.Status == OperationStatus.Completed) }).ToList()
-        };
+            var tid = _tenant.TenantId;
+            var fromDateTime = new DateTimeOffset(filter.FromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var toDateTime = new DateTimeOffset(filter.ToDate.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+
+            var requests = await _db.OperationRequests
+                .Where(r => r.TenantId == tid && !r.IsDeleted &&
+                    r.CreatedAt >= fromDateTime &&
+                    r.CreatedAt <= toDateTime)
+                .Include(r => r.OrganizationUnit).ToListAsync();
+
+            if (dept.HasValue) requests = requests.Where(r => r.OrganizationUnitId == dept.Value).ToList();
+
+            return new ReportSummaryViewModel
+            {
+                Filter = filter,
+                TotalRequests = requests.Count,
+                CompletedRequests = requests.Count(r => r.Status == OperationStatus.Completed),
+                RejectedRequests = requests.Count(r => r.Status == OperationStatus.Rejected),
+                PendingRequests = requests.Count(r => r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview),
+                ByStatus = requests.GroupBy(r => r.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+                ByDepartment = requests.Where(r => r.OrganizationUnit != null).GroupBy(r => r.OrganizationUnit!.Name).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = g.Count() }).OrderByDescending(x => x.Count).ToList(),
+                MonthlyTrend = requests.GroupBy(r => r.CreatedAt.ToString("yyyy-MM")).OrderBy(g => g.Key).Select(g => new MonthlyTrendItem { Month = g.Key, Created = g.Count(), Completed = g.Count(r => r.Status == OperationStatus.Completed) }).ToList()
+            };
+        });
+
+        // Make sure Departments list is always available for the View's filter dropdown
+        vm.Filter.Departments = filter.Departments;
         return View(vm);
     }
 
     public async Task<IActionResult> Finance()
     {
-        var tid = _tenant.TenantId; var year = DateTime.Today.Year;
-        var budgets = await _db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == year).ToListAsync();
-        var expenses = await _db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == year).Include(e => e.Budget).ThenInclude(b => b!.OrganizationUnit).ToListAsync();
-        var payments = await _db.PaymentRequests.Where(p => p.TenantId == tid && !p.IsDeleted).ToListAsync();
-
-        var vm = new FinanceReportViewModel
+        var vm = await _cache.GetOrSetAsync("Finance", async () =>
         {
-            TotalBudget = budgets.Sum(b => b.PlannedAmount),
-            TotalExpense = expenses.Sum(e => e.Amount),
-            TotalPayments = payments.Sum(p => p.TotalAmount),
-            PendingPaymentCount = payments.Count(p => p.Status == PaymentStatus.Submitted),
-            PendingPaymentAmount = payments.Where(p => p.Status == PaymentStatus.Submitted).Sum(p => p.TotalAmount),
-            TotalBudgetCount = budgets.Count,
-            ActiveBudgetCount = budgets.Count(b => b.Status == BudgetStatus.Active),
-            PaymentByStatus = payments.GroupBy(p => p.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
-            ExpenseByDept = expenses.Where(e => e.Budget?.OrganizationUnit != null).GroupBy(e => e.Budget!.OrganizationUnit!.Name).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = (int)g.Sum(e => e.Amount / 1000000) }).OrderByDescending(x => x.Count).ToList(),
-            ExpenseTrend = expenses.GroupBy(e => e.ExpenseDate.ToString("yyyy-MM")).OrderBy(g => g.Key).Select(g => new MonthlyTrendItem { Month = g.Key, Created = (int)(g.Sum(e => e.Amount) / 1000000) }).ToList()
-        };
+            var tid = _tenant.TenantId; var year = DateTime.Today.Year;
+            var budgets = await _db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == year).ToListAsync();
+            var expenses = await _db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == year).Include(e => e.Budget).ThenInclude(b => b!.OrganizationUnit).ToListAsync();
+            var payments = await _db.PaymentRequests.Where(p => p.TenantId == tid && !p.IsDeleted).ToListAsync();
+
+            return new FinanceReportViewModel
+            {
+                TotalBudget = budgets.Sum(b => b.PlannedAmount),
+                TotalExpense = expenses.Sum(e => e.Amount),
+                TotalPayments = payments.Sum(p => p.TotalAmount),
+                PendingPaymentCount = payments.Count(p => p.Status == PaymentStatus.Submitted),
+                PendingPaymentAmount = payments.Where(p => p.Status == PaymentStatus.Submitted).Sum(p => p.TotalAmount),
+                TotalBudgetCount = budgets.Count,
+                ActiveBudgetCount = budgets.Count(b => b.Status == BudgetStatus.Active),
+                PaymentByStatus = payments.GroupBy(p => p.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+                ExpenseByDept = expenses.Where(e => e.Budget?.OrganizationUnit != null).GroupBy(e => e.Budget!.OrganizationUnit!.Name).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = (int)Math.Round(g.Sum(e => e.Amount) / 1000000) }).OrderByDescending(x => x.Count).ToList(),
+                ExpenseTrend = expenses.GroupBy(e => e.ExpenseDate.ToString("yyyy-MM")).OrderBy(g => g.Key).Select(g => new MonthlyTrendItem { Month = g.Key, Created = (int)Math.Round(g.Sum(e => e.Amount) / 1000000) }).ToList()
+            };
+        });
         return View(vm);
     }
 
     public async Task<IActionResult> Hr()
     {
-        var tid = _tenant.TenantId;
-        var users = await _db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted).Include(u => u.OrganizationUnit).ToListAsync();
-        var vm = new HrReportViewModel
+        var vm = await _cache.GetOrSetAsync("Hr", async () =>
         {
-            TotalEmployees = users.Count,
-            ActiveEmployees = users.Count(u => u.Status == UserStatus.Active),
-            InactiveEmployees = users.Count(u => u.Status != UserStatus.Active),
-            TotalDepartments = await _db.OrganizationUnits.CountAsync(o => o.TenantId == tid && o.IsActive && !o.IsDeleted),
-            TotalPositions = await _db.Positions.CountAsync(p => p.TenantId == tid && !p.IsDeleted),
-            PendingLeaves = await _db.LeaveRequests.CountAsync(l => l.TenantId == tid && !l.IsDeleted && l.Status == LeaveStatus.Submitted),
-            ByDepartment = users.Where(u => u.OrganizationUnit != null && u.Status == UserStatus.Active).GroupBy(u => u.OrganizationUnit!.Name).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = g.Count() }).OrderByDescending(x => x.Count).ToList(),
-            ByStatus = users.GroupBy(u => u.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList()
-        };
+            var tid = _tenant.TenantId;
+            var users = await _db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted).Include(u => u.OrganizationUnit).ToListAsync();
+            return new HrReportViewModel
+            {
+                TotalEmployees = users.Count,
+                ActiveEmployees = users.Count(u => u.Status == UserStatus.Active),
+                InactiveEmployees = users.Count(u => u.Status != UserStatus.Active),
+                TotalDepartments = await _db.OrganizationUnits.CountAsync(o => o.TenantId == tid && o.IsActive && !o.IsDeleted),
+                TotalPositions = await _db.Positions.CountAsync(p => p.TenantId == tid && !p.IsDeleted),
+                PendingLeaves = await _db.LeaveRequests.CountAsync(l => l.TenantId == tid && !l.IsDeleted && l.Status == LeaveStatus.Submitted),
+                ByDepartment = users.Where(u => u.OrganizationUnit != null && u.Status == UserStatus.Active).GroupBy(u => u.OrganizationUnit!.Name).Select(g => new DeptWorkloadItem { Dept = g.Key, Count = g.Count() }).OrderByDescending(x => x.Count).ToList(),
+                ByStatus = users.GroupBy(u => u.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList()
+            };
+        });
         return View(vm);
     }
 
     public async Task<IActionResult> KpiOkr()
     {
-        var tid = _tenant.TenantId;
-        var okrs = await _db.OkrObjectives.Where(o => o.TenantId == tid && !o.IsDeleted).Include(o => o.KeyResults.Where(kr => !kr.IsDeleted)).ToListAsync();
-        var kpis = await _db.KpiDefinitions.Where(k => k.TenantId == tid && !k.IsDeleted).ToListAsync();
-        var avgProgress = okrs.Any() ? Math.Round((decimal)okrs.Average(o =>
-            o.KeyResults.Any() ? (double)o.KeyResults.Average(kr => kr.TargetValue == 0 ? 0 : (double)(kr.CurrentValue / kr.TargetValue * 100)) : 0), 1) : 0;
-
-        var vm = new KpiOkrReportViewModel
+        var vm = await _cache.GetOrSetAsync("KpiOkr", async () =>
         {
-            TotalOkr = okrs.Count, ActiveOkr = okrs.Count(o => o.Status == OkrStatus.Active),
-            CompletedOkr = okrs.Count(o => o.Status == OkrStatus.Completed), AvgOkrProgress = avgProgress,
-            TotalKpi = kpis.Count, ActiveKpi = kpis.Count(k => k.Status == KpiStatus.Active),
-            PendingCheckIns = await _db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.ReviewStatus == CheckInReviewStatus.Pending),
-            TotalEvaluations = await _db.EvaluationResults.CountAsync(e => e.TenantId == tid && !e.IsDeleted),
-            OkrByStatus = okrs.GroupBy(o => o.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
-            KpiByStatus = kpis.GroupBy(k => k.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList()
-        };
-        return View(vm);
-    }
+            var tid = _tenant.TenantId;
+            var okrs = await _db.OkrObjectives.Where(o => o.TenantId == tid && !o.IsDeleted).Include(o => o.KeyResults.Where(kr => !kr.IsDeleted)).ToListAsync();
+            var kpis = await _db.KpiDefinitions.Where(k => k.TenantId == tid && !k.IsDeleted).ToListAsync();
+            var avgProgress = okrs.Any() ? Math.Round(okrs.Average(o =>
+                o.KeyResults.Any() ? o.KeyResults.Average(kr => kr.Progress) : 0), 1) : 0;
 
-    // ── Inventory / Warehouse Report ──────────────────────────────────────────
-    public async Task<IActionResult> Inventory()
-    {
-        var tid = _tenant.TenantId;
-        var receipts = await _db.GoodsReceipts.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
-        var issues = await _db.GoodsIssues.Where(i => i.TenantId == tid && !i.IsDeleted).ToListAsync();
-        var alerts = await _db.StockAlerts.CountAsync(a => a.TenantId == tid && !a.IsDeleted && a.Status == StockAlertStatus.Active);
-
-        var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
-        var receiptsByMonth = receipts.Where(r => r.ReceiptDate >= sixMonthsAgo).GroupBy(r => r.ReceiptDate.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
-        var issuesByMonth = issues.Where(i => i.IssueDate >= sixMonthsAgo).GroupBy(i => i.IssueDate.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
-        var months = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i).ToString("yyyy-MM")).ToList();
-        var trend = months.Select(m => new MonthlyTrendItem { Month = m, Created = receiptsByMonth.GetValueOrDefault(m), Completed = issuesByMonth.GetValueOrDefault(m) }).ToList();
-
-        var vm = new InventoryReportViewModel
-        {
-            TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted && p.Type == "Product"),
-            ActiveAlertCount = alerts,
-            TotalReceipts = receipts.Count, ConfirmedReceipts = receipts.Count(r => r.Status == GoodsReceiptStatus.Confirmed),
-            TotalIssues = issues.Count, ConfirmedIssues = issues.Count(i => i.Status == GoodsIssueStatus.Confirmed),
-            ReceiptIssueTrend = trend
-        };
-        return View(vm);
-    }
-
-    // ── Cash Flow Report ──────────────────────────────────────────────────────
-    public async Task<IActionResult> CashFlow()
-    {
-        var tid = _tenant.TenantId;
-        var txns = await _db.CashTransactions.Where(t => t.TenantId == tid && !t.IsDeleted).ToListAsync();
-        var valid = txns.Where(t => t.Status != CashTransactionStatus.Voided && t.Status != CashTransactionStatus.Rejected).ToList();
-
-        var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
-        var monthly = valid.Where(t => t.TransactionDate >= sixMonthsAgo).GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month, t.TransactionType }).ToList();
-        var mList = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i)).ToList();
-        var trend = mList.Select(d => new CashMonthSummary
-        {
-            Month = d.ToString("yyyy-MM"),
-            Income = monthly.Where(m => m.Key.Year == d.Year && m.Key.Month == d.Month && m.Key.TransactionType == "Income").Sum(m => m.Sum(t => t.Amount)),
-            Expense = monthly.Where(m => m.Key.Year == d.Year && m.Key.Month == d.Month && m.Key.TransactionType == "Expense").Sum(m => m.Sum(t => t.Amount))
-        }).ToList();
-
-        var vm = new CashFlowReportViewModel
-        {
-            TotalIncome = valid.Where(t => t.TransactionType == "Income").Sum(t => t.Amount),
-            TotalExpense = valid.Where(t => t.TransactionType == "Expense").Sum(t => t.Amount),
-            TotalTransactions = txns.Count, PendingApproval = txns.Count(t => t.Status == CashTransactionStatus.Recorded),
-            ByCategory = valid.GroupBy(t => t.Category).Select(g => new StatusCountItem { Status = g.Key, Count = (int)(g.Sum(t => t.TransactionType == "Income" ? t.Amount : -t.Amount) / 1000000) }).OrderByDescending(x => Math.Abs(x.Count)).Take(10).ToList(),
-            ByPaymentMethod = valid.Where(t => t.PaymentMethod != null).GroupBy(t => t.PaymentMethod!).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
-            MonthlyTrend = trend
-        };
-        return View(vm);
-    }
-
-    // ── CRM Report ────────────────────────────────────────────────────────────
-    public async Task<IActionResult> Crm()
-    {
-        var tid = _tenant.TenantId;
-        var customers = await _db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted).ToListAsync();
-        var opps = await _db.SalesOpportunities.Include(o => o.Customer).Where(o => o.TenantId == tid && !o.IsDeleted).ToListAsync();
-        var interactions = await _db.CrmInteractions.Where(i => i.TenantId == tid && !i.IsDeleted).ToListAsync();
-
-        var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
-        var interactionTrend = interactions.Where(i => DateOnly.FromDateTime(i.CreatedAt.DateTime) >= sixMonthsAgo)
-            .GroupBy(i => i.CreatedAt.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
-        var months = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i).ToString("yyyy-MM")).ToList();
-        var trend = months.Select(m => new MonthlyTrendItem { Month = m, Created = interactionTrend.GetValueOrDefault(m) }).ToList();
-
-        var vm = new CrmReportViewModel
-        {
-            TotalCustomers = customers.Count, ActiveCustomers = customers.Count(c => c.IsActive),
-            TotalVendors = await _db.Vendors.CountAsync(v => v.TenantId == tid && !v.IsDeleted),
-            TotalOpportunities = opps.Count, WonOpportunities = opps.Count(o => o.Stage == "ClosedWon"),
-            LostOpportunities = opps.Count(o => o.Stage == "ClosedLost"),
-            PipelineValue = opps.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").Sum(o => o.EstimatedValue),
-            WonValue = opps.Where(o => o.Stage == "ClosedWon").Sum(o => o.EstimatedValue),
-            TotalInteractions = interactions.Count,
-            OpportunityByStage = opps.GroupBy(o => o.Stage).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
-            TopCustomersByRevenue = opps.Where(o => o.Stage == "ClosedWon" && o.Customer != null).GroupBy(o => o.Customer!.Name)
-                .Select(g => new DeptWorkloadItem { Dept = g.Key, Count = (int)(g.Sum(o => o.EstimatedValue) / 1000000) }).OrderByDescending(x => x.Count).Take(10).ToList(),
-            InteractionTrend = trend
-        };
-        return View(vm);
-    }
-
-    // ── Enhanced Executive ────────────────────────────────────────────────────
-    public async Task<IActionResult> Executive()
-    {
-        var tid = _tenant.TenantId;
-        var requests = await _db.OperationRequests.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
-        var budgets = await _db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == DateTime.Today.Year).ToListAsync();
-        var expenses = await _db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == DateTime.Today.Year).ToListAsync();
-        var users = await _db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted).ToListAsync();
-        var okrs = await _db.OkrObjectives.Where(o => o.TenantId == tid && !o.IsDeleted).Include(o => o.KeyResults.Where(kr => !kr.IsDeleted)).ToListAsync();
-        var kpis = await _db.KpiDefinitions.Where(k => k.TenantId == tid && !k.IsDeleted).ToListAsync();
-        var cashTxns = await _db.CashTransactions.Where(t => t.TenantId == tid && !t.IsDeleted && t.Status != CashTransactionStatus.Voided && t.Status != CashTransactionStatus.Rejected).ToListAsync();
-        var opps = await _db.SalesOpportunities.Where(o => o.TenantId == tid && !o.IsDeleted).ToListAsync();
-        var alerts = await _db.StockAlerts.CountAsync(a => a.TenantId == tid && !a.IsDeleted && a.Status == StockAlertStatus.Active);
-
-        var vm = new ExecutiveReportViewModel
-        {
-            Operations = new ReportSummaryViewModel
-            {
-                TotalRequests = requests.Count, CompletedRequests = requests.Count(r => r.Status == OperationStatus.Completed),
-                RejectedRequests = requests.Count(r => r.Status == OperationStatus.Rejected),
-                PendingRequests = requests.Count(r => r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview)
-            },
-            Finance = new FinanceReportViewModel
-            {
-                TotalBudget = budgets.Sum(b => b.PlannedAmount), TotalExpense = expenses.Sum(e => e.Amount),
-                PendingPaymentCount = await _db.PaymentRequests.CountAsync(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted),
-                PendingPaymentAmount = await _db.PaymentRequests.Where(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted).SumAsync(p => p.TotalAmount)
-            },
-            Hr = new HrReportViewModel
-            {
-                TotalEmployees = users.Count, ActiveEmployees = users.Count(u => u.Status == UserStatus.Active),
-                TotalDepartments = await _db.OrganizationUnits.CountAsync(o => o.TenantId == tid && o.IsActive && !o.IsDeleted)
-            },
-            KpiOkr = new KpiOkrReportViewModel
+            return new KpiOkrReportViewModel
             {
                 TotalOkr = okrs.Count, ActiveOkr = okrs.Count(o => o.Status == OkrStatus.Active),
-                CompletedOkr = okrs.Count(o => o.Status == OkrStatus.Completed),
+                CompletedOkr = okrs.Count(o => o.Status == OkrStatus.Completed), AvgOkrProgress = avgProgress,
                 TotalKpi = kpis.Count, ActiveKpi = kpis.Count(k => k.Status == KpiStatus.Active),
-                AvgOkrProgress = okrs.Any() ? Math.Round((decimal)okrs.Average(o => o.KeyResults.Any() ? (double)o.KeyResults.Average(kr => kr.TargetValue == 0 ? 0 : (double)(kr.CurrentValue / kr.TargetValue * 100)) : 0), 1) : 0
-            },
-            Inventory = new InventoryReportViewModel
+                PendingCheckIns = await _db.KpiCheckIns.CountAsync(c => c.TenantId == tid && !c.IsDeleted && c.ReviewStatus == CheckInReviewStatus.Pending),
+                TotalEvaluations = await _db.EvaluationResults.CountAsync(e => e.TenantId == tid && !e.IsDeleted),
+                OkrByStatus = okrs.GroupBy(o => o.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+                KpiByStatus = kpis.GroupBy(k => k.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList()
+            };
+        });
+        return View(vm);
+    }
+
+    public async Task<IActionResult> Inventory()
+    {
+        var vm = await _cache.GetOrSetAsync("Inventory", async () =>
+        {
+            var tid = _tenant.TenantId;
+            var receipts = await _db.GoodsReceipts.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
+            var issues = await _db.GoodsIssues.Where(i => i.TenantId == tid && !i.IsDeleted).ToListAsync();
+            var alerts = await _db.StockAlerts.CountAsync(a => a.TenantId == tid && !a.IsDeleted && a.Status == StockAlertStatus.Active);
+
+            var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
+            var receiptsByMonth = receipts.Where(r => r.ReceiptDate >= sixMonthsAgo).GroupBy(r => r.ReceiptDate.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
+            var issuesByMonth = issues.Where(i => i.IssueDate >= sixMonthsAgo).GroupBy(i => i.IssueDate.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
+            var months = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i).ToString("yyyy-MM")).ToList();
+            var trend = months.Select(m => new MonthlyTrendItem { Month = m, Created = receiptsByMonth.GetValueOrDefault(m), Completed = issuesByMonth.GetValueOrDefault(m) }).ToList();
+
+            return new InventoryReportViewModel
             {
                 TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted && p.Type == "Product"),
                 ActiveAlertCount = alerts,
-                TotalReceipts = await _db.GoodsReceipts.CountAsync(r => r.TenantId == tid && !r.IsDeleted),
-                TotalIssues = await _db.GoodsIssues.CountAsync(i => i.TenantId == tid && !i.IsDeleted)
-            },
-            CashFlow = new CashFlowReportViewModel
-            {
-                TotalIncome = cashTxns.Where(t => t.TransactionType == "Income").Sum(t => t.Amount),
-                TotalExpense = cashTxns.Where(t => t.TransactionType == "Expense").Sum(t => t.Amount),
-                TotalTransactions = cashTxns.Count
-            },
-            TotalCustomers = await _db.Customers.CountAsync(c => c.TenantId == tid && c.IsActive && !c.IsDeleted),
-            TotalVendors = await _db.Vendors.CountAsync(v => v.TenantId == tid && v.IsActive && !v.IsDeleted),
-            TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted),
-            TotalOpportunities = opps.Count,
-            OpportunityPipelineValue = opps.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").Sum(o => o.EstimatedValue)
-        };
+                TotalReceipts = receipts.Count, ConfirmedReceipts = receipts.Count(r => r.Status == GoodsReceiptStatus.Confirmed),
+                TotalIssues = issues.Count, ConfirmedIssues = issues.Count(i => i.Status == GoodsIssueStatus.Confirmed),
+                ReceiptIssueTrend = trend
+            };
+        });
         return View(vm);
     }
 
-    // ── Export Operations ─────────────────────────────────────────────────────
+    public async Task<IActionResult> CashFlow()
+    {
+        var vm = await _cache.GetOrSetAsync("CashFlow", async () =>
+        {
+            var tid = _tenant.TenantId;
+            var txns = await _db.CashTransactions.Where(t => t.TenantId == tid && !t.IsDeleted).ToListAsync();
+            var valid = txns.Where(t => t.Status != CashTransactionStatus.Voided && t.Status != CashTransactionStatus.Rejected).ToList();
+
+            var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
+            var monthly = valid.Where(t => t.TransactionDate >= sixMonthsAgo).GroupBy(t => new { t.TransactionDate.Year, t.TransactionDate.Month, t.TransactionType }).ToList();
+            var mList = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i)).ToList();
+            var trend = mList.Select(d => new CashMonthSummary
+            {
+                Month = d.ToString("yyyy-MM"),
+                Income = monthly.Where(m => m.Key.Year == d.Year && m.Key.Month == d.Month && m.Key.TransactionType == "Income").Sum(m => m.Sum(t => t.Amount)),
+                Expense = monthly.Where(m => m.Key.Year == d.Year && m.Key.Month == d.Month && m.Key.TransactionType == "Expense").Sum(m => m.Sum(t => t.Amount))
+            }).ToList();
+
+            return new CashFlowReportViewModel
+            {
+                TotalIncome = valid.Where(t => t.TransactionType == "Income").Sum(t => t.Amount),
+                TotalExpense = valid.Where(t => t.TransactionType == "Expense").Sum(t => t.Amount),
+                TotalTransactions = txns.Count, PendingApproval = txns.Count(t => t.Status == CashTransactionStatus.Recorded),
+                ByCategory = valid.GroupBy(t => t.Category).Select(g => new StatusCountItem { Status = g.Key, Count = (int)Math.Round(g.Sum(t => t.TransactionType == "Income" ? t.Amount : -t.Amount) / 1000000) }).OrderByDescending(x => Math.Abs(x.Count)).Take(10).ToList(),
+                ByPaymentMethod = valid.Where(t => t.PaymentMethod != null).GroupBy(t => t.PaymentMethod!).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+                MonthlyTrend = trend
+            };
+        });
+        return View(vm);
+    }
+
+    public async Task<IActionResult> Crm()
+    {
+        var vm = await _cache.GetOrSetAsync("Crm", async () =>
+        {
+            var tid = _tenant.TenantId;
+            var customers = await _db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted).ToListAsync();
+            var opps = await _db.SalesOpportunities.Include(o => o.Customer).Where(o => o.TenantId == tid && !o.IsDeleted).ToListAsync();
+            var interactions = await _db.CrmInteractions.Where(i => i.TenantId == tid && !i.IsDeleted).ToListAsync();
+
+            var sixMonthsAgo = DateOnly.FromDateTime(DateTime.Today.AddMonths(-5).AddDays(-(DateTime.Today.Day - 1)));
+            var interactionTrend = interactions.Where(i => DateOnly.FromDateTime(i.CreatedAt.DateTime) >= sixMonthsAgo)
+                .GroupBy(i => i.CreatedAt.ToString("yyyy-MM")).ToDictionary(g => g.Key, g => g.Count());
+            var months = Enumerable.Range(0, 6).Select(i => DateTime.Today.AddMonths(-5 + i).ToString("yyyy-MM")).ToList();
+            var trend = months.Select(m => new MonthlyTrendItem { Month = m, Created = interactionTrend.GetValueOrDefault(m) }).ToList();
+
+            return new CrmReportViewModel
+            {
+                TotalCustomers = customers.Count, ActiveCustomers = customers.Count(c => c.IsActive),
+                TotalVendors = await _db.Vendors.CountAsync(v => v.TenantId == tid && !v.IsDeleted),
+                TotalOpportunities = opps.Count, WonOpportunities = opps.Count(o => o.Stage == "ClosedWon"),
+                LostOpportunities = opps.Count(o => o.Stage == "ClosedLost"),
+                PipelineValue = opps.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").Sum(o => o.EstimatedValue),
+                WonValue = opps.Where(o => o.Stage == "ClosedWon").Sum(o => o.EstimatedValue),
+                TotalInteractions = interactions.Count,
+                OpportunityByStage = opps.GroupBy(o => o.Stage).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
+                TopCustomersByRevenue = opps.Where(o => o.Stage == "ClosedWon" && o.Customer != null).GroupBy(o => o.Customer!.Name)
+                    .Select(g => new DeptWorkloadItem { Dept = g.Key, Count = (int)Math.Round(g.Sum(o => o.EstimatedValue) / 1000000) }).OrderByDescending(x => x.Count).Take(10).ToList(),
+                InteractionTrend = trend
+            };
+        });
+        return View(vm);
+    }
+
+    public async Task<IActionResult> Executive()
+    {
+        var vm = await _cache.GetOrSetAsync("Executive", async () =>
+        {
+            var tid = _tenant.TenantId;
+            var requests = await _db.OperationRequests.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
+            var budgets = await _db.Budgets.Where(b => b.TenantId == tid && !b.IsDeleted && b.FiscalYear == DateTime.Today.Year).ToListAsync();
+            var expenses = await _db.Expenses.Where(e => e.TenantId == tid && !e.IsDeleted && e.ExpenseDate.Year == DateTime.Today.Year).ToListAsync();
+            var users = await _db.AppUsers.Where(u => u.TenantId == tid && !u.IsDeleted).ToListAsync();
+            var okrs = await _db.OkrObjectives.Where(o => o.TenantId == tid && !o.IsDeleted).Include(o => o.KeyResults.Where(kr => !kr.IsDeleted)).ToListAsync();
+            var kpis = await _db.KpiDefinitions.Where(k => k.TenantId == tid && !k.IsDeleted).ToListAsync();
+            var cashTxns = await _db.CashTransactions.Where(t => t.TenantId == tid && !t.IsDeleted && t.Status != CashTransactionStatus.Voided && t.Status != CashTransactionStatus.Rejected).ToListAsync();
+            var opps = await _db.SalesOpportunities.Where(o => o.TenantId == tid && !o.IsDeleted).ToListAsync();
+            var alerts = await _db.StockAlerts.CountAsync(a => a.TenantId == tid && !a.IsDeleted && a.Status == StockAlertStatus.Active);
+
+            return new ExecutiveReportViewModel
+            {
+                Operations = new ReportSummaryViewModel
+                {
+                    TotalRequests = requests.Count, CompletedRequests = requests.Count(r => r.Status == OperationStatus.Completed),
+                    RejectedRequests = requests.Count(r => r.Status == OperationStatus.Rejected),
+                    PendingRequests = requests.Count(r => r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview)
+                },
+                Finance = new FinanceReportViewModel
+                {
+                    TotalBudget = budgets.Sum(b => b.PlannedAmount), TotalExpense = expenses.Sum(e => e.Amount),
+                    PendingPaymentCount = await _db.PaymentRequests.CountAsync(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted),
+                    PendingPaymentAmount = await _db.PaymentRequests.Where(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted).SumAsync(p => p.TotalAmount)
+                },
+                Hr = new HrReportViewModel
+                {
+                    TotalEmployees = users.Count, ActiveEmployees = users.Count(u => u.Status == UserStatus.Active),
+                    TotalDepartments = await _db.OrganizationUnits.CountAsync(o => o.TenantId == tid && o.IsActive && !o.IsDeleted)
+                },
+                KpiOkr = new KpiOkrReportViewModel
+                {
+                    TotalOkr = okrs.Count, ActiveOkr = okrs.Count(o => o.Status == OkrStatus.Active),
+                    CompletedOkr = okrs.Count(o => o.Status == OkrStatus.Completed),
+                    TotalKpi = kpis.Count, ActiveKpi = kpis.Count(k => k.Status == KpiStatus.Active),
+                    AvgOkrProgress = okrs.Any() ? Math.Round(okrs.Average(o => o.KeyResults.Any() ? o.KeyResults.Average(kr => kr.Progress) : 0), 1) : 0
+                },
+                Inventory = new InventoryReportViewModel
+                {
+                    TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted && p.Type == "Product"),
+                    ActiveAlertCount = alerts,
+                    TotalReceipts = await _db.GoodsReceipts.CountAsync(r => r.TenantId == tid && !r.IsDeleted),
+                    TotalIssues = await _db.GoodsIssues.CountAsync(i => i.TenantId == tid && !i.IsDeleted)
+                },
+                CashFlow = new CashFlowReportViewModel
+                {
+                    TotalIncome = cashTxns.Where(t => t.TransactionType == "Income").Sum(t => t.Amount),
+                    TotalExpense = cashTxns.Where(t => t.TransactionType == "Expense").Sum(t => t.Amount),
+                    TotalTransactions = cashTxns.Count
+                },
+                TotalCustomers = await _db.Customers.CountAsync(c => c.TenantId == tid && c.IsActive && !c.IsDeleted),
+                TotalVendors = await _db.Vendors.CountAsync(v => v.TenantId == tid && v.IsActive && !v.IsDeleted),
+                TotalProducts = await _db.ProductServices.CountAsync(p => p.TenantId == tid && p.IsActive && !p.IsDeleted),
+                TotalOpportunities = opps.Count,
+                OpportunityPipelineValue = opps.Where(o => o.Stage != "ClosedWon" && o.Stage != "ClosedLost").Sum(o => o.EstimatedValue)
+            };
+        });
+        return View(vm);
+    }
+
     [HttpGet]
     public async Task<IActionResult> Export(DateOnly? from, DateOnly? to)
     {
@@ -1269,10 +1301,13 @@ public class ReportsController : Controller
         var fromDate = from ?? DateOnly.FromDateTime(DateTime.Today.AddDays(-30));
         var toDate = to ?? DateOnly.FromDateTime(DateTime.Today);
 
+        var fromDateTime = new DateTimeOffset(fromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var toDateTime = new DateTimeOffset(toDate.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+
         var requests = await _db.OperationRequests
             .Where(r => r.TenantId == tid && !r.IsDeleted &&
-                r.CreatedAt.Date >= fromDate.ToDateTime(TimeOnly.MinValue) &&
-                r.CreatedAt.Date <= toDate.ToDateTime(TimeOnly.MaxValue))
+                r.CreatedAt >= fromDateTime &&
+                r.CreatedAt <= toDateTime)
             .Join(_db.AppUsers, r => r.RequestedByUserId, u => u.Id, (r, u) => new { r, CreatedBy = u.FullName })
             .Join(_db.OrganizationUnits, x => x.r.OrganizationUnitId, o => o.Id, (x, o) => new
             {
@@ -1289,7 +1324,6 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoVanHanh_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.csv");
     }
 
-    // ── Export Cash Flow ──────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> ExportCashFlow(DateOnly? from, DateOnly? to)
     {
@@ -1309,7 +1343,6 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoThuChi_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}.csv");
     }
 
-    // ── Export Finance ────────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> ExportFinance()
     {
@@ -1324,7 +1357,6 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoTaiChinh_{year}.csv");
     }
 
-    // ── Export HR ─────────────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> ExportHr()
     {
@@ -1339,7 +1371,6 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoNhanSu_{DateTime.Today:yyyyMMdd}.csv");
     }
 
-    // ── Export KPI/OKR ───────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> ExportKpiOkr()
     {
@@ -1363,7 +1394,6 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoKPI_OKR_{DateTime.Today:yyyyMMdd}.csv");
     }
 
-    // ── Export Inventory ─────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> ExportInventory()
     {
@@ -1373,10 +1403,10 @@ public class ReportsController : Controller
 
         var productIds = products.Select(p => p.Id).ToList();
         var receivedMap = await _db.GoodsReceiptLines
-            .Where(l => productIds.Contains(l.ProductServiceId!.Value) && !l.IsDeleted && l.GoodsReceipt!.TenantId == tid && l.GoodsReceipt.Status == GoodsReceiptStatus.Confirmed)
+            .Where(l => l.ProductServiceId.HasValue && productIds.Contains(l.ProductServiceId.Value) && !l.IsDeleted && l.GoodsReceipt!.TenantId == tid && l.GoodsReceipt.Status == GoodsReceiptStatus.Confirmed)
             .GroupBy(l => l.ProductServiceId).Select(g => new { PId = g.Key, T = g.Sum(l => l.ReceivedQuantity - (l.RejectedQuantity ?? 0)) }).ToListAsync();
         var issuedMap = await _db.GoodsIssueLines
-            .Where(l => productIds.Contains(l.ProductServiceId!.Value) && !l.IsDeleted && l.GoodsIssue!.TenantId == tid && l.GoodsIssue.Status == GoodsIssueStatus.Confirmed)
+            .Where(l => l.ProductServiceId.HasValue && productIds.Contains(l.ProductServiceId.Value) && !l.IsDeleted && l.GoodsIssue!.TenantId == tid && l.GoodsIssue.Status == GoodsIssueStatus.Confirmed)
             .GroupBy(l => l.ProductServiceId).Select(g => new { PId = g.Key, T = g.Sum(l => l.IssuedQuantity) }).ToListAsync();
 
         var csv = new System.Text.StringBuilder();
@@ -1392,12 +1422,10 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoTonKho_{DateTime.Today:yyyyMMdd}.csv");
     }
 
-    // ── Export CRM ───────────────────────────────────────────────────────────
     [HttpGet]
     public async Task<IActionResult> ExportCrm()
     {
         var tid = _tenant.TenantId;
-        // Customers
         var csv = new System.Text.StringBuilder();
         var customers = await _db.Customers.Where(c => c.TenantId == tid && !c.IsDeleted).OrderBy(c => c.Code).ToListAsync();
         csv.AppendLine("=== KHÁCH HÀNG ===");
@@ -1405,7 +1433,6 @@ public class ReportsController : Controller
         foreach (var c in customers)
             csv.AppendLine($"\"{c.Code}\",\"{c.Name}\",\"{c.TaxCode}\",\"{c.Industry}\",\"{(c.IsActive ? "Hoạt động" : "Ngừng")}\"");
 
-        // Opportunities
         csv.AppendLine();
         var opps = await _db.SalesOpportunities.Include(o => o.Customer).Where(o => o.TenantId == tid && !o.IsDeleted).OrderByDescending(o => o.CreatedAt).ToListAsync();
         csv.AppendLine("=== CƠ HỘI BÁN HÀNG ===");
@@ -1417,7 +1444,19 @@ public class ReportsController : Controller
         return File(bytes, "text/csv", $"BaoCaoCRM_{DateTime.Today:yyyyMMdd}.csv");
     }
 
-    // ── Export Center ────────────────────────────────────────────────────────
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearCache(string? returnUrl)
+    {
+        await _cache.InvalidateTenantCacheAsync();
+        TempData["SuccessMessage"] = "Đã làm mới dữ liệu báo cáo thành công!";
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+        return RedirectToAction(nameof(Dashboard));
+    }
+
     public IActionResult ExportCenter() => View();
 }
 

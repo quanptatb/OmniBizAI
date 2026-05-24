@@ -98,7 +98,7 @@ public class DashboardService(ApplicationDbContext db, ITenantContext tenant)
 }
 
 // ─── OperationRequest ────────────────────────────────────────────────────────
-public class OperationRequestService(ApplicationDbContext db, ITenantContext tenant)
+public class OperationRequestService(ApplicationDbContext db, ITenantContext tenant, IReportCacheService cache)
 {
     public async Task<OperationRequestListViewModel> GetListAsync(string? search, string? status, string? priority, Guid? deptId, int page = 1)
     {
@@ -215,6 +215,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         db.OperationRequests.Add(entity);
         db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "OperationRequest", EntityId = entity.Id, NewValuesJson = $"{{\"RequestNo\":\"{entity.RequestNo}\",\"Title\":\"{entity.Title}\"}}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
         return entity.Id;
     }
 
@@ -249,7 +250,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (r.Status == OperationStatus.Rejected) r.Status = OperationStatus.Draft;
 
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Update", EntityName = "OperationRequest", EntityId = r.Id, OldValuesJson = $"{{\"Title\":\"{oldTitle}\"}}", NewValuesJson = $"{{\"Title\":\"{r.Title}\",\"Priority\":\"{r.Priority}\"}}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<bool> SubmitAsync(Guid id)
@@ -259,7 +262,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         r.Status = OperationStatus.Submitted; r.UpdatedAt = DateTimeOffset.UtcNow;
         db.ApprovalTasks.Add(new ApprovalTask { TenantId = tenant.TenantId, TargetType = "OperationRequest", TargetId = id, StepCode = "DEPARTMENT_REVIEW", AssignedRole = "DEPARTMENT_MANAGER", Status = ApprovalStatus.Pending, CreatedAt = DateTimeOffset.UtcNow });
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Submit", EntityName = "OperationRequest", EntityId = id, OldValuesJson = "{\"Status\":\"Draft\"}", NewValuesJson = "{\"Status\":\"Submitted\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<bool> CancelAsync(Guid id)
@@ -268,7 +273,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (r is null || r.TenantId != tenant.TenantId || r.Status is not (OperationStatus.Draft or OperationStatus.Submitted)) return false;
         r.Status = OperationStatus.Cancelled; r.UpdatedAt = DateTimeOffset.UtcNow;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Cancel", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"Cancelled\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -277,7 +284,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (r is null || r.TenantId != tenant.TenantId) return false;
         r.IsDeleted = true; r.UpdatedAt = DateTimeOffset.UtcNow;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "OperationRequest", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<OperationRequestCreateViewModel> GetCreateFormAsync()
@@ -298,7 +307,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.Approved) return false;
         r.Status = OperationStatus.InProgress; r.UpdatedAt = DateTimeOffset.UtcNow;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "StartWork", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"InProgress\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<bool> CompleteAsync(Guid id)
@@ -307,7 +318,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.InProgress) return false;
         r.Status = OperationStatus.Completed; r.UpdatedAt = DateTimeOffset.UtcNow;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Complete", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"Completed\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<Guid> AddLineAsync(Guid requestId, OrderLineInputViewModel input)
@@ -328,6 +341,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             r.TotalAmount = existingTotal + (line.LineAmount ?? 0);
         }
         await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
         return line.Id;
     }
 
@@ -342,7 +356,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         {
             r.TotalAmount = await db.Set<OperationRequestLine>().Where(l => l.OperationRequestId == line.OperationRequestId && !l.IsDeleted && l.Id != lineId).SumAsync(l => l.LineAmount ?? 0);
         }
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<OperationStatisticsViewModel> GetStatisticsAsync()
@@ -457,6 +473,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         db.Set<OperationComment>().Add(comment);
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "AddComment", EntityName = "OperationRequest", EntityId = requestId, NewValuesJson = $"{{\"Comment\":\"{content.Trim()}\"}}", CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
         return true;
     }
 
@@ -468,7 +485,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Hold", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"OnHold\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<bool> ResumeAsync(Guid id)
@@ -479,7 +498,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Resume", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"InProgress\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 
     public async Task<bool> ReopenAsync(Guid id)
@@ -490,7 +511,9 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Reopen", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"InProgress\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(); return true;
+        await db.SaveChangesAsync();
+        await cache.InvalidateTenantCacheAsync();
+        return true;
     }
 }
 
@@ -1784,7 +1807,7 @@ public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, Ge
             await db.KpiDefinitions.CountAsync(k => k.TenantId == tid && !k.IsDeleted),
             await db.OkrObjectives.CountAsync(o => o.TenantId == tid && !o.IsDeleted),
             await db.OkrKeyResults.CountAsync(k => k.TenantId == tid && !k.IsDeleted),
-            await db.OkrKeyResults.Where(k => k.TenantId == tid && !k.IsDeleted && k.TargetValue > 0).Select(k => (double)(k.CurrentValue / k.TargetValue * 100)).DefaultIfEmpty(0).AverageAsync(),
+            await db.OkrKeyResults.Where(k => k.TenantId == tid && !k.IsDeleted && k.TargetValue > 0).Select(k => (double)(k.IsInverse ? (k.TargetValue - k.CurrentValue) / k.TargetValue * 100 : k.CurrentValue / k.TargetValue * 100)).DefaultIfEmpty(0).AverageAsync(),
             await db.PaymentRequests.CountAsync(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted),
             await db.PaymentRequests.Where(p => p.TenantId == tid && !p.IsDeleted && p.Status == PaymentStatus.Submitted).SumAsync(p => p.TotalAmount),
             // Inventory
@@ -1922,7 +1945,7 @@ public class AnomalyDetectionService(ApplicationDbContext db, ITenantContext ten
         if (procPending > 5) alerts.Add(new() { Id = $"PROC-{++idx}", Module = "Operations", Severity = procPending > 10 ? "Warning" : "Info", Title = $"{procPending} đề xuất mua sắm tồn đọng", Description = "Đề xuất mua sắm chờ lâu có thể trì hoãn dự án.", Icon = "fa-cart-shopping", MetricValue = procPending.ToString(), ThresholdValue = "5", ActionUrl = "/Procurement" });
 
         // ── KPI/OKR ───────────────────────────────────────
-        var okrAvg = await db.OkrKeyResults.Where(k => k.TenantId == tid && !k.IsDeleted && k.TargetValue > 0).Select(k => (double)(k.CurrentValue / k.TargetValue * 100)).DefaultIfEmpty(0).AverageAsync();
+        var okrAvg = await db.OkrKeyResults.Where(k => k.TenantId == tid && !k.IsDeleted && k.TargetValue > 0).Select(k => (double)(k.IsInverse ? (k.TargetValue - k.CurrentValue) / k.TargetValue * 100 : k.CurrentValue / k.TargetValue * 100)).DefaultIfEmpty(0).AverageAsync();
         var okrCount = await db.OkrKeyResults.CountAsync(k => k.TenantId == tid && !k.IsDeleted);
         if (okrCount > 0 && okrAvg < 25) alerts.Add(new() { Id = $"KPI-{++idx}", Module = "KPI", Severity = okrAvg < 10 ? "Critical" : "Warning", Title = $"OKR tiến độ thấp: {okrAvg:F0}%", Description = $"Tiến độ trung bình {okrAvg:F0}% trên {okrCount} kết quả then chốt. Cần hành động.", Icon = "fa-bullseye", MetricValue = $"{okrAvg:F0}%", ThresholdValue = "25%", ActionUrl = "/Reports/KpiOkr" });
 
