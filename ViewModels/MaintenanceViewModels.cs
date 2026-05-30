@@ -2,18 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OmniBizAI.ViewModels;
 
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
-public class MaintenanceDashboardViewModel
-{
-    public int OpenIncidentCount { get; set; }
-    public int CriticalIncidentCount { get; set; }
-    public int OverduePmCount { get; set; }
-    public int DueSoonPmCount { get; set; }
-    public int LowStockPartCount { get; set; }
-    public int SensorWarningCount { get; set; }
-    public List<IncidentSummaryItem> RecentIncidents { get; set; } = new();
-    public List<PmScheduleSummaryItem> UpcomingPmTasks { get; set; } = new();
-}
+
 
 // ─── INCIDENTS (CM) ───────────────────────────────────────────────────────────
 public class IncidentSummaryItem

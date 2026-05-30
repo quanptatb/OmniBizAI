@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using OmniBizAI.Data;
+using OmniBizAI.Models.Entities.Enums;
 using OmniBizAI.Services;
 using OmniBizAI.ViewModels;
 
@@ -9,20 +13,58 @@ namespace OmniBizAI.Controllers;
 public class ResourceManagementController : Controller
 {
     private readonly ResourceManagementService _service;
+    private readonly ApplicationDbContext _db;
+    private readonly ITenantContext _tenant;
 
-    public ResourceManagementController(ResourceManagementService service)
+    public ResourceManagementController(ResourceManagementService service, ApplicationDbContext db, ITenantContext tenant)
     {
         _service = service;
+        _db = db;
+        _tenant = tenant;
     }
 
-    // ─── DASHBOARD ──────────────────────────────────────────────────────────
+    // ─── DASHBOARD (Theirs) ──────────────────────────────────────────────────
     public async Task<IActionResult> Index()
     {
-        var vm = await _service.GetDashboardAsync();
+        var tid = _tenant.TenantId;
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var vm = new ResourceManagementDashboardViewModel
+        {
+            Human = new HumanResourceOverviewViewModel
+            {
+                TotalEmployees = await _db.EmployeeProfiles.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
+                OnLeaveToday = await _db.LeaveRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Status == LeaveStatus.Approved && x.StartDate <= today && x.EndDate >= today),
+                PendingLeaves = await _db.LeaveRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Status == LeaveStatus.Submitted),
+                AvgPerformanceScore = await _db.EvaluationResults.Where(x => x.TenantId == tid && !x.IsDeleted).Select(x => x.TotalScore).AverageAsync() ?? 0
+            },
+            Equipment = new EquipmentResourceOverviewViewModel
+            {
+                TotalMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance"),
+                ActiveMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance" && (x.Status == OperationStatus.Submitted || x.Status == OperationStatus.InProgress)),
+                CompletedMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance" && x.Status == OperationStatus.Completed),
+                OverdueMaintenanceRequests = await _db.OperationRequests.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Type == "Maintenance" && x.DueDate.HasValue && x.DueDate < today && x.Status != OperationStatus.Completed)
+            },
+            Inventory = new InventoryResourceOverviewViewModel
+            {
+                TotalProducts = await _db.ProductServices.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
+                ActiveStockAlerts = await _db.StockAlerts.CountAsync(x => x.TenantId == tid && !x.IsDeleted && x.Status == StockAlertStatus.Active),
+                GoodsReceiptCount = await _db.GoodsReceipts.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
+                GoodsIssueCount = await _db.GoodsIssues.CountAsync(x => x.TenantId == tid && !x.IsDeleted)
+            },
+            Infrastructure = new InfrastructureResourceOverviewViewModel
+            {
+                TotalDepartments = await _db.OrganizationUnits.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
+                TotalPositions = await _db.Positions.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
+                TotalWorkCalendars = await _db.WorkCalendars.CountAsync(x => x.TenantId == tid && !x.IsDeleted),
+                TotalCustomerSites = await _db.CustomerSites.CountAsync(x => x.TenantId == tid && !x.IsDeleted)
+            }
+        };
+
         return View(vm);
     }
 
-    // ─── EQUIPMENT ──────────────────────────────────────────────────────────
+    // ─── EQUIPMENT (Ours) ────────────────────────────────────────────────────
     public async Task<IActionResult> Equipments(string? search, string? status, string? type)
     {
         var items = await _service.GetEquipmentsAsync(search, status, type);
@@ -87,7 +129,7 @@ public class ResourceManagementController : Controller
         return RedirectToAction(nameof(Equipments));
     }
 
-    // ─── WORK SHIFTS ────────────────────────────────────────────────────────
+    // ─── WORK SHIFTS (Ours) ──────────────────────────────────────────────────
     public async Task<IActionResult> WorkShifts()
     {
         var shifts = await _service.GetShiftsAsync();
@@ -128,7 +170,7 @@ public class ResourceManagementController : Controller
         return RedirectToAction(nameof(ShiftSchedule), new { date = vm.WorkDate.ToString("yyyy-MM-dd") });
     }
 
-    // ─── CERTIFICATES ────────────────────────────────────────────────────────
+    // ─── CERTIFICATES (Ours) ──────────────────────────────────────────────────
     public async Task<IActionResult> Certificates(string? search, string? category, bool? expiredOnly)
     {
         var items = await _service.GetCertificatesAsync(search, category, expiredOnly);
@@ -160,7 +202,7 @@ public class ResourceManagementController : Controller
         return RedirectToAction(nameof(Certificates));
     }
 
-    // ─── WORKSPACES ──────────────────────────────────────────────────────────
+    // ─── WORKSPACES (Ours) ────────────────────────────────────────────────────
     public async Task<IActionResult> Workspaces(string? search, string? type)
     {
         var items = await _service.GetWorkspacesAsync(search, type);

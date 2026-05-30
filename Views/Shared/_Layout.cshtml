@@ -63,7 +63,7 @@
                 </a>
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "ResourceManagement" ? "active" : "")"
                    asp-controller="ResourceManagement" asp-action="Index">
-                    <i class="fa-solid fa-layer-group"></i>
+                    <i class="fa-solid fa-industry"></i>
                     <span>Quản lý tài nguyên</span>
                 </a>
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Maintenance" ? "active" : "")"
@@ -74,8 +74,14 @@
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OrderManagement" ? "active" : "")"
                    asp-controller="OrderManagement" asp-action="Index">
                     <i class="fa-solid fa-boxes-packing"></i>
+                    <span>Quản lý đơn hàng</span>
+                </a>
+                <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OrderProcess" ? "active" : "")"
+                   asp-controller="OrderProcess" asp-action="Index">
+                    <i class="fa-solid fa-box-open"></i>
                     <span>Đơn hàng & Quy trình</span>
                 </a>
+
 
                 @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
                 {
