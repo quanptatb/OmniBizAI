@@ -50,6 +50,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
 
     // Operations & Work
     public DbSet<OperationRequest> OperationRequests => Set<OperationRequest>();
+    public DbSet<OperationSlaConfig> OperationSlaConfigs => Set<OperationSlaConfig>();
     public DbSet<OperationRequestLine> OperationRequestLines => Set<OperationRequestLine>();
     public DbSet<OperationComment> OperationComments => Set<OperationComment>();
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
@@ -148,6 +149,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<PmSchedule> PmSchedules => Set<PmSchedule>();
     public DbSet<MaintenanceIncident> MaintenanceIncidents => Set<MaintenanceIncident>();
     public DbSet<EquipmentSensorReading> EquipmentSensorReadings => Set<EquipmentSensorReading>();
+    public DbSet<EquipmentAvailabilityLog> EquipmentAvailabilityLogs => Set<EquipmentAvailabilityLog>();
+    public DbSet<ProductionRun> ProductionRuns => Set<ProductionRun>();
+    public DbSet<QualityResult> QualityResults => Set<QualityResult>();
+    public DbSet<DowntimeEvent> DowntimeEvents => Set<DowntimeEvent>();
 
     // Order & Process Management
     public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();

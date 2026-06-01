@@ -44,4 +44,7 @@ public class OperationRequest : TenantEntity
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
     public ICollection<AiInsight> AiInsights { get; set; } = new List<AiInsight>();
     public ICollection<OperationComment> Comments { get; set; } = new List<OperationComment>();
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 }
