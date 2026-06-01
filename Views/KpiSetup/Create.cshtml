@@ -1,141 +1,841 @@
 @model OmniBizAI.ViewModels.KpiCreateViewModel
-@{ ViewData["Title"] = "Tạo KPI mới"; }
+@{
+    ViewData["Title"] = "Tạo KPI mới";
+    ViewData["Breadcrumb"] = "<a href='/KpiSetup' style='color:var(--apple-blue);text-decoration:none'>KPI</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+}
+
+@section Styles {
+<style>
+    .kpi-create-hero {
+        background:
+            radial-gradient(circle at top right, rgba(0,113,227,.12), transparent 34%),
+            linear-gradient(135deg, rgba(255,255,255,.98), rgba(245,245,247,.96));
+    }
+    .kpi-create-hero p {
+        max-width: 780px;
+        color: var(--text-secondary);
+        margin: 10px 0 0;
+    }
+    .kpi-mini-metric {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: rgba(255,255,255,.82);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow-card);
+        height: 100%;
+    }
+    .kpi-mini-metric i {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        flex-shrink: 0;
+    }
+    .kpi-mini-metric strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .kpi-mini-metric span {
+        display: block;
+        font-size: .74rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .kpi-section-note {
+        font-size: .8rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+    .kpi-selection-panel {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,250,252,.95));
+        overflow: hidden;
+        height: 100%;
+    }
+    .kpi-selection-head {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--divider);
+    }
+    .kpi-selection-head h6 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .92rem;
+        font-weight: 700;
+    }
+    .kpi-selection-head p {
+        margin: 6px 0 0;
+        font-size: .78rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+    }
+    .kpi-selection-body {
+        padding: 16px 18px 18px;
+    }
+    .kpi-helper-card {
+        border: 1px dashed rgba(0,113,227,.18);
+        border-radius: var(--r-lg);
+        padding: 14px 16px;
+        background: rgba(0,113,227,.035);
+    }
+    .kpi-helper-card strong {
+        display: block;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    .kpi-helper-card span {
+        font-size: .8rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+    .kpi-link-status {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        font-size: .8rem;
+        color: var(--text-secondary);
+    }
+    .kpi-link-status strong {
+        color: var(--text-primary);
+    }
+    .kpi-hint-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: .76rem;
+        font-weight: 700;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+    }
+    .kpi-hint-badge.warn {
+        background: rgba(255,159,10,.12);
+        color: #b86a00;
+    }
+    .kpi-threshold-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .kpi-frequency-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .kpi-frequency-chip {
+        border: 1px solid var(--divider);
+        background: var(--canvas);
+        color: var(--text-secondary);
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: .76rem;
+        font-weight: 600;
+        line-height: 1;
+        cursor: pointer;
+        transition: all var(--ease-fast);
+    }
+    .kpi-frequency-chip:hover,
+    .kpi-frequency-chip.is-active {
+        color: var(--apple-blue);
+        border-color: rgba(0,113,227,.14);
+        background: rgba(0,113,227,.05);
+    }
+    .kpi-summary-card {
+        position: sticky;
+        top: 72px;
+    }
+    .kpi-summary-block {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .kpi-summary-block:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .kpi-summary-label {
+        display: block;
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 8px;
+    }
+    .kpi-summary-value {
+        color: var(--text-primary);
+        font-size: .92rem;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+    .kpi-summary-kpis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .kpi-summary-kpi {
+        padding: 14px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.84);
+    }
+    .kpi-summary-kpi strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .kpi-summary-kpi span {
+        font-size: .73rem;
+        color: var(--text-muted);
+    }
+    .kpi-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .kpi-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: .76rem;
+        font-weight: 600;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+    }
+    .kpi-summary-empty {
+        color: var(--text-muted);
+        font-size: .82rem;
+        line-height: 1.5;
+    }
+    .kpi-schedule-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-size: .82rem;
+        line-height: 1.5;
+    }
+    .kpi-schedule-line i {
+        color: var(--apple-blue);
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    @@media (max-width: 991.98px) {
+        .kpi-summary-card {
+            position: static;
+        }
+        .kpi-summary-kpis {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .kpi-summary-kpis,
+        .kpi-threshold-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+</style>
+}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3"><i class="bi bi-plus-circle me-2"></i>Tạo KPI mới</h1>
-    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-chart-column me-2"></i>Tạo KPI mới</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Thiết lập chỉ tiêu hiệu suất từ dữ liệu sẵn có của phòng ban, OKR, key result và kỳ đánh giá trong hệ thống.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
 </div>
 
-<form asp-action="Create" method="post">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-transparent"><h5 class="mb-0">Thông tin KPI</h5></div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <label asp-for="Name" class="form-label">Tên KPI <span class="text-danger">*</span></label>
-                    <input asp-for="Name" class="form-control" placeholder="VD: Doanh thu bán hàng tháng" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+<form asp-action="Create" method="post" id="kpiCreateForm">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="content-card kpi-create-hero mb-4">
+                <div class="card-body-custom">
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>KPI mới sẽ được tạo ở trạng thái Draft và tự sinh mã khi lưu</span>
+                            <p>Điền thông tin chỉ tiêu, chọn phạm vi áp dụng từ dữ liệu sẵn có, sau đó liên kết với OKR hoặc Key Result nếu cần để hệ thống theo dõi tiến độ và check-in ngay sau khi kích hoạt.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="kpi-mini-metric">
+                                    <i class="fa-solid fa-building"></i>
+                                    <div>
+                                        <strong>@Model.Departments.Count</strong>
+                                        <span>Phòng ban khả dụng</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="kpi-mini-metric">
+                                    <i class="fa-solid fa-bullseye"></i>
+                                    <div>
+                                        <strong>@Model.OkrObjectives.Count</strong>
+                                        <span>OKR đang hoạt động</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="kpi-mini-metric">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                    <div>
+                                        <strong>@Model.Periods.Count</strong>
+                                        <span>Kỳ đánh giá mở</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
+                        }
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="Unit" class="form-label">Đơn vị đo <span class="text-danger">*</span></label>
-                    <input asp-for="Unit" class="form-control" placeholder="VNĐ, %, lượt, ..." />
-                    <span asp-validation-for="Unit" class="text-danger"></span>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-pen-ruler"></i> Thông tin KPI</h5>
+                        <div class="kpi-section-note">Định nghĩa tên, đơn vị đo và bản chất chỉ tiêu trước khi gắn vào phạm vi triển khai.</div>
+                    </div>
                 </div>
-                <div class="col-12">
-                    <label asp-for="Description" class="form-label">Mô tả</label>
-                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-lg-8">
+                            <label asp-for="Name" class="form-label">Tên KPI <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" id="kpiNameInput" placeholder="Ví dụ: Doanh thu thuần theo tháng từ khách hàng hiện hữu" />
+                            <span asp-validation-for="Name" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-lg-4">
+                            <label asp-for="Unit" class="form-label">Đơn vị đo <span class="text-danger">*</span></label>
+                            <input asp-for="Unit" class="form-control" id="unitInput" placeholder="VNĐ, %, lượt, giờ..." />
+                            <span asp-validation-for="Unit" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">Mô tả KPI</label>
+                            <textarea asp-for="Description" class="form-control" id="descriptionInput" rows="4" placeholder="Mô tả cách tính, nguồn dữ liệu hoặc bối cảnh áp dụng của KPI này."></textarea>
+                            <span asp-validation-for="Description" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="OwnerType" class="form-label">Loại áp dụng</label>
+                            <select asp-for="OwnerType" class="form-select" id="ownerTypeInput">
+                                @foreach (var owner in EnumHelper.GetSelectList<KpiOwnerType>(Model.OwnerType.ToString()))
+                                {
+                                    <option value="@owner.Value" selected="@owner.Selected">@owner.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="MeasureType" class="form-label">Phương thức đo</label>
+                            <select asp-for="MeasureType" class="form-select" id="measureTypeInput">
+                                @foreach (var measure in EnumHelper.GetSelectList<KpiMeasureType>(Model.MeasureType.ToString()))
+                                {
+                                    <option value="@measure.Value" selected="@measure.Selected">@measure.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="PropertyType" class="form-label">Tính chất</label>
+                            <select asp-for="PropertyType" class="form-select" id="propertyTypeInput">
+                                @foreach (var property in EnumHelper.GetSelectList<KpiPropertyType>(Model.PropertyType.ToString()))
+                                {
+                                    <option value="@property.Value" selected="@property.Selected">@property.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="PeriodType" class="form-label">Tần suất</label>
+                            <select asp-for="PeriodType" class="form-select" id="periodTypeInput">
+                                @foreach (var periodType in EnumHelper.GetSelectList<KpiPeriodType>(Model.PeriodType.ToString()))
+                                {
+                                    <option value="@periodType.Value" selected="@periodType.Selected">@periodType.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="kpi-helper-card mt-4">
+                        <strong><i class="fa-solid fa-circle-info me-2" style="color:var(--apple-blue)"></i>Gợi ý sử dụng</strong>
+                        <span>KPI định lượng thường phù hợp với doanh thu, chi phí, năng suất; KPI định tính hoặc hành vi phù hợp với đánh giá chất lượng dịch vụ, tuân thủ hoặc trải nghiệm nội bộ.</span>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label asp-for="OwnerType" class="form-label">Loại</label>
-                    <select asp-for="OwnerType" class="form-select">
-                        @foreach (var o in EnumHelper.GetSelectList<KpiOwnerType>())
-                        { <option value="@o.Value">@o.Text</option> }
-                    </select>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-link"></i> Phạm vi và liên kết chiến lược</h5>
+                        <div class="kpi-section-note">Chọn phòng ban, OKR Objective, Key Result và kỳ đánh giá từ dữ liệu đang có trong hệ thống.</div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label asp-for="MeasureType" class="form-label">Phương thức đo</label>
-                    <select asp-for="MeasureType" class="form-select">
-                        @foreach (var m in EnumHelper.GetSelectList<KpiMeasureType>())
-                        { <option value="@m.Value">@m.Text</option> }
-                    </select>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="kpi-selection-panel">
+                                <div class="kpi-selection-head">
+                                    <h6><i class="fa-solid fa-building" style="color:var(--apple-blue)"></i> Phạm vi phòng ban</h6>
+                                    <p>Áp dụng khi KPI giao cho một đơn vị cụ thể hoặc cần thống kê theo bộ phận.</p>
+                                </div>
+                                <div class="kpi-selection-body">
+                                    <label asp-for="OrganizationUnitId" class="form-label">Phòng ban áp dụng</label>
+                                    <select asp-for="OrganizationUnitId" class="form-select" id="departmentInput">
+                                        <option value="">-- Không gắn phòng ban cụ thể --</option>
+                                        @foreach (var department in Model.Departments)
+                                        {
+                                            <option value="@department.Value">@department.Text</option>
+                                        }
+                                    </select>
+                                    <div class="kpi-link-status">
+                                        <span class="kpi-hint-badge"><i class="fa-solid fa-layer-group"></i>@Model.Departments.Count phòng ban</span>
+                                        <span>Phù hợp với KPI cấp <strong id="ownerTypeHint">Department</strong>.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="kpi-selection-panel">
+                                <div class="kpi-selection-head">
+                                    <h6><i class="fa-solid fa-calendar-check" style="color:var(--success)"></i> Kỳ đánh giá</h6>
+                                    <p>Liên kết KPI với một kỳ đang mở để điều phối check-in và đánh giá đúng chu kỳ.</p>
+                                </div>
+                                <div class="kpi-selection-body">
+                                    <label asp-for="EvaluationPeriodId" class="form-label">Kỳ đánh giá</label>
+                                    <select asp-for="EvaluationPeriodId" class="form-select" id="evaluationPeriodInput">
+                                        <option value="">-- Chưa gắn kỳ đánh giá --</option>
+                                        @foreach (var period in Model.Periods)
+                                        {
+                                            <option value="@period.Value">@period.Text</option>
+                                        }
+                                    </select>
+                                    <div class="kpi-link-status">
+                                        <span class="kpi-hint-badge"><i class="fa-solid fa-calendar-days"></i>@Model.Periods.Count kỳ mở</span>
+                                        <span>Dùng khi KPI cần gắn vào quy trình đánh giá chính thức.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="kpi-selection-panel">
+                                <div class="kpi-selection-head">
+                                    <h6><i class="fa-solid fa-bullseye" style="color:var(--warning)"></i> Liên kết OKR và Key Result</h6>
+                                    <p>Chọn OKR Objective trước, sau đó hệ thống sẽ lọc đúng các Key Result thuộc objective đó để tránh gắn sai chiến lược.</p>
+                                </div>
+                                <div class="kpi-selection-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label asp-for="OkrObjectiveId" class="form-label">OKR Objective</label>
+                                            <select asp-for="OkrObjectiveId" class="form-select" id="okrObjectiveSelect">
+                                                <option value="">-- Không liên kết OKR --</option>
+                                                @foreach (var objective in Model.OkrObjectives)
+                                                {
+                                                    <option value="@objective.Value">@objective.Text</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label asp-for="OkrKeyResultId" class="form-label">Key Result liên quan</label>
+                                            <select asp-for="OkrKeyResultId" class="form-select" id="okrKeyResultSelect" data-selected-value="@(Model.OkrKeyResultId?.ToString() ?? "")">
+                                                <option value="">-- Chọn Objective trước --</option>
+                                            </select>
+                                            <span asp-validation-for="OkrKeyResultId" class="text-danger" style="font-size:.78rem"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="kpi-link-status">
+                                        <span class="kpi-hint-badge warn" id="krStatusBadge"><i class="fa-solid fa-link-slash"></i>Chưa chọn Objective</span>
+                                        <span id="krHintText">Khi chọn Objective, danh sách Key Result khả dụng sẽ được tải tự động.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label asp-for="PropertyType" class="form-label">Tính chất</label>
-                    <select asp-for="PropertyType" class="form-select">
-                        @foreach (var p in EnumHelper.GetSelectList<KpiPropertyType>())
-                        { <option value="@p.Value">@p.Text</option> }
-                    </select>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-sliders"></i> Chỉ tiêu và lịch check-in</h5>
+                        <div class="kpi-section-note">Thiết lập mục tiêu, ngưỡng đánh giá và lịch nhắc để theo dõi tiến độ KPI sau khi kích hoạt.</div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label asp-for="PeriodType" class="form-label">Tần suất</label>
-                    <select asp-for="PeriodType" class="form-select">
-                        @foreach (var pt in EnumHelper.GetSelectList<KpiPeriodType>())
-                        { <option value="@pt.Value">@pt.Text</option> }
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="OrganizationUnitId" class="form-label">Phòng ban</label>
-                    <small class="text-muted d-block mb-1">Dùng khi KPI áp dụng cho đơn vị cụ thể</small>
-                    <select asp-for="OrganizationUnitId" class="form-select"><option value="">-- Chọn --</option>@foreach (var d in Model.Departments) { <option value="@d.Value">@d.Text</option> }</select>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="OkrObjectiveId" class="form-label">Gắn OKR</label>
-                    <small class="text-muted d-block mb-1">Bước 1: chọn Objective</small>
-                    <select asp-for="OkrObjectiveId" id="okrObjectiveSelect" class="form-select"><option value="">-- Không --</option>@foreach (var o in Model.OkrObjectives) { <option value="@o.Value">@o.Text</option> }</select>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="OkrKeyResultId" class="form-label">Key Result</label>
-                    <small id="krHint" class="text-muted d-block mb-1">Bước 2: chọn Key Result thuộc Objective</small>
-                    <select asp-for="OkrKeyResultId" id="okrKeyResultSelect" class="form-select" disabled><option value="">-- Chọn OKR trước --</option>@foreach (var kr in Model.OkrKeyResults) { <option value="@kr.Value">@kr.Text</option> }</select>
-                    <select asp-for="OkrKeyResultId" id="okrKeyResultSelect" class="form-select"><option value="">-- Chọn KR --</option>@foreach (var kr in Model.OkrKeyResults) { <option value="@kr.Value">@kr.Text</option> }</select>
-                    <span asp-validation-for="OkrKeyResultId" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="EvaluationPeriodId" class="form-label">Kỳ đánh giá</label>
-                    <select asp-for="EvaluationPeriodId" class="form-select"><option value="">-- Chọn --</option>@foreach (var p in Model.Periods) { <option value="@p.Value">@p.Text</option> }</select>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="TargetValue" class="form-label">Giá trị mục tiêu</label>
+                            <input asp-for="TargetValue" type="number" step="0.01" min="0" class="form-control" id="targetValueInput" placeholder="Ví dụ: 500000000" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="PassThreshold" class="form-label">Ngưỡng đạt</label>
+                            <input asp-for="PassThreshold" type="number" step="0.01" min="0" class="form-control" id="passThresholdInput" placeholder="Ví dụ: 450000000" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="FailThreshold" class="form-label">Ngưỡng không đạt</label>
+                            <input asp-for="FailThreshold" type="number" step="0.01" min="0" class="form-control" id="failThresholdInput" placeholder="Ví dụ: 300000000" />
+                        </div>
+                    </div>
+
+                    <div class="kpi-helper-card mt-4">
+                        <strong><i class="fa-solid fa-bullseye me-2" style="color:var(--warning)"></i>Gợi ý thiết lập ngưỡng</strong>
+                        <span>Ngưỡng đạt nên gần mục tiêu cam kết, còn ngưỡng không đạt nên phản ánh mức tối thiểu có thể chấp nhận được để phân loại tình trạng KPI chính xác hơn.</span>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label asp-for="CheckInFrequencyDays" class="form-label">Tần suất check-in (ngày)</label>
+                            <input asp-for="CheckInFrequencyDays" type="number" min="1" class="form-control" id="checkInFrequencyInput" placeholder="Ví dụ: 7" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DeadlineTime" class="form-label">Giờ deadline</label>
+                            <input asp-for="DeadlineTime" type="time" class="form-control" id="deadlineTimeInput" />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check form-switch pb-2">
+                                <input asp-for="ReminderEnabled" class="form-check-input" id="reminderEnabledInput" />
+                                <label asp-for="ReminderEnabled" class="form-check-label">Bật nhắc nhở tự động</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block">Tần suất gợi ý nhanh</label>
+                            <div class="kpi-frequency-chips">
+                                <button type="button" class="kpi-frequency-chip" data-frequency="7">Hàng tuần</button>
+                                <button type="button" class="kpi-frequency-chip" data-frequency="14">2 tuần</button>
+                                <button type="button" class="kpi-frequency-chip" data-frequency="30">Hàng tháng</button>
+                                <button type="button" class="kpi-frequency-chip" data-frequency="90">Theo quý</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label asp-for="PeriodStart" class="form-label">Ngày bắt đầu theo dõi</label>
+                            <input asp-for="PeriodStart" type="date" class="form-control" id="periodStartInput" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PeriodEnd" class="form-label">Ngày kết thúc theo dõi</label>
+                            <input asp-for="PeriodEnd" type="date" class="form-control" id="periodEndInput" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Target Settings -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-transparent"><h5 class="mb-0"><i class="bi bi-bullseye me-2"></i>Chỉ tiêu & Lịch check-in</h5></div>
-        <div class="card-body">
-            <div class="alert alert-light border mb-3 small">
-                <strong>Hướng dẫn nhanh:</strong> Điền thông tin cơ bản → chọn phạm vi giao KPI → liên kết OKR/KR (nếu có) → thiết lập chỉ tiêu.
-            </div>
-            <div class="row g-3">
-                <div class="col-md-3"><label asp-for="TargetValue" class="form-label">Giá trị mục tiêu</label><input asp-for="TargetValue" type="number" step="0.01" class="form-control" /></div>
-                <div class="col-md-3"><label asp-for="PassThreshold" class="form-label">Ngưỡng đạt</label><input asp-for="PassThreshold" type="number" step="0.01" class="form-control" /></div>
-                <div class="col-md-3"><label asp-for="FailThreshold" class="form-label">Ngưỡng không đạt</label><input asp-for="FailThreshold" type="number" step="0.01" class="form-control" /></div>
-                <div class="col-md-3"><label asp-for="CheckInFrequencyDays" class="form-label">Tần suất check-in (ngày)</label><input asp-for="CheckInFrequencyDays" type="number" class="form-control" placeholder="7" /></div>
-                <div class="col-md-3"><label asp-for="PeriodStart" class="form-label">Ngày bắt đầu</label><input asp-for="PeriodStart" type="date" class="form-control" /></div>
-                <div class="col-md-3"><label asp-for="PeriodEnd" class="form-label">Ngày kết thúc</label><input asp-for="PeriodEnd" type="date" class="form-control" /></div>
-                <div class="col-md-3"><label asp-for="DeadlineTime" class="form-label">Giờ deadline</label><input asp-for="DeadlineTime" type="time" class="form-control" /></div>
-                <div class="col-md-3 d-flex align-items-end"><div class="form-check"><input asp-for="ReminderEnabled" class="form-check-input" /><label asp-for="ReminderEnabled" class="form-check-label">Bật nhắc nhở</label></div></div>
+        <div class="col-lg-4">
+            <div class="kpi-summary-card">
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-eye"></i> Tóm tắt KPI đang cấu hình</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="kpi-summary-block pt-0">
+                            <span class="kpi-summary-label">Tên KPI</span>
+                            <div class="kpi-summary-value" id="summaryKpiName">Chưa nhập tên KPI</div>
+                        </div>
+
+                        <div class="kpi-summary-block">
+                            <span class="kpi-summary-label">Thiết lập cơ bản</span>
+                            <div class="kpi-chip-list">
+                                <span class="kpi-chip" id="summaryUnit">Đơn vị chưa chọn</span>
+                                <span class="kpi-chip" id="summaryOwnerType">Department</span>
+                                <span class="kpi-chip" id="summaryMeasureType">Quantitative</span>
+                                <span class="kpi-chip" id="summaryPeriodType">Monthly</span>
+                            </div>
+                        </div>
+
+                        <div class="kpi-summary-block">
+                            <span class="kpi-summary-label">Liên kết hiện tại</span>
+                            <div class="kpi-summary-kpis">
+                                <div class="kpi-summary-kpi">
+                                    <strong id="summaryDepartmentLinked">0</strong>
+                                    <span>Phòng ban</span>
+                                </div>
+                                <div class="kpi-summary-kpi">
+                                    <strong id="summaryOkrLinked">0</strong>
+                                    <span>Objective</span>
+                                </div>
+                                <div class="kpi-summary-kpi">
+                                    <strong id="summaryKrLinked">0</strong>
+                                    <span>Key Result</span>
+                                </div>
+                                <div class="kpi-summary-kpi">
+                                    <strong id="summaryPeriodLinked">0</strong>
+                                    <span>Kỳ đánh giá</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kpi-summary-block">
+                            <span class="kpi-summary-label">Chiến lược và phạm vi</span>
+                            <div id="summaryScope" class="kpi-summary-empty">Chưa gắn phòng ban, OKR hoặc kỳ đánh giá cụ thể.</div>
+                        </div>
+
+                        <div class="kpi-summary-block">
+                            <span class="kpi-summary-label">Lịch theo dõi</span>
+                            <div class="d-grid gap-2">
+                                <div class="kpi-schedule-line"><i class="fa-solid fa-bullseye"></i><span id="summaryTarget">Chưa thiết lập mục tiêu</span></div>
+                                <div class="kpi-schedule-line"><i class="fa-solid fa-clock"></i><span id="summaryCheckin">Chưa cấu hình check-in</span></div>
+                                <div class="kpi-schedule-line"><i class="fa-solid fa-calendar-range"></i><span id="summaryDateRange">Chưa chọn khoảng thời gian theo dõi</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-rocket"></i> Hoàn tất tạo KPI</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <p style="font-size:.84rem;color:var(--text-secondary);margin-top:0">
+                            KPI sẽ được lưu dưới dạng bản nháp, sẵn sàng để bạn rà soát hoặc kích hoạt ở bước tiếp theo.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-check me-1"></i>Tạo KPI
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">Hủy và quay lại</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>Tạo KPI</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
     </div>
 </form>
 
 @section Scripts {
-<script>
-document.getElementById('okrObjectiveSelect')?.addEventListener('change', async function() {
-    const objectiveId = this.value;
-    const krSelect = document.getElementById('okrKeyResultSelect');
-    const krHint = document.getElementById('krHint');
-    krSelect.innerHTML = '<option value="">-- Chọn KR --</option>';
-    krSelect.disabled = true;
-    if (!objectiveId) {
-        krSelect.innerHTML = '<option value="">-- Chọn OKR trước --</option>';
-        krHint.textContent = 'Bước 2: chọn Key Result thuộc Objective';
-        return;
-    }
-    const res = await fetch(`@Url.Action("KeyResults", "KpiSetup")?okrObjectiveId=${objectiveId}`);
-    const data = await res.json();
-    if (!data.length) {
-        krSelect.innerHTML = "<option value="">-- Objective chưa có KR --</option>";
-        krHint.textContent = "Objective này chưa có Key Result.";
-        return;
-    }
-    krSelect.disabled = false;
-    krHint.textContent = `Có ${data.length} KR khả dụng`;
-    krSelect.innerHTML = '<option value="">-- Chọn KR --</option>';
-    if (!objectiveId) return;
-    const res = await fetch(`@Url.Action("KeyResults", "KpiSetup")?okrObjectiveId=${objectiveId}`);
-    const data = await res.json();
-    for (const item of data) {
-        const opt = document.createElement('option');
-        opt.value = item.value;
-        opt.textContent = item.text;
-        krSelect.appendChild(opt);
-    }
-});
-</script>
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value || '';
+            return div.innerHTML;
+        }
+
+        function getSelectedText(selectId, fallback = '') {
+            const select = document.getElementById(selectId);
+            return select?.selectedOptions?.[0]?.text?.trim() || fallback;
+        }
+
+        function formatNumber(value) {
+            const num = Number(value);
+            if (!Number.isFinite(num) || num <= 0) return '';
+            return new Intl.NumberFormat('vi-VN').format(num);
+        }
+
+        function formatDateRange(startValue, endValue) {
+            if (!startValue && !endValue) return 'Chưa chọn khoảng thời gian theo dõi';
+            if (startValue && endValue) return `${startValue} -> ${endValue}`;
+            return startValue ? `Bắt đầu từ ${startValue}` : `Đến ${endValue}`;
+        }
+
+        function updateOwnerTypeHint() {
+            const ownerTypeText = getSelectedText('ownerTypeInput', 'Department');
+            const ownerHint = document.getElementById('ownerTypeHint');
+            if (ownerHint) ownerHint.textContent = ownerTypeText;
+        }
+
+        function updateFrequencyChips() {
+            const currentValue = document.getElementById('checkInFrequencyInput')?.value || '';
+            document.querySelectorAll('[data-frequency]').forEach(chip => {
+                chip.classList.toggle('is-active', chip.dataset.frequency === currentValue);
+            });
+        }
+
+        function updateSummary() {
+            const kpiName = (document.getElementById('kpiNameInput')?.value || '').trim();
+            const unit = (document.getElementById('unitInput')?.value || '').trim();
+            const departmentText = getSelectedText('departmentInput', '');
+            const objectiveText = getSelectedText('okrObjectiveSelect', '');
+            const krText = getSelectedText('okrKeyResultSelect', '');
+            const periodText = getSelectedText('evaluationPeriodInput', '');
+            const ownerTypeText = getSelectedText('ownerTypeInput', 'Department');
+            const measureTypeText = getSelectedText('measureTypeInput', 'Quantitative');
+            const periodTypeText = getSelectedText('periodTypeInput', 'Monthly');
+
+            document.getElementById('summaryKpiName').textContent = kpiName || 'Chưa nhập tên KPI';
+            document.getElementById('summaryUnit').textContent = unit ? `Đơn vị: ${unit}` : 'Đơn vị chưa chọn';
+            document.getElementById('summaryOwnerType').textContent = ownerTypeText;
+            document.getElementById('summaryMeasureType').textContent = measureTypeText;
+            document.getElementById('summaryPeriodType').textContent = periodTypeText;
+
+            document.getElementById('summaryDepartmentLinked').textContent = departmentText ? '1' : '0';
+            document.getElementById('summaryOkrLinked').textContent = objectiveText && !objectiveText.startsWith('--') ? '1' : '0';
+            document.getElementById('summaryKrLinked').textContent = krText && !krText.startsWith('--') ? '1' : '0';
+            document.getElementById('summaryPeriodLinked').textContent = periodText && !periodText.startsWith('--') ? '1' : '0';
+
+            const scopeParts = [];
+            if (departmentText && !departmentText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-building"></i>${escapeHtml(departmentText)}</span>`);
+            if (objectiveText && !objectiveText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-bullseye"></i>${escapeHtml(objectiveText)}</span>`);
+            if (krText && !krText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-key"></i>${escapeHtml(krText)}</span>`);
+            if (periodText && !periodText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-calendar-days"></i>${escapeHtml(periodText)}</span>`);
+
+            document.getElementById('summaryScope').innerHTML = scopeParts.length
+                ? `<div class="kpi-chip-list">${scopeParts.join('')}</div>`
+                : `<div class="kpi-summary-empty">Chưa gắn phòng ban, OKR hoặc kỳ đánh giá cụ thể.</div>`;
+
+            const target = document.getElementById('targetValueInput')?.value || '';
+            const pass = document.getElementById('passThresholdInput')?.value || '';
+            const fail = document.getElementById('failThresholdInput')?.value || '';
+            const unitSuffix = unit ? ` ${unit}` : '';
+
+            let targetSummary = 'Chưa thiết lập mục tiêu';
+            if (target) {
+                targetSummary = `Mục tiêu ${formatNumber(target)}${unitSuffix}`;
+                if (pass) targetSummary += `, đạt từ ${formatNumber(pass)}${unitSuffix}`;
+                if (fail) targetSummary += `, dưới ${formatNumber(fail)}${unitSuffix} là không đạt`;
+            }
+            document.getElementById('summaryTarget').textContent = targetSummary;
+
+            const frequency = document.getElementById('checkInFrequencyInput')?.value || '';
+            const deadline = document.getElementById('deadlineTimeInput')?.value || '';
+            const reminder = document.getElementById('reminderEnabledInput')?.checked;
+            let checkInSummary = 'Chưa cấu hình check-in';
+            if (frequency) {
+                checkInSummary = `Check-in mỗi ${frequency} ngày`;
+                if (deadline) checkInSummary += `, hạn ${deadline}`;
+                if (reminder) checkInSummary += ', có nhắc nhở';
+            } else if (deadline) {
+                checkInSummary = `Deadline mỗi lần check-in lúc ${deadline}`;
+            }
+            document.getElementById('summaryCheckin').textContent = checkInSummary;
+
+            const startDate = document.getElementById('periodStartInput')?.value || '';
+            const endDate = document.getElementById('periodEndInput')?.value || '';
+            document.getElementById('summaryDateRange').textContent = formatDateRange(startDate, endDate);
+
+            updateOwnerTypeHint();
+            updateFrequencyChips();
+        }
+
+        async function loadKeyResults(objectiveId, selectedValue = '') {
+            const krSelect = document.getElementById('okrKeyResultSelect');
+            const badge = document.getElementById('krStatusBadge');
+            const hint = document.getElementById('krHintText');
+
+            if (!krSelect || !badge || !hint) return;
+
+            krSelect.innerHTML = '<option value="">-- Chọn Objective trước --</option>';
+            krSelect.disabled = true;
+
+            if (!objectiveId) {
+                badge.className = 'kpi-hint-badge warn';
+                badge.innerHTML = '<i class="fa-solid fa-link-slash"></i>Chưa chọn Objective';
+                hint.textContent = 'Khi chọn Objective, danh sách Key Result khả dụng sẽ được tải tự động.';
+                updateSummary();
+                return;
+            }
+
+            badge.className = 'kpi-hint-badge';
+            badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>Đang tải KR';
+            hint.textContent = 'Đang nạp các Key Result thuộc Objective đã chọn...';
+
+            try {
+                const response = await fetch(`@Url.Action("KeyResults", "KpiSetup")?okrObjectiveId=${objectiveId}`);
+                const items = await response.json();
+
+                krSelect.innerHTML = '<option value="">-- Không gắn Key Result cụ thể --</option>';
+
+                if (!items.length) {
+                    krSelect.disabled = true;
+                    badge.className = 'kpi-hint-badge warn';
+                    badge.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>Chưa có KR';
+                    hint.textContent = 'Objective này chưa có Key Result để liên kết.';
+                    updateSummary();
+                    return;
+                }
+
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.value;
+                    option.textContent = item.text;
+                    if (selectedValue && item.value.toLowerCase() === selectedValue.toLowerCase()) {
+                        option.selected = true;
+                    }
+                    krSelect.appendChild(option);
+                });
+
+                krSelect.disabled = false;
+                badge.className = 'kpi-hint-badge';
+                badge.innerHTML = `<i class="fa-solid fa-check"></i>${items.length} KR khả dụng`;
+                hint.textContent = 'Chỉ các Key Result thuộc Objective đã chọn mới xuất hiện để tránh liên kết sai.';
+                updateSummary();
+            } catch {
+                krSelect.innerHTML = '<option value="">-- Không tải được KR --</option>';
+                badge.className = 'kpi-hint-badge warn';
+                badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>Lỗi tải KR';
+                hint.textContent = 'Không tải được danh sách Key Result. Vui lòng thử lại.';
+                updateSummary();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const objectiveSelect = document.getElementById('okrObjectiveSelect');
+            const krSelect = document.getElementById('okrKeyResultSelect');
+            const frequencyInput = document.getElementById('checkInFrequencyInput');
+            const periodTypeInput = document.getElementById('periodTypeInput');
+
+            document.querySelectorAll('#kpiNameInput, #unitInput, #descriptionInput, #departmentInput, #ownerTypeInput, #measureTypeInput, #propertyTypeInput, #periodTypeInput, #evaluationPeriodInput, #targetValueInput, #passThresholdInput, #failThresholdInput, #checkInFrequencyInput, #deadlineTimeInput, #periodStartInput, #periodEndInput, #reminderEnabledInput, #okrKeyResultSelect')
+                .forEach(input => {
+                    input.addEventListener('input', updateSummary);
+                    input.addEventListener('change', updateSummary);
+                });
+
+            objectiveSelect?.addEventListener('change', () => {
+                loadKeyResults(objectiveSelect.value, '');
+            });
+
+            document.querySelectorAll('[data-frequency]').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (frequencyInput) {
+                        frequencyInput.value = button.dataset.frequency || '';
+                        frequencyInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+            });
+
+            periodTypeInput?.addEventListener('change', () => {
+                if (!frequencyInput || frequencyInput.value) {
+                    updateSummary();
+                    return;
+                }
+
+                const suggestions = {
+                    Monthly: '7',
+                    Quarterly: '14',
+                    Yearly: '30',
+                    Custom: ''
+                };
+                const selectedValue = periodTypeInput.value || '';
+                if (selectedValue in suggestions) {
+                    frequencyInput.value = suggestions[selectedValue];
+                }
+                updateSummary();
+            });
+
+            const selectedObjective = objectiveSelect?.value || '';
+            const selectedKr = krSelect?.dataset.selectedValue || '@(Model.OkrKeyResultId?.ToString() ?? "")';
+            loadKeyResults(selectedObjective, selectedKr);
+            updateSummary();
+        });
+    </script>
 }

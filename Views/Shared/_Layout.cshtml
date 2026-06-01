@@ -23,7 +23,7 @@
             var mode = localStorage.getItem('omnibiz-nav-mode') || 'classic';
             document.documentElement.setAttribute('data-nav-mode', mode);
             var s=localStorage.getItem('omnibiz-sidebar');
-            if(s==='collapsed' && mode==='classic') document.documentElement.classList.add('sidebar-collapsed');
+            if(s==='collapsed' && mode!=='launcher') document.documentElement.classList.add('sidebar-collapsed');
         })();
     </script>
 </head>
@@ -301,6 +301,9 @@
             <header class="topbar">
                 <div class="d-flex align-items-center gap-3">
                     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <button class="topbar-btn sidebar-collapse-toggle" id="sidebarCollapseToggle" aria-label="Thu gọn sidebar" title="Thu gọn sidebar">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <button class="app-launcher-toggle" id="appLauncherBtn" aria-label="App Launcher" style="display:none;" onclick="toggleAppLauncher()">

@@ -7,7 +7,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h4 mb-0 text-gray-800">
-        @Model.Title 
+        @Model.Title
         @if(Model.Status == "Draft") { <span class="badge bg-secondary ms-2 fs-6">Nháp</span> }
         else if(Model.Status == "Approved") { <span class="badge bg-info ms-2 fs-6">Đã Duyệt</span> }
         else if(Model.Status == "InProgress") { <span class="badge bg-primary ms-2 fs-6">Đang Thực Hiện</span> }
@@ -22,6 +22,15 @@
         <a asp-action="Index" class="btn btn-secondary shadow-sm">Quay lại</a>
     </div>
 </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
 
 @if (!string.IsNullOrEmpty(aiAnalysis))
 {
@@ -119,15 +128,35 @@
                                 <div class="col-md-3 text-md-end mt-3 mt-md-0">
                                     <div class="small fw-bold text-muted mb-1">Tiến độ (@task.ProgressPercent%)</div>
                                     <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar @(task.ProgressPercent == 100 ? "bg-success" : (isDelayed ? "bg-danger" : "bg-primary"))" 
-                                             role="progressbar" style="width: @task.ProgressPercent%" 
+                                        <div class="progress-bar @(task.ProgressPercent == 100 ? "bg-success" : (isDelayed ? "bg-danger" : "bg-primary"))"
+                                             role="progressbar" style="width: @task.ProgressPercent%"
                                              aria-valuenow="@task.ProgressPercent" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                     <div class="mt-2">
                                         @if(task.Status == "Todo") { <span class="badge bg-secondary">Cần làm</span> }
                                         else if(task.Status == "InProgress") { <span class="badge bg-primary">Đang làm</span> }
                                         else if(task.Status == "Done") { <span class="badge bg-success">Xong</span> }
+                                        else if(task.Status == "Cancelled") { <span class="badge bg-dark">Đã hủy</span> }
                                     </div>
+                                    @if (task.Status != "Done" && task.Status != "Cancelled")
+                                    {
+                                        <form asp-action="UpdateTaskStatus" method="post" class="mt-2 d-flex gap-1 justify-content-md-end flex-wrap">
+                                            <input type="hidden" name="taskId" value="@task.Id" />
+                                            @if (task.Status == "Todo" || task.Status == "Delayed")
+                                            {
+                                                <button type="submit" name="newStatus" value="InProgress" class="btn btn-sm btn-outline-primary" title="Bắt đầu">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            }
+                                            <button type="submit" name="newStatus" value="Done" class="btn btn-sm btn-outline-success" title="Hoàn thành">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <input type="number" name="progressPercent" min="0" max="100" step="10" value="@task.ProgressPercent" class="form-control form-control-sm" style="width:70px" title="% Tiến độ" />
+                                            <button type="submit" name="newStatus" value="@task.Status" class="btn btn-sm btn-outline-secondary" title="Cập nhật %">
+                                                <i class="fas fa-percent"></i>
+                                            </button>
+                                        </form>
+                                    }
                                 </div>
                             </div>
                         </div>

@@ -108,6 +108,10 @@ public class MaintenanceIncident : TenantEntity
     public string? RootCause { get; set; } // Nguyên nhân gốc rễ
     public string? Resolution { get; set; } // Cách giải quyết
     public decimal? DowntimeHours { get; set; } // Thời gian ngừng máy (giờ)
+
+    public decimal? PartsCost { get; set; }
+    public decimal? LaborCost { get; set; }
+    public decimal? TotalCost { get; set; }
 }
 
 /// <summary>Dữ liệu IoT / Cảm biến của thiết bị (Giả lập)</summary>

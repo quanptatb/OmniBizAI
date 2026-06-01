@@ -71,20 +71,22 @@ public class NotificationService(ApplicationDbContext db, ITenantContext tenant)
         await SendAsync(title, body, entityName, entityId, userIds.ToArray());
     }
 
-    /// <summary>Send notification to managers/admins only.</summary>
+    /// <summary>Send notification to managers/admins in the CURRENT tenant only.</summary>
     public async Task SendToManagersAsync(string title, string body, string? entityName = null, Guid? entityId = null)
     {
         var tid = tenant.TenantId;
-        // Find users with manager/admin roles via Identity
-        var adminUserNames = await db.Set<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>>()
-            .Join(db.Set<Microsoft.AspNetCore.Identity.IdentityRole<Guid>>(), ur => ur.RoleId, r => r.Id, (ur, r) => new { ur.UserId, r.Name })
-            .Where(x => x.Name == "EXECUTIVE" || x.Name == "DEPARTMENT_MANAGER" || x.Name == "TENANT_ADMIN" || x.Name == "SYSTEM_ADMIN")
-            .Select(x => x.UserId)
-            .Distinct()
-            .ToListAsync();
+        var managerIds = await (
+            from u in db.AppUsers
+            join ur in db.Set<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>>() on u.Id equals ur.UserId
+            join r in db.Set<Microsoft.AspNetCore.Identity.IdentityRole<Guid>>() on ur.RoleId equals r.Id
+            where u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted
+                && (r.Name == "EXECUTIVE" || r.Name == "DEPARTMENT_MANAGER"
+                    || r.Name == "TENANT_ADMIN" || r.Name == "SYSTEM_ADMIN")
+            select u.Id
+        ).Distinct().ToListAsync();
 
-        if (!adminUserNames.Any()) return;
-        await SendAsync(title, body, entityName, entityId, adminUserNames.ToArray());
+        if (!managerIds.Any()) return;
+        await SendAsync(title, body, entityName, entityId, managerIds.ToArray());
     }
 
     // ── Read operations ──────────────────────────────────────────────────────

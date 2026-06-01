@@ -3169,11 +3169,17 @@ namespace OmniBizAI.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<decimal?>("LaborCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid?>("MaintenanceRecordId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset?>("OccurredAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal?>("PartsCost")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("ReportedByUserId")
                         .HasColumnType("uniqueidentifier");
@@ -3204,6 +3210,9 @@ namespace OmniBizAI.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal?>("TotalCost")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
