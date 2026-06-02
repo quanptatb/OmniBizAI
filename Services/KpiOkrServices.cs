@@ -220,6 +220,14 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
         var o = await db.OkrObjectives.FindAsync(id);
         if (o is null || o.TenantId != tenant.TenantId) return false;
         o.Status = OkrStatus.Active; o.IsActive = true; o.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Tự động sinh Kế hoạch vận hành (Operation Plan) khi OKR được duyệt
+        var count = await db.OperationPlans.CountAsync(p => p.TenantId == tenant.TenantId);
+        var plan = new OperationPlan
+        {
+            TenantId = tenant.TenantId, Code = $"OP-OKR-{DateTime.Today.Year}-{count + 1:D3}", Title = o.ObjectiveName, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = "Draft", CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, OkrObjective = o
+        };
+        db.OperationPlans.Add(plan);
         await db.SaveChangesAsync(); return true;
     }
 
@@ -447,12 +455,19 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
                 .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync()
         };
     }
-
     public async Task<bool> ActivateAsync(Guid id)
     {
         var k = await db.KpiDefinitions.FindAsync(id);
         if (k is null || k.TenantId != tenant.TenantId) return false;
-        k.Status = KpiStatus.Active; k.IsActive = true; k.UpdatedAt = DateTimeOffset.UtcNow;
+        k.Status = KpiStatus.Active; k.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Tự động sinh Kế hoạch vận hành (Operation Plan) khi KPI được duyệt
+        var count = await db.OperationPlans.CountAsync(p => p.TenantId == tenant.TenantId);
+        var plan = new OperationPlan
+        {
+            TenantId = tenant.TenantId, Code = $"OP-KPI-{DateTime.Today.Year}-{count + 1:D3}", Title = k.Name, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = "Draft", CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, KpiDefinition = k
+        };
+        db.OperationPlans.Add(plan);
         await db.SaveChangesAsync(); return true;
     }
 

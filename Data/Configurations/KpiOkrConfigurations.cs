@@ -299,6 +299,7 @@ public class OneOnOneMeetingConfiguration : IEntityTypeConfiguration<OneOnOneMee
         b.HasKey(e => e.Id);
         b.Property(e => e.Agenda).HasMaxLength(500);
         b.Property(e => e.Notes).HasMaxLength(3000);
+        b.HasOne(e => e.ManagerUser).WithMany().HasForeignKey(e => e.ManagerUserId).OnDelete(DeleteBehavior.Restrict);
         b.HasQueryFilter(e => !e.IsDeleted);
     }
 }
