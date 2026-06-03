@@ -30,6 +30,26 @@ document.addEventListener('DOMContentLoaded', function () {
     applyStoredSidebarState();
     window.addEventListener('resize', updateSidebarCollapseToggle);
 
+    // ── Sidebar scroll persistence ─────────────────────────────
+    const sidebarNav = document.querySelector('.sidebar-nav');
+    if (sidebarNav) {
+        requestAnimationFrame(() => {
+            const savedScrollTop = sessionStorage.getItem('sidebar-scroll');
+            if (savedScrollTop !== null) {
+                sidebarNav.scrollTop = parseInt(savedScrollTop, 10);
+            } else {
+                const activeItem = sidebarNav.querySelector('.nav-item.active');
+                if (activeItem) {
+                    activeItem.scrollIntoView({ block: 'nearest' });
+                }
+            }
+        });
+
+        sidebarNav.addEventListener('scroll', () => {
+            sessionStorage.setItem('sidebar-scroll', sidebarNav.scrollTop);
+        });
+    }
+
 
     // ── Sidebar nav group toggles ──────────────────────────────
     document.querySelectorAll('[data-nav-group-toggle]').forEach(btn => {
