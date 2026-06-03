@@ -4,63 +4,857 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@section Styles {
+<style>
+    .plan-create-hero {
+        background:
+            radial-gradient(circle at top right, rgba(0,113,227,.16), transparent 32%),
+            linear-gradient(135deg, rgba(255,255,255,.98), rgba(245,245,247,.95));
+    }
+    .plan-hero-shell {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+    }
+    .plan-hero-shell h5 {
+        margin: 14px 0 8px;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -.03em;
+    }
+    .plan-hero-shell p {
+        margin: 0;
+        max-width: 720px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    .plan-hero-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(0,113,227,.14), rgba(48,209,88,.14));
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.7rem;
+        flex-shrink: 0;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.55);
+    }
+    .plan-mini-card {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: rgba(255,255,255,.84);
+        padding: 16px;
+        height: 100%;
+        box-shadow: var(--shadow-card);
+    }
+    .plan-mini-card strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--text-primary);
+        font-size: .95rem;
+    }
+    .plan-mini-card span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: .81rem;
+        line-height: 1.55;
+    }
+    .plan-mini-step {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .82rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    .plan-section-note {
+        margin-top: 4px;
+        font-size: .8rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+    .plan-inline-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--divider);
+        background: rgba(0,113,227,.05);
+        color: var(--apple-blue);
+        font-size: .76rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .plan-field-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+        color: var(--text-muted);
+        font-size: .78rem;
+    }
+    .plan-type-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .plan-type-card {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: var(--canvas);
+        padding: 16px 18px;
+        text-align: left;
+        color: var(--text-primary);
+        transition: all var(--ease-fast);
+        box-shadow: var(--shadow-card);
+    }
+    .plan-type-card:hover {
+        border-color: rgba(0,113,227,.18);
+        box-shadow: 0 10px 24px rgba(0,0,0,.07);
+        transform: translateY(-1px);
+    }
+    .plan-type-card.is-active {
+        border-color: rgba(0,113,227,.22);
+        background: linear-gradient(180deg, rgba(0,113,227,.06), rgba(255,255,255,.98));
+        box-shadow: 0 14px 28px rgba(0,113,227,.12);
+    }
+    .plan-type-card i {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+    .plan-type-card strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: .94rem;
+    }
+    .plan-type-card span {
+        display: block;
+        font-size: .79rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+    .plan-type-card small {
+        display: block;
+        margin-top: 10px;
+        font-size: .74rem;
+        color: var(--text-muted);
+    }
+    .plan-preset-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .plan-preset-btn {
+        border: 1px solid var(--divider);
+        background: var(--canvas);
+        color: var(--text-secondary);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: .78rem;
+        font-weight: 600;
+        line-height: 1;
+        transition: all var(--ease-fast);
+    }
+    .plan-preset-btn:hover {
+        color: var(--apple-blue);
+        border-color: rgba(0,113,227,.16);
+        background: rgba(0,113,227,.05);
+    }
+    .plan-timeline-box {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 16px 18px;
+        border-radius: var(--r-md);
+        border: 1px solid rgba(0,113,227,.12);
+        background: linear-gradient(180deg, rgba(0,113,227,.04), rgba(255,255,255,.98));
+    }
+    .plan-timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        background: rgba(0,113,227,.1);
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .plan-timeline-box strong {
+        display: block;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    .plan-timeline-box span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: .82rem;
+        line-height: 1.55;
+    }
+    .plan-summary-stack {
+        position: sticky;
+        top: 72px;
+    }
+    .plan-summary-block {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .plan-summary-block:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .plan-summary-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--text-muted);
+    }
+    .plan-summary-title {
+        font-size: 1.12rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.45;
+    }
+    .plan-summary-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .plan-summary-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+        font-size: .76rem;
+        font-weight: 700;
+    }
+    .plan-summary-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .plan-summary-metric {
+        padding: 14px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.82);
+    }
+    .plan-summary-metric strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+    .plan-summary-metric span {
+        display: block;
+        margin-top: 4px;
+        font-size: .74rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+    .plan-summary-note {
+        color: var(--text-secondary);
+        font-size: .83rem;
+        line-height: 1.6;
+    }
+    .plan-check-list {
+        display: grid;
+        gap: 12px;
+    }
+    .plan-check-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.82);
+        transition: all var(--ease-fast);
+    }
+    .plan-check-item i {
+        width: 26px;
+        height: 26px;
+        border-radius: 9px;
+        background: rgba(255,159,10,.12);
+        color: #b86a00;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    .plan-check-item strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: .87rem;
+        margin-bottom: 3px;
+    }
+    .plan-check-item span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: .79rem;
+        line-height: 1.5;
+    }
+    .plan-check-item.is-complete {
+        border-color: rgba(48,209,88,.2);
+        background: rgba(48,209,88,.05);
+    }
+    .plan-check-item.is-complete i {
+        background: rgba(48,209,88,.12);
+        color: #19893b;
+    }
+    .plan-submit-note {
+        margin: 0 0 16px;
+        color: var(--text-secondary);
+        font-size: .84rem;
+        line-height: 1.6;
+    }
+    @@media (max-width: 1199.98px) {
+        .plan-summary-stack {
+            position: static;
+        }
+    }
+    @@media (max-width: 991.98px) {
+        .plan-hero-shell {
+            flex-direction: column;
+        }
+        .plan-type-grid,
+        .plan-summary-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .plan-type-grid,
+        .plan-summary-metrics {
+            grid-template-columns: 1fr;
+        }
+        .plan-field-meta,
+        .plan-preset-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .plan-inline-chip {
+            white-space: normal;
+        }
+    }
+</style>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0 text-gray-800">Khởi tạo Kế hoạch</h2>
-    <a asp-action="Index" class="btn btn-secondary shadow-sm">
-        <i class="fas fa-arrow-left fa-sm text-white-50"></i> Quay lại
-    </a>
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-calendar-plus me-2"></i>Khởi tạo kế hoạch</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Tạo khung điều phối công việc theo ngày, tuần hoặc tháng trước khi phân rã sang danh sách nhiệm vụ thực thi.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Thông tin kế hoạch</h6>
-            </div>
-            <div class="card-body">
-                <form asp-action="Create" method="post">
-                    <div class="mb-3">
-                        <label asp-for="Title" class="form-label fw-bold">Tên kế hoạch <span class="text-danger">*</span></label>
-                        <input asp-for="Title" class="form-control" placeholder="Ví dụ: Kế hoạch sản xuất tháng 6/2026" />
-                        <span asp-validation-for="Title" class="text-danger small"></span>
+<form asp-action="Create" method="post" id="planCreateForm">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="content-card plan-create-hero mb-4">
+                <div class="card-body-custom">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="plan-hero-shell">
+                            <div>
+                                <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Kế hoạch mới sẽ được lưu ở trạng thái nháp</span>
+                                <h5>Chuẩn hóa mục tiêu, khung thời gian và ghi chú ngay từ lúc tạo.</h5>
+                                <p>Trang này giúp mình dựng nhanh một khung kế hoạch rõ ràng để sau đó bổ sung công việc, phân công người phụ trách và theo dõi tiến độ trong cùng một luồng làm việc.</p>
+                            </div>
+                            <div class="plan-hero-icon">
+                                <i class="fa-solid fa-timeline"></i>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="plan-mini-card">
+                                    <span class="plan-mini-step">1</span>
+                                    <strong>Đặt tên dễ nhận diện</strong>
+                                    <span>Nên nêu rõ phạm vi hoặc chu kỳ như sản xuất tuần 1, vận hành tháng 6 hoặc triển khai ca ngày.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="plan-mini-card">
+                                    <span class="plan-mini-step">2</span>
+                                    <strong>Chốt nhịp thời gian</strong>
+                                    <span>Chọn loại kế hoạch và dùng preset để tạo nhanh khung ngày, tuần hoặc hết tháng.</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="plan-mini-card">
+                                    <span class="plan-mini-step">3</span>
+                                    <strong>Viết mục tiêu ngắn gọn</strong>
+                                    <span>Ghi các đầu việc trọng tâm, nguồn lực cần dùng hoặc deadline quan trọng để đội dễ bám theo.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
+                        }
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label asp-for="PlanType" class="form-label fw-bold">Loại Kế hoạch</label>
-                            <select asp-for="PlanType" class="form-select">
-                                <option value="Daily">Kế hoạch Ngày</option>
-                                <option value="Weekly">Kế hoạch Tuần</option>
-                                <option value="Monthly">Kế hoạch Tháng</option>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-pen-ruler"></i> Thông tin nền</h5>
+                        <div class="plan-section-note">Tên kế hoạch và mô tả ngắn sẽ xuất hiện xuyên suốt ở danh sách, trang chi tiết và các bước phân công tiếp theo.</div>
+                    </div>
+                    <span class="plan-inline-chip" id="titleHealthChip"><i class="fa-solid fa-font"></i>Chưa đặt tên rõ ràng</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Title" class="form-label">Tên kế hoạch <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control" id="titleInput" placeholder="Ví dụ: Kế hoạch vận hành kho tuần 1 tháng 6/2026" />
+                            <span asp-validation-for="Title" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label">Ghi chú / Mục tiêu chung</label>
+                            <textarea asp-for="Notes" class="form-control" rows="5" id="notesInput" placeholder="Tóm tắt mục tiêu chính, phạm vi công việc, lưu ý nguồn lực hoặc các mốc cần kiểm soát."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger" style="font-size:.78rem"></span>
+                            <div class="plan-field-meta">
+                                <span>Gợi ý: nêu rõ đầu ra mong muốn, bộ phận liên quan và điều kiện hoàn thành.</span>
+                                <span id="notesCounter">0 ký tự</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-calendar-days"></i> Nhịp triển khai</h5>
+                        <div class="plan-section-note">Chọn loại kế hoạch phù hợp với chu kỳ điều hành, sau đó tinh chỉnh ngày bắt đầu và kết thúc để khóa phạm vi thực thi.</div>
+                    </div>
+                    <span class="plan-inline-chip" id="timelineHealthChip"><i class="fa-solid fa-clock"></i>Chưa đủ mốc thời gian</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label asp-for="PlanType" class="form-label">Loại kế hoạch</label>
+                            <select asp-for="PlanType" class="form-select" id="planTypeInput">
+                                <option value="Daily">Kế hoạch ngày</option>
+                                <option value="Weekly">Kế hoạch tuần</option>
+                                <option value="Monthly">Kế hoạch tháng</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label asp-for="StartDate" class="form-label fw-bold">Ngày bắt đầu <span class="text-danger">*</span></label>
-                            <input asp-for="StartDate" type="date" class="form-control" />
-                            <span asp-validation-for="StartDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="plan-type-grid mb-4">
+                        <button type="button" class="plan-type-card" data-plan-type="Daily">
+                            <i class="fa-solid fa-sun"></i>
+                            <strong>Kế hoạch ngày</strong>
+                            <span>Phù hợp cho điều phối ca làm, lịch bàn giao, vận hành trong ngày hoặc xử lý chiến dịch ngắn.</span>
+                            <small>Gợi ý: chốt trong 1 ngày.</small>
+                        </button>
+                        <button type="button" class="plan-type-card" data-plan-type="Weekly">
+                            <i class="fa-solid fa-calendar-week"></i>
+                            <strong>Kế hoạch tuần</strong>
+                            <span>Dùng cho điều phối sản lượng, lịch bảo trì, lịch giao hàng hoặc phân bổ nhân lực theo tuần.</span>
+                            <small>Gợi ý: khung 7 ngày liên tiếp.</small>
+                        </button>
+                        <button type="button" class="plan-type-card" data-plan-type="Monthly">
+                            <i class="fa-solid fa-calendar-days"></i>
+                            <strong>Kế hoạch tháng</strong>
+                            <span>Hợp với theo dõi KPI vận hành, tiến độ dự án nội bộ hoặc các mục tiêu cần rà soát nhiều đợt.</span>
+                            <small>Gợi ý: đến hết tháng hiện tại.</small>
+                        </button>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input asp-for="StartDate" type="date" class="form-control" id="startDateInput" />
+                            <span asp-validation-for="StartDate" class="text-danger" style="font-size:.78rem"></span>
                         </div>
-                        <div class="col-md-4">
-                            <label asp-for="EndDate" class="form-label fw-bold">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input asp-for="EndDate" type="date" class="form-control" />
-                            <span asp-validation-for="EndDate" class="text-danger small"></span>
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
+                            <input asp-for="EndDate" type="date" class="form-control" id="endDateInput" />
+                            <span asp-validation-for="EndDate" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block">Preset nhanh</label>
+                            <div class="plan-preset-row">
+                                <button type="button" class="plan-preset-btn" data-date-preset="day">Trong ngày</button>
+                                <button type="button" class="plan-preset-btn" data-date-preset="week">7 ngày</button>
+                                <button type="button" class="plan-preset-btn" data-date-preset="month">Hết tháng</button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label asp-for="Notes" class="form-label fw-bold">Ghi chú / Mục tiêu chung</label>
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú thêm về kế hoạch này..."></textarea>
+
+                    <div class="plan-timeline-box mt-4">
+                        <div class="plan-timeline-icon">
+                            <i class="fa-solid fa-route"></i>
+                        </div>
+                        <div>
+                            <strong id="timelinePrimary">Chọn khung thời gian để xem nhịp triển khai</strong>
+                            <span id="timelineSecondary">Bạn có thể bấm preset nhanh hoặc chọn một loại kế hoạch ở trên để hệ thống gợi ý phạm vi phù hợp.</span>
+                        </div>
                     </div>
-                    
-                    <hr />
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary px-4">Lưu Kế Hoạch</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="plan-summary-stack">
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-eye"></i> Tóm tắt trực tiếp</h5>
                     </div>
-                </form>
+                    <div class="card-body-custom">
+                        <div class="plan-summary-block pt-0">
+                            <span class="plan-summary-label">Tên kế hoạch</span>
+                            <div class="plan-summary-title" id="summaryTitle">Chưa nhập tên kế hoạch</div>
+                        </div>
+
+                        <div class="plan-summary-block">
+                            <span class="plan-summary-label">Nhịp vận hành</span>
+                            <div class="plan-summary-chips">
+                                <span class="plan-summary-chip" id="summaryTypeChip"><i class="fa-solid fa-sun"></i>Kế hoạch ngày</span>
+                                <span class="plan-summary-chip" id="summaryWindowChip"><i class="fa-solid fa-calendar-range"></i>Chưa chọn lịch</span>
+                                <span class="status-badge-soft badge-at-risk" id="summaryStatusChip"><span class="status-dot"></span>Thiếu dữ liệu</span>
+                            </div>
+                        </div>
+
+                        <div class="plan-summary-block">
+                            <span class="plan-summary-label">Thông số chính</span>
+                            <div class="plan-summary-metrics">
+                                <div class="plan-summary-metric">
+                                    <strong id="summaryDurationValue">--</strong>
+                                    <span>Thời lượng</span>
+                                </div>
+                                <div class="plan-summary-metric">
+                                    <strong id="summaryStartValue">--</strong>
+                                    <span>Bắt đầu</span>
+                                </div>
+                                <div class="plan-summary-metric">
+                                    <strong id="summaryEndValue">--</strong>
+                                    <span>Kết thúc</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="plan-summary-block">
+                            <span class="plan-summary-label">Mô tả hiển thị</span>
+                            <div class="plan-summary-note" id="summaryNotes">Chưa có ghi chú mục tiêu. Nên thêm vài dòng để đội triển khai hiểu ngay kết quả mong muốn.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-list-check"></i> Checklist trước khi lưu</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="plan-check-list">
+                            <div class="plan-check-item" id="checkNameItem">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <div>
+                                    <strong>Tên kế hoạch đủ rõ ràng</strong>
+                                    <span id="checkNameText">Nên nêu phạm vi và chu kỳ để dễ tra cứu sau này.</span>
+                                </div>
+                            </div>
+                            <div class="plan-check-item" id="checkTimelineItem">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <div>
+                                    <strong>Khung thời gian hợp lệ</strong>
+                                    <span id="checkTimelineText">Chọn ngày bắt đầu và kết thúc để khóa phạm vi theo dõi.</span>
+                                </div>
+                            </div>
+                            <div class="plan-check-item" id="checkGoalItem">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <div>
+                                    <strong>Đã có định hướng triển khai</strong>
+                                    <span id="checkGoalText">Thêm ghi chú ngắn về mục tiêu hoặc đầu ra mong muốn để đội dễ phối hợp.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-rocket"></i> Lưu kế hoạch</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <p class="plan-submit-note">Sau khi lưu, mình có thể vào chi tiết kế hoạch để thêm công việc, gán người phụ trách và theo dõi tiến độ từng đầu mục.</p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-check me-1"></i>Lưu kế hoạch
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">Hủy và quay lại</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const titleInput = document.getElementById('titleInput');
+            const notesInput = document.getElementById('notesInput');
+            const planTypeInput = document.getElementById('planTypeInput');
+            const startDateInput = document.getElementById('startDateInput');
+            const endDateInput = document.getElementById('endDateInput');
+            const notesCounter = document.getElementById('notesCounter');
+
+            const typeMeta = {
+                Daily: {
+                    label: 'Kế hoạch ngày',
+                    icon: 'fa-sun',
+                    hint: 'Phù hợp cho vận hành trong ngày, điều phối ca hoặc xử lý một chu kỳ ngắn.',
+                    preset: 'day'
+                },
+                Weekly: {
+                    label: 'Kế hoạch tuần',
+                    icon: 'fa-calendar-week',
+                    hint: 'Phù hợp để gom công việc theo tuần và theo dõi nhịp triển khai liên tục.',
+                    preset: 'week'
+                },
+                Monthly: {
+                    label: 'Kế hoạch tháng',
+                    icon: 'fa-calendar-days',
+                    hint: 'Phù hợp cho mục tiêu vận hành dài hơi, theo dõi KPI hoặc chương trình nội bộ.',
+                    preset: 'month'
+                }
+            };
+
+            function parseLocalDate(value) {
+                if (!value) return null;
+                const parts = value.split('-').map(Number);
+                if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            function toInputDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function formatDateVi(value) {
+                const date = parseLocalDate(value);
+                if (!date) return '--';
+                return date.toLocaleDateString('vi-VN');
+            }
+
+            function calculateInclusiveDays(startValue, endValue) {
+                const start = parseLocalDate(startValue);
+                const end = parseLocalDate(endValue);
+                if (!start || !end) return null;
+                const diff = Math.round((end - start) / 86400000) + 1;
+                return Number.isFinite(diff) ? diff : null;
+            }
+
+            function truncate(value, maxLength) {
+                if (!value || value.length <= maxLength) return value;
+                return `${value.slice(0, maxLength).trim()}...`;
+            }
+
+            function ensureStartDate() {
+                if (startDateInput.value) return parseLocalDate(startDateInput.value);
+                const today = new Date();
+                startDateInput.value = toInputDate(today);
+                return today;
+            }
+
+            function applyDatePreset(preset) {
+                const start = ensureStartDate();
+                if (!start) return;
+
+                let end = new Date(start);
+                if (preset === 'week') {
+                    end.setDate(end.getDate() + 6);
+                } else if (preset === 'month') {
+                    end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                }
+
+                endDateInput.value = toInputDate(end);
+                updateSummary();
+            }
+
+            function applyPlanType(type) {
+                planTypeInput.value = type;
+                const preset = typeMeta[type]?.preset;
+                if (preset) {
+                    applyDatePreset(preset);
+                } else {
+                    updateSummary();
+                }
+            }
+
+            function setBadgeState(element, variant, text, iconHtml = '') {
+                if (!element) return;
+                element.className = `status-badge-soft ${variant}`;
+                element.innerHTML = `<span class="status-dot"></span>${iconHtml}${text}`;
+            }
+
+            function setInlineChipState(element, healthy, text, iconClass) {
+                if (!element) return;
+                element.style.background = healthy ? 'rgba(48,209,88,.08)' : 'rgba(255,159,10,.12)';
+                element.style.color = healthy ? '#19893b' : '#a66300';
+                element.style.borderColor = healthy ? 'rgba(48,209,88,.18)' : 'rgba(255,159,10,.18)';
+                element.innerHTML = `<i class="fa-solid ${iconClass}"></i>${text}`;
+            }
+
+            function setCheckState(wrapperId, textId, completed, text) {
+                const wrapper = document.getElementById(wrapperId);
+                const description = document.getElementById(textId);
+                if (wrapper) wrapper.classList.toggle('is-complete', completed);
+                if (description) description.textContent = text;
+            }
+
+            function syncTypeCards() {
+                document.querySelectorAll('[data-plan-type]').forEach(button => {
+                    const active = button.dataset.planType === planTypeInput.value;
+                    button.classList.toggle('is-active', active);
+                    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+            }
+
+            function updateSummary() {
+                const title = (titleInput.value || '').trim();
+                const notes = (notesInput.value || '').trim();
+                const planType = planTypeInput.value || 'Daily';
+                const meta = typeMeta[planType] || typeMeta.Daily;
+                const startValue = startDateInput.value;
+                const endValue = endDateInput.value;
+                const duration = calculateInclusiveDays(startValue, endValue);
+                const hasStart = Boolean(parseLocalDate(startValue));
+                const hasEnd = Boolean(parseLocalDate(endValue));
+                const hasValidDuration = duration !== null && duration > 0;
+
+                document.getElementById('summaryTitle').textContent = title || 'Chưa nhập tên kế hoạch';
+                document.getElementById('summaryTypeChip').innerHTML = `<i class="fa-solid ${meta.icon}"></i>${meta.label}`;
+                document.getElementById('summaryWindowChip').innerHTML = hasStart && hasEnd
+                    ? `<i class="fa-solid fa-calendar-days"></i>${formatDateVi(startValue)} - ${formatDateVi(endValue)}`
+                    : `<i class="fa-solid fa-calendar-days"></i>Chưa chọn lịch`;
+
+                document.getElementById('summaryDurationValue').textContent = hasValidDuration ? `${duration} ngày` : '--';
+                document.getElementById('summaryStartValue').textContent = hasStart ? formatDateVi(startValue) : '--';
+                document.getElementById('summaryEndValue').textContent = hasEnd ? formatDateVi(endValue) : '--';
+                document.getElementById('summaryNotes').textContent = notes
+                    ? truncate(notes, 160)
+                    : 'Chưa có ghi chú mục tiêu. Nên thêm vài dòng để đội triển khai hiểu ngay kết quả mong muốn.';
+
+                document.getElementById('timelinePrimary').textContent = hasValidDuration
+                    ? `${meta.label}: ${duration} ngày triển khai`
+                    : 'Chọn khung thời gian để xem nhịp triển khai';
+                document.getElementById('timelineSecondary').textContent = hasValidDuration
+                    ? `${meta.hint} Giai đoạn dự kiến từ ${formatDateVi(startValue)} đến ${formatDateVi(endValue)}.`
+                    : 'Bạn có thể bấm preset nhanh hoặc chọn một loại kế hoạch ở trên để hệ thống gợi ý phạm vi phù hợp.';
+
+                if (!hasStart || !hasEnd) {
+                    setBadgeState(document.getElementById('summaryStatusChip'), 'badge-at-risk', 'Thiếu mốc thời gian');
+                    setInlineChipState(document.getElementById('timelineHealthChip'), false, 'Chưa đủ mốc thời gian', 'clock');
+                } else if (!hasValidDuration) {
+                    setBadgeState(document.getElementById('summaryStatusChip'), 'badge-behind', 'Ngày kết thúc đang sớm hơn ngày bắt đầu');
+                    setInlineChipState(document.getElementById('timelineHealthChip'), false, 'Khoảng thời gian chưa hợp lệ', 'triangle-exclamation');
+                } else {
+                    setBadgeState(document.getElementById('summaryStatusChip'), 'badge-on-track', 'Sẵn sàng khởi tạo');
+                    setInlineChipState(document.getElementById('timelineHealthChip'), true, `${duration} ngày triển khai`, 'clock');
+                }
+
+                const hasClearTitle = title.length >= 12;
+                setInlineChipState(
+                    document.getElementById('titleHealthChip'),
+                    hasClearTitle,
+                    hasClearTitle ? 'Tên kế hoạch đã đủ rõ' : 'Chưa đặt tên rõ ràng',
+                    'font'
+                );
+
+                notesCounter.textContent = `${notesInput.value.length} ký tự`;
+
+                setCheckState(
+                    'checkNameItem',
+                    'checkNameText',
+                    hasClearTitle,
+                    hasClearTitle
+                        ? 'Tên hiện tại đủ cụ thể để tra cứu nhanh ở danh sách kế hoạch.'
+                        : 'Nên thêm phạm vi hoặc chu kỳ để tên bớt chung chung.'
+                );
+                setCheckState(
+                    'checkTimelineItem',
+                    'checkTimelineText',
+                    hasValidDuration,
+                    hasValidDuration
+                        ? `Khung thời gian đã chốt ${duration} ngày và sẵn sàng để thêm đầu việc.`
+                        : 'Chọn ngày bắt đầu và kết thúc hợp lệ để khóa phạm vi kế hoạch.'
+                );
+                setCheckState(
+                    'checkGoalItem',
+                    'checkGoalText',
+                    notes.length >= 20,
+                    notes.length >= 20
+                        ? 'Ghi chú đã cung cấp đủ bối cảnh cơ bản cho đội triển khai.'
+                        : 'Nên thêm ít nhất một mục tiêu hoặc lưu ý quan trọng trong phần ghi chú.'
+                );
+
+                syncTypeCards();
+            }
+
+            titleInput.addEventListener('input', updateSummary);
+            notesInput.addEventListener('input', updateSummary);
+            planTypeInput.addEventListener('change', updateSummary);
+            startDateInput.addEventListener('change', () => {
+                const start = parseLocalDate(startDateInput.value);
+                const end = parseLocalDate(endDateInput.value);
+                if (start && end && end < start) {
+                    endDateInput.value = startDateInput.value;
+                }
+                updateSummary();
+            });
+            endDateInput.addEventListener('change', updateSummary);
+
+            document.querySelectorAll('[data-plan-type]').forEach(button => {
+                button.addEventListener('click', () => {
+                    applyPlanType(button.dataset.planType || 'Daily');
+                });
+            });
+
+            document.querySelectorAll('[data-date-preset]').forEach(button => {
+                button.addEventListener('click', () => {
+                    applyDatePreset(button.dataset.datePreset || 'day');
+                });
+            });
+
+            updateSummary();
+        })();
+    </script>
 }

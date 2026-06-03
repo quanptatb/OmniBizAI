@@ -1,6 +1,9 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser<Guid>> SignInManager
 @inject UserManager<IdentityUser<Guid>> UserManager
+@{
+    var hideAppShell = ViewData["HideAppShell"] as bool? == true;
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -19,16 +22,32 @@
     @if (SignInManager.IsSignedIn(User)) { <link rel="stylesheet" href="@Url.Action("ThemeCss", "Settings")" /> }
     @await RenderSectionAsync("Styles", required: false)
     <script>
-        (function(){
-            var mode = localStorage.getItem('omnibiz-nav-mode') || 'classic';
+        (function () {
+            var navModeKey = 'omnibiz-nav-mode';
+            var legacySidebarKey = 'omnibiz-sidebar';
+            var mode = 'classic';
+            var sidebarState = null;
+
+            try {
+                mode = localStorage.getItem(navModeKey) || 'classic';
+                sidebarState = localStorage.getItem(legacySidebarKey + ':' + mode) || localStorage.getItem(legacySidebarKey);
+            } catch (e) {
+                mode = 'classic';
+            }
+
             document.documentElement.setAttribute('data-nav-mode', mode);
-            var s=localStorage.getItem('omnibiz-sidebar');
-            if(s==='collapsed' && mode!=='launcher') document.documentElement.classList.add('sidebar-collapsed');
+
+            var canCollapse = mode !== 'launcher' && window.innerWidth >= 992;
+            document.documentElement.classList.toggle('sidebar-collapsed', canCollapse && sidebarState === 'collapsed');
         })();
     </script>
 </head>
-<body class="app-body">
-    @if (SignInManager.IsSignedIn(User))
+<body class="app-body @(hideAppShell ? "landing-body" : "")">
+    @if (hideAppShell)
+    {
+        @RenderBody()
+    }
+    else if (SignInManager.IsSignedIn(User))
     {
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">

@@ -27,8 +27,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     syncSidebarControlLabels();
+    applyStoredSidebarGroupStates();
     applyStoredSidebarState();
-    window.addEventListener('resize', updateSidebarCollapseToggle);
+    window.addEventListener('resize', syncSidebarViewportState);
 
 
     // ── Sidebar nav group toggles ──────────────────────────────
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const isOpen = panel.classList.toggle('open');
             btn.classList.toggle('expanded', isOpen);
             btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            setSidebarGroupState(targetId, isOpen);
         });
     });
 
@@ -280,8 +282,62 @@ function formatTimeAgo(dateStr) {
 
 function escNotif(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+const NAV_MODE_STORAGE_KEY = 'omnibiz-nav-mode';
+const SIDEBAR_STORAGE_KEY = 'omnibiz-sidebar';
+const SIDEBAR_GROUP_STORAGE_PREFIX = 'omnibiz-sidebar-group:';
+
+function readUiStorage(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeUiStorage(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch (e) {
+        // Ignore storage access issues and keep the current in-memory state.
+    }
+}
+
+function getSidebarStorageKey(mode = getCurrentNavMode()) {
+    return `${SIDEBAR_STORAGE_KEY}:${mode}`;
+}
+
+function getStoredSidebarState(mode = getCurrentNavMode()) {
+    const scopedState = readUiStorage(getSidebarStorageKey(mode));
+    if (scopedState === 'collapsed' || scopedState === 'expanded') {
+        return scopedState;
+    }
+
+    const legacyState = readUiStorage(SIDEBAR_STORAGE_KEY);
+    return legacyState === 'collapsed' ? 'collapsed' : 'expanded';
+}
+
+function setStoredSidebarState(state, mode = getCurrentNavMode()) {
+    if (state !== 'collapsed' && state !== 'expanded') return;
+
+    writeUiStorage(getSidebarStorageKey(mode), state);
+    writeUiStorage(SIDEBAR_STORAGE_KEY, state);
+}
+
+function getSidebarGroupStorageKey(targetId) {
+    return `${SIDEBAR_GROUP_STORAGE_PREFIX}${targetId}`;
+}
+
+function setSidebarGroupState(targetId, isOpen) {
+    if (!targetId) return;
+    writeUiStorage(getSidebarGroupStorageKey(targetId), isOpen ? 'open' : 'closed');
+}
+
+function isDesktopSidebarViewport() {
+    return window.innerWidth >= 992;
+}
+
 function getCurrentNavMode() {
-    return document.documentElement.getAttribute('data-nav-mode') || localStorage.getItem('omnibiz-nav-mode') || 'classic';
+    return document.documentElement.getAttribute('data-nav-mode') || readUiStorage(NAV_MODE_STORAGE_KEY) || 'classic';
 }
 
 function canCollapseSidebar() {
@@ -308,17 +364,51 @@ function updateSidebarCollapseToggle() {
     }
 }
 
-function applyStoredSidebarState() {
-    const shouldCollapse = canCollapseSidebar() && localStorage.getItem('omnibiz-sidebar') === 'collapsed';
+function syncSidebarViewportState() {
+    const sidebar = document.getElementById('sidebar');
+    const shouldCollapse = isDesktopSidebarViewport() && canCollapseSidebar() && getStoredSidebarState() === 'collapsed';
+
     document.documentElement.classList.toggle('sidebar-collapsed', shouldCollapse);
+
+    if (sidebar && (isDesktopSidebarViewport() || !canCollapseSidebar())) {
+        sidebar.classList.remove('open');
+    }
+
     updateSidebarCollapseToggle();
+}
+
+function applyStoredSidebarState() {
+    syncSidebarViewportState();
+}
+
+function applyStoredSidebarGroupStates() {
+    document.querySelectorAll('[data-nav-group-toggle]').forEach(btn => {
+        const targetId = btn.getAttribute('data-target');
+        const panel = targetId ? document.getElementById(targetId) : null;
+        if (!panel) return;
+
+        const storedState = readUiStorage(getSidebarGroupStorageKey(targetId));
+        const hasActiveItem = !!panel.querySelector('.nav-item.active');
+        const defaultState = panel.classList.contains('open');
+        const shouldOpen = hasActiveItem
+            ? true
+            : storedState === 'open'
+                ? true
+                : storedState === 'closed'
+                    ? false
+                    : defaultState;
+
+        panel.classList.toggle('open', shouldOpen);
+        btn.classList.toggle('expanded', shouldOpen);
+        btn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    });
 }
 
 function toggleDesktopSidebarCollapse() {
     if (!canCollapseSidebar()) return;
 
     const isCollapsed = document.documentElement.classList.toggle('sidebar-collapsed');
-    localStorage.setItem('omnibiz-sidebar', isCollapsed ? 'collapsed' : 'expanded');
+    setStoredSidebarState(isCollapsed ? 'collapsed' : 'expanded');
 
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.remove('open');
@@ -359,7 +449,7 @@ window.toggleNavModeMenu = function() {
 
 window.setNavMode = function(mode) {
     document.documentElement.setAttribute('data-nav-mode', mode);
-    localStorage.setItem('omnibiz-nav-mode', mode);
+    writeUiStorage(NAV_MODE_STORAGE_KEY, mode);
 
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.remove('open');
