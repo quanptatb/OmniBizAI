@@ -1,0 +1,93 @@
+@model OmniBizAI.ViewModels.SparePartRequisitionFormViewModel
+@{
+    ViewData["Title"] = "Tạo phiếu yêu cầu phụ tùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>Tạo phiếu phụ tùng</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Danh sách</a>
+</div>
+
+<form method="post" class="card shadow-sm">
+    <div class="card-body">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label asp-for="Reason" class="form-label fw-bold">Lý do yêu cầu *</label>
+                <input asp-for="Reason" class="form-control" placeholder="VD: thay bạc đạn máy ép #3..." />
+                <span asp-validation-for="Reason" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="LinkedWorkOrderId" class="form-label fw-bold">Liên kết Work Order</label>
+                <select asp-for="LinkedWorkOrderId" class="form-select" asp-items="@(new SelectList(Model.WorkOrders, "Value", "Text"))">
+                    <option value="">-- Không liên kết --</option>
+                </select>
+            </div>
+        </div>
+
+        <hr />
+        <h6 class="fw-bold">Danh sách phụ tùng</h6>
+
+        <table class="table table-sm align-middle" id="lines-table">
+            <thead class="table-light">
+                <tr><th style="width: 50%">Phụ tùng</th><th>SL</th><th>Đơn giá ước</th><th>Ghi chú</th><th></th></tr>
+            </thead>
+            <tbody>
+                <tr id="row-template" style="display:none">
+                    <td>
+                        <select name="Lines[__i__].SparePartId" class="form-select form-select-sm part-select" required>
+                            <option value="">-- Chọn --</option>
+                            @foreach (var p in Model.Parts)
+                            {
+                                <option value="@p.Id" data-price="@(p.UnitPrice ?? 0)" data-unit="@p.Unit" data-stock="@p.StockQuantity">
+                                    @p.Code — @p.Name (tồn: @p.StockQuantity @p.Unit)
+                                </option>
+                            }
+                        </select>
+                    </td>
+                    <td><input name="Lines[__i__].Quantity" type="number" min="1" value="1" class="form-control form-control-sm" required /></td>
+                    <td><input name="Lines[__i__].UnitCost" type="number" step="100" class="form-control form-control-sm price-input" /></td>
+                    <td><input name="Lines[__i__].Notes" class="form-control form-control-sm" /></td>
+                    <td><button type="button" class="btn btn-link text-danger btn-sm p-0 remove-row"><i class="fas fa-times"></i></button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-outline-primary btn-sm" id="add-line"><i class="fas fa-plus me-1"></i>Thêm dòng</button>
+    </div>
+    <div class="card-footer text-end">
+        <a asp-action="Index" class="btn btn-outline-secondary me-2">Huỷ</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Tạo phiếu (Draft)</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        let idx = 0;
+        const tableBody = document.querySelector('#lines-table tbody');
+        const template = document.querySelector('#row-template');
+
+        function addRow() {
+            const clone = template.cloneNode(true);
+            clone.id = '';
+            clone.style.display = '';
+            clone.querySelectorAll('input, select').forEach(el => {
+                el.name = el.name.replace('__i__', idx);
+            });
+            const partSelect = clone.querySelector('.part-select');
+            const priceInput = clone.querySelector('.price-input');
+            partSelect.addEventListener('change', () => {
+                const opt = partSelect.options[partSelect.selectedIndex];
+                const price = opt.getAttribute('data-price');
+                if (priceInput && price && !priceInput.value) priceInput.value = price;
+            });
+            clone.querySelector('.remove-row').addEventListener('click', () => clone.remove());
+            tableBody.appendChild(clone);
+            idx++;
+        }
+        document.getElementById('add-line').addEventListener('click', addRow);
+        addRow(); // first row
+    </script>
+}

@@ -32,10 +32,31 @@ public class OperationRequest : TenantEntity
 
     public OperationStatus Status { get; set; } = OperationStatus.Draft;
 
+    public byte[] RowVersion { get; set; } = [];
+
+    public DateTimeOffset? SubmittedAt { get; set; }
+    public DateTimeOffset? ApprovedAt { get; set; }
+    public DateTimeOffset? ApprovalDueAt { get; set; }
+    public DateTimeOffset? ResolutionDueAt { get; set; }
+
     public DateOnly? DueDate { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? TotalAmount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? EstimatedCost { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? ActualCost { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? CostVariance { get; set; }
+
+    [Column(TypeName = "decimal(9,2)")]
+    public decimal? CostVariancePercent { get; set; }
+
+    public DateTimeOffset? CostVarianceCalculatedAt { get; set; }
 
     [StringLength(2000)]
     public string? Description { get; set; }
@@ -44,4 +65,10 @@ public class OperationRequest : TenantEntity
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
     public ICollection<AiInsight> AiInsights { get; set; } = new List<AiInsight>();
     public ICollection<OperationComment> Comments { get; set; } = new List<OperationComment>();
+    public ICollection<OperationSlaBreach> SlaBreaches { get; set; } = new List<OperationSlaBreach>();
+    public ICollection<OperationProgressLog> ProgressLogs { get; set; } = new List<OperationProgressLog>();
+    public ICollection<OperationRequestAssignment> Assignments { get; set; } = new List<OperationRequestAssignment>();
+    public ICollection<GoodsIssue> GoodsIssues { get; set; } = new List<GoodsIssue>();
+    public ICollection<PaymentRequest> PaymentRequests { get; set; } = new List<PaymentRequest>();
+    public ICollection<OperationPlan> OperationPlans { get; set; } = new List<OperationPlan>();
 }

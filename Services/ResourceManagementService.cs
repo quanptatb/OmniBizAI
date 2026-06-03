@@ -11,12 +11,16 @@ public class ResourceManagementService
     private readonly ApplicationDbContext _db;
     private readonly ITenantContext _tenant;
     private readonly GeminiService _gemini;
+    private readonly INumberingService _numbering;
+    private readonly IAuditService _audit;
 
-    public ResourceManagementService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini)
+    public ResourceManagementService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, INumberingService numbering, IAuditService audit)
     {
         _db = db;
         _tenant = tenant;
         _gemini = gemini;
+        _numbering = numbering;
+        _audit = audit;
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────────────────────
@@ -27,9 +31,9 @@ public class ResourceManagementService
         var today = DateOnly.FromDateTime(DateTime.Today);
 
         var equipmentCount = await _db.Equipments.CountAsync(e => e.TenantId == tid && !e.IsDeleted);
-        var equipmentInMaintenance = await _db.Equipments.CountAsync(e => e.TenantId == tid && !e.IsDeleted && e.Status == "Maintenance");
+        var equipmentInMaintenance = await _db.Equipments.CountAsync(e => e.TenantId == tid && !e.IsDeleted && e.Status == EquipmentStatus.Maintenance);
         var overdueMaintenance = await _db.Equipments.CountAsync(e => e.TenantId == tid && !e.IsDeleted
-            && e.NextMaintenanceDate.HasValue && e.NextMaintenanceDate.Value < today && e.Status != "Maintenance");
+            && e.NextMaintenanceDate.HasValue && e.NextMaintenanceDate.Value < today && e.Status != EquipmentStatus.Maintenance);
 
         var shiftCount = await _db.WorkShifts.CountAsync(s => s.TenantId == tid && !s.IsDeleted && s.IsActive);
         var todayAssignments = await _db.ShiftAssignments.CountAsync(s => s.TenantId == tid && !s.IsDeleted && s.WorkDate == today);
@@ -39,12 +43,12 @@ public class ResourceManagementService
         var expiringCerts = await _db.EmployeeCertificates.CountAsync(c => c.TenantId == tid && !c.IsDeleted
             && c.ExpiryDate.HasValue && c.ExpiryDate.Value >= today && c.ExpiryDate.Value <= today.AddDays(30));
 
-        var workspaceCount = await _db.Workspaces.CountAsync(w => w.TenantId == tid && !w.IsDeleted && w.Status == "Active");
+        var workspaceCount = await _db.Workspaces.CountAsync(w => w.TenantId == tid && !w.IsDeleted && w.Status == WorkspaceStatus.Active);
 
         var upcomingMaintenance = await _db.MaintenanceRecords
             .Include(m => m.Equipment)
             .Where(m => m.TenantId == tid && !m.IsDeleted
-                && m.Status == "Scheduled"
+                && m.Status == MaintenanceRecordStatus.Scheduled
                 && m.ScheduledDate >= today && m.ScheduledDate <= today.AddDays(7))
             .OrderBy(m => m.ScheduledDate)
             .Take(5)
@@ -53,9 +57,9 @@ public class ResourceManagementService
                 Id = m.Id,
                 EquipmentName = m.Equipment != null ? m.Equipment.Name : "",
                 EquipmentCode = m.Equipment != null ? m.Equipment.Code : "",
-                MaintenanceType = m.MaintenanceType,
+                MaintenanceType = m.MaintenanceType.ToString(),
                 ScheduledDate = m.ScheduledDate,
-                Status = m.Status
+                Status = m.Status.ToString()
             }).ToListAsync();
 
         var recentEquipments = await _db.Equipments
@@ -68,7 +72,7 @@ public class ResourceManagementService
                 Code = e.Code,
                 Name = e.Name,
                 Type = e.Type,
-                Status = e.Status,
+                Status = e.Status.ToString(),
                 Location = e.Location,
                 NextMaintenanceDate = e.NextMaintenanceDate
             }).ToListAsync();
@@ -97,7 +101,8 @@ public class ResourceManagementService
         if (!string.IsNullOrWhiteSpace(search))
             q = q.Where(e => e.Name.Contains(search) || e.Code.Contains(search));
         if (!string.IsNullOrWhiteSpace(status))
-            q = q.Where(e => e.Status == status);
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<EquipmentStatus>(status, true, out var equipmentStatus))
+            q = q.Where(e => e.Status == equipmentStatus);
         if (!string.IsNullOrWhiteSpace(type))
             q = q.Where(e => e.Type == type);
 
@@ -107,7 +112,7 @@ public class ResourceManagementService
             Code = e.Code,
             Name = e.Name,
             Type = e.Type,
-            Status = e.Status,
+            Status = e.Status.ToString(),
             Location = e.Location,
             Manufacturer = e.Manufacturer,
             Model = e.Model,
@@ -126,22 +131,88 @@ public class ResourceManagementService
             .FirstOrDefaultAsync(e => e.Id == id && e.TenantId == tid && !e.IsDeleted);
         if (eq == null) return null;
 
+        var oeeTasks = await _db.PlanTasks
+            .AsNoTracking()
+            .Include(t => t.Plan)
+            .Where(t => t.TenantId == tid
+                && !t.IsDeleted
+                && t.EquipmentId == id
+                && t.Status == PlanTaskStatus.Done
+                && t.OeePercent.HasValue
+                && t.ActualEndTime.HasValue
+                && t.ActualEndTime.Value >= DateTime.Today.AddDays(-89))
+            .OrderByDescending(t => t.ActualEndTime)
+            .ToListAsync();
+        var costLedgers = await _db.EquipmentCostLedgers
+            .AsNoTracking()
+            .Where(l => l.TenantId == tid && l.EquipmentId == id && !l.IsDeleted)
+            .OrderByDescending(l => l.OccurredDate)
+            .ThenByDescending(l => l.CreatedAt)
+            .ToListAsync();
+        var incidents = await _db.MaintenanceIncidents
+            .AsNoTracking()
+            .Where(i => i.TenantId == tid && i.EquipmentId == id && !i.IsDeleted)
+            .ToListAsync();
+        var statusHistories = await _db.EquipmentStatusHistories
+            .AsNoTracking()
+            .Include(h => h.ChangedByUser)
+            .Where(h => h.TenantId == tid && h.EquipmentId == id && !h.IsDeleted)
+            .OrderByDescending(h => h.ChangedAt)
+            .Take(20)
+            .ToListAsync();
+
         return new EquipmentDetailViewModel
         {
             Id = eq.Id, Code = eq.Code, Name = eq.Name,
-            Type = eq.Type, Status = eq.Status, Location = eq.Location,
+            Type = eq.Type, Status = eq.Status.ToString(), Location = eq.Location,
             Manufacturer = eq.Manufacturer, Model = eq.Model, SerialNumber = eq.SerialNumber,
             PurchaseDate = eq.PurchaseDate, PurchasePrice = eq.PurchasePrice,
             LifespanYears = eq.LifespanYears, NextMaintenanceDate = eq.NextMaintenanceDate,
             Notes = eq.Notes,
+            Oee7Days = BuildOeeSummary(oeeTasks, 7),
+            Oee30Days = BuildOeeSummary(oeeTasks, 30),
+            Oee90Days = BuildOeeSummary(oeeTasks, 90),
+            OeeTrend = BuildOeeTrend(oeeTasks, 30),
+            CostPerformance = BuildCostPerformance(eq, costLedgers, incidents),
+            CostLedgers = costLedgers.Take(20).Select(l => new EquipmentCostLedgerItemViewModel
+            {
+                Id = l.Id,
+                CostType = l.CostType.ToString(),
+                Amount = l.Amount,
+                OccurredDate = l.OccurredDate,
+                SourceType = l.SourceType,
+                SourceId = l.SourceId,
+                Notes = l.Notes
+            }).ToList(),
+            StatusHistories = statusHistories.Select(h => new EquipmentStatusHistoryItemViewModel
+            {
+                Id = h.Id,
+                OldStatus = h.OldStatus?.ToString(),
+                NewStatus = h.NewStatus.ToString(),
+                ChangedAt = h.ChangedAt,
+                ChangedByName = h.ChangedByUser?.FullName,
+                Reason = h.Reason
+            }).ToList(),
+            RecentOeeTasks = oeeTasks.Take(8).Select(t => new EquipmentOeeTaskItemViewModel
+            {
+                Id = t.Id,
+                TaskName = t.Name,
+                PlanCode = t.Plan?.Code ?? "",
+                ActualEndTime = t.ActualEndTime,
+                PlannedDurationMinutes = t.PlannedDurationMinutes,
+                ActualDurationMinutes = t.ActualDurationMinutes,
+                UnitsProduced = t.UnitsProduced,
+                UnitsGood = t.UnitsGood,
+                OeePercent = t.OeePercent
+            }).ToList(),
             MaintenanceRecords = eq.MaintenanceRecords.OrderByDescending(m => m.ScheduledDate).Select(m => new MaintenanceRecordItem
             {
                 Id = m.Id,
-                MaintenanceType = m.MaintenanceType,
+                MaintenanceType = m.MaintenanceType.ToString(),
                 ScheduledDate = m.ScheduledDate,
                 CompletedDate = m.CompletedDate,
                 TechnicianName = m.TechnicianUser?.FullName,
-                Status = m.Status,
+                Status = m.Status.ToString(),
                 Description = m.Description,
                 WorkDone = m.WorkDone,
                 Cost = m.Cost,
@@ -150,22 +221,160 @@ public class ResourceManagementService
         };
     }
 
+    private static EquipmentOeeSummaryViewModel BuildOeeSummary(List<PlanTask> tasks, int days)
+    {
+        var cutoff = DateTime.Today.AddDays(-(days - 1));
+        var scoped = tasks
+            .Where(t => t.ActualEndTime.HasValue && t.ActualEndTime.Value >= cutoff)
+            .ToList();
+
+        return new EquipmentOeeSummaryViewModel
+        {
+            Days = days,
+            TaskCount = scoped.Count,
+            OeePercent = AveragePercent(scoped.Select(t => t.OeePercent)),
+            AvailabilityPercent = AveragePercent(scoped.Select(t => t.OeeAvailabilityPercent)),
+            PerformancePercent = AveragePercent(scoped.Select(t => t.OeePerformancePercent)),
+            QualityPercent = AveragePercent(scoped.Select(t => t.OeeQualityPercent)),
+            UnitsProduced = scoped.Sum(t => t.UnitsProduced ?? 0),
+            UnitsGood = scoped.Sum(t => t.UnitsGood ?? 0)
+        };
+    }
+
+    private static List<EquipmentOeeTrendPointViewModel> BuildOeeTrend(List<PlanTask> tasks, int days)
+    {
+        var result = new List<EquipmentOeeTrendPointViewModel>();
+        var startDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-(days - 1)));
+
+        for (var i = 0; i < days; i++)
+        {
+            var date = startDate.AddDays(i);
+            var dayStart = date.ToDateTime(TimeOnly.MinValue);
+            var dayEnd = dayStart.AddDays(1);
+            var scoped = tasks
+                .Where(t => t.ActualEndTime.HasValue
+                    && t.ActualEndTime.Value >= dayStart
+                    && t.ActualEndTime.Value < dayEnd)
+                .ToList();
+
+            result.Add(new EquipmentOeeTrendPointViewModel
+            {
+                Date = date,
+                TaskCount = scoped.Count,
+                OeePercent = AveragePercent(scoped.Select(t => t.OeePercent))
+            });
+        }
+
+        return result;
+    }
+
+    private static decimal? AveragePercent(IEnumerable<decimal?> values)
+    {
+        var materialized = values.Where(v => v.HasValue).Select(v => v!.Value).ToList();
+        return materialized.Any() ? Math.Round(materialized.Average(), 2) : null;
+    }
+
+    private static EquipmentCostPerformanceViewModel BuildCostPerformance(
+        Equipment equipment,
+        List<EquipmentCostLedger> ledgers,
+        List<MaintenanceIncident> incidents)
+    {
+        var purchaseCost = ledgers.Where(l => l.CostType == EquipmentCostType.Purchase).Sum(l => l.Amount);
+        if (purchaseCost <= 0 && equipment.PurchasePrice.HasValue) purchaseCost = equipment.PurchasePrice.Value;
+
+        var downtimeHours = incidents.Sum(i => i.DowntimeHours ?? 0);
+        var failureCount = incidents.Count(i => i.DowntimeHours.HasValue && i.DowntimeHours.Value > 0);
+        var operatingStart = equipment.PurchaseDate?.ToDateTime(TimeOnly.MinValue) ?? equipment.CreatedAt.DateTime;
+        var totalOperatingHours = Math.Max(1m, (decimal)(DateTime.UtcNow - operatingStart).TotalHours - downtimeHours);
+        var totalCost = purchaseCost
+            + ledgers.Where(l => l.CostType != EquipmentCostType.Purchase).Sum(l => l.Amount);
+        var costToPurchasePercent = purchaseCost > 0 ? Math.Round(totalCost / purchaseCost * 100m, 2) : (decimal?)null;
+
+        return new EquipmentCostPerformanceViewModel
+        {
+            PurchaseCost = purchaseCost,
+            MaintenanceCost = ledgers.Where(l => l.CostType == EquipmentCostType.Maintenance).Sum(l => l.Amount),
+            RepairCost = ledgers.Where(l => l.CostType == EquipmentCostType.Repair).Sum(l => l.Amount),
+            SparePartCost = ledgers.Where(l => l.CostType == EquipmentCostType.SparePart).Sum(l => l.Amount),
+            OtherCost = ledgers.Where(l => l.CostType == EquipmentCostType.Other).Sum(l => l.Amount),
+            DowntimeHours = downtimeHours,
+            FailureCount = failureCount,
+            MtbfHours = failureCount > 0 ? Math.Round(totalOperatingHours / failureCount, 2) : null,
+            MttrHours = failureCount > 0 ? Math.Round(downtimeHours / failureCount, 2) : null,
+            CostToPurchasePercent = costToPurchasePercent,
+            ShouldRecommendReplace = costToPurchasePercent.HasValue && costToPurchasePercent.Value > 80m
+        };
+    }
+
+    private void AddEquipmentStatusHistory(Equipment equipment, EquipmentStatus? oldStatus, EquipmentStatus newStatus, string reason)
+    {
+        if (oldStatus == newStatus) return;
+        _db.EquipmentStatusHistories.Add(new EquipmentStatusHistory
+        {
+            TenantId = equipment.TenantId,
+            EquipmentId = equipment.Id,
+            OldStatus = oldStatus,
+            NewStatus = newStatus,
+            ChangedAt = DateTimeOffset.UtcNow,
+            ChangedByUserId = _tenant.UserId == Guid.Empty ? null : _tenant.UserId,
+            Reason = reason,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedByUserId = _tenant.UserId == Guid.Empty ? null : _tenant.UserId
+        });
+    }
+
+    private void AddEquipmentCostLedger(
+        Equipment equipment,
+        EquipmentCostType costType,
+        decimal? amount,
+        DateOnly occurredDate,
+        string sourceType,
+        Guid? sourceId,
+        string? notes)
+    {
+        if (!amount.HasValue || amount.Value <= 0) return;
+        _db.EquipmentCostLedgers.Add(new EquipmentCostLedger
+        {
+            TenantId = equipment.TenantId,
+            EquipmentId = equipment.Id,
+            CostType = costType,
+            Amount = amount.Value,
+            OccurredDate = occurredDate,
+            SourceType = sourceType,
+            SourceId = sourceId,
+            Notes = notes,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedByUserId = _tenant.UserId == Guid.Empty ? null : _tenant.UserId
+        });
+    }
+
     public async Task<Guid> CreateEquipmentAsync(EquipmentCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
-        var seq = await _db.Equipments.CountAsync(e => e.TenantId == tid) + 1;
+        var code = await _numbering.NextAsync(NumberingSequenceKeys.Equipment, "EQ-", 4);
         var entity = new Equipment
         {
             TenantId = tid,
-            Code = $"EQ-{seq:D4}",
+            Code = code,
             Name = vm.Name, Type = vm.Type, Location = vm.Location,
             Manufacturer = vm.Manufacturer, Model = vm.Model, SerialNumber = vm.SerialNumber,
             PurchaseDate = vm.PurchaseDate, PurchasePrice = vm.PurchasePrice,
             LifespanYears = vm.LifespanYears, NextMaintenanceDate = vm.NextMaintenanceDate,
-            Notes = vm.Notes, Status = "Available",
+            Notes = vm.Notes, Status = EquipmentStatus.Available,
             CreatedByUserId = _tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
         };
         _db.Equipments.Add(entity);
+        AddEquipmentStatusHistory(entity, null, entity.Status, "Tạo thiết bị mới.");
+        AddEquipmentCostLedger(
+            entity,
+            EquipmentCostType.Purchase,
+            entity.PurchasePrice,
+            entity.PurchaseDate ?? DateOnly.FromDateTime(DateTime.Today),
+            "Equipment",
+            entity.Id,
+            "Chi phí mua mới thiết bị.");
+        await _audit.LogAsync("Equipment", entity.Id, "Create",
+            newValueObj: new { entity.Code, entity.Name, entity.Type, entity.Status, entity.Location });
         await _db.SaveChangesAsync();
         return entity.Id;
     }
@@ -174,31 +383,42 @@ public class ResourceManagementService
     {
         var eq = await _db.Equipments.FindAsync(vm.EquipmentId);
         if (eq == null || eq.TenantId != _tenant.TenantId) return false;
+        var oldEquipmentStatus = eq.Status;
+        var oldNextMaintenanceDate = eq.NextMaintenanceDate;
+
+        var maintenanceType = Enum.TryParse<MaintenanceType>(vm.MaintenanceType, true, out var parsedType)
+            ? parsedType
+            : MaintenanceType.Preventive;
 
         var record = new MaintenanceRecord
         {
             TenantId = _tenant.TenantId,
             EquipmentId = vm.EquipmentId,
-            MaintenanceType = vm.MaintenanceType,
+            MaintenanceType = maintenanceType,
             ScheduledDate = vm.ScheduledDate,
             Description = vm.Description,
             TechnicianUserId = vm.TechnicianUserId,
-            Status = "Scheduled",
+            Status = MaintenanceRecordStatus.Scheduled,
             CreatedByUserId = _tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow
         };
         _db.MaintenanceRecords.Add(record);
 
         // Update equipment status and next maintenance date
-        if (vm.MaintenanceType == "Preventive" || vm.MaintenanceType == "Emergency")
+        if (maintenanceType is MaintenanceType.Preventive or MaintenanceType.Emergency)
         {
-            eq.Status = "Maintenance";
+            eq.Status = EquipmentStatus.Maintenance;
+            AddEquipmentStatusHistory(eq, oldEquipmentStatus, eq.Status, $"Lên lịch bảo trì {maintenanceType}.");
         }
         eq.NextMaintenanceDate = vm.ScheduledDate;
         eq.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _db.SaveChangesAsync();
-        return true;
+        await _audit.LogAsync("Equipment", eq.Id, "ScheduleMaintenance",
+            oldValueObj: new { Status = oldEquipmentStatus, NextMaintenanceDate = oldNextMaintenanceDate },
+            newValueObj: new { eq.Status, eq.NextMaintenanceDate },
+            extra: new { MaintenanceRecordId = record.Id, record.MaintenanceType, record.ScheduledDate });
+
+        return await _db.SaveChangesWithConcurrencyAsync();
     }
 
     public async Task<bool> CompleteMaintenanceAsync(CompleteMaintenanceViewModel vm)
@@ -206,8 +426,10 @@ public class ResourceManagementService
         var record = await _db.MaintenanceRecords.Include(m => m.Equipment)
             .FirstOrDefaultAsync(m => m.Id == vm.RecordId && m.TenantId == _tenant.TenantId);
         if (record == null) return false;
+        var oldRecordStatus = record.Status;
+        var oldEquipmentStatus = record.Equipment?.Status;
 
-        record.Status = "Completed";
+        record.Status = MaintenanceRecordStatus.Completed;
         record.CompletedDate = vm.CompletedDate;
         record.WorkDone = vm.WorkDone;
         record.Cost = vm.Cost;
@@ -216,12 +438,27 @@ public class ResourceManagementService
 
         if (record.Equipment != null)
         {
-            record.Equipment.Status = "Available";
+            var oldStatus = record.Equipment.Status;
+            record.Equipment.Status = EquipmentStatus.Available;
             record.Equipment.NextMaintenanceDate = vm.NextMaintenanceDate;
             record.Equipment.UpdatedAt = DateTimeOffset.UtcNow;
+            AddEquipmentStatusHistory(record.Equipment, oldStatus, record.Equipment.Status, "Hoàn thành bảo trì.");
+            AddEquipmentCostLedger(
+                record.Equipment,
+                record.MaintenanceType == MaintenanceType.Corrective || record.MaintenanceType == MaintenanceType.Emergency
+                    ? EquipmentCostType.Repair
+                    : EquipmentCostType.Maintenance,
+                record.Cost,
+                record.CompletedDate ?? DateOnly.FromDateTime(DateTime.Today),
+                "MaintenanceRecord",
+                record.Id,
+                record.WorkDone ?? record.Description);
         }
-        await _db.SaveChangesAsync();
-        return true;
+        await _audit.LogAsync("Equipment", record.EquipmentId, "CompleteMaintenance",
+            oldValueObj: new { MaintenanceStatus = oldRecordStatus, EquipmentStatus = oldEquipmentStatus },
+            newValueObj: new { MaintenanceStatus = record.Status, EquipmentStatus = record.Equipment?.Status, record.NextMaintenanceDate },
+            extra: new { MaintenanceRecordId = record.Id, record.Cost });
+        return await _db.SaveChangesWithConcurrencyAsync();
     }
 
     // ─── WORK SHIFTS ────────────────────────────────────────────────────────
@@ -265,6 +502,8 @@ public class ResourceManagementService
             CreatedAt = DateTimeOffset.UtcNow
         };
         _db.WorkShifts.Add(entity);
+        await _audit.LogAsync("WorkShift", entity.Id, "Create",
+            newValueObj: new { entity.Name, entity.StartTime, entity.EndTime, entity.ShiftType });
         await _db.SaveChangesAsync();
         return entity.Id;
     }
@@ -287,7 +526,7 @@ public class ResourceManagementService
                 ShiftEnd = a.Shift != null ? a.Shift.EndTime : default,
                 UserName = a.User != null ? a.User.FullName : "",
                 UserId = a.UserId,
-                Status = a.Status,
+                Status = a.Status.ToString(),
                 ActualCheckIn = a.ActualCheckIn,
                 ActualCheckOut = a.ActualCheckOut
             }).ToListAsync();
@@ -314,24 +553,30 @@ public class ResourceManagementService
             a.TenantId == tid && a.UserId == vm.UserId && a.WorkDate == vm.WorkDate && !a.IsDeleted);
         if (existing != null)
         {
+            var oldShiftId = existing.ShiftId;
             existing.ShiftId = vm.ShiftId;
             existing.UpdatedAt = DateTimeOffset.UtcNow;
+            await _audit.LogAsync("ShiftAssignment", existing.Id, "Update",
+                oldValueObj: new { ShiftId = oldShiftId },
+                newValueObj: new { existing.ShiftId, existing.UserId, existing.WorkDate, existing.Status });
         }
         else
         {
-            _db.ShiftAssignments.Add(new ShiftAssignment
+            var assignment = new ShiftAssignment
             {
                 TenantId = tid,
                 ShiftId = vm.ShiftId,
                 UserId = vm.UserId,
                 WorkDate = vm.WorkDate,
-                Status = "Scheduled",
+                Status = ShiftAssignmentStatus.Scheduled,
                 CreatedByUserId = _tenant.UserId,
                 CreatedAt = DateTimeOffset.UtcNow
-            });
+            };
+            _db.ShiftAssignments.Add(assignment);
+            await _audit.LogAsync("ShiftAssignment", assignment.Id, "Create",
+                newValueObj: new { assignment.ShiftId, assignment.UserId, assignment.WorkDate, assignment.Status });
         }
-        await _db.SaveChangesAsync();
-        return true;
+        return await _db.SaveChangesWithConcurrencyAsync();
     }
 
     // ─── CERTIFICATES ────────────────────────────────────────────────────────
@@ -381,7 +626,7 @@ public class ResourceManagementService
     public async Task<bool> AddCertificateAsync(CertificateCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
-        _db.EmployeeCertificates.Add(new EmployeeCertificate
+        var certificate = new EmployeeCertificate
         {
             TenantId = tid,
             UserId = vm.UserId,
@@ -393,7 +638,10 @@ public class ResourceManagementService
             CertificateNumber = vm.CertificateNumber,
             CreatedByUserId = _tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow
-        });
+        };
+        _db.EmployeeCertificates.Add(certificate);
+        await _audit.LogAsync("EmployeeCertificate", certificate.Id, "Create",
+            newValueObj: new { vm.UserId, vm.CertificateName, vm.IssuedDate, vm.ExpiryDate, vm.Category });
         await _db.SaveChangesAsync();
         return true;
     }
@@ -414,25 +662,27 @@ public class ResourceManagementService
             Id = w.Id, Code = w.Code, Name = w.Name,
             Type = w.Type, Location = w.Location,
             AreaSqm = w.AreaSqm, Capacity = w.Capacity,
-            Status = w.Status, Notes = w.Notes
+            Status = w.Status.ToString(), Notes = w.Notes
         }).ToListAsync();
     }
 
     public async Task<Guid> CreateWorkspaceAsync(WorkspaceCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
-        var seq = await _db.Workspaces.CountAsync(w => w.TenantId == tid) + 1;
+        var code = await _numbering.NextAsync(NumberingSequenceKeys.Workspace, "WS-", 3);
         var entity = new Workspace
         {
             TenantId = tid,
-            Code = $"WS-{seq:D3}",
+            Code = code,
             Name = vm.Name, Type = vm.Type,
             Location = vm.Location, AreaSqm = vm.AreaSqm,
-            Capacity = vm.Capacity, Status = "Active",
+            Capacity = vm.Capacity, Status = WorkspaceStatus.Active,
             ParentId = vm.ParentId, Notes = vm.Notes,
             CreatedByUserId = _tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
         };
         _db.Workspaces.Add(entity);
+        await _audit.LogAsync("Workspace", entity.Id, "Create",
+            newValueObj: new { entity.Code, entity.Name, entity.Type, entity.Status, entity.ParentId });
         await _db.SaveChangesAsync();
         return entity.Id;
     }

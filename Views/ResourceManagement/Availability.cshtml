@@ -1,0 +1,214 @@
+@model OmniBizAI.ViewModels.ResourceAvailabilityMatrixViewModel
+@{
+    ViewData["Title"] = "Availability Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .availability-table-wrap {
+            overflow: auto;
+            border: 1px solid #e3e6f0;
+            border-radius: .5rem;
+            max-height: 72vh;
+            background: #fff;
+        }
+
+        .availability-table {
+            min-width: 1320px;
+            margin-bottom: 0;
+            table-layout: fixed;
+        }
+
+        .availability-table th,
+        .availability-table td {
+            width: 72px;
+            min-width: 72px;
+            padding: .35rem;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .availability-table .worker-col {
+            width: 220px;
+            min-width: 220px;
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background: #fff;
+            box-shadow: 1px 0 0 #e3e6f0;
+        }
+
+        .availability-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: #f8f9fc;
+        }
+
+        .availability-table thead .worker-col {
+            z-index: 4;
+            background: #f8f9fc;
+        }
+
+        .availability-cell {
+            display: block;
+            min-height: 32px;
+            line-height: 1.1;
+            border-radius: .35rem;
+            padding: .35rem .25rem;
+            font-size: .72rem;
+            font-weight: 700;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .availability-free {
+            color: #0f5132;
+            background: #d1e7dd;
+        }
+
+        .availability-busy {
+            color: #842029;
+            background: #f8d7da;
+        }
+
+        .availability-leave {
+            color: #664d03;
+            background: #fff3cd;
+        }
+
+        .availability-no-shift {
+            color: #41464b;
+            background: #e2e3e5;
+        }
+    </style>
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="h4 mb-1 text-gray-800">
+            <i class="fas fa-table-cells-large text-primary me-2"></i>Availability Matrix
+        </h2>
+        <div class="text-muted small">@Model.Date.ToString("dddd, dd/MM/yyyy") · slot @Model.DurationHours giờ</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Availability" asp-route-date="@Model.Date.AddDays(-1).ToString("yyyy-MM-dd")" asp-route-duration="@Model.DurationHours" class="btn btn-outline-secondary btn-sm">Hôm trước</a>
+        <a asp-action="Availability" asp-route-duration="@Model.DurationHours" class="btn btn-outline-primary btn-sm">Hôm nay</a>
+        <a asp-action="Availability" asp-route-date="@Model.Date.AddDays(1).ToString("yyyy-MM-dd")" asp-route-duration="@Model.DurationHours" class="btn btn-outline-secondary btn-sm">Hôm sau</a>
+        <a asp-action="ShiftSchedule" asp-route-date="@Model.Date.ToString("yyyy-MM-dd")" class="btn btn-outline-success btn-sm">
+            <i class="fas fa-calendar-day me-1"></i>Lịch ca
+        </a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form asp-action="Availability" method="get" class="row g-2 align-items-end">
+            <div class="col-md-4 col-lg-3">
+                <label class="form-label small fw-bold">Ngày</label>
+                <input type="date" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label class="form-label small fw-bold">Duration/slot</label>
+                <select name="duration" class="form-select">
+                    @for (var h = 1; h <= 8; h++)
+                    {
+                        <option value="@h" selected="@(Model.DurationHours == h ? "selected" : null)">@h giờ</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i>Lọc
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small fw-bold text-uppercase">Rảnh</div>
+                <div class="h4 mb-0 text-success">@Model.AvailableCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small fw-bold text-uppercase">Bận task</div>
+                <div class="h4 mb-0 text-danger">@Model.BusyCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small fw-bold text-uppercase">Nghỉ phép</div>
+                <div class="h4 mb-0 text-warning">@Model.LeaveCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small fw-bold text-uppercase">Không ca</div>
+                <div class="h4 mb-0 text-secondary">@Model.NoShiftCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h6 class="m-0 font-weight-bold text-primary">Workers x Hours (@Model.Rows.Count nhân sự)</h6>
+        <div class="d-flex gap-3 small flex-wrap">
+            <span><span class="badge availability-free">&nbsp;</span> Rảnh</span>
+            <span><span class="badge availability-busy">&nbsp;</span> Bận</span>
+            <span><span class="badge availability-leave">&nbsp;</span> Nghỉ</span>
+            <span><span class="badge availability-no-shift">&nbsp;</span> Không ca</span>
+        </div>
+    </div>
+    <div class="availability-table-wrap">
+        <table class="table table-sm table-bordered availability-table">
+            <thead>
+                <tr>
+                    <th class="worker-col">Nhân sự</th>
+                    @foreach (var hour in Model.Hours)
+                    {
+                        <th class="text-center">@hour.ToString("00"):00</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Rows.Any())
+                {
+                    <tr>
+                        <td colspan="25" class="text-center text-muted py-5">Chưa có nhân sự active.</td>
+                    </tr>
+                }
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        <td class="worker-col">
+                            <div class="fw-bold text-dark">@row.UserName</div>
+                            <div class="text-muted small">@(row.JobTitle ?? "Chưa có chức danh")</div>
+                        </td>
+                        @foreach (var slot in row.Slots)
+                        {
+                            <td>
+                                <span class="availability-cell @slot.CssClass" title="@slot.TimeLabel · @slot.Description">
+                                    @slot.Label
+                                </span>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

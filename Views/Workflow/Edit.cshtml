@@ -64,6 +64,16 @@
                             </select>
                         </div>
                         <div class="col-md-4">
+                            <label asp-for="SprintId" class="form-label fw-bold">Sprint</label>
+                            <select asp-for="SprintId" class="form-select">
+                                <option value="">— Backlog —</option>
+                                @foreach (var sprint in Model.SprintOptions)
+                                {
+                                    <option value="@sprint.Value" selected="@(sprint.Value == Model.SprintId?.ToString())">@sprint.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
                             <label asp-for="DueDate" class="form-label fw-bold">Hạn xử lý</label>
                             <input asp-for="DueDate" type="date" class="form-control" />
                         </div>

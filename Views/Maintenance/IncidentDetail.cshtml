@@ -89,7 +89,7 @@
 
     <!-- Giải quyết sự cố -->
     <div class="col-lg-7">
-        @if (Model.Status != "Resolved" && Model.Status != "Closed")
+        @if (Model.CanResolve)
         {
             <div class="card shadow mb-4 border-success">
                 <div class="card-header py-3 bg-success text-white"><h6 class="m-0 fw-bold">✅ Xác Nhận Giải Quyết Sự Cố</h6></div>

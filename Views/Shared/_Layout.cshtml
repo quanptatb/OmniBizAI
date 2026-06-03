@@ -49,7 +49,16 @@
                     <span>Dashboard</span>
                 </a>
 
-                <div class="nav-section-label">VẬN HÀNH & QUY TRÌNH</div>
+                @if (User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("DEPARTMENT_MANAGER"))
+                {
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "CommandCenter" ? "active" : "")"
+                       asp-controller="CommandCenter" asp-action="Index">
+                        <i class="fa-solid fa-tower-broadcast"></i>
+                        <span>Trung tâm điều hành</span>
+                    </a>
+                }
+
+                <div class="nav-section-label">VẬN HÀNH &amp; QUY TRÌNH</div>
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OperationPlans" ? "active" : "")"
                    asp-controller="OperationPlans" asp-action="Index">
                     <i class="fa-solid fa-calendar-alt"></i>

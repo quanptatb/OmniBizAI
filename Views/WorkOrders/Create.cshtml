@@ -1,0 +1,114 @@
+@model OmniBizAI.ViewModels.WorkOrderCreateFormViewModel
+@using OmniBizAI.Models.Entities.Enums
+@{
+    ViewData["Title"] = "Tạo Work Order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-wrench text-primary me-2"></i>Tạo Work Order</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Danh sách</a>
+</div>
+
+<form method="post" class="card shadow-sm">
+    <div class="card-body">
+        @Html.AntiForgeryToken()
+        <input asp-for="IncidentId" type="hidden" />
+        <input asp-for="PmScheduleId" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="EquipmentId" class="form-label fw-bold">Thiết bị *</label>
+                <select asp-for="EquipmentId" class="form-select" asp-items="@(new SelectList(Model.Equipments, "Value", "Text"))">
+                    <option value="">-- Chọn thiết bị --</option>
+                </select>
+                <span asp-validation-for="EquipmentId" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Type" class="form-label fw-bold">Loại</label>
+                <select asp-for="Type" class="form-select">
+                    @foreach (var t in Enum.GetValues<WorkOrderType>())
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Priority" class="form-label fw-bold">Ưu tiên</label>
+                <select asp-for="Priority" class="form-select">
+                    @foreach (var p in Enum.GetValues<PriorityLevel>())
+                    {
+                        <option value="@p">@p</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Title" class="form-label fw-bold">Tiêu đề *</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Description" class="form-label fw-bold">Mô tả</label>
+                <textarea asp-for="Description" rows="3" class="form-control"></textarea>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="AssignedTechnicianId" class="form-label fw-bold">Technician</label>
+                <select asp-for="AssignedTechnicianId" class="form-select" asp-items="@(new SelectList(Model.Technicians, "Value", "Text"))">
+                    <option value="">-- Để Open --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ScheduledStart" class="form-label fw-bold">Bắt đầu dự kiến</label>
+                <input asp-for="ScheduledStart" type="datetime-local" class="form-control" value="@Model.ScheduledStart?.LocalDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ScheduledEnd" class="form-label fw-bold">Kết thúc dự kiến</label>
+                <input asp-for="ScheduledEnd" type="datetime-local" class="form-control" value="@Model.ScheduledEnd?.LocalDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="EstimatedHours" class="form-label">Số giờ dự kiến</label>
+                <input asp-for="EstimatedHours" type="number" step="0.25" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="EstimatedCost" class="form-label">Chi phí dự kiến</label>
+                <input asp-for="EstimatedCost" type="number" step="1000" class="form-control" />
+            </div>
+
+            <div class="col-12">
+                <label class="form-label fw-bold">Checklist (mỗi dòng 1 mục)</label>
+                <textarea name="ChecklistTitles" rows="4" class="form-control" placeholder="Mỗi dòng là một mục checklist..."></textarea>
+                <small class="text-muted">Hệ thống tự tách theo dòng.</small>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <a asp-action="Index" class="btn btn-outline-secondary me-2">Huỷ</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Tạo</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Convert textarea -> array of names
+        document.querySelector('form').addEventListener('submit', function () {
+            var ta = document.querySelector('textarea[name="ChecklistTitles"]');
+            if (!ta) return;
+            var lines = (ta.value || '').split(/\r?\n/).filter(l => l.trim());
+            // Remove the textarea, replace with hidden inputs so model binder can collect List<string>
+            lines.forEach(function (l) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ChecklistTitles';
+                input.value = l.trim();
+                ta.form.appendChild(input);
+            });
+            ta.removeAttribute('name');
+        });
+    </script>
+}

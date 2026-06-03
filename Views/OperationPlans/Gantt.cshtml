@@ -1,0 +1,313 @@
+@model OmniBizAI.ViewModels.OperationPlanGanttViewModel
+@{
+    ViewData["Title"] = $"Gantt: {Model.Code}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var ganttTasks = Model.Tasks.Select(t => new
+    {
+        id = t.Id.ToString(),
+        name = t.Name,
+        start = t.StartTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+        end = t.EndTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+        progress = Math.Clamp(t.ProgressPercent, 0, 100),
+        dependencies = string.Join(",", t.Dependencies.Select(d => d.ToString())),
+        custom_class = t.CssClass,
+        status = t.Status,
+        isCriticalPath = t.IsCriticalPath,
+        slackMinutes = t.SlackMinutes
+    }).ToList();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css" />
+    <style>
+        .gantt-toolbar {
+            gap: .5rem;
+        }
+
+        .gantt-board {
+            min-height: 560px;
+            overflow: auto;
+            border: 1px solid #e3e6f0;
+            border-radius: .5rem;
+            background: #fff;
+        }
+
+        .gantt-board .grid-header {
+            fill: #f8f9fc;
+            stroke: #e3e6f0;
+        }
+
+        .gantt-board .today-highlight {
+            fill: rgba(13, 110, 253, .08);
+        }
+
+        .gantt-board .bar-wrapper.critical-task .bar,
+        .gantt-board .bar-wrapper.critical-task .bar-progress {
+            fill: #dc3545;
+        }
+
+        .gantt-board .bar-wrapper.delayed-task .bar {
+            fill: #ffc107;
+        }
+
+        .gantt-board .bar-wrapper.delayed-task .bar-progress {
+            fill: #d39e00;
+        }
+
+        .gantt-board .bar-wrapper.in-progress-task .bar,
+        .gantt-board .bar-wrapper.in-progress-task .bar-progress {
+            fill: #0d6efd;
+        }
+
+        .gantt-board .bar-wrapper.done-task .bar,
+        .gantt-board .bar-wrapper.done-task .bar-progress {
+            fill: #198754;
+        }
+
+        .gantt-board .bar-wrapper.cancelled-task .bar,
+        .gantt-board .bar-wrapper.cancelled-task .bar-progress {
+            fill: #6c757d;
+        }
+
+        .gantt-board .bar-wrapper.critical-task .bar-label,
+        .gantt-board .bar-wrapper.in-progress-task .bar-label,
+        .gantt-board .bar-wrapper.done-task .bar-label,
+        .gantt-board .bar-wrapper.cancelled-task .bar-label {
+            fill: #fff;
+        }
+
+        .gantt-legend {
+            row-gap: .5rem;
+        }
+
+        .legend-swatch {
+            width: .875rem;
+            height: .875rem;
+            border-radius: .2rem;
+            display: inline-block;
+        }
+    </style>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <div class="text-muted small fw-bold text-uppercase">@Model.Code · @Model.PlanType</div>
+        <h2 class="h4 mb-1 text-gray-800">
+            @Model.Title
+            <span class="badge @Model.StatusBadgeClass ms-2 fs-6">@Model.StatusLabel</span>
+        </h2>
+        <div class="text-muted small">
+            @Model.StartDate.ToString("dd/MM/yyyy HH:mm") - @Model.EndDate.ToString("dd/MM/yyyy HH:mm")
+            @if (Model.ProjectedEndDate.HasValue)
+            {
+                <span class="mx-2">|</span>
+                <span>Projected End: @Model.ProjectedEndDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+            }
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary shadow-sm">
+            <i class="fas fa-list-check fa-sm"></i> Chi tiết
+        </a>
+        <a asp-action="Index" class="btn btn-secondary shadow-sm">Quay lại</a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h6 class="m-0 font-weight-bold text-primary">Gantt View (@Model.Tasks.Count công việc)</h6>
+            <div class="small text-muted">
+                @(Model.CanEditSchedule ? "Có thể kéo task để tạo change order đã duyệt." : "Chỉ kế hoạch Approved/InProgress mới được kéo chỉnh lịch.")
+            </div>
+        </div>
+        <div class="btn-group gantt-toolbar" role="group" aria-label="Chế độ xem Gantt">
+            <button type="button" class="btn btn-sm btn-outline-primary active" data-view-mode="Hour">Giờ</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-view-mode="Day">Ngày</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-view-mode="Week">Tuần</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-view-mode="Month">Tháng</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="d-flex gantt-legend flex-wrap gap-3 small mb-3">
+            <span><span class="legend-swatch bg-danger me-1"></span> Critical Path</span>
+            <span><span class="legend-swatch bg-primary me-1"></span> InProgress</span>
+            <span><span class="legend-swatch bg-warning me-1"></span> Delayed</span>
+            <span><span class="legend-swatch bg-success me-1"></span> Done</span>
+            <span><span class="legend-swatch bg-secondary me-1"></span> Todo/Cancelled</span>
+        </div>
+
+        <div id="gantt-message" class="alert d-none mb-3" role="alert"></div>
+        <form id="gantt-token" class="d-none">@Html.AntiForgeryToken()</form>
+
+        @if (!Model.Tasks.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-chart-gantt fa-3x mb-3 text-gray-300"></i>
+                <p class="mb-0">Kế hoạch này chưa có công việc để hiển thị Gantt.</p>
+            </div>
+        }
+        else
+        {
+            <div id="gantt" class="gantt-board"></div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.umd.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tasks = @Json.Serialize(ganttTasks);
+            const canEditSchedule = @Json.Serialize(Model.CanEditSchedule);
+            const updateUrl = '@Url.Action("UpdateGanttTask", "OperationPlans", new { id = Model.Id })';
+            const ganttTarget = document.getElementById('gantt');
+            const messageBox = document.getElementById('gantt-message');
+            const token = document.querySelector('#gantt-token input[name="__RequestVerificationToken"]')?.value ?? '';
+
+            if (!tasks.length || !ganttTarget) {
+                return;
+            }
+
+            function showMessage(success, message) {
+                messageBox.className = `alert ${success ? 'alert-success' : 'alert-danger'} mb-3`;
+                messageBox.textContent = message;
+                messageBox.classList.remove('d-none');
+            }
+
+            if (!window.Gantt) {
+                showMessage(false, 'Không tải được thư viện frappe-gantt. Vui lòng kiểm tra kết nối mạng hoặc CDN.');
+                return;
+            }
+
+            const originalSchedule = new Map(tasks.map(task => [task.id, { start: task.start, end: task.end }]));
+
+            function snapQuarter(dateLike) {
+                const date = dateLike instanceof Date ? new Date(dateLike) : new Date(dateLike);
+                const snappedMinutes = Math.round(date.getMinutes() / 15) * 15;
+                date.setMinutes(snappedMinutes, 0, 0);
+                return date;
+            }
+
+            function localDateTimeValue(dateLike) {
+                const date = snapQuarter(dateLike);
+                const pad = value => String(value).padStart(2, '0');
+                return [
+                    date.getFullYear(),
+                    pad(date.getMonth() + 1),
+                    pad(date.getDate())
+                ].join('-') + 'T' + [pad(date.getHours()), pad(date.getMinutes()), '00'].join(':');
+            }
+
+            function revertTask(gantt, task) {
+                const original = originalSchedule.get(task.id);
+                if (!original) {
+                    window.location.reload();
+                    return;
+                }
+
+                if (typeof gantt.update_task === 'function') {
+                    gantt.update_task(task.id, { start: original.start, end: original.end });
+                    return;
+                }
+
+                window.location.reload();
+            }
+
+            async function updateSchedule(gantt, task, start, end) {
+                if (!canEditSchedule) {
+                    revertTask(gantt, task);
+                    showMessage(false, 'Chỉ kế hoạch đã duyệt hoặc đang thực hiện mới được chỉnh lịch trên Gantt.');
+                    return;
+                }
+
+                let snappedStart = snapQuarter(start);
+                let snappedEnd = snapQuarter(end);
+                if (snappedEnd <= snappedStart) {
+                    snappedEnd = new Date(snappedStart.getTime() + 15 * 60 * 1000);
+                }
+
+                const startValue = localDateTimeValue(snappedStart);
+                const endValue = localDateTimeValue(snappedEnd);
+                const body = new FormData();
+                body.append('taskId', task.id);
+                body.append('startTime', startValue);
+                body.append('endTime', endValue);
+
+                try {
+                    const response = await fetch(updateUrl, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body
+                    });
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        revertTask(gantt, task);
+                        showMessage(false, result.message || 'Không thể cập nhật lịch công việc.');
+                        return;
+                    }
+
+                    originalSchedule.set(task.id, { start: startValue, end: endValue });
+                    if (typeof gantt.update_task === 'function') {
+                        gantt.update_task(task.id, { start: startValue, end: endValue });
+                    }
+                    showMessage(true, result.message || 'Đã cập nhật lịch công việc.');
+                    window.setTimeout(() => window.location.reload(), 800);
+                } catch {
+                    revertTask(gantt, task);
+                    showMessage(false, 'Không thể kết nối máy chủ để cập nhật lịch công việc.');
+                }
+            }
+
+            const gantt = new Gantt(ganttTarget, tasks, {
+                view_mode: 'Hour',
+                date_format: 'YYYY-MM-DD HH:mm:ss',
+                readonly_dates: !canEditSchedule,
+                readonly_progress: true,
+                move_dependencies: false,
+                snap_at: '15m',
+                view_modes: [
+                    { name: 'Hour', step: '1h', padding: '6h', lower_text: 'HH:mm', upper_text: 'DD/MM', column_width: 58, snap_at: '15m' },
+                    { name: 'Day', step: '1d', padding: '1d', lower_text: 'DD', upper_text: 'MMM YYYY', column_width: 46, snap_at: '15m' },
+                    { name: 'Week', step: '1w', padding: '1w', lower_text: 'DD/MM', upper_text: 'YYYY', column_width: 72, snap_at: '15m' },
+                    { name: 'Month', step: '1M', padding: '1M', lower_text: 'MMM', upper_text: 'YYYY', column_width: 94, snap_at: '15m' }
+                ],
+                on_date_change: (task, start, end) => updateSchedule(gantt, task, start, end),
+                popup: ({ task }) => `
+                    <div class="p-2">
+                        <div class="fw-bold mb-1">${task.name}</div>
+                        <div class="small text-muted">${task.start} - ${task.end}</div>
+                        <div class="small mt-1">Tiến độ: ${task.progress}%</div>
+                    </div>`
+            });
+
+            document.querySelectorAll('[data-view-mode]').forEach(button => {
+                button.addEventListener('click', function () {
+                    document.querySelectorAll('[data-view-mode]').forEach(item => item.classList.remove('active'));
+                    this.classList.add('active');
+                    gantt.change_view_mode(this.dataset.viewMode);
+                });
+            });
+        });
+    </script>
+}

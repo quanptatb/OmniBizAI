@@ -1,6 +1,9 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
+using OmniBizAI.Hubs;
 using OmniBizAI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +14,10 @@ builder.Logging.AddDebug();
 
 // ── Services ─────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers(); // F5.5 API endpoints
+builder.Services.AddSignalR();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -46,15 +53,30 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantContext, TenantContextService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<INumberingService, NumberingService>();
+builder.Services.AddScoped<IOperationSlaService, OperationSlaService>();
+builder.Services.AddSingleton<IOperationSlaWatcherQueue, OperationSlaWatcherQueue>();
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<OperationRequestQueryService>();
+builder.Services.AddScoped<OperationApprovalService>();
 builder.Services.AddScoped<OperationRequestService>();
+builder.Services.AddScoped<OperationAttachmentService>();
 builder.Services.AddScoped<WorkKanbanService>();
 builder.Services.AddScoped<ApprovalService>();
 builder.Services.AddScoped<AiInsightService>();
+builder.Services.AddScoped<CriticalPathCalculator>();
+builder.Services.AddScoped<ResourceAvailabilityService>();
 builder.Services.AddScoped<OperationPlanService>();
 builder.Services.AddScoped<ResourceManagementService>();
 builder.Services.AddScoped<MaintenanceService>();
+builder.Services.AddScoped<WorkOrderService>();
+builder.Services.AddScoped<SparePartRequisitionService>();
+builder.Services.AddScoped<SensorAnomalyDetector>();
 builder.Services.AddScoped<OrderManagementService>();
+builder.Services.AddHostedService<OperationSlaWatcherService>();
+builder.Services.AddHostedService<PlanStatusReconcilerService>();
+builder.Services.AddHostedService<PmTriggerService>();
 
 // KPI/OKR Services (merged from Manage-KPI-or-OKR-System)
 builder.Services.AddScoped<OkrService>();
@@ -76,6 +98,7 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AnomalyDetectionService>();
 builder.Services.AddScoped<BackupService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<CommandCenterService>();
 
 // AI — Gemini
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
@@ -105,6 +128,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dashboard}/{action=Index}/{id?}")
     .WithStaticAssets();
+app.MapControllers(); // attribute-routed API endpoints (F5.5)
+app.MapHub<KanbanHub>("/hubs/kanban");
+app.MapHub<OperationsHub>("/hubs/operations");
 
 // ── Database ─────────────────────────────────────────────────────────────────
 // Apply EF Core migrations on startup.

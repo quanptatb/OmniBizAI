@@ -139,6 +139,8 @@
                                     <th>SP / Dịch vụ</th>
                                     <th class="text-end">SL yêu cầu</th>
                                     <th class="text-end">SL xuất</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
                                     <th>ĐVT</th>
                                     <th>Tỷ lệ</th>
                                     <th>Ghi chú</th>
@@ -160,6 +162,8 @@
                                         </td>
                                         <td class="text-end" style="color:var(--text-muted)">@line.RequestedQuantity.ToString("N2")</td>
                                         <td class="text-end" style="font-weight:600;color:var(--apple-blue)">@line.IssuedQuantity.ToString("N2")</td>
+                                        <td class="text-end">@(line.UnitCost?.ToString("N0") ?? "—")</td>
+                                        <td class="text-end" style="font-weight:600">@(line.LineAmount?.ToString("N0") ?? "—") ₫</td>
                                         <td style="color:var(--text-muted);font-size:.78rem">@(line.UnitOfMeasure ?? "—")</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
@@ -178,6 +182,8 @@
                                     <td class="ps-4" colspan="2">Tổng</td>
                                     <td class="text-end">@Model.Lines.Sum(l => l.RequestedQuantity).ToString("N2")</td>
                                     <td class="text-end" style="color:var(--apple-blue)">@Model.Lines.Sum(l => l.IssuedQuantity).ToString("N2")</td>
+                                    <td></td>
+                                    <td class="text-end">@Model.Lines.Sum(l => l.LineAmount ?? 0).ToString("N0") ₫</td>
                                     <td></td><td></td><td></td>
                                 </tr>
                             </tfoot>

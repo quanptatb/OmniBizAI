@@ -13,12 +13,18 @@ namespace OmniBizAI.Controllers;
 public class ResourceManagementController : Controller
 {
     private readonly ResourceManagementService _service;
+    private readonly ResourceAvailabilityService _availability;
     private readonly ApplicationDbContext _db;
     private readonly ITenantContext _tenant;
 
-    public ResourceManagementController(ResourceManagementService service, ApplicationDbContext db, ITenantContext tenant)
+    public ResourceManagementController(
+        ResourceManagementService service,
+        ResourceAvailabilityService availability,
+        ApplicationDbContext db,
+        ITenantContext tenant)
     {
         _service = service;
+        _availability = availability;
         _db = db;
         _tenant = tenant;
     }
@@ -161,6 +167,16 @@ public class ResourceManagementController : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Availability(string? date, int duration = 1)
+    {
+        var targetDate = DateOnly.FromDateTime(DateTime.Today);
+        if (!string.IsNullOrWhiteSpace(date) && DateOnly.TryParse(date, out var parsed))
+            targetDate = parsed;
+
+        var vm = await _availability.GetWorkerAvailabilityMatrixAsync(targetDate, duration);
+        return View(vm);
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> AssignShift(AssignShiftViewModel vm)
@@ -217,7 +233,7 @@ public class ResourceManagementController : Controller
         var tid = HttpContext.RequestServices.GetRequiredService<ITenantContext>().TenantId;
         var db = HttpContext.RequestServices.GetRequiredService<OmniBizAI.Data.ApplicationDbContext>();
         var parents = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-            db.Workspaces.Where(w => w.TenantId == tid && !w.IsDeleted && w.Status == "Active")
+            db.Workspaces.Where(w => w.TenantId == tid && !w.IsDeleted && w.Status == WorkspaceStatus.Active)
                 .OrderBy(w => w.Name)
                 .Select(w => new SelectOption { Value = w.Id.ToString(), Text = w.Name })
         );

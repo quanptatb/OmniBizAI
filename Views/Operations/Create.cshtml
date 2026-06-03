@@ -14,6 +14,29 @@
                 <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:24px">Vui lòng điền đầy đủ thông tin để hệ thống có thể chuyển luồng phê duyệt chính xác.</p>
                 <form asp-action="Create" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3 p-3 rounded" style="background:var(--danger-bg);border:1px solid rgba(255,59,48,.2);border-radius:var(--r-sm)"></div>
+
+                    <div class="mb-4" style="padding:14px 16px;background:rgba(0,122,255,.04);border:1px solid rgba(0,122,255,.12);border-radius:12px">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-8">
+                                <label asp-for="TemplateId" class="form-label">Tạo từ template</label>
+                                <select asp-for="TemplateId" class="form-select" id="templatePicker">
+                                    <option value="">-- Không dùng template --</option>
+                                    @foreach (var template in Model.Templates)
+                                    {
+                                        <option value="@template.Value" selected="@(Model.TemplateId?.ToString() == template.Value)">@template.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            @if (User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                            {
+                                <div class="col-md-4 text-md-end">
+                                    <a asp-action="Templates" class="btn btn-light border w-100" style="border-radius:8px">
+                                        <i class="fa-solid fa-layer-group me-1"></i>Quản lý template
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
                     
                     <div class="row g-4 mb-4">
                         <div class="col-md-12">
@@ -54,7 +77,10 @@
                             <label asp-for="Priority" class="form-label">Mức độ ưu tiên <span style="color:var(--danger)">*</span></label>
                             <select asp-for="Priority" class="form-select">
                                 @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
-                                { <option value="@((int)Enum.Parse<PriorityLevel>(p.Value))" selected="@(p.Value == "Normal")">@p.Text</option> }
+                                {
+                                    var priority = Enum.Parse<PriorityLevel>(p.Value);
+                                    <option value="@((int)priority)" selected="@(Model.Priority == priority)">@p.Text</option>
+                                }
                             </select>
                             <span asp-validation-for="Priority" class="text-danger small mt-1"></span>
                         </div>
@@ -92,6 +118,45 @@
                         </div>
                     </div>
 
+                    @if (Model.Lines.Any())
+                    {
+                        <div class="mb-4" style="border:1px solid var(--divider);border-radius:12px;overflow:hidden">
+                            <div style="padding:12px 16px;background:var(--parchment);border-bottom:1px solid var(--divider);font-weight:700;font-size:.86rem">
+                                <i class="fa-solid fa-list-ul me-1"></i>Dòng mặc định từ template
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table mb-0 align-middle" style="font-size:.84rem">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-3">SP/DV</th>
+                                            <th class="text-end">SL</th>
+                                            <th class="text-end">Đơn giá</th>
+                                            <th class="text-end pe-3">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Model.Lines.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="ps-3">
+                                                    @(Model.Lines[i].ProductName ?? Model.Lines[i].Note ?? "Dòng template")
+                                                    <input type="hidden" asp-for="Lines[i].ProductServiceId" />
+                                                    <input type="hidden" asp-for="Lines[i].ProductName" />
+                                                    <input type="hidden" asp-for="Lines[i].Quantity" />
+                                                    <input type="hidden" asp-for="Lines[i].UnitPrice" />
+                                                    <input type="hidden" asp-for="Lines[i].Note" />
+                                                </td>
+                                                <td class="text-end">@Model.Lines[i].Quantity.ToString("N2")</td>
+                                                <td class="text-end">@(Model.Lines[i].UnitPrice?.ToString("N0") ?? "0") ₫</td>
+                                                <td class="text-end pe-3" style="font-weight:700">@Model.Lines[i].LineAmount.ToString("N0") ₫</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
                     <div style="border-top:1px solid var(--divider);padding-top:20px" class="d-flex justify-content-end gap-2">
                         <a asp-action="Index" class="btn btn-light">Hủy bỏ</a>
                         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i>Lưu nháp (Draft)</button>
@@ -104,4 +169,11 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('templatePicker')?.addEventListener('change', function () {
+            const value = this.value;
+            const url = value ? `/Operations/Create?templateId=${encodeURIComponent(value)}` : '/Operations/Create';
+            window.location.href = url;
+        });
+    </script>
 }
