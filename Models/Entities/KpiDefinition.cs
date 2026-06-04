@@ -57,4 +57,7 @@ public class KpiDefinition : TenantEntity
     // Liên kết với OperationRequest (nếu được tạo từ yêu cầu vận hành)
     public Guid? OperationRequestId { get; set; }
     public OperationRequest? OperationRequest { get; set; }
+
+    // Liên kết 1-1 với OperationPlan (Kế hoạch vận hành tự động sinh)
+    public OperationPlan? OperationPlan { get; set; }
 }

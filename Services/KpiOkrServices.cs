@@ -228,6 +228,19 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
             TenantId = tenant.TenantId, Code = $"OP-OKR-{DateTime.Today.Year}-{count + 1:D3}", Title = o.ObjectiveName, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = "Draft", CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, OkrObjective = o
         };
         db.OperationPlans.Add(plan);
+
+        // Đóng Yêu cầu vận hành nếu có
+        if (o.OperationRequestId.HasValue)
+        {
+            var req = await db.OperationRequests.FindAsync(o.OperationRequestId.Value);
+            if (req != null)
+            {
+                req.Status = OperationStatus.Completed;
+                req.UpdatedAt = DateTimeOffset.UtcNow;
+                req.UpdatedByUserId = tenant.UserId;
+            }
+        }
+
         await db.SaveChangesAsync(); return true;
     }
 
@@ -468,6 +481,19 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             TenantId = tenant.TenantId, Code = $"OP-KPI-{DateTime.Today.Year}-{count + 1:D3}", Title = k.Name, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = "Draft", CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, KpiDefinition = k
         };
         db.OperationPlans.Add(plan);
+
+        // Đóng Yêu cầu vận hành nếu có
+        if (k.OperationRequestId.HasValue)
+        {
+            var req = await db.OperationRequests.FindAsync(k.OperationRequestId.Value);
+            if (req != null)
+            {
+                req.Status = OperationStatus.Completed;
+                req.UpdatedAt = DateTimeOffset.UtcNow;
+                req.UpdatedByUserId = tenant.UserId;
+            }
+        }
+
         await db.SaveChangesAsync(); return true;
     }
 

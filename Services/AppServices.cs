@@ -232,7 +232,8 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             var okr = new OkrObjective
             {
                 TenantId = tid, ObjectiveName = vm.Title, Level = OkrLevel.Company, Status = OkrStatus.Draft,
-                CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+                CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow,
+                OperationRequest = entity
             };
             db.OkrObjectives.Add(okr);
         }

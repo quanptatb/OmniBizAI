@@ -47,4 +47,7 @@ public class OperationRequest : TenantEntity
 
     // Liên kết 1-1 với KpiDefinition (Đề xuất tạo KPI)
     public KpiDefinition? KpiDefinition { get; set; }
+
+    // Liên kết 1-1 với OkrObjective (Đề xuất tạo OKR)
+    public OkrObjective? OkrObjective { get; set; }
 }
