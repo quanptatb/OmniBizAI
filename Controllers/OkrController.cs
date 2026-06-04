@@ -41,6 +41,7 @@ public class OkrController(OkrService okrService, OkrProgressService progressSer
         {
             var form = await okrService.GetCreateFormAsync();
             vm.Departments = form.Departments; vm.Missions = form.Missions;
+            vm.Employees = form.Employees;
             return View(vm);
         }
         var id = await okrService.CreateAsync(vm);

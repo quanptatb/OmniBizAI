@@ -4,27 +4,447 @@
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Tạo mới</span>";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="content-card">
-            <div class="card-header-custom">
-                <h5><i class="fa-solid fa-pen-to-square"></i> Khởi tạo yêu cầu</h5>
-            </div>
-            <div class="card-body-custom">
-                <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:24px">Vui lòng điền đầy đủ thông tin để hệ thống có thể chuyển luồng phê duyệt chính xác.</p>
-                <form asp-action="Create" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 p-3 rounded" style="background:var(--danger-bg);border:1px solid rgba(255,59,48,.2);border-radius:var(--r-sm)"></div>
-                    
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-12">
-                            <label asp-for="Title" class="form-label">Tiêu đề yêu cầu <span style="color:var(--danger)">*</span></label>
-                            <input asp-for="Title" class="form-control" placeholder="Nhập tóm tắt nội dung yêu cầu..." />
-                            <span asp-validation-for="Title" class="text-danger small mt-1"></span>
+@section Styles {
+<style>
+    .operation-create-hero {
+        background:
+            radial-gradient(circle at top right, rgba(0,113,227,.15), transparent 34%),
+            linear-gradient(135deg, rgba(255,255,255,.98), rgba(245,245,247,.95));
+    }
+    .operation-hero-shell {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+    }
+    .operation-hero-shell h5 {
+        margin: 14px 0 8px;
+        font-size: 1.42rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -.03em;
+    }
+    .operation-hero-shell p {
+        margin: 0;
+        max-width: 720px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    .operation-hero-icon {
+        width: 74px;
+        height: 74px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(0,113,227,.14), rgba(100,210,255,.18));
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.52);
+    }
+    .operation-mini-metric {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: rgba(255,255,255,.84);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 100%;
+        box-shadow: var(--shadow-card);
+    }
+    .operation-mini-metric i {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        flex-shrink: 0;
+    }
+    .operation-mini-metric strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .operation-mini-metric span {
+        display: block;
+        font-size: .75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .operation-section-note {
+        margin-top: 4px;
+        color: var(--text-muted);
+        font-size: .8rem;
+        line-height: 1.5;
+    }
+    .operation-inline-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--divider);
+        background: rgba(0,113,227,.05);
+        color: var(--apple-blue);
+        font-size: .76rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .operation-field-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+        color: var(--text-muted);
+        font-size: .78rem;
+    }
+    .operation-type-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .operation-type-card {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: var(--canvas);
+        padding: 15px 16px;
+        text-align: left;
+        color: var(--text-primary);
+        transition: all var(--ease-fast);
+        box-shadow: var(--shadow-card);
+    }
+    .operation-type-card:hover {
+        border-color: rgba(0,113,227,.18);
+        box-shadow: 0 12px 28px rgba(0,0,0,.08);
+        transform: translateY(-1px);
+    }
+    .operation-type-card.is-active {
+        border-color: rgba(0,113,227,.22);
+        background: linear-gradient(180deg, rgba(0,113,227,.055), rgba(255,255,255,.98));
+        box-shadow: 0 16px 30px rgba(0,113,227,.12);
+    }
+    .operation-type-card i {
+        width: 40px;
+        height: 40px;
+        border-radius: 13px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    .operation-type-card strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: .92rem;
+    }
+    .operation-type-card span {
+        display: block;
+        font-size: .78rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+    .operation-hint-card {
+        border: 1px dashed rgba(0,113,227,.18);
+        border-radius: var(--r-md);
+        padding: 16px;
+        background: rgba(0,113,227,.035);
+    }
+    .operation-hint-card strong {
+        display: block;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+    .operation-hint-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: .82rem;
+        line-height: 1.55;
+    }
+    .operation-hint-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    .operation-hint-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.78);
+        border: 1px solid rgba(0,113,227,.08);
+        color: var(--text-secondary);
+        font-size: .75rem;
+        font-weight: 700;
+    }
+    .operation-amount-note {
+        margin-top: 6px;
+        color: var(--text-muted);
+        font-size: .78rem;
+    }
+    .operation-summary-stack {
+        position: sticky;
+        top: 72px;
+    }
+    .operation-summary-block {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .operation-summary-block:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .operation-summary-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+    .operation-summary-title {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.45;
+    }
+    .operation-summary-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .operation-summary-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+        font-size: .76rem;
+        font-weight: 700;
+    }
+    .operation-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .operation-summary-kpi {
+        padding: 14px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.84);
+    }
+    .operation-summary-kpi strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: .95rem;
+    }
+    .operation-summary-kpi span {
+        display: block;
+        margin-top: 4px;
+        color: var(--text-muted);
+        font-size: .74rem;
+    }
+    .operation-summary-note {
+        color: var(--text-secondary);
+        font-size: .83rem;
+        line-height: 1.6;
+    }
+    .operation-check-list {
+        display: grid;
+        gap: 12px;
+    }
+    .operation-check-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.82);
+        transition: all var(--ease-fast);
+    }
+    .operation-check-item i {
+        width: 26px;
+        height: 26px;
+        border-radius: 9px;
+        background: rgba(255,159,10,.12);
+        color: #b86a00;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    .operation-check-item strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: .87rem;
+        margin-bottom: 3px;
+    }
+    .operation-check-item span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: .79rem;
+        line-height: 1.5;
+    }
+    .operation-check-item.is-complete {
+        border-color: rgba(48,209,88,.2);
+        background: rgba(48,209,88,.05);
+    }
+    .operation-check-item.is-complete i {
+        background: rgba(48,209,88,.12);
+        color: #19893b;
+    }
+    .operation-submit-note {
+        margin: 0 0 16px;
+        color: var(--text-secondary);
+        font-size: .84rem;
+        line-height: 1.6;
+    }
+    @@media (max-width: 1199.98px) {
+        .operation-summary-stack {
+            position: static;
+        }
+    }
+    @@media (max-width: 991.98px) {
+        .operation-hero-shell {
+            flex-direction: column;
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .operation-type-grid,
+        .operation-summary-grid {
+            grid-template-columns: 1fr;
+        }
+        .operation-inline-chip,
+        .operation-field-meta {
+            white-space: normal;
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-pen-to-square me-2"></i>Tạo yêu cầu vận hành</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Khởi tạo yêu cầu mới dựa trên dữ liệu phòng ban, khách hàng và danh mục sẵn có để hệ thống định tuyến đúng ngay từ bước đầu.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
+</div>
+
+<form asp-action="Create" method="post" id="operationCreateForm">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-xl-8">
+            <div class="content-card operation-create-hero mb-4">
+                <div class="card-body-custom">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="operation-hero-shell">
+                            <div>
+                                <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Form đã nối với dữ liệu tổ chức và danh mục hiện có</span>
+                                <h5>Tạo yêu cầu nhanh hơn bằng cách chọn đúng loại việc, đúng phòng ban và đúng bối cảnh.</h5>
+                                <p>Sau khi lưu nháp, mình vẫn có thể bổ sung dòng hàng, theo dõi phê duyệt và cập nhật trạng thái xử lý trên cùng một luồng vận hành.</p>
+                            </div>
+                            <div class="operation-hero-icon">
+                                <i class="fa-solid fa-diagram-next"></i>
+                            </div>
                         </div>
-                        
-                        <div class="col-md-6">
-                            <label asp-for="Type" class="form-label">Loại yêu cầu <span style="color:var(--danger)">*</span></label>
-                            <select asp-for="Type" class="form-select">
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="operation-mini-metric">
+                                    <i class="fa-solid fa-building"></i>
+                                    <div>
+                                        <strong>@Model.Departments.Count</strong>
+                                        <span>Phòng ban sẵn sàng</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="operation-mini-metric">
+                                    <i class="fa-solid fa-handshake"></i>
+                                    <div>
+                                        <strong>@Model.Customers.Count</strong>
+                                        <span>Khách hàng khả dụng</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="operation-mini-metric">
+                                    <i class="fa-solid fa-box-open"></i>
+                                    <div>
+                                        <strong>@Model.Products.Count</strong>
+                                        <span>SP/DV có thể gắn sau lưu</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-file-signature"></i> Nội dung yêu cầu</h5>
+                        <div class="operation-section-note">Tiêu đề và mô tả là phần người duyệt lẫn bộ phận tiếp nhận nhìn thấy đầu tiên, nên càng rõ ràng càng dễ chuyển xử lý.</div>
+                    </div>
+                    <span class="operation-inline-chip" id="titleHealthChip"><i class="fa-solid fa-font"></i>Tiêu đề còn ngắn</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Title" class="form-label">Tiêu đề yêu cầu <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control" id="titleInput" placeholder="Ví dụ: Bổ sung máy in mã vạch cho kho thành phẩm" />
+                            <span asp-validation-for="Title" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">Mô tả chi tiết nội dung</label>
+                            <textarea asp-for="Description" class="form-control" id="descriptionInput" rows="5" placeholder="Mô tả rõ hiện trạng, nhu cầu, ảnh hưởng vận hành, vị trí phát sinh hoặc kết quả mong muốn..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger" style="font-size:.78rem"></span>
+                            <div class="operation-field-meta">
+                                <span>Gợi ý: nêu tình trạng hiện tại, tác động và đầu ra mong muốn để bộ phận tiếp nhận xử lý nhanh hơn.</span>
+                                <span id="descriptionCounter">0 ký tự</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-layer-group"></i> Định tuyến theo dữ liệu sẵn có</h5>
+                        <div class="operation-section-note">Chọn loại yêu cầu trước để hệ thống và người dùng hiểu đúng ngữ cảnh, sau đó gán bộ phận tiếp nhận và khách hàng liên quan nếu có.</div>
+                    </div>
+                    <span class="operation-inline-chip" id="routingHealthChip"><i class="fa-solid fa-share-nodes"></i>Chưa đủ thông tin định tuyến</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label asp-for="Type" class="form-label">Loại yêu cầu <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select" id="typeInput">
                                 <option value="">-- Chọn loại yêu cầu --</option>
                                 <option value="IT_SUPPORT">Hỗ trợ IT & Thiết bị</option>
                                 <option value="PROCUREMENT">Đề xuất mua sắm</option>
@@ -37,39 +457,78 @@
                                 <option value="OKR_PROPOSAL">Đề xuất OKR</option>
                                 <option value="OTHER">Khác</option>
                             </select>
-                            <span asp-validation-for="Type" class="text-danger small mt-1"></span>
+                            <span asp-validation-for="Type" class="text-danger" style="font-size:.78rem"></span>
                         </div>
-                        
+                    </div>
+
+                    <div class="operation-type-grid mb-4">
+                        <button type="button" class="operation-type-card" data-type="IT_SUPPORT">
+                            <i class="fa-solid fa-laptop-medical"></i>
+                            <strong>Hỗ trợ IT & Thiết bị</strong>
+                            <span>Dùng khi cần hỗ trợ phần mềm, phần cứng, mạng hoặc thiết bị văn phòng.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="PROCUREMENT">
+                            <i class="fa-solid fa-cart-plus"></i>
+                            <strong>Đề xuất mua sắm</strong>
+                            <span>Phù hợp cho yêu cầu bổ sung vật tư, thiết bị hoặc dịch vụ có phát sinh chi phí.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="FACILITY">
+                            <i class="fa-solid fa-warehouse"></i>
+                            <strong>Cơ sở vật chất</strong>
+                            <span>Dùng cho điện nước, hạ tầng, mặt bằng hoặc hỏng hóc tại khu vực sử dụng chung.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="Maintenance_PM">
+                            <i class="fa-solid fa-shield-heart"></i>
+                            <strong>Bảo trì PM</strong>
+                            <span>Áp dụng cho bảo trì phòng ngừa định kỳ để giảm rủi ro dừng máy hoặc gián đoạn.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="Maintenance_CM">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            <strong>Bảo trì CM</strong>
+                            <span>Dùng khi thiết bị đã gặp sự cố và cần khắc phục nhanh để khôi phục vận hành.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="Maintenance">
+                            <i class="fa-solid fa-toolbox"></i>
+                            <strong>Bảo trì khác</strong>
+                            <span>Phù hợp cho các nhu cầu bảo trì không nằm trọn trong PM hoặc CM.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="SERVICE">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            <strong>Dịch vụ / Sản phẩm</strong>
+                            <span>Áp dụng khi cần cung cấp sản phẩm, xử lý dịch vụ hoặc điều phối đầu ra cho khách hàng.</span>
+                        </button>
+                        <button type="button" class="operation-type-card" data-type="OTHER">
+                            <i class="fa-solid fa-ellipsis"></i>
+                            <strong>Khác</strong>
+                            <span>Dùng cho yêu cầu nội bộ đặc thù chưa khớp các nhóm chuẩn ở trên.</span>
+                        </button>
+                    </div>
+
+                    <div class="operation-hint-card mb-4">
+                        <strong id="typeHintTitle"><i class="fa-solid fa-circle-info me-2" style="color:var(--apple-blue)"></i>Chọn loại yêu cầu để xem gợi ý</strong>
+                        <p id="typeHintText">Loại yêu cầu sẽ quyết định cách người tiếp nhận hiểu ngữ cảnh, mức độ khẩn và dữ liệu bổ sung cần chuẩn bị sau khi lưu.</p>
+                        <div class="operation-hint-meta">
+                            <span class="operation-hint-badge" id="routingHintBadge"><i class="fa-solid fa-share-nodes"></i>Chưa gán phòng ban</span>
+                            <span class="operation-hint-badge" id="customerHintBadge"><i class="fa-solid fa-user-group"></i>Nội bộ</span>
+                            <span class="operation-hint-badge"><i class="fa-solid fa-boxes-stacked"></i>Có @Model.Products.Count SP/DV để thêm sau lưu</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
                         <div class="col-md-6">
-                            <label asp-for="OrganizationUnitId" class="form-label">Phòng ban tiếp nhận <span style="color:var(--danger)">*</span></label>
-                            <select asp-for="OrganizationUnitId" class="form-select">
+                            <label asp-for="OrganizationUnitId" class="form-label">Phòng ban tiếp nhận <span class="text-danger">*</span></label>
+                            <select asp-for="OrganizationUnitId" class="form-select" id="departmentInput">
                                 <option value="">-- Chọn phòng ban --</option>
                                 @foreach (var opt in Model.Departments)
                                 {
                                     <option value="@opt.Value">@opt.Text</option>
                                 }
                             </select>
-                            <span asp-validation-for="OrganizationUnitId" class="text-danger small mt-1"></span>
+                            <span asp-validation-for="OrganizationUnitId" class="text-danger" style="font-size:.78rem"></span>
                         </div>
-
                         <div class="col-md-6">
-                            <label asp-for="Priority" class="form-label">Mức độ ưu tiên <span style="color:var(--danger)">*</span></label>
-                            <select asp-for="Priority" class="form-select">
-                                @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
-                                { <option value="@((int)Enum.Parse<PriorityLevel>(p.Value))" selected="@(p.Value == "Normal")">@p.Text</option> }
-                            </select>
-                            <span asp-validation-for="Priority" class="text-danger small mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="DueDate" class="form-label">Hạn xử lý mong muốn</label>
-                            <input asp-for="DueDate" type="date" class="form-control" />
-                            <span asp-validation-for="DueDate" class="text-danger small mt-1"></span>
-                        </div>
-                        
-                        <div class="col-md-12">
-                            <label asp-for="CustomerId" class="form-label">Khách hàng liên quan (Nếu có)</label>
-                            <select asp-for="CustomerId" class="form-select">
+                            <label asp-for="CustomerId" class="form-label">Khách hàng liên quan</label>
+                            <select asp-for="CustomerId" class="form-select" id="customerInput">
                                 <option value="">-- Nội bộ (Không chọn khách hàng) --</option>
                                 @foreach (var opt in Model.Customers)
                                 {
@@ -77,33 +536,382 @@
                                 }
                             </select>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="col-md-12">
-                            <label asp-for="TotalAmount" class="form-label">Tổng chi phí dự kiến (VNĐ)</label>
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-stopwatch"></i> Mức ưu tiên, hạn xử lý và chi phí</h5>
+                        <div class="operation-section-note">Các trường này giúp người duyệt đánh giá mức khẩn, SLA kỳ vọng và nhu cầu ngân sách trước khi chuyển xử lý.</div>
+                    </div>
+                    <span class="operation-inline-chip" id="deadlineHealthChip"><i class="fa-solid fa-hourglass-half"></i>Chưa đặt hạn xử lý</span>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="Priority" class="form-label">Mức độ ưu tiên <span class="text-danger">*</span></label>
+                            <select asp-for="Priority" class="form-select" id="priorityInput">
+                                @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>(Model.Priority.ToString()))
+                                {
+                                    <option value="@p.Value" selected="@p.Selected">@p.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Priority" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="DueDate" class="form-label">Hạn xử lý mong muốn</label>
+                            <input asp-for="DueDate" type="date" class="form-control" id="dueDateInput" min="@DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="DueDate" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="TotalAmount" class="form-label">Tổng chi phí dự kiến</label>
                             <div class="input-group">
-                                <input asp-for="TotalAmount" type="number" step="1000" class="form-control" placeholder="0" />
+                                <input asp-for="TotalAmount" type="number" step="1000" min="0" class="form-control" id="totalAmountInput" placeholder="0" />
                                 <span class="input-group-text">₫</span>
                             </div>
-                            <small style="color:var(--text-muted);margin-top:4px;display:block">Điền nếu yêu cầu có phát sinh chi phí mua sắm/dịch vụ.</small>
-                        </div>
-                        
-                        <div class="col-md-12">
-                            <label asp-for="Description" class="form-label">Mô tả chi tiết nội dung</label>
-                            <textarea asp-for="Description" class="form-control" rows="5" placeholder="Cung cấp đầy đủ thông tin để bộ phận tiếp nhận có thể xử lý dễ dàng..."></textarea>
-                            <span asp-validation-for="Description" class="text-danger small mt-1"></span>
+                            <div class="operation-amount-note">Điền khi yêu cầu có phát sinh ngân sách mua sắm, vật tư hoặc dịch vụ.</div>
+                            <span asp-validation-for="TotalAmount" class="text-danger" style="font-size:.78rem"></span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div style="border-top:1px solid var(--divider);padding-top:20px" class="d-flex justify-content-end gap-2">
-                        <a asp-action="Index" class="btn btn-light">Hủy bỏ</a>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i>Lưu nháp (Draft)</button>
+        <div class="col-xl-4">
+            <div class="operation-summary-stack">
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-eye"></i> Tóm tắt trước khi lưu</h5>
                     </div>
-                </form>
+                    <div class="card-body-custom">
+                        <div class="operation-summary-block pt-0">
+                            <span class="operation-summary-label">Tiêu đề</span>
+                            <div class="operation-summary-title" id="summaryTitle">Chưa nhập tiêu đề yêu cầu</div>
+                        </div>
+
+                        <div class="operation-summary-block">
+                            <span class="operation-summary-label">Ngữ cảnh xử lý</span>
+                            <div class="operation-summary-chips">
+                                <span class="operation-summary-chip" id="summaryTypeChip"><i class="fa-solid fa-layer-group"></i>Chưa chọn loại</span>
+                                <span class="operation-summary-chip" id="summaryPriorityChip"><i class="fa-solid fa-flag"></i>Bình thường</span>
+                                <span class="status-badge-soft badge-on-track" id="summaryStatusChip"><span class="status-dot"></span>Bản nháp</span>
+                            </div>
+                        </div>
+
+                        <div class="operation-summary-block">
+                            <span class="operation-summary-label">Thông số chính</span>
+                            <div class="operation-summary-grid">
+                                <div class="operation-summary-kpi">
+                                    <strong id="summaryDepartmentValue">--</strong>
+                                    <span>Phòng ban tiếp nhận</span>
+                                </div>
+                                <div class="operation-summary-kpi">
+                                    <strong id="summaryDueDateValue">--</strong>
+                                    <span>Hạn xử lý</span>
+                                </div>
+                                <div class="operation-summary-kpi">
+                                    <strong id="summaryCustomerValue">Nội bộ</strong>
+                                    <span>Khách hàng</span>
+                                </div>
+                                <div class="operation-summary-kpi">
+                                    <strong id="summaryBudgetValue">--</strong>
+                                    <span>Chi phí dự kiến</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="operation-summary-block">
+                            <span class="operation-summary-label">Mô tả hiển thị</span>
+                            <div class="operation-summary-note" id="summaryDescription">Chưa có mô tả chi tiết. Một vài dòng bối cảnh sẽ giúp người duyệt và bộ phận tiếp nhận hiểu yêu cầu nhanh hơn.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-list-check"></i> Checklist dữ liệu</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="operation-check-list">
+                            <div class="operation-check-item" id="checkTitleItem">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <div>
+                                    <strong>Tiêu đề đủ rõ ràng</strong>
+                                    <span id="checkTitleText">Nên mô tả ngắn gọn vấn đề hoặc nhu cầu chính trong tiêu đề.</span>
+                                </div>
+                            </div>
+                            <div class="operation-check-item" id="checkRoutingItem">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <div>
+                                    <strong>Đã chọn hướng định tuyến</strong>
+                                    <span id="checkRoutingText">Cần chọn loại yêu cầu và phòng ban tiếp nhận để hệ thống chuyển đúng luồng.</span>
+                                </div>
+                            </div>
+                            <div class="operation-check-item" id="checkDescriptionItem">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <div>
+                                    <strong>Đã có ngữ cảnh xử lý</strong>
+                                    <span id="checkDescriptionText">Mô tả hiện trạng hoặc tác động sẽ giúp rút ngắn vòng hỏi lại sau khi tiếp nhận.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-rocket"></i> Lưu bản nháp</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <p class="operation-submit-note">Yêu cầu sẽ được lưu ở trạng thái Draft. Sau đó mình có thể bổ sung dòng sản phẩm/dịch vụ từ danh mục hiện có và gửi phê duyệt khi sẵn sàng.</p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i>Lưu nháp (Draft)</button>
+                            <a asp-action="Index" class="btn btn-light">Hủy bỏ</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const titleInput = document.getElementById('titleInput');
+            const descriptionInput = document.getElementById('descriptionInput');
+            const typeInput = document.getElementById('typeInput');
+            const departmentInput = document.getElementById('departmentInput');
+            const customerInput = document.getElementById('customerInput');
+            const priorityInput = document.getElementById('priorityInput');
+            const dueDateInput = document.getElementById('dueDateInput');
+            const totalAmountInput = document.getElementById('totalAmountInput');
+            const descriptionCounter = document.getElementById('descriptionCounter');
+
+            const typeMeta = {
+                IT_SUPPORT: {
+                    label: 'Hỗ trợ IT & Thiết bị',
+                    icon: 'fa-laptop-medical',
+                    hint: 'Ưu tiên mô tả lỗi, thiết bị liên quan, ảnh hưởng và thời điểm phát sinh để bộ phận IT khoanh vùng nhanh.'
+                },
+                PROCUREMENT: {
+                    label: 'Đề xuất mua sắm',
+                    icon: 'fa-cart-plus',
+                    hint: 'Nên nêu mục đích sử dụng, số lượng hoặc mốc cần có hàng để bước mua sắm và duyệt ngân sách diễn ra mượt hơn.'
+                },
+                FACILITY: {
+                    label: 'Bảo trì cơ sở vật chất',
+                    icon: 'fa-warehouse',
+                    hint: 'Hãy nêu rõ khu vực, hiện trạng và mức độ ảnh hưởng đến hoạt động để đội cơ sở vật chất ưu tiên đúng việc.'
+                },
+                Maintenance_PM: {
+                    label: 'Bảo trì phòng ngừa (PM)',
+                    icon: 'fa-shield-heart',
+                    hint: 'Phù hợp cho công việc định kỳ. Nên ghi chu kỳ, thiết bị và thời điểm cần hoàn tất để tránh chồng lịch.'
+                },
+                Maintenance_CM: {
+                    label: 'Bảo trì khắc phục (CM)',
+                    icon: 'fa-screwdriver-wrench',
+                    hint: 'Nên mô tả triệu chứng lỗi, tình trạng hiện tại và mức ảnh hưởng đến dây chuyền để hỗ trợ xử lý khẩn.'
+                },
+                Maintenance: {
+                    label: 'Bảo trì khác',
+                    icon: 'fa-toolbox',
+                    hint: 'Dùng cho các nhu cầu bảo trì chưa tách rõ loại. Mô tả càng cụ thể càng giúp người tiếp nhận định hướng đúng.'
+                },
+                SERVICE: {
+                    label: 'Cung cấp dịch vụ/Sản phẩm',
+                    icon: 'fa-truck-ramp-box',
+                    hint: 'Nên nêu khách hàng, đầu ra mong muốn, phạm vi cung cấp và các yêu cầu ràng buộc để phối hợp thuận lợi.'
+                },
+                OTHER: {
+                    label: 'Khác',
+                    icon: 'fa-ellipsis',
+                    hint: 'Khi chưa khớp mẫu có sẵn, hãy dùng tiêu đề và mô tả chi tiết để hệ thống cùng người xử lý vẫn hiểu đúng ngữ cảnh.'
+                }
+            };
+
+            const priorityMeta = {
+                Low: { label: 'Thấp', variant: 'badge-on-track' },
+                Normal: { label: 'Bình thường', variant: 'badge-on-track' },
+                High: { label: 'Cao', variant: 'badge-at-risk' },
+                Critical: { label: 'Nghiêm trọng', variant: 'badge-behind' }
+            };
+
+            function getSelectedText(selectElement, fallback = '') {
+                return selectElement?.selectedOptions?.[0]?.text?.trim() || fallback;
+            }
+
+            function formatDateVi(value) {
+                if (!value) return '--';
+                const date = new Date(`${value}T00:00:00`);
+                return Number.isNaN(date.getTime()) ? '--' : date.toLocaleDateString('vi-VN');
+            }
+
+            function formatCurrency(value) {
+                const amount = Number(value);
+                if (!Number.isFinite(amount) || amount <= 0) return '--';
+                return `${new Intl.NumberFormat('vi-VN').format(amount)} ₫`;
+            }
+
+            function truncate(value, maxLength) {
+                if (!value || value.length <= maxLength) return value;
+                return `${value.slice(0, maxLength).trim()}...`;
+            }
+
+            function setInlineChipState(element, healthy, text, iconClass) {
+                if (!element) return;
+                element.style.background = healthy ? 'rgba(48,209,88,.08)' : 'rgba(255,159,10,.12)';
+                element.style.color = healthy ? '#19893b' : '#a66300';
+                element.style.borderColor = healthy ? 'rgba(48,209,88,.18)' : 'rgba(255,159,10,.18)';
+                element.innerHTML = `<i class="fa-solid ${iconClass}"></i>${text}`;
+            }
+
+            function setStatusBadge(element, variant, text) {
+                if (!element) return;
+                element.className = `status-badge-soft ${variant}`;
+                element.innerHTML = `<span class="status-dot"></span>${text}`;
+            }
+
+            function setCheckState(wrapperId, textId, completed, text) {
+                const wrapper = document.getElementById(wrapperId);
+                const detail = document.getElementById(textId);
+                if (wrapper) wrapper.classList.toggle('is-complete', completed);
+                if (detail) detail.textContent = text;
+            }
+
+            function syncTypeCards() {
+                document.querySelectorAll('[data-type]').forEach(card => {
+                    const active = card.dataset.type === typeInput.value;
+                    card.classList.toggle('is-active', active);
+                    card.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+            }
+
+            function updateSummary() {
+                const title = (titleInput.value || '').trim();
+                const description = (descriptionInput.value || '').trim();
+                const type = typeInput.value || '';
+                const typeInfo = typeMeta[type];
+                const departmentText = getSelectedText(departmentInput, '');
+                const customerText = getSelectedText(customerInput, '-- Nội bộ (Không chọn khách hàng) --');
+                const priorityValue = priorityInput.value || 'Normal';
+                const priorityText = getSelectedText(priorityInput, 'Bình thường');
+                const priorityInfo = priorityMeta[priorityValue] || priorityMeta.Normal;
+                const dueDateValue = dueDateInput.value || '';
+                const budgetValue = totalAmountInput.value || '';
+
+                document.getElementById('summaryTitle').textContent = title || 'Chưa nhập tiêu đề yêu cầu';
+                document.getElementById('summaryTypeChip').innerHTML = typeInfo
+                    ? `<i class="fa-solid ${typeInfo.icon}"></i>${typeInfo.label}`
+                    : '<i class="fa-solid fa-layer-group"></i>Chưa chọn loại';
+                document.getElementById('summaryPriorityChip').innerHTML = `<i class="fa-solid fa-flag"></i>${priorityText}`;
+                document.getElementById('summaryDepartmentValue').textContent = departmentText && !departmentText.startsWith('--')
+                    ? departmentText
+                    : '--';
+                document.getElementById('summaryDueDateValue').textContent = dueDateValue ? formatDateVi(dueDateValue) : '--';
+                document.getElementById('summaryCustomerValue').textContent = customerText.startsWith('--')
+                    ? 'Nội bộ'
+                    : customerText;
+                document.getElementById('summaryBudgetValue').textContent = formatCurrency(budgetValue);
+                document.getElementById('summaryDescription').textContent = description
+                    ? truncate(description, 180)
+                    : 'Chưa có mô tả chi tiết. Một vài dòng bối cảnh sẽ giúp người duyệt và bộ phận tiếp nhận hiểu yêu cầu nhanh hơn.';
+
+                if (typeInfo) {
+                    document.getElementById('typeHintTitle').innerHTML = `<i class="fa-solid ${typeInfo.icon} me-2" style="color:var(--apple-blue)"></i>${typeInfo.label}`;
+                    document.getElementById('typeHintText').textContent = typeInfo.hint;
+                } else {
+                    document.getElementById('typeHintTitle').innerHTML = '<i class="fa-solid fa-circle-info me-2" style="color:var(--apple-blue)"></i>Chọn loại yêu cầu để xem gợi ý';
+                    document.getElementById('typeHintText').textContent = 'Loại yêu cầu sẽ quyết định cách người tiếp nhận hiểu ngữ cảnh, mức độ khẩn và dữ liệu bổ sung cần chuẩn bị sau khi lưu.';
+                }
+
+                const routingHintBadge = document.getElementById('routingHintBadge');
+                routingHintBadge.innerHTML = departmentText && !departmentText.startsWith('--')
+                    ? `<i class="fa-solid fa-share-nodes"></i>Chuyển đến ${departmentText}`
+                    : '<i class="fa-solid fa-share-nodes"></i>Chưa gán phòng ban';
+
+                const customerHintBadge = document.getElementById('customerHintBadge');
+                customerHintBadge.innerHTML = customerText.startsWith('--')
+                    ? '<i class="fa-solid fa-user-group"></i>Nội bộ'
+                    : `<i class="fa-solid fa-user-group"></i>${customerText}`;
+
+                descriptionCounter.textContent = `${descriptionInput.value.length} ký tự`;
+
+                const hasClearTitle = title.length >= 12;
+                const hasRouting = Boolean(type) && Boolean(departmentInput.value);
+                const hasDescription = description.length >= 20;
+                const hasDueDate = Boolean(dueDateValue);
+
+                setInlineChipState(
+                    document.getElementById('titleHealthChip'),
+                    hasClearTitle,
+                    hasClearTitle ? 'Tiêu đề đã đủ rõ' : 'Tiêu đề còn ngắn',
+                    'font'
+                );
+                setInlineChipState(
+                    document.getElementById('routingHealthChip'),
+                    hasRouting,
+                    hasRouting ? 'Đã đủ thông tin định tuyến' : 'Chưa đủ thông tin định tuyến',
+                    'share-nodes'
+                );
+                setInlineChipState(
+                    document.getElementById('deadlineHealthChip'),
+                    hasDueDate,
+                    hasDueDate ? `Hạn xử lý ${formatDateVi(dueDateValue)}` : 'Chưa đặt hạn xử lý',
+                    'hourglass-half'
+                );
+
+                setStatusBadge(document.getElementById('summaryStatusChip'), priorityInfo.variant, `Bản nháp • Ưu tiên ${priorityInfo.label}`);
+
+                setCheckState(
+                    'checkTitleItem',
+                    'checkTitleText',
+                    hasClearTitle,
+                    hasClearTitle
+                        ? 'Tiêu đề hiện tại đủ rõ để người tiếp nhận hiểu nhanh nhu cầu chính.'
+                        : 'Nên thêm đối tượng, vị trí hoặc mục tiêu để tiêu đề cụ thể hơn.'
+                );
+                setCheckState(
+                    'checkRoutingItem',
+                    'checkRoutingText',
+                    hasRouting,
+                    hasRouting
+                        ? `Yêu cầu đã có loại và phòng ban tiếp nhận, sẵn sàng vào đúng luồng xử lý.`
+                        : 'Cần chọn loại yêu cầu và phòng ban tiếp nhận để hệ thống định tuyến đúng.'
+                );
+                setCheckState(
+                    'checkDescriptionItem',
+                    'checkDescriptionText',
+                    hasDescription,
+                    hasDescription
+                        ? 'Mô tả đã có đủ bối cảnh cơ bản để hạn chế vòng hỏi lại sau tiếp nhận.'
+                        : 'Nên mô tả thêm hiện trạng hoặc tác động để yêu cầu dễ được xử lý hơn.'
+                );
+
+                syncTypeCards();
+            }
+
+            titleInput.addEventListener('input', updateSummary);
+            descriptionInput.addEventListener('input', updateSummary);
+            typeInput.addEventListener('change', updateSummary);
+            departmentInput.addEventListener('change', updateSummary);
+            customerInput.addEventListener('change', updateSummary);
+            priorityInput.addEventListener('change', updateSummary);
+            dueDateInput.addEventListener('change', updateSummary);
+            totalAmountInput.addEventListener('input', updateSummary);
+
+            document.querySelectorAll('[data-type]').forEach(card => {
+                card.addEventListener('click', () => {
+                    typeInput.value = card.dataset.type || '';
+                    updateSummary();
+                });
+            });
+
+            updateSummary();
+        })();
+    </script>
 }

@@ -1,17 +1,892 @@
 @{
-    ViewData["Title"] = "Trang chủ";
-    ViewData["Breadcrumb"] = "<span>Trang chủ</span>";
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var loginUrl = Url.Action("Login", "Account") ?? "/Account/Login";
+    var dashboardUrl = Url.Action("Index", "Dashboard") ?? "/Dashboard";
+    var operationsCreateUrl = Url.Action("Create", "Operations") ?? "/Operations/Create";
+    var planCreateUrl = Url.Action("Create", "OperationPlans") ?? "/OperationPlans/Create";
+    var aiCopilotUrl = Url.Action("Index", "AiInsights") ?? "/AiInsights";
+    var reportsUrl = Url.Action("Dashboard", "Reports") ?? "/Reports/Dashboard";
+    var profileUrl = Url.Action("Index", "Profile") ?? "/Profile";
+
+    ViewData["Title"] = "Welcome";
+    ViewData["HideAppShell"] = true;
+
+    var primaryUrl = isAuthenticated ? dashboardUrl : loginUrl;
+    var primaryLabel = isAuthenticated ? "Vào Dashboard" : "Đăng nhập";
+    var secondaryUrl = isAuthenticated ? operationsCreateUrl : "#welcomeCapabilities";
+    var secondaryLabel = isAuthenticated ? "Tạo yêu cầu mới" : "Xem phân hệ";
+
+    var moduleCards = new[]
+    {
+        new { Icon = "fa-calendar-alt", Title = "Kế hoạch & lịch trình", Description = "Lập kế hoạch ngày, tuần, tháng và điều phối công việc ngay từ đầu chu kỳ.", Href = isAuthenticated ? "/OperationPlans" : loginUrl, Accent = "blue" },
+        new { Icon = "fa-list-check", Title = "Yêu cầu vận hành", Description = "Khởi tạo yêu cầu nhanh, đi đúng luồng xử lý và theo dõi phê duyệt tập trung.", Href = isAuthenticated ? "/Operations" : loginUrl, Accent = "green" },
+        new { Icon = "fa-chart-line", Title = "KPI / OKR", Description = "Theo dõi mục tiêu chiến lược, hiệu suất phòng ban và nhịp đánh giá trong cùng một hệ.", Href = isAuthenticated ? "/Okr/Dashboard" : loginUrl, Accent = "amber" },
+        new { Icon = "fa-robot", Title = "AI Copilot", Description = "Nhận phân tích, khuyến nghị và góc nhìn dữ liệu ngay trong luồng quản trị hằng ngày.", Href = isAuthenticated ? aiCopilotUrl : loginUrl, Accent = "cyan" },
+        new { Icon = "fa-layer-group", Title = "Tài nguyên & bảo trì", Description = "Kết nối thiết bị, ca làm, lịch bảo trì và mức độ sẵn sàng vận hành.", Href = isAuthenticated ? "/ResourceManagement" : loginUrl, Accent = "violet" },
+        new { Icon = "fa-chart-pie", Title = "Báo cáo điều hành", Description = "Kéo dữ liệu tài chính, nhân sự, kho vận và vận hành về một cụm báo cáo rõ ràng.", Href = isAuthenticated ? reportsUrl : loginUrl, Accent = "rose" }
+    };
 }
 
-<div class="text-center py-5">
-    <div style="width:64px;height:64px;background:var(--surface-black);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-        <i class="fa-solid fa-brain" style="font-size:28px;color:#fff"></i>
+@section Styles {
+<style>
+    body.landing-body {
+        background:
+            radial-gradient(circle at top left, rgba(0,113,227,.14), transparent 26%),
+            radial-gradient(circle at top right, rgba(48,209,88,.10), transparent 22%),
+            linear-gradient(180deg, #f5f7fb 0%, #eef2f8 100%);
+        overflow-x: hidden;
+    }
+    .landing-body .alert-toast {
+        top: 20px;
+        right: 20px;
+    }
+    .welcome-shell {
+        position: relative;
+        min-height: 100vh;
+        isolation: isolate;
+        padding-bottom: 40px;
+    }
+    .welcome-ambient {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(70px);
+        pointer-events: none;
+        opacity: .7;
+        z-index: -1;
+    }
+    .welcome-ambient.one {
+        top: 80px;
+        left: -80px;
+        width: 260px;
+        height: 260px;
+        background: rgba(0,113,227,.14);
+    }
+    .welcome-ambient.two {
+        top: 220px;
+        right: -40px;
+        width: 320px;
+        height: 320px;
+        background: rgba(100,210,255,.18);
+    }
+    .welcome-ambient.three {
+        bottom: 120px;
+        left: 14%;
+        width: 280px;
+        height: 280px;
+        background: rgba(255,159,10,.10);
+    }
+    .welcome-page {
+        width: min(1400px, calc(100% - 48px));
+        margin: 0 auto;
+    }
+    .welcome-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 22px 0 10px;
+    }
+    .welcome-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        text-decoration: none;
+        color: var(--text-primary);
+    }
+    .welcome-brand-mark {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #111827, #1f2a44);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 14px 34px rgba(15,23,42,.18);
+    }
+    .welcome-brand-copy strong {
+        display: block;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+    }
+    .welcome-brand-copy span {
+        display: block;
+        margin-top: 2px;
+        color: var(--text-muted);
+        font-size: .74rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    .welcome-topbar-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .welcome-chip-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.82);
+        color: var(--text-secondary);
+        font-size: .8rem;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: var(--shadow-card);
+        transition: all var(--ease-fast);
+    }
+    .welcome-chip-link:hover {
+        color: var(--apple-blue);
+        border-color: rgba(0,113,227,.16);
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    .welcome-logout-form {
+        margin: 0;
+    }
+    .welcome-logout-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,69,58,.14);
+        background: rgba(255,255,255,.82);
+        color: #c23b34;
+        font-size: .8rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-card);
+        transition: all var(--ease-fast);
+    }
+    .welcome-logout-btn:hover {
+        background: rgba(255,69,58,.08);
+    }
+    .welcome-hero-stage {
+        min-height: calc(100vh - 92px);
+        display: flex;
+        align-items: center;
+        padding: 10px 0 24px;
+    }
+    .welcome-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.1);
+        font-size: .76rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+    .welcome-heading {
+        margin: 20px 0 14px;
+        max-width: 760px;
+        font-size: clamp(2.9rem, 6vw, 5.8rem);
+        line-height: .94;
+        letter-spacing: -.07em;
+        color: #182039;
+    }
+    .welcome-heading .accent {
+        color: #de7b00;
+    }
+    .welcome-subcopy {
+        max-width: 700px;
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        line-height: 1.72;
+    }
+    .welcome-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+    }
+    .welcome-signals {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+    }
+    .welcome-signal {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.84);
+        border: 1px solid var(--divider);
+        box-shadow: var(--shadow-card);
+        color: var(--text-secondary);
+        font-size: .8rem;
+        font-weight: 600;
+    }
+    .welcome-signal i {
+        color: var(--apple-blue);
+    }
+    .welcome-visual {
+        position: relative;
+        min-height: 540px;
+    }
+    .welcome-visual-glow {
+        position: absolute;
+        inset: 40px 20px 40px 80px;
+        border-radius: 36px;
+        background: radial-gradient(circle at center, rgba(0,113,227,.18), rgba(0,113,227,.03) 54%, transparent 76%);
+        filter: blur(12px);
+    }
+    .welcome-panel {
+        position: absolute;
+        border-radius: 28px;
+        border: 1px solid rgba(255,255,255,.52);
+        background: rgba(255,255,255,.76);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        box-shadow: 0 20px 48px rgba(15,23,42,.12);
+        overflow: hidden;
+    }
+    .welcome-panel.primary {
+        inset: 70px 10px 30px 26px;
+        padding: 26px;
+    }
+    .welcome-panel.floating-top {
+        top: 8px;
+        right: 16px;
+        width: 236px;
+        padding: 18px;
+    }
+    .welcome-panel.floating-bottom {
+        bottom: 0;
+        left: 58px;
+        width: 226px;
+        padding: 18px;
+    }
+    .welcome-panel-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        font-size: .72rem;
+        font-weight: 700;
+    }
+    .welcome-panel-value {
+        display: block;
+        margin: 18px 0 10px;
+        font-size: 2.8rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -.06em;
+        color: #1f2851;
+    }
+    .welcome-panel-copy,
+    .welcome-panel p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: .86rem;
+        line-height: 1.65;
+    }
+    .welcome-lane-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 22px;
+    }
+    .welcome-lane {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(245,245,247,.88);
+        border: 1px solid var(--divider);
+    }
+    .welcome-lane strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: .88rem;
+    }
+    .welcome-lane span {
+        display: block;
+        margin-top: 2px;
+        color: var(--text-muted);
+        font-size: .76rem;
+    }
+    .welcome-lane b {
+        color: #de7b00;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+    .welcome-stat-row {
+        margin-top: 18px;
+    }
+    .welcome-stat-card {
+        height: 100%;
+        padding: 20px;
+        border-radius: 22px;
+        background: rgba(255,255,255,.86);
+        border: 1px solid var(--divider);
+        box-shadow: var(--shadow-card);
+    }
+    .welcome-stat-card strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: 1.02rem;
+        margin-bottom: 6px;
+    }
+    .welcome-stat-card span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: .84rem;
+        line-height: 1.6;
+    }
+    .welcome-section {
+        padding-top: 18px;
+    }
+    .welcome-section-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+    .welcome-section-header h2 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: -.03em;
+    }
+    .welcome-section-header p {
+        margin: 10px 0 0;
+        max-width: 720px;
+        color: var(--text-muted);
+        font-size: .92rem;
+        line-height: 1.65;
+    }
+    .welcome-module-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .welcome-module-card {
+        position: relative;
+        display: block;
+        padding: 22px;
+        border-radius: 24px;
+        border: 1px solid var(--divider);
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(249,250,252,.94));
+        box-shadow: var(--shadow-card);
+        transition: transform var(--ease-fast), box-shadow var(--ease-fast), border-color var(--ease-fast);
+        text-decoration: none;
+        overflow: hidden;
+    }
+    .welcome-module-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(0,113,227,.16);
+        box-shadow: 0 18px 34px rgba(15,23,42,.10);
+        text-decoration: none;
+    }
+    .welcome-module-card::after {
+        content: "";
+        position: absolute;
+        right: -24px;
+        bottom: -32px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,113,227,.07), transparent 72%);
+    }
+    .welcome-module-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 1.1rem;
+    }
+    .welcome-module-icon.blue { background: rgba(0,113,227,.10); color: var(--apple-blue); }
+    .welcome-module-icon.green { background: rgba(48,209,88,.12); color: #19893b; }
+    .welcome-module-icon.amber { background: rgba(255,159,10,.14); color: #a66300; }
+    .welcome-module-icon.cyan { background: rgba(100,210,255,.16); color: #0b7ea4; }
+    .welcome-module-icon.violet { background: rgba(175,82,222,.12); color: #8a38b8; }
+    .welcome-module-icon.rose { background: rgba(255,69,58,.10); color: #d34137; }
+    .welcome-module-card h3 {
+        margin: 0 0 8px;
+        color: var(--text-primary);
+        font-size: 1.02rem;
+        font-weight: 700;
+    }
+    .welcome-module-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: .84rem;
+        line-height: 1.62;
+    }
+    .welcome-module-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        color: var(--apple-blue);
+        font-size: .8rem;
+        font-weight: 700;
+    }
+    .welcome-side-card {
+        height: 100%;
+    }
+    .welcome-roadmap {
+        display: grid;
+        gap: 14px;
+    }
+    .welcome-roadmap-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .welcome-roadmap-step:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .welcome-roadmap-index {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .82rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .welcome-roadmap-step strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: .9rem;
+        margin-bottom: 4px;
+    }
+    .welcome-roadmap-step span {
+        display: block;
+        color: var(--text-secondary);
+        font-size: .8rem;
+        line-height: 1.55;
+    }
+    .welcome-action-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+    }
+    .welcome-action-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.82);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all var(--ease-fast);
+    }
+    .welcome-action-link:hover {
+        border-color: rgba(0,113,227,.16);
+        box-shadow: 0 10px 22px rgba(15,23,42,.08);
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+    .welcome-action-link strong {
+        display: block;
+        font-size: .88rem;
+    }
+    .welcome-action-link span {
+        display: block;
+        margin-top: 3px;
+        color: var(--text-muted);
+        font-size: .77rem;
+    }
+    .welcome-action-link i:last-child {
+        color: var(--apple-blue);
+    }
+    .welcome-bottom-card {
+        margin-top: 24px;
+        background: linear-gradient(135deg, rgba(0,113,227,.06), rgba(255,255,255,.96));
+    }
+    .welcome-bottom-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.68;
+    }
+    @@media (max-width: 1199.98px) {
+        .welcome-hero-stage {
+            min-height: auto;
+            padding: 8px 0 20px;
+        }
+        .welcome-visual {
+            min-height: 470px;
+            margin-top: 10px;
+        }
+    }
+    @@media (max-width: 991.98px) {
+        .welcome-page {
+            width: min(100%, calc(100% - 28px));
+        }
+        .welcome-visual {
+            min-height: 420px;
+        }
+        .welcome-module-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .welcome-topbar {
+            flex-direction: column;
+            align-items: flex-start;
+            padding-top: 16px;
+        }
+        .welcome-topbar-actions,
+        .welcome-hero-actions,
+        .welcome-signals {
+            width: 100%;
+        }
+        .welcome-topbar-actions .btn,
+        .welcome-topbar-actions .welcome-chip-link,
+        .welcome-topbar-actions .welcome-logout-btn,
+        .welcome-hero-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .welcome-heading {
+            font-size: 2.65rem;
+        }
+        .welcome-subcopy {
+            font-size: .96rem;
+        }
+        .welcome-visual {
+            min-height: 340px;
+        }
+        .welcome-panel.primary {
+            inset: 62px 0 24px 0;
+            padding: 18px;
+        }
+        .welcome-panel.floating-top {
+            right: 0;
+            width: 170px;
+        }
+        .welcome-panel.floating-bottom {
+            left: 12px;
+            width: 172px;
+        }
+        .welcome-section-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+}
+
+<div class="welcome-shell">
+    <div class="welcome-ambient one"></div>
+    <div class="welcome-ambient two"></div>
+    <div class="welcome-ambient three"></div>
+
+    <div class="welcome-page">
+        <header class="welcome-topbar">
+            <a href="/" class="welcome-brand">
+                <span class="welcome-brand-mark"><i class="fa-solid fa-brain"></i></span>
+                <span class="welcome-brand-copy">
+                    <strong>OmniBizAI</strong>
+                    <span>Smart Operations</span>
+                </span>
+            </a>
+
+            <div class="welcome-topbar-actions">
+                @if (isAuthenticated)
+                {
+                    <a href="@dashboardUrl" class="welcome-chip-link"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
+                    <a href="@profileUrl" class="welcome-chip-link"><i class="fa-solid fa-user"></i>Hồ sơ</a>
+                    <form method="post" asp-controller="Account" asp-action="Logout" class="welcome-logout-form">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="welcome-logout-btn"><i class="fa-solid fa-right-from-bracket"></i>Đăng xuất</button>
+                    </form>
+                }
+                else
+                {
+                    <a href="#welcomeCapabilities" class="welcome-chip-link"><i class="fa-solid fa-compass"></i>Khám phá</a>
+                    <a href="@loginUrl" class="btn btn-primary"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i>Đăng nhập</a>
+                }
+            </div>
+        </header>
+
+        <section class="welcome-hero-stage">
+            <div class="w-100">
+                <div class="row g-5 align-items-center">
+                    <div class="col-xl-7">
+                        <span class="welcome-kicker">
+                            <i class="fa-solid fa-sparkles"></i>
+                            @(isAuthenticated ? "Workspace sẵn sàng" : "Welcome Experience")
+                        </span>
+
+                        <h1 class="welcome-heading">
+                            @if (isAuthenticated)
+                            {
+                                <span>Điều phối doanh nghiệp </span><span class="accent">gọn, sâu và liền mạch.</span>
+                            }
+                            else
+                            {
+                                <span>Trang welcome </span><span class="accent">full màn hình</span><span> đúng chất website hiện đại.</span>
+                            }
+                        </h1>
+
+                        <p class="welcome-subcopy">
+                            @(isAuthenticated
+                                ? "Chào mừng trở lại với OmniBizAI. Mọi luồng kế hoạch, yêu cầu, KPI và báo cáo giờ bắt đầu từ một landing page toàn màn hình, rõ định hướng và đủ mạnh để làm điểm xuất phát cho ngày làm việc."
+                                : "Một welcome page tốt không nên bị nhốt trong khung dashboard. Nó cần chiếm trọn viewport, thể hiện thương hiệu rõ ràng và dẫn người dùng tới đúng hành động đầu tiên.")
+                        </p>
+                        <p class="welcome-subcopy mt-3">
+                            @(isAuthenticated
+                                ? "Từ đây bạn có thể vào dashboard, khởi tạo yêu cầu vận hành mới, lập kế hoạch hoặc mở AI Copilot mà không cần đi qua sidebar."
+                                : "Phiên bản này được thiết kế như một landing screen độc lập: full-width, full-height, có hero mạnh, CTA rõ và các cụm chức năng ở ngay bên dưới.")
+                        </p>
+
+                        <div class="welcome-hero-actions">
+                            <a href="@primaryUrl" class="btn btn-primary">
+                                <i class="fa-solid fa-arrow-right-to-bracket me-1"></i>@primaryLabel
+                            </a>
+                            <a href="@secondaryUrl" class="btn btn-light">
+                                <i class="fa-solid fa-plus me-1"></i>@secondaryLabel
+                            </a>
+                            @if (isAuthenticated)
+                            {
+                                <a href="@planCreateUrl" class="btn btn-outline-primary">
+                                    <i class="fa-solid fa-calendar-plus me-1"></i>Lập kế hoạch
+                                </a>
+                            }
+                        </div>
+
+                        <div class="welcome-signals">
+                            <span class="welcome-signal"><i class="fa-solid fa-expand"></i>Hero full viewport</span>
+                            <span class="welcome-signal"><i class="fa-solid fa-diagram-project"></i>Từ kế hoạch đến thực thi</span>
+                            <span class="welcome-signal"><i class="fa-solid fa-robot"></i>AI Copilot sẵn sàng hỗ trợ</span>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-5">
+                        <div class="welcome-visual">
+                            <div class="welcome-visual-glow"></div>
+
+                            <div class="welcome-panel floating-top fade-in fade-in-delay-1">
+                                <span class="welcome-panel-tag"><i class="fa-solid fa-bolt"></i>Quick Start</span>
+                                <strong style="display:block;margin-top:12px;color:var(--text-primary);font-size:1rem">@(isAuthenticated ? "3 thao tác mở ngày làm việc" : "Một điểm vào rõ ràng")</strong>
+                                <p style="margin-top:8px">
+                                    @(isAuthenticated
+                                        ? "Dashboard, yêu cầu vận hành và kế hoạch mới luôn ở ngay tầm mắt."
+                                        : "Người dùng nhìn vào là hiểu sản phẩm này hỗ trợ điều phối doanh nghiệp thế nào.")
+                                </p>
+                            </div>
+
+                            <div class="welcome-panel primary fade-in fade-in-delay-2">
+                                <span class="welcome-panel-tag"><i class="fa-solid fa-wave-square"></i>Control Surface</span>
+                                <span class="welcome-panel-value">01</span>
+                                <p class="welcome-panel-copy">Một welcome page đúng nghĩa cần là cổng chào, bản đồ và nút khởi động cùng lúc. Vì vậy phần hero giờ chiếm trọn màn hình đầu tiên thay vì nằm trong khung nội dung hẹp.</p>
+
+                                <div class="welcome-lane-list">
+                                    <div class="welcome-lane">
+                                        <div>
+                                            <strong>Kế hoạch</strong>
+                                            <span>Khung điều phối theo ngày, tuần, tháng</span>
+                                        </div>
+                                        <b>Flow</b>
+                                    </div>
+                                    <div class="welcome-lane">
+                                        <div>
+                                            <strong>Vận hành</strong>
+                                            <span>Yêu cầu, phê duyệt và xử lý tập trung</span>
+                                        </div>
+                                        <b>Ops</b>
+                                    </div>
+                                    <div class="welcome-lane">
+                                        <div>
+                                            <strong>Insights</strong>
+                                            <span>AI Copilot và báo cáo đa chiều</span>
+                                        </div>
+                                        <b>AI</b>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="welcome-panel floating-bottom fade-in fade-in-delay-3">
+                                <span class="welcome-panel-tag"><i class="fa-solid fa-shield-heart"></i>Always Clear</span>
+                                <strong style="display:block;margin-top:12px;color:var(--text-primary);font-size:.96rem">Gọn nhưng không hời hợt</strong>
+                                <p style="margin-top:8px">Ưu tiên bối cảnh, hành động chính và đường vào các phân hệ quan trọng nhất của hệ thống.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="welcome-stat-row row g-3">
+                    <div class="col-md-4">
+                        <div class="welcome-stat-card">
+                            <strong>Full màn hình ngay điểm chạm đầu</strong>
+                            <span>Trang chủ giờ mở ra như một website thực thụ, không còn bị bó trong sidebar, topbar và vùng nội dung hẹp.</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="welcome-stat-card">
+                            <strong>Chuyển hướng nhanh vào công việc</strong>
+                            <span>Người dùng có thể đi thẳng vào dashboard, tạo yêu cầu vận hành hoặc lập kế hoạch chỉ bằng một cú nhấp.</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="welcome-stat-card">
+                            <strong>Giữ đúng ngôn ngữ thiết kế hiện tại</strong>
+                            <span>Vẫn cùng hệ màu, cảm giác glass card và typography của OmniBizAI, nhưng trải nghiệm mở đầu hiện đại hơn nhiều.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="welcomeCapabilities" class="welcome-section">
+            <div class="row g-4">
+                <div class="col-xl-8">
+                    <div class="welcome-section-header">
+                        <div>
+                            <h2>Những cánh cửa chính của hệ thống</h2>
+                            <p>Hero đầu tiên đã full màn hình, còn phía dưới vẫn là bản đồ chức năng để người dùng thấy ngay sản phẩm này có gì và nên đi đâu tiếp.</p>
+                        </div>
+                    </div>
+
+                    <div class="welcome-module-grid">
+                        @foreach (var card in moduleCards)
+                        {
+                            <a href="@card.Href" class="welcome-module-card fade-in">
+                                <div class="welcome-module-icon @card.Accent">
+                                    <i class="fa-solid @card.Icon"></i>
+                                </div>
+                                <h3>@card.Title</h3>
+                                <p>@card.Description</p>
+                                <span class="welcome-module-link">Mở phân hệ <i class="fa-solid fa-arrow-right"></i></span>
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-xl-4">
+                    <div class="content-card welcome-side-card">
+                        <div class="card-header-custom">
+                            <h5><i class="fa-solid fa-route"></i> Bắt đầu từ đâu</h5>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="welcome-roadmap">
+                                <div class="welcome-roadmap-step">
+                                    <span class="welcome-roadmap-index">1</span>
+                                    <div>
+                                        <strong>@(isAuthenticated ? "Vào dashboard tổng quan" : "Đăng nhập vào workspace")</strong>
+                                        <span>@(isAuthenticated ? "Nắm nhanh tín hiệu quan trọng của doanh nghiệp trước khi mở sâu từng phân hệ." : "Bắt đầu từ một điểm vào duy nhất để giữ trải nghiệm nhất quán.")</span>
+                                    </div>
+                                </div>
+                                <div class="welcome-roadmap-step">
+                                    <span class="welcome-roadmap-index">2</span>
+                                    <div>
+                                        <strong>@(isAuthenticated ? "Khởi tạo công việc mới" : "Khám phá luồng vận hành")</strong>
+                                        <span>@(isAuthenticated ? "Tạo yêu cầu vận hành hoặc một kế hoạch mới ngay từ landing page này." : "Hiểu cách kế hoạch, vận hành, KPI và AI nối với nhau trong cùng một hệ.")</span>
+                                    </div>
+                                </div>
+                                <div class="welcome-roadmap-step">
+                                    <span class="welcome-roadmap-index">3</span>
+                                    <div>
+                                        <strong>@(isAuthenticated ? "Theo dõi hiệu suất và insights" : "Đi sâu khi đã sẵn sàng")</strong>
+                                        <span>@(isAuthenticated ? "Mở KPI/OKR, báo cáo hoặc AI Copilot để biến dữ liệu thành hành động." : "Sau khi đăng nhập, người dùng có thể đi vào đúng phân hệ mà không bị lạc hướng.")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="welcome-action-list">
+                                @if (isAuthenticated)
+                                {
+                                    <a href="@dashboardUrl" class="welcome-action-link">
+                                        <div>
+                                            <strong>Mở dashboard điều hành</strong>
+                                            <span>Xem nhanh các tín hiệu chính của doanh nghiệp</span>
+                                        </div>
+                                        <i class="fa-solid fa-gauge-high"></i>
+                                    </a>
+                                    <a href="@operationsCreateUrl" class="welcome-action-link">
+                                        <div>
+                                            <strong>Tạo yêu cầu vận hành</strong>
+                                            <span>Khởi tạo một yêu cầu mới dựa trên dữ liệu sẵn có</span>
+                                        </div>
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <a href="@aiCopilotUrl" class="welcome-action-link">
+                                        <div>
+                                            <strong>Mở AI Copilot</strong>
+                                            <span>Nhận phân tích và khuyến nghị từ dữ liệu hệ thống</span>
+                                        </div>
+                                        <i class="fa-solid fa-robot"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a href="@loginUrl" class="welcome-action-link">
+                                        <div>
+                                            <strong>Đăng nhập vào hệ thống</strong>
+                                            <span>Bắt đầu với dashboard, kế hoạch và vận hành</span>
+                                        </div>
+                                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                                    </a>
+                                    <a href="#welcomeCapabilities" class="welcome-action-link">
+                                        <div>
+                                            <strong>Xem các phân hệ chính</strong>
+                                            <span>Khám phá cách OmniBizAI tổ chức luồng điều phối</span>
+                                        </div>
+                                        <i class="fa-solid fa-compass"></i>
+                                    </a>
+                                    <a href="/Home/Privacy" class="welcome-action-link">
+                                        <div>
+                                            <strong>Xem thêm thông tin</strong>
+                                            <span>Đi tới trang thông tin mặc định của hệ thống</span>
+                                        </div>
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card welcome-bottom-card">
+                <div class="card-body-custom d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <h5 style="margin:0 0 6px;font-size:1.05rem;font-weight:700;color:var(--text-primary)">Một welcome page nên trông như một website mở đầu thực thụ.</h5>
+                        <p>@(isAuthenticated
+                            ? "Phiên bản này đưa OmniBizAI ra khỏi khung dashboard ở điểm chạm đầu tiên, để người dùng cảm nhận rõ hơn thương hiệu và bắt đầu công việc trong một không gian thoáng, hiện đại."
+                            : "Phiên bản này giúp người dùng mới cảm nhận giá trị sản phẩm ngay từ lần chạm đầu tiên, thay vì thấy một màn hình nhỏ nằm lọt giữa khung quản trị.")</p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="@primaryUrl" class="btn btn-primary">@primaryLabel</a>
+                        <a href="@(isAuthenticated ? reportsUrl : "#welcomeCapabilities")" class="btn btn-light">@(isAuthenticated ? "Xem báo cáo" : "Xem khả năng hệ thống")</a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-    <h1 style="font-size:2rem;font-weight:600;letter-spacing:-0.03em;color:var(--text-primary);margin-bottom:8px">OmniBizAI</h1>
-    <p style="font-size:1rem;color:var(--text-secondary);max-width:480px;margin:0 auto 24px">
-        Hệ thống vận hành thông minh — quản lý KPI, OKR, quy trình và tài chính doanh nghiệp.
-    </p>
-    <a asp-controller="Dashboard" asp-action="Index" class="btn-primary-custom" style="font-size:.88rem;padding:10px 28px">
-        <i class="fa-solid fa-gauge-high me-2"></i>Vào Dashboard
-    </a>
 </div>

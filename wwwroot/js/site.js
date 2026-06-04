@@ -4,13 +4,50 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Sidebar toggle ──────────────────────────────────────────
     const sidebar = document.getElementById('sidebar');
     const toggle = document.getElementById('sidebarToggle');
+    const collapseToggle = document.getElementById('sidebarCollapseToggle');
     if (toggle && sidebar) {
-        toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+        toggle.addEventListener('click', () => {
+            if (window.innerWidth >= 992) {
+                toggleDesktopSidebarCollapse();
+                return;
+            }
+            sidebar.classList.toggle('open');
+        });
         document.addEventListener('click', (e) => {
             if (window.innerWidth < 992 && sidebar.classList.contains('open') &&
                 !sidebar.contains(e.target) && !toggle.contains(e.target)) {
                 sidebar.classList.remove('open');
             }
+        });
+    }
+    if (collapseToggle) {
+        collapseToggle.addEventListener('click', () => {
+            if (window.innerWidth < 992) return;
+            toggleDesktopSidebarCollapse();
+        });
+    }
+    syncSidebarControlLabels();
+    applyStoredSidebarGroupStates();
+    applyStoredSidebarState();
+    window.addEventListener('resize', syncSidebarViewportState);
+
+    // ── Sidebar scroll persistence ─────────────────────────────
+    const sidebarNav = document.querySelector('.sidebar-nav');
+    if (sidebarNav) {
+        requestAnimationFrame(() => {
+            const savedScrollTop = sessionStorage.getItem('sidebar-scroll');
+            if (savedScrollTop !== null) {
+                sidebarNav.scrollTop = parseInt(savedScrollTop, 10);
+            } else {
+                const activeItem = sidebarNav.querySelector('.nav-item.active');
+                if (activeItem) {
+                    activeItem.scrollIntoView({ block: 'nearest' });
+                }
+            }
+        });
+
+        sidebarNav.addEventListener('scroll', () => {
+            sessionStorage.setItem('sidebar-scroll', sidebarNav.scrollTop);
         });
     }
 
@@ -24,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const isOpen = panel.classList.toggle('open');
             btn.classList.toggle('expanded', isOpen);
             btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            setSidebarGroupState(targetId, isOpen);
         });
     });
 
@@ -264,6 +302,162 @@ function formatTimeAgo(dateStr) {
 
 function escNotif(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+const NAV_MODE_STORAGE_KEY = 'omnibiz-nav-mode';
+const SIDEBAR_STORAGE_KEY = 'omnibiz-sidebar';
+const SIDEBAR_GROUP_STORAGE_PREFIX = 'omnibiz-sidebar-group:';
+
+function readUiStorage(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeUiStorage(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch (e) {
+        // Ignore storage access issues and keep the current in-memory state.
+    }
+}
+
+function getSidebarStorageKey(mode = getCurrentNavMode()) {
+    return `${SIDEBAR_STORAGE_KEY}:${mode}`;
+}
+
+function getStoredSidebarState(mode = getCurrentNavMode()) {
+    const scopedState = readUiStorage(getSidebarStorageKey(mode));
+    if (scopedState === 'collapsed' || scopedState === 'expanded') {
+        return scopedState;
+    }
+
+    const legacyState = readUiStorage(SIDEBAR_STORAGE_KEY);
+    return legacyState === 'collapsed' ? 'collapsed' : 'expanded';
+}
+
+function setStoredSidebarState(state, mode = getCurrentNavMode()) {
+    if (state !== 'collapsed' && state !== 'expanded') return;
+
+    writeUiStorage(getSidebarStorageKey(mode), state);
+    writeUiStorage(SIDEBAR_STORAGE_KEY, state);
+}
+
+function getSidebarGroupStorageKey(targetId) {
+    return `${SIDEBAR_GROUP_STORAGE_PREFIX}${targetId}`;
+}
+
+function setSidebarGroupState(targetId, isOpen) {
+    if (!targetId) return;
+    writeUiStorage(getSidebarGroupStorageKey(targetId), isOpen ? 'open' : 'closed');
+}
+
+function isDesktopSidebarViewport() {
+    return window.innerWidth >= 992;
+}
+
+function getCurrentNavMode() {
+    return document.documentElement.getAttribute('data-nav-mode') || readUiStorage(NAV_MODE_STORAGE_KEY) || 'classic';
+}
+
+function canCollapseSidebar() {
+    return getCurrentNavMode() !== 'launcher';
+}
+
+function updateSidebarCollapseToggle() {
+    const btn = document.getElementById('sidebarCollapseToggle');
+    if (!btn) return;
+
+    const isDesktop = window.innerWidth >= 992;
+    const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed');
+    const hidden = !isDesktop || !canCollapseSidebar();
+
+    btn.style.display = hidden ? 'none' : '';
+    btn.setAttribute('aria-label', isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar');
+    btn.title = isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar';
+    btn.setAttribute('aria-pressed', (!isCollapsed).toString());
+    btn.classList.toggle('is-active', !hidden && !isCollapsed);
+
+    const icon = btn.querySelector('i');
+    if (icon) {
+        icon.className = 'fa-solid fa-bars';
+    }
+}
+
+function syncSidebarViewportState() {
+    const sidebar = document.getElementById('sidebar');
+    const shouldCollapse = isDesktopSidebarViewport() && canCollapseSidebar() && getStoredSidebarState() === 'collapsed';
+
+    document.documentElement.classList.toggle('sidebar-collapsed', shouldCollapse);
+
+    if (sidebar && (isDesktopSidebarViewport() || !canCollapseSidebar())) {
+        sidebar.classList.remove('open');
+    }
+
+    updateSidebarCollapseToggle();
+}
+
+function applyStoredSidebarState() {
+    syncSidebarViewportState();
+}
+
+function applyStoredSidebarGroupStates() {
+    document.querySelectorAll('[data-nav-group-toggle]').forEach(btn => {
+        const targetId = btn.getAttribute('data-target');
+        const panel = targetId ? document.getElementById(targetId) : null;
+        if (!panel) return;
+
+        const storedState = readUiStorage(getSidebarGroupStorageKey(targetId));
+        const hasActiveItem = !!panel.querySelector('.nav-item.active');
+        const defaultState = panel.classList.contains('open');
+        const shouldOpen = hasActiveItem
+            ? true
+            : storedState === 'open'
+                ? true
+                : storedState === 'closed'
+                    ? false
+                    : defaultState;
+
+        panel.classList.toggle('open', shouldOpen);
+        btn.classList.toggle('expanded', shouldOpen);
+        btn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    });
+}
+
+function toggleDesktopSidebarCollapse() {
+    if (!canCollapseSidebar()) return;
+
+    const isCollapsed = document.documentElement.classList.toggle('sidebar-collapsed');
+    setStoredSidebarState(isCollapsed ? 'collapsed' : 'expanded');
+
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
+
+    updateSidebarCollapseToggle();
+}
+
+function syncSidebarControlLabels() {
+    document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+        const label = item.querySelector('span:not(.nav-badge):not(.nav-badge-ai)');
+        const text = label?.textContent?.trim();
+        if (!text) return;
+
+        item.setAttribute('title', text);
+        if (!item.getAttribute('aria-label')) {
+            item.setAttribute('aria-label', text);
+        }
+    });
+
+    document.querySelectorAll('.sidebar .nav-group-toggle').forEach(btn => {
+        const label = btn.querySelector('.left span:last-child');
+        const text = label?.textContent?.trim();
+        if (!text) return;
+
+        btn.setAttribute('title', text);
+        btn.setAttribute('aria-label', text);
+    });
+}
+
 // ═══ NAVIGATION MODES ═════════════════════════════════════════════
 
 window.toggleNavModeMenu = function() {
@@ -275,16 +469,13 @@ window.toggleNavModeMenu = function() {
 
 window.setNavMode = function(mode) {
     document.documentElement.setAttribute('data-nav-mode', mode);
-    localStorage.setItem('omnibiz-nav-mode', mode);
-    
-    // Manage sidebar visibility/collapsing logically based on mode
-    if (mode === 'launcher') {
-        document.documentElement.classList.remove('sidebar-collapsed');
-    } else if (mode === 'classic') {
-        const s = localStorage.getItem('omnibiz-sidebar');
-        if (s === 'collapsed') document.documentElement.classList.add('sidebar-collapsed');
-    }
-    
+    writeUiStorage(NAV_MODE_STORAGE_KEY, mode);
+
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.remove('open');
+
+    applyStoredSidebarState();
+
     // Close the dropdown menu
     const menu = document.getElementById('navModeMenu');
     if (menu) menu.style.display = 'none';
