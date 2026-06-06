@@ -254,7 +254,7 @@ public class SettingsController : Controller
     }
 
     [HttpGet]
-    [ResponseCache(Duration = 60)]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> ThemeCss()
     {
         try { var css = await _service.GetThemeCssAsync(); return Content(css, "text/css"); }
