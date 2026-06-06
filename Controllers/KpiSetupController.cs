@@ -101,6 +101,7 @@ public class KpiSetupController(
             var form = await kpiService.GetCreateFormAsync();
             vm.Departments = form.Departments; vm.OkrObjectives = form.OkrObjectives;
             vm.OkrKeyResults = form.OkrKeyResults; vm.Periods = form.Periods;
+            vm.Employees = form.Employees;
             return View(vm);
         }
         try
@@ -116,6 +117,7 @@ public class KpiSetupController(
             var form = await kpiService.GetCreateFormAsync();
             vm.Departments = form.Departments; vm.OkrObjectives = form.OkrObjectives;
             vm.OkrKeyResults = form.OkrKeyResults; vm.Periods = form.Periods;
+            vm.Employees = form.Employees;
             return View(vm);
         }
     }

@@ -57,6 +57,7 @@ html{
     font-size:15px;
     scroll-behavior:smooth;
     -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
 }
 
 body,.app-body{
@@ -290,6 +291,7 @@ a:hover{text-decoration:none}
     display:flex;align-items:center;gap:10px;
     padding:12px 18px;border-radius:var(--r-md);
     font-size:.82rem;font-weight:500;
+    -webkit-backdrop-filter:blur(12px);
     backdrop-filter:blur(12px);
     animation:slideInRight .35s var(--ease);
     max-width:380px;
@@ -1034,3 +1036,362 @@ html[data-nav-mode="card-sidebar"] #supportingBranch > .nav-group-items {
         display: none !important;
     }
 }
+
+/* ═══ VS CODE STYLE SETTINGS PANEL ═════════════════════════════════ */
+.btn-settings {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 6px;
+    cursor: pointer;
+    border-radius: var(--r-sm);
+    transition: all var(--ease-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+.btn-settings:hover {
+    color: var(--apple-blue-dark);
+    background: rgba(0, 113, 227, 0.12);
+}
+.btn-settings.active {
+    color: var(--apple-blue-dark) !important;
+    background: rgba(0, 113, 227, 0.25);
+}
+
+.settings-ide-container {
+    background: var(--canvas);
+    border: 1px solid var(--divider);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--topbar-h) - 100px);
+    min-height: 550px;
+    overflow: hidden;
+}
+
+.settings-ide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--divider);
+    background: var(--pearl);
+}
+
+.settings-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.settings-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.settings-ide-search-bar {
+    width: 300px;
+}
+
+.settings-ide-search-bar .form-control {
+    font-size: 0.82rem;
+    padding: 6px 12px;
+    border-radius: var(--r-sm);
+}
+
+.settings-ide-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.settings-ide-sidebar {
+    width: 240px;
+    border-right: 1px solid var(--divider);
+    background: var(--pearl);
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.settings-nav-group-header {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+}
+
+.settings-nav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    border-radius: var(--r-xs);
+    border-left: 2px solid transparent;
+    transition: all var(--ease-fast);
+}
+
+.settings-nav-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 0.88rem;
+    opacity: 0.7;
+}
+
+.settings-nav-item:hover {
+    background: var(--divider);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.settings-nav-item.active {
+    background: rgba(0, 113, 227, 0.06);
+    color: var(--apple-blue) !important;
+    border-left-color: var(--apple-blue);
+    font-weight: 600;
+}
+
+.settings-nav-item.active i {
+    opacity: 1;
+    color: var(--apple-blue);
+}
+
+.settings-ide-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-ide-content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+/* Responsive details */
+@media(max-width: 767.98px) {
+    .settings-ide-container {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+    .settings-ide-body {
+        flex-direction: column;
+        overflow: visible;
+    }
+    .settings-ide-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--divider);
+        overflow: visible;
+    }
+    .settings-ide-content {
+        overflow: visible;
+    }
+}
+
+/* ═══ SETTINGS OPTIMIZATIONS (VS CODE STYLE) ═══════════════════════ */
+.settings-ide-subtabs {
+    display: flex;
+    border-bottom: 1px solid var(--divider);
+    background: var(--pearl);
+    padding: 0 24px;
+    height: 38px;
+    align-items: flex-end;
+}
+
+.settings-subtab {
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    position: relative;
+    margin-right: 8px;
+    transition: color var(--ease-fast);
+    font-weight: 500;
+}
+
+.settings-subtab:hover {
+    color: var(--text-primary);
+}
+
+.settings-subtab.active {
+    color: var(--apple-blue);
+    font-weight: 600;
+}
+
+.settings-subtab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--apple-blue);
+}
+
+/* Sidebar Collapsible Group Styling */
+.settings-nav-group {
+    transition: margin var(--ease-fast);
+}
+
+.settings-nav-group-header {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: color var(--ease-fast);
+}
+
+.settings-nav-group-header:hover {
+    color: var(--text-primary);
+}
+
+.settings-nav-group-header i {
+    transition: transform var(--ease-fast);
+}
+
+.settings-nav-group.collapsed .settings-nav-group-header i {
+    transform: rotate(-90deg);
+}
+
+.settings-nav-group.collapsed .settings-nav-items {
+    max-height: 0;
+    overflow: hidden;
+    margin-top: 0;
+}
+
+.settings-nav-items {
+    max-height: 400px;
+    transition: max-height var(--ease-fast);
+    overflow: hidden;
+}
+
+/* Sleek borderless overrides inside settings content pane */
+.settings-ide-content-scroll .content-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin-bottom: 28px !important;
+    border-radius: 0 !important;
+}
+
+.settings-ide-content-scroll .card-header-custom {
+    background: transparent !important;
+    border-bottom: 1px solid var(--divider) !important;
+    padding: 0 0 10px 0 !important;
+    margin-bottom: 18px !important;
+}
+
+.settings-ide-content-scroll .card-header-custom h5 {
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-ide-content-scroll .card-body-custom {
+    padding: 0 !important;
+}
+
+/* Table overrides inside settings */
+.settings-ide-content-scroll .data-table {
+    background: transparent !important;
+    border-collapse: collapse !important;
+}
+
+.settings-ide-content-scroll .data-table thead th {
+    background: transparent !important;
+    border-bottom: 1px solid var(--divider) !important;
+    color: var(--text-muted) !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    letter-spacing: normal !important;
+    padding: 8px 12px !important;
+}
+
+.settings-ide-content-scroll .data-table tbody td {
+    padding: 10px 12px !important;
+    border-bottom: 1px solid var(--divider) !important;
+    font-size: 0.84rem;
+}
+
+.settings-ide-content-scroll .data-table tbody tr {
+    background: transparent !important;
+}
+
+.settings-ide-content-scroll .data-table tbody tr:hover {
+    background: rgba(0, 113, 227, 0.03) !important;
+}
+
+/* Input Form Controls overrides inside settings */
+.settings-ide-content-scroll .form-control,
+.settings-ide-content-scroll .form-select,
+.settings-ide-content-scroll .form-input {
+    background: var(--canvas) !important;
+    border: 1px solid var(--hairline) !important;
+    border-radius: 6px !important;
+    padding: 7px 12px !important;
+    font-size: 0.84rem !important;
+    transition: border-color var(--ease-fast), box-shadow var(--ease-fast) !important;
+}
+
+.settings-ide-content-scroll .form-control:focus,
+.settings-ide-content-scroll .form-select:focus,
+.settings-ide-content-scroll .form-input:focus {
+    border-color: var(--apple-blue) !important;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12) !important;
+}
+
+.settings-ide-content-scroll .form-label {
+    font-size: 0.8rem !important;
+    font-weight: 550 !important;
+    margin-bottom: 4px !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Button overrides inside settings */
+.settings-ide-content-scroll .btn-primary-custom,
+.settings-ide-content-scroll .btn-primary {
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
+    padding: 7px 16px !important;
+    font-weight: 550 !important;
+}
+
+.settings-ide-content-scroll .btn-outline-custom,
+.settings-ide-content-scroll .btn-outline-primary {
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
+    padding: 7px 16px !important;
+    font-weight: 550 !important;
+}
+
+.settings-ide-content-scroll .page-title {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+}
+
+

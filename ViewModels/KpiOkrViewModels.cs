@@ -92,6 +92,7 @@ public class OkrKeyResultCreateItem
     public bool IsInverse { get; set; }
 }
 
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // KPI ViewModels (full — from KPI project)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -142,9 +143,20 @@ public class KpiDetailViewModel
     public string? PeriodName { get; set; }
     public string? AssignerName { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+    public Guid? OkrObjectiveId { get; set; }
+    public Guid? OkrKeyResultId { get; set; }
+    public Guid? EvaluationPeriodId { get; set; }
+    public Guid? AssignerUserId { get; set; }
     public List<KpiTargetItem> Targets { get; set; } = new();
-    public List<string> DepartmentAssignments { get; set; } = new();
+    public List<KpiDepartmentAssignmentItem> DepartmentAssignments { get; set; } = new();
     public List<KpiEmployeeAssignmentItem> EmployeeAssignments { get; set; } = new();
+}
+
+public class KpiDepartmentAssignmentItem
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
 }
 
 public class KpiTargetItem
@@ -157,12 +169,22 @@ public class KpiTargetItem
     public DateOnly PeriodEnd { get; set; }
     public int? CheckInFrequencyDays { get; set; }
     public bool ReminderEnabled { get; set; }
+    public Guid? OwnerUserId { get; set; }
+    public string? OwnerUserName { get; set; }
+    public string? OwnerAvatarUrl { get; set; }
+    public string? OwnerJobTitle { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+    public string? DepartmentName { get; set; }
+    public string? DeadlineTimeDisplay { get; set; }
 }
 
 public class KpiEmployeeAssignmentItem
 {
+    public Guid UserId { get; set; }
     public string UserName { get; set; } = "";
     public decimal Weight { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? JobTitle { get; set; }
 }
 
 public class KpiCreateViewModel
@@ -203,6 +225,17 @@ public class KpiCreateViewModel
     public List<SelectOption> OkrObjectives { get; set; } = new();
     public List<SelectOption> OkrKeyResults { get; set; } = new();
     public List<SelectOption> Periods { get; set; } = new();
+
+    // Employee Selection
+    public List<Guid> SelectedEmployeeIds { get; set; } = new();
+    public List<EmployeeSelectOption> Employees { get; set; } = new();
+}
+
+public class EmployeeSelectOption
+{
+    public string Value { get; set; } = "";
+    public string Text { get; set; } = "";
+    public string DepartmentId { get; set; } = "";
 }
 
 public class MeetingSummaryImportViewModel

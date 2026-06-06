@@ -1,4 +1,14 @@
 @model OmniBizAI.ViewModels.KpiCreateViewModel
+@functions {
+    public static string GetInitials(string fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName)) return "?";
+        var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        if (parts.Length == 1) return parts[0][0].ToString().ToUpper();
+        return (parts[0][0].ToString() + parts[^1][0].ToString()).ToUpper();
+    }
+}
 @{
     ViewData["Title"] = "Tạo KPI mới";
     ViewData["Breadcrumb"] = "<a href='/KpiSetup' style='color:var(--apple-blue);text-decoration:none'>KPI</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>";
@@ -251,6 +261,118 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
+    
+    /* Custom styles for KPI scope cards */
+    .scope-card {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(250,250,252,.95));
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 14px 16px;
+        height: 100%;
+        position: relative;
+    }
+    .scope-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 113, 227, 0.3);
+    }
+    .scope-card.is-active {
+        border-color: var(--apple-blue);
+        background: radial-gradient(circle at top right, rgba(0, 113, 227, 0.05), transparent),
+                    linear-gradient(135deg, #fff, rgba(245, 247, 250, 0.9));
+        box-shadow: 0 4px 15px rgba(0, 113, 227, 0.08);
+    }
+    .scope-card-inner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .scope-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(0, 113, 227, 0.06);
+        color: var(--apple-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        transition: all 0.25s ease;
+    }
+    .scope-card.is-active .scope-icon {
+        background: var(--apple-blue);
+        color: #fff;
+    }
+    .scope-card-inner strong {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+    .scope-card-inner span {
+        display: block;
+        font-size: 0.74rem;
+        color: var(--text-secondary);
+        line-height: 1.35;
+    }
+    
+    /* Employee Checkbox Cards */
+    .employee-checkbox-card label {
+        transition: all 0.2s ease;
+        border: 1px solid var(--divider) !important;
+        background: #fff;
+        cursor: pointer;
+        user-select: none;
+    }
+    .employee-checkbox-card label:hover {
+        background: rgba(0,113,227,0.02) !important;
+        border-color: rgba(0,113,227,0.2) !important;
+    }
+    .employee-checkbox-card input:checked + label {
+        border-color: var(--apple-blue) !important;
+        background: rgba(0, 113, 227, 0.04) !important;
+        color: var(--apple-blue);
+        box-shadow: 0 2px 8px rgba(0, 113, 227, 0.05);
+    }
+    .employee-checkbox-card .tick-indicator {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid var(--divider);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: transparent;
+        font-size: 0.65rem;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+    .employee-checkbox-card input:checked + label .tick-indicator {
+        border-color: var(--apple-blue);
+        background: var(--apple-blue);
+        color: #fff;
+    }
+    .avatar-circle-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(0, 113, 227, 0.08);
+        color: var(--apple-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+    .employee-checkbox-card input:checked + label .avatar-circle-sm {
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--apple-blue);
+    }
 </style>
 }
 
@@ -338,16 +460,7 @@
                             <textarea asp-for="Description" class="form-control" id="descriptionInput" rows="4" placeholder="Mô tả cách tính, nguồn dữ liệu hoặc bối cảnh áp dụng của KPI này."></textarea>
                             <span asp-validation-for="Description" class="text-danger" style="font-size:.78rem"></span>
                         </div>
-                        <div class="col-md-3">
-                            <label asp-for="OwnerType" class="form-label">Loại áp dụng</label>
-                            <select asp-for="OwnerType" class="form-select" id="ownerTypeInput">
-                                @foreach (var owner in EnumHelper.GetSelectList<KpiOwnerType>(Model.OwnerType.ToString()))
-                                {
-                                    <option value="@owner.Value" selected="@owner.Selected">@owner.Text</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label asp-for="MeasureType" class="form-label">Phương thức đo</label>
                             <select asp-for="MeasureType" class="form-select" id="measureTypeInput">
                                 @foreach (var measure in EnumHelper.GetSelectList<KpiMeasureType>(Model.MeasureType.ToString()))
@@ -356,7 +469,7 @@
                                 }
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label asp-for="PropertyType" class="form-label">Tính chất</label>
                             <select asp-for="PropertyType" class="form-select" id="propertyTypeInput">
                                 @foreach (var property in EnumHelper.GetSelectList<KpiPropertyType>(Model.PropertyType.ToString()))
@@ -365,7 +478,7 @@
                                 }
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label asp-for="PeriodType" class="form-label">Tần suất</label>
                             <select asp-for="PeriodType" class="form-select" id="periodTypeInput">
                                 @foreach (var periodType in EnumHelper.GetSelectList<KpiPeriodType>(Model.PeriodType.ToString()))
@@ -387,21 +500,65 @@
                 <div class="card-header-custom">
                     <div>
                         <h5><i class="fa-solid fa-link"></i> Phạm vi và liên kết chiến lược</h5>
-                        <div class="kpi-section-note">Chọn phòng ban, OKR Objective, Key Result và kỳ đánh giá từ dữ liệu đang có trong hệ thống.</div>
+                        <div class="kpi-section-note">Chọn phạm vi áp dụng, phòng ban, kỳ đánh giá và OKR liên quan của KPI này.</div>
                     </div>
                 </div>
                 <div class="card-body-custom">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="kpi-selection-panel">
+                        <!-- Scope Selector Card Horizontal Row -->
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold mb-2"><i class="fa-solid fa-crosshairs me-2" style="color:var(--apple-blue)"></i>Phạm vi áp dụng KPI <span class="text-danger">*</span></label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="scope-card cursor-pointer @(Model.OwnerType == KpiOwnerType.Company ? "is-active" : "")" data-value="Company" id="scopeCompanyCard">
+                                        <input type="radio" name="OwnerType" value="Company" id="ownerTypeCompany" class="d-none" @(Model.OwnerType == KpiOwnerType.Company ? "checked" : "") />
+                                        <div class="scope-card-inner">
+                                            <div class="scope-icon"><i class="fa-solid fa-building-user"></i></div>
+                                            <div>
+                                                <strong>Toàn công ty</strong>
+                                                <span>Áp dụng chung toàn hệ thống</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="scope-card cursor-pointer @(Model.OwnerType == KpiOwnerType.Department ? "is-active" : "")" data-value="Department" id="scopeDeptCard">
+                                        <input type="radio" name="OwnerType" value="Department" id="ownerTypeDept" class="d-none" @(Model.OwnerType == KpiOwnerType.Department ? "checked" : "") />
+                                        <div class="scope-card-inner">
+                                            <div class="scope-icon"><i class="fa-solid fa-sitemap"></i></div>
+                                            <div>
+                                                <strong>Phòng ban</strong>
+                                                <span>Giao cho một phòng ban cụ thể</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="scope-card cursor-pointer @(Model.OwnerType == KpiOwnerType.User ? "is-active" : "")" data-value="User" id="scopeUserCard">
+                                        <input type="radio" name="OwnerType" value="User" id="ownerTypeUser" class="d-none" @(Model.OwnerType == KpiOwnerType.User ? "checked" : "") />
+                                        <div class="scope-card-inner">
+                                            <div class="scope-icon"><i class="fa-solid fa-user-tie"></i></div>
+                                            <div>
+                                                <strong>Cá nhân</strong>
+                                                <span>Giao cụ thể cho từng nhân viên</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Department Selection Panel -->
+                        <div class="col-md-6" id="departmentSelectionSection" style="display: @(Model.OwnerType == KpiOwnerType.Company ? "none" : "block")">
+                            <div class="kpi-selection-panel h-100">
                                 <div class="kpi-selection-head">
-                                    <h6><i class="fa-solid fa-building" style="color:var(--apple-blue)"></i> Phạm vi phòng ban</h6>
-                                    <p>Áp dụng khi KPI giao cho một đơn vị cụ thể hoặc cần thống kê theo bộ phận.</p>
+                                    <h6><i class="fa-solid fa-building" style="color:var(--apple-blue)"></i> Phòng ban áp dụng</h6>
+                                    <p id="deptDescription">Áp dụng khi KPI giao cho một đơn vị cụ thể hoặc cần thống kê theo bộ phận.</p>
                                 </div>
                                 <div class="kpi-selection-body">
-                                    <label asp-for="OrganizationUnitId" class="form-label">Phòng ban áp dụng</label>
+                                    <label asp-for="OrganizationUnitId" class="form-label" id="deptLabel">Chọn phòng ban</label>
                                     <select asp-for="OrganizationUnitId" class="form-select" id="departmentInput">
-                                        <option value="">-- Không gắn phòng ban cụ thể --</option>
+                                        <option value="">-- Chọn phòng ban --</option>
                                         @foreach (var department in Model.Departments)
                                         {
                                             <option value="@department.Value">@department.Text</option>
@@ -409,14 +566,14 @@
                                     </select>
                                     <div class="kpi-link-status">
                                         <span class="kpi-hint-badge"><i class="fa-solid fa-layer-group"></i>@Model.Departments.Count phòng ban</span>
-                                        <span>Phù hợp với KPI cấp <strong id="ownerTypeHint">Department</strong>.</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="kpi-selection-panel">
+                        <!-- Evaluation Period Selection Panel -->
+                        <div class="col-md-6" id="evaluationPeriodSection">
+                            <div class="kpi-selection-panel h-100">
                                 <div class="kpi-selection-head">
                                     <h6><i class="fa-solid fa-calendar-check" style="color:var(--success)"></i> Kỳ đánh giá</h6>
                                     <p>Liên kết KPI với một kỳ đang mở để điều phối check-in và đánh giá đúng chu kỳ.</p>
@@ -432,7 +589,63 @@
                                     </select>
                                     <div class="kpi-link-status">
                                         <span class="kpi-hint-badge"><i class="fa-solid fa-calendar-days"></i>@Model.Periods.Count kỳ mở</span>
-                                        <span>Dùng khi KPI cần gắn vào quy trình đánh giá chính thức.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employee Selection Panel -->
+                        <div class="col-12" id="employeeSelectionSection" style="display: @(Model.OwnerType == KpiOwnerType.User ? "block" : "none")">
+                            <div class="kpi-selection-panel">
+                                <div class="kpi-selection-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <h6><i class="fa-solid fa-users" style="color:var(--apple-blue)"></i> Phân công nhân viên của phòng ban</h6>
+                                        <p class="mb-0">Chọn các nhân viên của phòng ban được chọn ở trên để giao chỉ tiêu KPI riêng biệt.</p>
+                                    </div>
+                                    <!-- Selection controls -->
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-xs btn-outline-primary" id="btnSelectAllEmployees" style="font-size:0.72rem; padding: 4px 8px;"><i class="fa-solid fa-check-double me-1"></i>Chọn tất cả</button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="btnClearEmployees" style="font-size:0.72rem; padding: 4px 8px;"><i class="fa-solid fa-xmark me-1"></i>Bỏ chọn tất cả</button>
+                                    </div>
+                                </div>
+                                <div class="kpi-selection-body">
+                                    <!-- Search bar -->
+                                    <div class="mb-3 position-relative">
+                                        <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted" style="margin-left: 2px;"><i class="fa-solid fa-magnifying-glass"></i></span>
+                                        <input type="text" id="employeeSearchInput" class="form-control ps-5" placeholder="Tìm nhanh nhân viên theo tên..." />
+                                    </div>
+
+                                    <!-- Employee Grid -->
+                                    <div class="row g-2" id="employeeCheckboxGrid" style="max-height: 280px; overflow-y: auto;">
+                                        @if (Model.Employees?.Any() == true)
+                                        {
+                                            @for (int i = 0; i < Model.Employees.Count; i++)
+                                            {
+                                                var emp = Model.Employees[i];
+                                                <div class="col-md-4 employee-checkbox-card-wrapper" data-dept-id="@emp.DepartmentId" data-name="@emp.Text.ToLower()">
+                                                    <div class="employee-checkbox-card">
+                                                        <input type="checkbox" name="SelectedEmployeeIds" value="@emp.Value" id="emp_@emp.Value" class="d-none" @(Model.SelectedEmployeeIds.Contains(Guid.Parse(emp.Value)) ? "checked" : "") />
+                                                        <label for="emp_@emp.Value" class="w-100 m-0 d-flex align-items-center justify-content-between p-2 border rounded-3">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <div class="avatar-circle-sm">@GetInitials(emp.Text)</div>
+                                                                <div>
+                                                                    <span class="emp-name fw-600 d-block" style="font-size: 0.84rem; color: var(--text-primary);">@emp.Text</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="tick-indicator"><i class="fa-solid fa-check"></i></div>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="col-12 text-center py-3 text-muted">Không tìm thấy dữ liệu nhân viên.</div>
+                                        }
+                                    </div>
+                                    <div id="noEmployeesMessage" class="text-muted text-center py-4" style="display: none;">
+                                        <i class="fa-solid fa-users-slash d-block mb-2" style="font-size: 1.5rem; color: var(--text-muted);"></i>
+                                        <span>Vui lòng chọn phòng ban trước hoặc không tìm thấy nhân viên nào trong phòng ban được chọn.</span>
                                     </div>
                                 </div>
                             </div>
@@ -612,6 +825,22 @@
                         <p style="font-size:.84rem;color:var(--text-secondary);margin-top:0">
                             KPI sẽ được lưu dưới dạng bản nháp, sẵn sàng để bạn rà soát hoặc kích hoạt ở bước tiếp theo.
                         </p>
+                        <!-- Validation summary/errors displayed right here -->
+                        <div id="btnValidationSummary" class="alert alert-danger p-2 mb-2" style="@(ViewData.ModelState.IsValid ? "display: none;" : "") font-size: 0.78rem; border-radius: var(--r-md); border-left: 4px solid var(--danger);">
+                            <div class="fw-bold mb-1 text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Vui lòng kiểm tra lại:</div>
+                            <ul class="mb-0 ps-3 text-danger" id="btnErrorList" style="list-style-type: disc;">
+                                @if (!ViewData.ModelState.IsValid)
+                                {
+                                    @foreach (var modelState in ViewData.ModelState.Values)
+                                    {
+                                        foreach (var error in modelState.Errors)
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
+                                    }
+                                }
+                            </ul>
+                        </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-check me-1"></i>Tạo KPI
@@ -651,12 +880,6 @@
             return startValue ? `Bắt đầu từ ${startValue}` : `Đến ${endValue}`;
         }
 
-        function updateOwnerTypeHint() {
-            const ownerTypeText = getSelectedText('ownerTypeInput', 'Department');
-            const ownerHint = document.getElementById('ownerTypeHint');
-            if (ownerHint) ownerHint.textContent = ownerTypeText;
-        }
-
         function updateFrequencyChips() {
             const currentValue = document.getElementById('checkInFrequencyInput')?.value || '';
             document.querySelectorAll('[data-frequency]').forEach(chip => {
@@ -671,7 +894,20 @@
             const objectiveText = getSelectedText('okrObjectiveSelect', '');
             const krText = getSelectedText('okrKeyResultSelect', '');
             const periodText = getSelectedText('evaluationPeriodInput', '');
-            const ownerTypeText = getSelectedText('ownerTypeInput', 'Department');
+            
+            // Get selected ownerType radio value
+            const ownerTypeVal = document.querySelector('input[name="OwnerType"]:checked')?.value || 'Department';
+            const ownerTypeLabels = {
+                Company: 'Toàn công ty',
+                Department: 'Phòng ban',
+                User: 'Cá nhân'
+            };
+            const checkedCount = document.querySelectorAll('input[name="SelectedEmployeeIds"]:checked').length;
+            let ownerTypeText = ownerTypeLabels[ownerTypeVal] || 'Phòng ban';
+            if (ownerTypeVal === 'User') {
+                ownerTypeText += ` (${checkedCount} nhân viên)`;
+            }
+
             const measureTypeText = getSelectedText('measureTypeInput', 'Quantitative');
             const periodTypeText = getSelectedText('periodTypeInput', 'Monthly');
 
@@ -681,13 +917,26 @@
             document.getElementById('summaryMeasureType').textContent = measureTypeText;
             document.getElementById('summaryPeriodType').textContent = periodTypeText;
 
-            document.getElementById('summaryDepartmentLinked').textContent = departmentText ? '1' : '0';
+            document.getElementById('summaryDepartmentLinked').textContent = (departmentText && ownerTypeVal !== 'Company') ? '1' : '0';
             document.getElementById('summaryOkrLinked').textContent = objectiveText && !objectiveText.startsWith('--') ? '1' : '0';
             document.getElementById('summaryKrLinked').textContent = krText && !krText.startsWith('--') ? '1' : '0';
             document.getElementById('summaryPeriodLinked').textContent = periodText && !periodText.startsWith('--') ? '1' : '0';
 
             const scopeParts = [];
-            if (departmentText && !departmentText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-building"></i>${escapeHtml(departmentText)}</span>`);
+            if (ownerTypeVal === 'Company') {
+                scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-building-user"></i>Toàn công ty</span>`);
+            } else {
+                if (departmentText && !departmentText.startsWith('--')) {
+                    scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-building"></i>${escapeHtml(departmentText)}</span>`);
+                }
+                if (ownerTypeVal === 'User') {
+                    const checkedWrappers = Array.from(document.querySelectorAll('input[name="SelectedEmployeeIds"]:checked'))
+                        .map(cb => cb.closest('.employee-checkbox-card').querySelector('.emp-name').textContent.trim());
+                    checkedWrappers.forEach(name => {
+                        scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-user"></i>${escapeHtml(name)}</span>`);
+                    });
+                }
+            }
             if (objectiveText && !objectiveText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-bullseye"></i>${escapeHtml(objectiveText)}</span>`);
             if (krText && !krText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-key"></i>${escapeHtml(krText)}</span>`);
             if (periodText && !periodText.startsWith('--')) scopeParts.push(`<span class="kpi-chip"><i class="fa-solid fa-calendar-days"></i>${escapeHtml(periodText)}</span>`);
@@ -726,8 +975,61 @@
             const endDate = document.getElementById('periodEndInput')?.value || '';
             document.getElementById('summaryDateRange').textContent = formatDateRange(startDate, endDate);
 
-            updateOwnerTypeHint();
             updateFrequencyChips();
+        }
+
+        function filterEmployees() {
+            const selectedDeptId = document.getElementById('departmentInput')?.value || '';
+            const wrappers = document.querySelectorAll('.employee-checkbox-card-wrapper');
+            const grid = document.getElementById('employeeCheckboxGrid');
+            const noMsg = document.getElementById('noEmployeesMessage');
+            let visibleCount = 0;
+
+            wrappers.forEach(wrap => {
+                const deptId = wrap.dataset.deptId;
+                if (selectedDeptId && deptId === selectedDeptId) {
+                    wrap.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    wrap.style.display = 'none';
+                    const cb = wrap.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = false;
+                }
+            });
+
+            const ownerTypeVal = document.querySelector('input[name="OwnerType"]:checked')?.value || 'Department';
+            if (ownerTypeVal === 'User' && selectedDeptId && visibleCount > 0) {
+                if (grid) grid.style.display = 'flex';
+                if (noMsg) noMsg.style.display = 'none';
+            } else {
+                if (grid) grid.style.display = 'none';
+                if (noMsg) noMsg.style.display = 'block';
+            }
+        }
+
+        function handleOwnerTypeChange(ownerType) {
+            const deptSection = document.getElementById('departmentSelectionSection');
+            const empSection = document.getElementById('employeeSelectionSection');
+            const deptInput = document.getElementById('departmentInput');
+            const deptDescription = document.getElementById('deptDescription');
+            const deptLabel = document.getElementById('deptLabel');
+
+            if (ownerType === 'Company') {
+                if (deptSection) deptSection.style.display = 'none';
+                if (empSection) empSection.style.display = 'none';
+                if (deptInput) deptInput.value = '';
+            } else if (ownerType === 'Department') {
+                if (deptSection) deptSection.style.display = 'block';
+                if (empSection) empSection.style.display = 'none';
+                if (deptDescription) deptDescription.textContent = 'Chọn phòng ban phụ trách KPI này.';
+                if (deptLabel) deptLabel.textContent = 'Phòng ban áp dụng';
+            } else if (ownerType === 'User') {
+                if (deptSection) deptSection.style.display = 'block';
+                if (empSection) empSection.style.display = 'block';
+                if (deptDescription) deptDescription.textContent = 'Chọn phòng ban trước để hiển thị danh sách nhân viên lọc theo phòng ban.';
+                if (deptLabel) deptLabel.textContent = 'Lọc theo phòng ban';
+                filterEmployees();
+            }
         }
 
         async function loadKeyResults(objectiveId, selectedValue = '') {
@@ -796,12 +1098,97 @@
             const krSelect = document.getElementById('okrKeyResultSelect');
             const frequencyInput = document.getElementById('checkInFrequencyInput');
             const periodTypeInput = document.getElementById('periodTypeInput');
+            const departmentInput = document.getElementById('departmentInput');
+            const employeeSearchInput = document.getElementById('employeeSearchInput');
 
-            document.querySelectorAll('#kpiNameInput, #unitInput, #descriptionInput, #departmentInput, #ownerTypeInput, #measureTypeInput, #propertyTypeInput, #periodTypeInput, #evaluationPeriodInput, #targetValueInput, #passThresholdInput, #failThresholdInput, #checkInFrequencyInput, #deadlineTimeInput, #periodStartInput, #periodEndInput, #reminderEnabledInput, #okrKeyResultSelect')
+            document.querySelectorAll('#kpiNameInput, #unitInput, #descriptionInput, #departmentInput, #measureTypeInput, #propertyTypeInput, #periodTypeInput, #evaluationPeriodInput, #targetValueInput, #passThresholdInput, #failThresholdInput, #checkInFrequencyInput, #deadlineTimeInput, #periodStartInput, #periodEndInput, #reminderEnabledInput, #okrKeyResultSelect')
                 .forEach(input => {
                     input.addEventListener('input', updateSummary);
                     input.addEventListener('change', updateSummary);
                 });
+
+            // Scope Radio Selection Event Bindings
+            document.querySelectorAll('input[name="OwnerType"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const val = radio.value;
+                    document.querySelectorAll('.scope-card').forEach(card => {
+                        card.classList.toggle('is-active', card.dataset.value === val);
+                    });
+                    handleOwnerTypeChange(val);
+                    updateSummary();
+                });
+            });
+
+            // Make whole scope card clickable
+            document.querySelectorAll('.scope-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const radio = card.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        radio.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+
+            // Department input change filters employees
+            departmentInput?.addEventListener('change', () => {
+                const ownerTypeVal = document.querySelector('input[name="OwnerType"]:checked')?.value || 'Department';
+                if (ownerTypeVal === 'User') {
+                    filterEmployees();
+                }
+                updateSummary();
+            });
+
+            // Employee search
+            employeeSearchInput?.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const selectedDeptId = departmentInput?.value || '';
+                const wrappers = document.querySelectorAll('.employee-checkbox-card-wrapper');
+                
+                wrappers.forEach(wrap => {
+                    const deptId = wrap.dataset.deptId;
+                    const name = wrap.dataset.name || '';
+                    if (selectedDeptId && deptId === selectedDeptId) {
+                        if (!query || name.includes(query)) {
+                            wrap.style.display = 'block';
+                        } else {
+                            wrap.style.display = 'none';
+                        }
+                    }
+                });
+            });
+
+            // Select all / Clear all visible employees
+            document.getElementById('btnSelectAllEmployees')?.addEventListener('click', () => {
+                const selectedDeptId = departmentInput?.value || '';
+                const query = employeeSearchInput?.value.toLowerCase().trim() || '';
+                document.querySelectorAll('.employee-checkbox-card-wrapper').forEach(wrap => {
+                    const deptId = wrap.dataset.deptId;
+                    const name = wrap.dataset.name || '';
+                    if (deptId === selectedDeptId && (!query || name.includes(query))) {
+                        const cb = wrap.querySelector('input[type="checkbox"]');
+                        if (cb) cb.checked = true;
+                    }
+                });
+                updateSummary();
+            });
+
+            document.getElementById('btnClearEmployees')?.addEventListener('click', () => {
+                const selectedDeptId = departmentInput?.value || '';
+                document.querySelectorAll('.employee-checkbox-card-wrapper').forEach(wrap => {
+                    const deptId = wrap.dataset.deptId;
+                    if (deptId === selectedDeptId) {
+                        const cb = wrap.querySelector('input[type="checkbox"]');
+                        if (cb) cb.checked = false;
+                    }
+                });
+                updateSummary();
+            });
+
+            // Bind change on individual employee checkboxes
+            document.querySelectorAll('input[name="SelectedEmployeeIds"]').forEach(cb => {
+                cb.addEventListener('change', updateSummary);
+            });
 
             objectiveSelect?.addEventListener('change', () => {
                 loadKeyResults(objectiveSelect.value, '');
@@ -838,7 +1225,78 @@
             const selectedObjective = objectiveSelect?.value || '';
             const selectedKr = krSelect?.dataset.selectedValue || '@(Model.OkrKeyResultId?.ToString() ?? "")';
             loadKeyResults(selectedObjective, selectedKr);
+
+            // Initialize Scope display states
+            const currentOwnerType = document.querySelector('input[name="OwnerType"]:checked')?.value || 'Department';
+            handleOwnerTypeChange(currentOwnerType);
             updateSummary();
+
+            // Client-side validation helper to display errors right at the submit button
+            let hasSubmitted = false;
+            const form = $('#kpiCreateForm');
+
+            form.on('submit', function (e) {
+                hasSubmitted = true;
+                updateSubmitButtonValidationSummary();
+                if (!form.valid()) {
+                    e.preventDefault();
+                }
+            });
+
+            function updateSubmitButtonValidationSummary() {
+                if (!hasSubmitted) return;
+
+                const isValid = form.valid();
+                const errorSummary = $('#btnValidationSummary');
+                const errorList = $('#btnErrorList');
+
+                errorList.empty();
+
+                if (!isValid) {
+                    form.find('.input-validation-error').each(function () {
+                        const input = $(this);
+                        const name = input.attr('name');
+                        let errorText = '';
+                        const errorSpan = form.find(`[data-valmsg-for="${name}"]`);
+                        if (errorSpan.length && errorSpan.text().trim()) {
+                            errorText = errorSpan.text().trim();
+                        } else {
+                            const label = form.find(`label[for="${input.attr('id')}"]`).text().replace('*', '').trim();
+                            errorText = label ? `${label} không hợp lệ.` : `Trường này không hợp lệ.`;
+                        }
+
+                        // Avoid duplicate messages
+                        let exists = false;
+                        errorList.find('li').each(function () {
+                            if ($(this).text() === errorText) {
+                                exists = true;
+                            }
+                        });
+
+                        if (!exists && errorText) {
+                            errorList.append(`<li>${escapeHtml(errorText)}</li>`);
+                        }
+                    });
+
+                    errorSummary.show();
+                    
+                    // Smooth scroll to first error
+                    const firstError = form.find('.input-validation-error').first();
+                    if (firstError.length) {
+                        firstError[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                } else {
+                    errorSummary.hide();
+                }
+            }
+
+            // Bind change/input/blur events to update validation summary in real-time after initial submit
+            form.find('input, select, textarea').on('keyup change blur', function () {
+                if (hasSubmitted) {
+                    setTimeout(updateSubmitButtonValidationSummary, 100);
+                }
+            });
         });
     </script>
 }

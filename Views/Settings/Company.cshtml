@@ -1,5 +1,5 @@
 @model OmniBizAI.ViewModels.CompanySettingsViewModel
-@{ ViewData["Title"] = "Cài đặt công ty"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Cài đặt công ty</span>"; }
+@{ Layout = "~/Views/Shared/_SettingsLayout.cshtml"; ViewData["Title"] = "Cài đặt công ty"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Cài đặt công ty</span>"; }
 <div class="content-card" style="max-width:680px"><div class="card-header-custom"><h5><i class="fa-solid fa-building-columns"></i> Thông tin công ty</h5></div><div class="card-body-custom">
     <form method="post" asp-action="Company">@Html.AntiForgeryToken()
         <div class="row g-3">

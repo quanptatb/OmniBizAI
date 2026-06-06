@@ -333,9 +333,10 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             .Include(x => x.OkrKeyResult)
             .Include(x => x.EvaluationPeriod)
             .Include(x => x.AssignerUser)
-            .Include(x => x.Targets.Where(t => !t.IsDeleted))
+            .Include(x => x.Targets.Where(t => !t.IsDeleted)).ThenInclude(t => t.OwnerUser).ThenInclude(u => u!.Profile)
+            .Include(x => x.Targets.Where(t => !t.IsDeleted)).ThenInclude(t => t.OrganizationUnit)
             .Include(x => x.DepartmentAssignments.Where(d => !d.IsDeleted)).ThenInclude(d => d.OrganizationUnit)
-            .Include(x => x.EmployeeAssignments.Where(e => !e.IsDeleted)).ThenInclude(e => e.User)
+            .Include(x => x.EmployeeAssignments.Where(e => !e.IsDeleted)).ThenInclude(e => e.User).ThenInclude(u => u!.Profile)
             .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
 
         if (k is null) return null;
@@ -358,6 +359,11 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             PeriodName = k.EvaluationPeriod?.PeriodName,
             AssignerName = k.AssignerUser?.FullName,
             CreatedAt = k.CreatedAt,
+            OrganizationUnitId = k.OrganizationUnitId,
+            OkrObjectiveId = k.OkrObjectiveId,
+            OkrKeyResultId = k.OkrKeyResultId,
+            EvaluationPeriodId = k.EvaluationPeriodId,
+            AssignerUserId = k.AssignerUserId,
             Targets = k.Targets.Select(t => new KpiTargetItem
             {
                 Id = t.Id,
@@ -367,15 +373,29 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
                 PeriodStart = t.PeriodStart,
                 PeriodEnd = t.PeriodEnd,
                 CheckInFrequencyDays = t.CheckInFrequencyDays,
-                ReminderEnabled = t.ReminderEnabled
+                ReminderEnabled = t.ReminderEnabled,
+                OwnerUserId = t.OwnerUserId,
+                OwnerUserName = t.OwnerUser?.FullName,
+                OwnerAvatarUrl = t.OwnerUser?.Profile?.AvatarUrl,
+                OwnerJobTitle = t.OwnerUser?.JobTitle,
+                OrganizationUnitId = t.OrganizationUnitId,
+                DepartmentName = t.OrganizationUnit?.Name,
+                DeadlineTimeDisplay = t.DeadlineTime.HasValue ? t.DeadlineTime.Value.ToString("HH:mm") : null
             }).ToList(),
             DepartmentAssignments = k.DepartmentAssignments
-                .Select(d => d.OrganizationUnit?.Name ?? "").ToList(),
+                .Select(d => new KpiDepartmentAssignmentItem
+                {
+                    Id = d.OrganizationUnitId,
+                    Name = d.OrganizationUnit?.Name ?? ""
+                }).ToList(),
             EmployeeAssignments = k.EmployeeAssignments
                 .Select(e => new KpiEmployeeAssignmentItem
                 {
+                    UserId = e.UserId,
                     UserName = e.User?.FullName ?? "",
-                    Weight = e.Weight
+                    Weight = e.Weight,
+                    AvatarUrl = e.User?.Profile?.AvatarUrl,
+                    JobTitle = e.User?.JobTitle
                 }).ToList()
         };
     }
@@ -405,7 +425,7 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             PeriodType = vm.PeriodType,
             MeasureType = vm.MeasureType,
             PropertyType = vm.PropertyType,
-            OrganizationUnitId = vm.OrganizationUnitId,
+            OrganizationUnitId = vm.OwnerType == KpiOwnerType.Company ? null : vm.OrganizationUnitId,
             OkrObjectiveId = vm.OkrObjectiveId,
             OkrKeyResultId = vm.OkrKeyResultId,
             EvaluationPeriodId = vm.EvaluationPeriodId,
@@ -416,23 +436,74 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        // Add target
-        if (vm.TargetValue > 0)
+        if (vm.OwnerType == KpiOwnerType.Department && vm.OrganizationUnitId.HasValue)
         {
-            entity.Targets.Add(new KpiTarget
+            entity.DepartmentAssignments.Add(new KpiDepartmentAssignment
             {
                 TenantId = tid,
-                TargetValue = vm.TargetValue,
-                PassThreshold = vm.PassThreshold,
-                FailThreshold = vm.FailThreshold,
-                PeriodStart = vm.PeriodStart ?? DateOnly.FromDateTime(DateTime.Today),
-                PeriodEnd = vm.PeriodEnd ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
-                CheckInFrequencyDays = vm.CheckInFrequencyDays,
-                DeadlineTime = vm.DeadlineTime,
-                ReminderEnabled = vm.ReminderEnabled,
+                OrganizationUnitId = vm.OrganizationUnitId.Value,
                 CreatedByUserId = tenant.UserId,
                 CreatedAt = DateTimeOffset.UtcNow
             });
+        }
+        else if (vm.OwnerType == KpiOwnerType.User && vm.SelectedEmployeeIds.Any())
+        {
+            foreach (var empId in vm.SelectedEmployeeIds.Distinct())
+            {
+                entity.EmployeeAssignments.Add(new KpiEmployeeAssignment
+                {
+                    TenantId = tid,
+                    UserId = empId,
+                    Weight = 100,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
+        // Add target
+        if (vm.TargetValue > 0)
+        {
+            if (vm.OwnerType == KpiOwnerType.User && vm.SelectedEmployeeIds.Any())
+            {
+                foreach (var empId in vm.SelectedEmployeeIds.Distinct())
+                {
+                    entity.Targets.Add(new KpiTarget
+                    {
+                        TenantId = tid,
+                        OwnerUserId = empId,
+                        OrganizationUnitId = vm.OrganizationUnitId,
+                        TargetValue = vm.TargetValue,
+                        PassThreshold = vm.PassThreshold,
+                        FailThreshold = vm.FailThreshold,
+                        PeriodStart = vm.PeriodStart ?? DateOnly.FromDateTime(DateTime.Today),
+                        PeriodEnd = vm.PeriodEnd ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
+                        CheckInFrequencyDays = vm.CheckInFrequencyDays,
+                        DeadlineTime = vm.DeadlineTime,
+                        ReminderEnabled = vm.ReminderEnabled,
+                        CreatedByUserId = tenant.UserId,
+                        CreatedAt = DateTimeOffset.UtcNow
+                    });
+                }
+            }
+            else
+            {
+                entity.Targets.Add(new KpiTarget
+                {
+                    TenantId = tid,
+                    OrganizationUnitId = vm.OwnerType == KpiOwnerType.Department ? vm.OrganizationUnitId : null,
+                    TargetValue = vm.TargetValue,
+                    PassThreshold = vm.PassThreshold,
+                    FailThreshold = vm.FailThreshold,
+                    PeriodStart = vm.PeriodStart ?? DateOnly.FromDateTime(DateTime.Today),
+                    PeriodEnd = vm.PeriodEnd ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
+                    CheckInFrequencyDays = vm.CheckInFrequencyDays,
+                    DeadlineTime = vm.DeadlineTime,
+                    ReminderEnabled = vm.ReminderEnabled,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
         }
 
         db.KpiDefinitions.Add(entity);
@@ -465,7 +536,16 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
                 .Select(kr => new SelectOption { Value = kr.Id.ToString(), Text = kr.KeyResultName }).ToListAsync(),
             Periods = await db.EvaluationPeriods
                 .Where(p => p.TenantId == tid && !p.IsDeleted && p.Status != EvaluationPeriodStatus.Closed)
-                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync()
+                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync(),
+            Employees = await db.AppUsers
+                .Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .OrderBy(u => u.FullName)
+                .Select(u => new EmployeeSelectOption
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.FullName,
+                    DepartmentId = u.OrganizationUnitId.HasValue ? u.OrganizationUnitId.Value.ToString() : ""
+                }).ToListAsync()
         };
     }
     public async Task<bool> ActivateAsync(Guid id)
