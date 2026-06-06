@@ -22,45 +22,322 @@
                 <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-stop me-1"></i>Đóng</button>
             </form>
         }
-        <a asp-action="Index" class="btn btn-light btn-sm"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại</a>
     </div>
 </div>
 
-<div class="row g-4">
+<style>
+    .hover-card {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06) !important;
+        border-color: var(--apple-blue) !important;
+    }
+    .detail-pill {
+        background-color: var(--canvas);
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        padding: 14px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .detail-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+    }
+    .transition-icon {
+        transition: transform 0.2s ease;
+    }
+    [aria-expanded="true"] .transition-icon {
+        transform: rotate(180deg);
+    }
+    .popover {
+        border: 1px solid var(--divider) !important;
+        border-radius: var(--r-md) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        max-width: 320px !important;
+    }
+    .popover-header {
+        background-color: var(--canvas) !important;
+        border-bottom: 1px solid var(--divider) !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+        border-top-left-radius: calc(var(--r-md) - 1px) !important;
+        border-top-right-radius: calc(var(--r-md) - 1px) !important;
+        padding: 10px 16px !important;
+    }
+    .popover-body {
+        color: var(--text-secondary) !important;
+        font-size: 0.82rem !important;
+        line-height: 1.5 !important;
+        padding: 12px 16px !important;
+    }
+</style>
+
+<div class="row g-4 mb-4">
     <!-- Info Card -->
-    <div class="col-md-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent"><h5 class="mb-0">Thông tin KPI</h5></div>
-            <div class="card-body">
-                @if (!string.IsNullOrEmpty(Model.Description)) { <p>@Model.Description</p> }
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-primary"></i> Thông tin KPI
+                </h5>
+            </div>
+            <div class="card-body px-4 pb-4">
+                @if (!string.IsNullOrEmpty(Model.Description)) { 
+                    <div class="p-3 bg-light rounded-3 border-start border-primary border-3 mb-4 text-secondary" style="font-size:0.92rem;">
+                        <i class="fa-solid fa-quote-left text-muted me-1"></i> @Model.Description
+                    </div> 
+                }
+                
                 <div class="row g-3">
-                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Đơn vị đo</strong>@Model.Unit</div>
-                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Loại chỉ tiêu</strong>@Model.OwnerType</div>
-                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Phương thức đo</strong>@Model.MeasureType</div>
-                    <div class="col-6 col-md-3"><strong class="small text-muted d-block">Tính chất</strong>@Model.PropertyType</div>
-                    @if (Model.Department != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Phòng ban</strong>@Model.Department</div> }
-                    @if (Model.OkrName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">OKR</strong>@Model.OkrName</div> }
-                    @if (Model.KeyResultName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Key Result</strong>@Model.KeyResultName</div> }
-                    @if (Model.PeriodName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Kỳ đánh giá</strong>@Model.PeriodName</div> }
-                    @if (Model.AssignerName != null) { <div class="col-6 col-md-3"><strong class="small text-muted d-block">Người giao</strong>@Model.AssignerName</div> }
+                    <div class="col-sm-6 col-md-4">
+                        <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Đơn vị đo" data-bs-content="Đơn vị dùng để đo lường kết quả thực hiện KPI.<br/>Đơn vị hiện tại: <strong>@Model.Unit</strong>">
+                            <span class="small text-muted d-block mb-2 fw-medium">Đơn vị đo <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="detail-icon bg-primary-subtle text-primary">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                </div>
+                                <span class="fw-semibold text-dark">@Model.Unit</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Loại chỉ tiêu" data-bs-content="Cấp độ phân bổ chỉ tiêu.<br/>Cấp độ hiện tại: <strong>@(Model.OwnerType == "0" ? "Chưa xác định" : OmniBizAI.Helpers.EnumHelper.Label<OmniBizAI.Models.Entities.Enums.KpiOwnerType>(Model.OwnerType))</strong>">
+                            <span class="small text-muted d-block mb-2 fw-medium">Loại chỉ tiêu <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="detail-icon bg-warning-subtle text-warning">
+                                    <i class="fa-solid fa-tag"></i>
+                                </div>
+                                <span class="fw-semibold text-dark">
+                                    @(Model.OwnerType == "0" ? "Chưa xác định" : OmniBizAI.Helpers.EnumHelper.Label<OmniBizAI.Models.Entities.Enums.KpiOwnerType>(Model.OwnerType))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Phương thức đo" data-bs-content="Phương pháp dùng để ghi nhận và đánh giá kết quả.<br/>Phương thức: <strong>@(Model.MeasureType == "0" ? "Định lượng" : OmniBizAI.Helpers.EnumHelper.Label<OmniBizAI.Models.Entities.Enums.KpiMeasureType>(Model.MeasureType))</strong>">
+                            <span class="small text-muted d-block mb-2 fw-medium">Phương thức đo <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="detail-icon bg-success-subtle text-success">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                <span class="fw-semibold text-dark">
+                                    @(Model.MeasureType == "0" ? "Định lượng" : OmniBizAI.Helpers.EnumHelper.Label<OmniBizAI.Models.Entities.Enums.KpiMeasureType>(Model.MeasureType))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Tính chất" data-bs-content="Chiều hướng thay đổi mong muốn của chỉ số KPI.<br/>Tính chất: <strong>@(Model.PropertyType == "0" ? "Tăng trưởng" : OmniBizAI.Helpers.EnumHelper.Label<OmniBizAI.Models.Entities.Enums.KpiPropertyType>(Model.PropertyType))</strong>">
+                            <span class="small text-muted d-block mb-2 fw-medium">Tính chất <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="detail-icon bg-danger-subtle text-danger">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                                <span class="fw-semibold text-dark">
+                                    @(Model.PropertyType == "0" ? "Tăng trưởng" : OmniBizAI.Helpers.EnumHelper.Label<OmniBizAI.Models.Entities.Enums.KpiPropertyType>(Model.PropertyType))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @if (Model.Department != null) { 
+                        <div class="col-sm-6 col-md-4">
+                            <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Phòng ban phụ trách" 
+                                 data-bs-content="Phòng ban chịu trách nhiệm thực hiện hoặc quản lý chỉ tiêu này.<br/>Tên: <strong>@Model.Department</strong>@(Model.OrganizationUnitId.HasValue ? $"<br/><a href='/Organization/Details/{Model.OrganizationUnitId}' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>" : "")">
+                                <span class="small text-muted d-block mb-2 fw-medium">Phòng ban <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="detail-icon bg-info-subtle text-info">
+                                        <i class="fa-solid fa-building"></i>
+                                    </div>
+                                    <span class="fw-semibold text-dark text-truncate" title="@Model.Department">@Model.Department</span>
+                                </div>
+                            </div>
+                        </div> 
+                    }
+                    @if (Model.PeriodName != null) { 
+                        <div class="col-sm-6 col-md-4">
+                            <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Kỳ đánh giá" 
+                                 data-bs-content="Khoảng thời gian áp dụng đánh giá hiệu suất cho chỉ tiêu này.<br/>Kỳ hạn: <strong>@Model.PeriodName</strong>@(Model.EvaluationPeriodId.HasValue ? $"<br/><a href='/Evaluation?periodId={Model.EvaluationPeriodId}' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>" : "")">
+                                <span class="small text-muted d-block mb-2 fw-medium">Kỳ đánh giá <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="detail-icon bg-primary-subtle text-primary">
+                                        <i class="fa-solid fa-calendar-days"></i>
+                                    </div>
+                                    <span class="fw-semibold text-dark text-truncate" title="@Model.PeriodName">@Model.PeriodName</span>
+                                </div>
+                            </div>
+                        </div> 
+                    }
+                    @if (Model.AssignerName != null) { 
+                        <div class="col-sm-6 col-md-4">
+                            <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Người giao" 
+                                 data-bs-content="Người chịu trách nhiệm giao và phê duyệt KPI này.<br/>Họ tên: <strong>@Model.AssignerName</strong>@(Model.AssignerUserId.HasValue ? $"<br/><a href='/Employees/Details/{Model.AssignerUserId}' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>" : "")">
+                                <span class="small text-muted d-block mb-2 fw-medium">Người giao <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="detail-icon bg-secondary-subtle text-secondary">
+                                        <i class="fa-solid fa-user-check"></i>
+                                    </div>
+                                    <span class="fw-semibold text-dark text-truncate" title="@Model.AssignerName">@Model.AssignerName</span>
+                                </div>
+                            </div>
+                        </div> 
+                    }
+                    @if (Model.OkrName != null) { 
+                        <div class="col-12 col-md-8">
+                            <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Mục tiêu OKR liên kết" 
+                                 data-bs-content="Mục tiêu OKR cấp trên liên kết với KPI này để hướng dòng mục tiêu chiến lược.<br/>Mục tiêu: <strong>@Model.OkrName</strong>@(Model.OkrObjectiveId.HasValue ? $"<br/><a href='/Okr/Details/{Model.OkrObjectiveId}' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>" : "")">
+                                <span class="small text-muted d-block mb-2 fw-medium">Mục tiêu OKR liên kết <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="detail-icon bg-danger-subtle text-danger">
+                                        <i class="fa-solid fa-bullseye"></i>
+                                    </div>
+                                    <span class="fw-semibold text-dark text-truncate" title="@Model.OkrName">@Model.OkrName</span>
+                                </div>
+                            </div>
+                        </div> 
+                    }
+                    @if (Model.KeyResultName != null) { 
+                        <div class="col-12">
+                            <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Kết quả then chốt (Key Result)" 
+                                 data-bs-content="Kết quả then chốt (Key Result) thuộc OKR được liên kết trực tiếp.<br/>Key Result: <strong>@Model.KeyResultName</strong>@(Model.OkrObjectiveId.HasValue ? $"<br/><a href='/Okr/Details/{Model.OkrObjectiveId}' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>" : "")">
+                                <span class="small text-muted d-block mb-2 fw-medium">Kết quả then chốt (Key Result) <i class="fa-solid fa-circle-info ms-1 text-xs text-muted"></i></span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="detail-icon bg-warning-subtle text-warning">
+                                        <i class="fa-solid fa-key"></i>
+                                    </div>
+                                    <span class="fw-semibold text-dark">@Model.KeyResultName</span>
+                                </div>
+                            </div>
+                        </div> 
+                    }
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Targets -->
-    <div class="col-md-4">
+    <div class="col-lg-4">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-transparent"><h5 class="mb-0"><i class="bi bi-bullseye me-2"></i>Chỉ tiêu</h5></div>
-            <div class="card-body">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-bullseye text-danger"></i> Chỉ tiêu KPI
+                </h5>
+            </div>
+            <div class="card-body px-4 pb-4">
                 @foreach (var t in Model.Targets)
                 {
-                    <div class="mb-3 pb-3 border-bottom">
-                        <div class="d-flex justify-content-between"><span class="fw-bold h4 mb-0">@t.TargetValue.ToString("N0")</span><span class="text-muted">@Model.Unit</span></div>
-                        <small class="text-muted">@t.PeriodStart.ToString("dd/MM/yyyy") → @t.PeriodEnd.ToString("dd/MM/yyyy")</small>
-                        @if (t.PassThreshold.HasValue) { <div class="small text-success"><i class="bi bi-check-circle me-1"></i>Đạt: ≥ @t.PassThreshold</div> }
-                        @if (t.FailThreshold.HasValue) { <div class="small text-danger"><i class="bi bi-x-circle me-1"></i>Không đạt: &lt; @t.FailThreshold</div> }
-                        @if (t.CheckInFrequencyDays.HasValue) { <div class="small text-info"><i class="bi bi-clock me-1"></i>Check-in mỗi @t.CheckInFrequencyDays ngày</div> }
+                    <div class="p-3 bg-light rounded-3 mb-3 border border-light-subtle hover-card">
+                        <!-- Clickable Header area -->
+                        <div style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#target-detail-@t.Id" aria-expanded="false" aria-controls="target-detail-@t.Id">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="small text-muted d-block mb-1">Giá trị chỉ tiêu</span>
+                                    <span class="fs-3 fw-bold text-primary">@t.TargetValue.ToString("N0")</span>
+                                    <span class="text-muted small ms-1">@Model.Unit</span>
+                                </div>
+                                <div class="text-end d-flex flex-column gap-1 align-items-end">
+                                    @if (t.CheckInFrequencyDays.HasValue) {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size:0.7rem;">
+                                            <i class="fa-solid fa-clock me-1"></i>Check-in: @t.CheckInFrequencyDays ngày
+                                        </span>
+                                    }
+                                    <span class="text-muted" style="font-size:0.75rem;"><i class="fa-solid fa-chevron-down transition-icon"></i> Chi tiết</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-xs text-muted mb-0 d-flex align-items-center gap-1">
+                                <i class="fa-regular fa-calendar-check text-primary"></i>
+                                <span>Kỳ hạn: <strong>@t.PeriodStart.ToString("dd/MM/yyyy")</strong> &rarr; <strong>@t.PeriodEnd.ToString("dd/MM/yyyy")</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Detail Section -->
+                        <div class="collapse mt-3 pt-3 border-top border-light-subtle" id="target-detail-@t.Id">
+                            <div class="d-flex flex-column gap-3">
+                                <!-- Người được giao / Phòng ban được giao -->
+                                <div>
+                                    <span class="small text-muted d-block mb-2 fw-medium"><i class="fa-solid fa-user-tag text-primary me-1"></i> Người được giao</span>
+                                    @if (!string.IsNullOrEmpty(t.OwnerUserName))
+                                    {
+                                        <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-2 border border-light-subtle">
+                                            @if (!string.IsNullOrEmpty(t.OwnerAvatarUrl))
+                                            {
+                                                <img src="@t.OwnerAvatarUrl" class="rounded-circle border shadow-sm" style="width: 32px; height: 32px; object-fit: cover;" alt="@t.OwnerUserName" />
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--apple-blue), #5856d6); font-size: 0.8rem;">
+                                                    @t.OwnerUserName.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="fw-semibold text-dark text-xs">@t.OwnerUserName</div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">@(string.IsNullOrEmpty(t.OwnerJobTitle) ? "Nhân viên" : t.OwnerJobTitle)</div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrEmpty(t.DepartmentName))
+                                    {
+                                        <div class="d-flex align-items-center gap-2 p-2 bg-white rounded-2 border border-light-subtle">
+                                            <div class="detail-icon bg-info-subtle text-info" style="width: 32px; height: 32px; border-radius: 50%;">
+                                                <i class="fa-solid fa-building"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold text-dark text-xs">@t.DepartmentName</div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">Phòng ban thực hiện</div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-xs text-muted italic"><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Chưa gán cụ thể (Theo phân công chung)</div>
+                                    }
+                                </div>
+
+                                <!-- Ngưỡng đạt/không đạt -->
+                                <div class="row g-2">
+                                    @if (t.PassThreshold.HasValue) { 
+                                        <div class="col-6">
+                                            <div class="p-2 bg-success-subtle bg-opacity-25 rounded border border-success-subtle border-opacity-50">
+                                                <div class="text-muted" style="font-size: 0.65rem;">Ngưỡng đạt</div>
+                                                <div class="text-success fw-bold text-xs"><i class="fa-solid fa-circle-check"></i> &ge; @t.PassThreshold</div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (t.FailThreshold.HasValue) { 
+                                        <div class="col-6">
+                                            <div class="p-2 bg-danger-subtle bg-opacity-25 rounded border border-danger-subtle border-opacity-50">
+                                                <div class="text-muted" style="font-size: 0.65rem;">Không đạt nếu</div>
+                                                <div class="text-danger fw-bold text-xs"><i class="fa-solid fa-circle-xmark"></i> &lt; @t.FailThreshold</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Additional Details -->
+                                <div class="d-flex flex-wrap gap-2 pt-1">
+                                    @if (t.DeadlineTimeDisplay != null) {
+                                        <span class="badge bg-light text-secondary border border-light-subtle font-weight-normal text-xs" style="font-size:0.7rem; font-weight:normal;">
+                                            <i class="fa-regular fa-clock me-1"></i>Hạn Check-in: @t.DeadlineTimeDisplay
+                                        </span>
+                                    }
+                                    <span class="badge bg-light text-secondary border border-light-subtle font-weight-normal text-xs" style="font-size:0.7rem; font-weight:normal;">
+                                        <i class="fa-solid @(t.ReminderEnabled ? "fa-bell text-warning" : "fa-bell-slash text-muted") me-1"></i>
+                                        @(t.ReminderEnabled ? "Đang bật nhắc nhở" : "Tắt nhắc nhở")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
@@ -71,26 +348,121 @@
 <!-- Assignments -->
 @if (Model.DepartmentAssignments.Any() || Model.EmployeeAssignments.Any())
 {
-    <div class="row g-4 mt-2">
+    <div class="row g-4">
         @if (Model.DepartmentAssignments.Any())
         {
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-building me-2"></i>Giao cho phòng ban</h6></div>
-                    <ul class="list-group list-group-flush">@foreach (var d in Model.DepartmentAssignments) { <li class="list-group-item">@d</li> }</ul>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                        <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-building text-info"></i> Giao cho phòng ban
+                        </h6>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var d in Model.DepartmentAssignments) 
+                            { 
+                                <div class="detail-pill hover-card" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Phòng ban được giao"
+                                     data-bs-content="Phòng ban được phân công thực hiện chỉ tiêu này.<br/>Tên phòng ban: <strong>@d.Name</strong>@(d.Id != Guid.Empty ? $"<br/><a href='/Organization/Details/{d.Id}' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>" : "")">
+                                    <div class="d-flex align-items-center gap-2 px-3 py-2 bg-info-subtle text-info-emphasis rounded-pill border border-info-subtle">
+                                        <i class="fa-solid fa-building text-info"></i>
+                                        <span class="fw-semibold text-sm">@d.Name</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         }
         @if (Model.EmployeeAssignments.Any())
         {
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-transparent"><h6 class="mb-0"><i class="bi bi-people me-2"></i>Giao cho nhân viên</h6></div>
-                    <ul class="list-group list-group-flush">
-                        @foreach (var e in Model.EmployeeAssignments) { <li class="list-group-item d-flex justify-content-between">@e.UserName <span class="badge bg-primary">@e.Weight%</span></li> }
-                    </ul>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                        <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-users text-primary"></i> Giao cho nhân viên
+                        </h6>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            @foreach (var e in Model.EmployeeAssignments) 
+                            { 
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded-3 border border-light-subtle d-flex align-items-center justify-content-between hover-card h-100" style="cursor: pointer;" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="click" data-bs-html="true" data-bs-placement="top" title="Nhân viên được giao"
+                                         data-bs-content="Nhân viên được giao thực hiện chỉ tiêu này với trọng số tương ứng.<br/>Họ tên: <strong>@e.UserName</strong><br/>Chức danh: <strong>@(string.IsNullOrEmpty(e.JobTitle) ? "Nhân viên" : e.JobTitle)</strong><br/>Trọng số: <strong>@e.Weight%</strong><br/><a href='/Employees/Details/@e.UserId' class='btn btn-xs btn-primary mt-2 text-white px-2 py-1 text-xs' style='font-size:0.75rem;'><i class='fa-solid fa-arrow-up-right-from-square me-1'></i>Xem chi tiết</a>">
+                                        <div class="d-flex align-items-center gap-3">
+                                            @if (!string.IsNullOrEmpty(e.AvatarUrl))
+                                            {
+                                                <img src="@e.AvatarUrl" class="rounded-circle border shadow-sm" style="width: 42px; height: 42px; object-fit: cover;" alt="@e.UserName" />
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 42px; height: 42px; background: linear-gradient(135deg, var(--apple-blue), #5856d6); font-size: 0.95rem;">
+                                                    @e.UserName.Substring(0, 1).ToUpper()
+                                                </div>
+                                            }
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold text-dark" style="font-size:0.88rem;">@e.UserName</h6>
+                                                <span class="text-muted" style="font-size: 0.75rem;">@(string.IsNullOrEmpty(e.JobTitle) ? "Nhân viên" : e.JobTitle)</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary text-white" style="font-size: 0.72rem; padding: 4px 8px;">@e.Weight%</span>
+                                        </div>
+                                    </div>
+                                </div> 
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         }
     </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popovers = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+
+            // Close other popovers when clicking a new one, or when clicking outside
+            document.addEventListener('click', function (e) {
+                popoverTriggerList.forEach(function (el) {
+                    var popover = bootstrap.Popover.getInstance(el);
+                    if (popover) {
+                        var clickOnTrigger = el.contains(e.target);
+                        var clickOnPopover = false;
+                        var activePopovers = document.querySelectorAll('.popover');
+                        activePopovers.forEach(function (popoverEl) {
+                            if (popoverEl.contains(e.target)) {
+                                clickOnPopover = true;
+                            }
+                        });
+
+                        if (!clickOnTrigger && !clickOnPopover) {
+                            popover.hide();
+                        }
+                    }
+                });
+            });
+
+            // Close other popovers when opening a popover
+            popoverTriggerList.forEach(function (el) {
+                el.addEventListener('show.bs.popover', function () {
+                    popoverTriggerList.forEach(function (otherEl) {
+                        if (otherEl !== el) {
+                            var otherPopover = bootstrap.Popover.getInstance(otherEl);
+                            if (otherPopover) {
+                                otherPopover.hide();
+                            }
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 }
