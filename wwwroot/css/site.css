@@ -212,8 +212,8 @@ a:hover{text-decoration:none}
 .topbar{
     height:var(--topbar-h);
     background:rgba(255,255,255,.82);
-    backdrop-filter:saturate(180%) blur(20px);
     -webkit-backdrop-filter:saturate(180%) blur(20px);
+    backdrop-filter:saturate(180%) blur(20px);
     border-bottom:1px solid var(--divider);
     display:flex;align-items:center;justify-content:space-between;
     padding:0 24px;
@@ -248,8 +248,8 @@ a:hover{text-decoration:none}
     border:1px solid rgba(0,0,0,.08);
     background:rgba(255,255,255,.72);
     box-shadow:0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(255,255,255,.24) inset;
-    backdrop-filter:saturate(180%) blur(18px);
     -webkit-backdrop-filter:saturate(180%) blur(18px);
+    backdrop-filter:saturate(180%) blur(18px);
 }
 .sidebar-collapse-toggle:hover{
     background:rgba(255,255,255,.94);
@@ -635,7 +635,6 @@ a:hover{text-decoration:none}
         display: block;
         width: 100%;
         overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
         white-space: nowrap;
     }
 
@@ -819,8 +818,8 @@ html[data-nav-mode="launcher"] #appLauncherBtn:hover {
 .app-launcher-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
+    backdrop-filter: blur(25px);
     z-index: 9999;
     display: none; flex-direction: column;
     opacity: 0; transition: opacity var(--ease);
