@@ -1,0 +1,105 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="settings-ide-container fade-in">
+    <!-- Header of Settings Page -->
+    <div class="settings-ide-header">
+        <div class="settings-ide-title-bar">
+            <h3 class="settings-title">Cài đặt</h3>
+            <span class="settings-subtitle">OmniBizAI Configuration</span>
+        </div>
+        <div class="settings-ide-search-bar">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="settingsSearch" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm thiết lập..." onkeyup="filterSettings()" />
+            </div>
+        </div>
+    </div>
+
+    <!-- VS Code Style Subtabs -->
+    <div class="settings-ide-subtabs">
+        <a href="@Url.Action("Company", "Settings")" class="settings-subtab @(currentController == "Settings" ? "active" : "")">Thiết lập hệ thống</a>
+        <a href="@Url.Action("Index", "Backup")" class="settings-subtab @(currentController == "Backup" || currentController == "Audit" ? "active" : "")">Quản trị & Nhật ký</a>
+    </div>
+
+    <!-- Main settings area -->
+    <div class="settings-ide-body">
+        <!-- Left Categories Sidebar -->
+        <aside class="settings-ide-sidebar">
+            <div class="settings-nav-group" id="sysGroup">
+                <div class="settings-nav-group-header" onclick="toggleNavGroup('sysGroup')">
+                    <i class="fa-solid fa-chevron-down me-1"></i> <span>HỆ THỐNG</span>
+                </div>
+                <div class="settings-nav-items">
+                    <a href="@Url.Action("Company", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "Company" ? "active" : "")" data-keywords="công ty doanh nghiệp tenant thong tin">
+                        <i class="fa-solid fa-building-columns"></i> <span>Cài đặt công ty</span>
+                    </a>
+                    <a href="@Url.Action("Modules", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "Modules" ? "active" : "")" data-keywords="modules tinh nang bat tat chuc nang">
+                        <i class="fa-solid fa-puzzle-piece"></i> <span>Quản lý modules</span>
+                    </a>
+                    <a href="@Url.Action("Parameters", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "Parameters" ? "active" : "")" data-keywords="tham so he thong cau hinh config">
+                        <i class="fa-solid fa-sliders"></i> <span>Tham số hệ thống</span>
+                    </a>
+                    <a href="@Url.Action("EnumLabels", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "EnumLabels" ? "active" : "")" data-keywords="nhan he thong tags danh muc enum label">
+                        <i class="fa-solid fa-tags"></i> <span>Nhãn hệ thống</span>
+                    </a>
+                    <a href="@Url.Action("Appearance", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "Appearance" ? "active" : "")" data-keywords="giao dien mau sac theme dark mode light font size border radius font logo icon">
+                        <i class="fa-solid fa-palette"></i> <span>Giao diện</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="settings-nav-group mt-3" id="adminGroup">
+                <div class="settings-nav-group-header" onclick="toggleNavGroup('adminGroup')">
+                    <i class="fa-solid fa-chevron-down me-1"></i> <span>QUẢN TRỊ</span>
+                </div>
+                <div class="settings-nav-items">
+                    <a href="@Url.Action("Index", "Backup")" class="settings-nav-item @(currentController == "Backup" ? "active" : "")" data-keywords="sao luu khoi phuc database backup restore sql server json data">
+                        <i class="fa-solid fa-database"></i> <span>Sao lưu dữ liệu</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Audit")" class="settings-nav-item @(currentController == "Audit" ? "active" : "")" data-keywords="nhat ky audit log he thong lich su hoat dong security">
+                        <i class="fa-solid fa-shield-halved"></i> <span>Nhật ký hệ thống</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Content Pane -->
+        <main class="settings-ide-content">
+            <div class="settings-ide-content-scroll">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        function toggleNavGroup(groupId) {
+            var group = document.getElementById(groupId);
+            if (group) {
+                group.classList.toggle('collapsed');
+            }
+        }
+
+        function filterSettings() {
+            var input = document.getElementById("settingsSearch");
+            var filter = input.value.toLowerCase().trim();
+            var items = document.querySelectorAll(".settings-nav-item");
+            
+            items.forEach(function(item) {
+                var text = item.textContent.toLowerCase();
+                var keywords = item.getAttribute("data-keywords") || "";
+                if (text.indexOf(filter) > -1 || keywords.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+}
