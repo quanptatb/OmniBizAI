@@ -162,7 +162,7 @@ public class ResourceManagementService
             Manufacturer = vm.Manufacturer, Model = vm.Model, SerialNumber = vm.SerialNumber,
             PurchaseDate = vm.PurchaseDate, PurchasePrice = vm.PurchasePrice,
             LifespanYears = vm.LifespanYears, NextMaintenanceDate = vm.NextMaintenanceDate,
-            Notes = vm.Notes, Status = "Available",
+            Notes = vm.Notes, Status = (vm.PurchaseDate.HasValue && vm.PurchaseDate.Value > DateOnly.FromDateTime(DateTime.Today)) ? "Pending" : "Available",
             CreatedByUserId = _tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
         };
         _db.Equipments.Add(entity);

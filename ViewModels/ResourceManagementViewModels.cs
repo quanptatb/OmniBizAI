@@ -52,7 +52,9 @@ public class EquipmentCreateViewModel
     public string? Model { get; set; }
     public string? SerialNumber { get; set; }
     public DateOnly? PurchaseDate { get; set; }
+    [Range(0.0, double.MaxValue, ErrorMessage = "Giá mua không được là số âm")]
     public decimal? PurchasePrice { get; set; }
+    [Range(0, int.MaxValue, ErrorMessage = "Tuổi thọ không được là số âm")]
     public int? LifespanYears { get; set; }
     public DateOnly? NextMaintenanceDate { get; set; }
     public string? Notes { get; set; }

@@ -91,6 +91,32 @@ public class ResourceManagementController : Controller
     [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> CreateEquipment(EquipmentCreateViewModel vm)
     {
+        // Intercept model binding errors for digits-only fields
+        if (ModelState.Keys.Contains(nameof(vm.PurchasePrice)) && ModelState[nameof(vm.PurchasePrice)]?.Errors.Any() == true)
+        {
+            ModelState[nameof(vm.PurchasePrice)]?.Errors.Clear();
+            ModelState.AddModelError(nameof(vm.PurchasePrice), "Giá mua không phù hợp.");
+        }
+        else if (vm.PurchasePrice.HasValue && vm.PurchasePrice.Value < 0)
+        {
+            ModelState.AddModelError(nameof(vm.PurchasePrice), "Giá mua không phù hợp.");
+        }
+
+        if (ModelState.Keys.Contains(nameof(vm.LifespanYears)) && ModelState[nameof(vm.LifespanYears)]?.Errors.Any() == true)
+        {
+            ModelState[nameof(vm.LifespanYears)]?.Errors.Clear();
+            ModelState.AddModelError(nameof(vm.LifespanYears), "Tuổi thọ không phù hợp.");
+        }
+        else if (vm.LifespanYears.HasValue && vm.LifespanYears.Value < 0)
+        {
+            ModelState.AddModelError(nameof(vm.LifespanYears), "Tuổi thọ không phù hợp.");
+        }
+
+        if (vm.NextMaintenanceDate.HasValue && vm.PurchaseDate.HasValue && vm.NextMaintenanceDate.Value <= vm.PurchaseDate.Value)
+        {
+            ModelState.AddModelError(nameof(vm.NextMaintenanceDate), "Lịch bảo trì tiếp theo không phù hợp.");
+        }
+
         if (!ModelState.IsValid) return View(vm);
         var id = await _service.CreateEquipmentAsync(vm);
         TempData["SuccessMessage"] = "Thêm thiết bị thành công.";

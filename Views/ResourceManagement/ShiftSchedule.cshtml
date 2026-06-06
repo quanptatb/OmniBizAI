@@ -10,6 +10,7 @@
         Lịch Ca - @Model.TargetDate.ToString("dddd, dd/MM/yyyy")
     </h2>
     <div class="d-flex gap-2">
+        <a asp-action="WorkShifts" class="btn btn-secondary btn-sm">← Quay lại</a>
         <a asp-action="ShiftSchedule" asp-route-date="@Model.TargetDate.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-sm">← Hôm trước</a>
         <a asp-action="ShiftSchedule" class="btn btn-outline-primary btn-sm">Hôm nay</a>
         <a asp-action="ShiftSchedule" asp-route-date="@Model.TargetDate.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-outline-secondary btn-sm">Hôm sau →</a>

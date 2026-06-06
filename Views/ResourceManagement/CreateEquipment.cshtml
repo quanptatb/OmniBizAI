@@ -1,42 +1,144 @@
 @model OmniBizAI.ViewModels.EquipmentCreateViewModel
-@{ ViewData["Title"] = "Thêm Thiết Bị"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+@{
+    ViewData["Title"] = "Thêm Thiết Bị";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <style>
+        .flatpickr-calendar {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+            border: 1px solid var(--divider) !important;
+            border-radius: var(--r-md) !important;
+        }
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--apple-blue);
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0 text-gray-800">Thêm Thiết Bị Mới</h2>
-    <a asp-action="Equipments" class="btn btn-secondary btn-sm">← Quay lại</a>
+    <div>
+        <h4 class="page-title mb-1"><i class="fas fa-plus-circle me-2 text-primary"></i>Thêm Thiết Bị Mới</h4>
+        <p class="mb-0 text-muted" style="font-size:.84rem">Đăng ký và quản lý thiết bị, máy móc mới trong hệ thống tài nguyên.</p>
+    </div>
+    <a asp-action="Equipments" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
 </div>
+
 <div class="row justify-content-center">
-<div class="col-lg-8">
-<div class="card shadow">
-    <div class="card-body">
-        <form asp-action="CreateEquipment" method="post">
-            <div class="row mb-3">
-                <div class="col-md-8"><label class="form-label fw-bold">Tên thiết bị *</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger small"></span></div>
-                <div class="col-md-4"><label class="form-label fw-bold">Loại *</label>
-                    <select asp-for="Type" class="form-select">
-                        <option value="Máy móc">Máy móc</option><option value="Xe cộ">Xe cộ</option>
-                        <option value="Thiết bị IT">Thiết bị IT</option><option value="Dụng cụ">Dụng cụ</option><option value="Khác">Khác</option>
-                    </select>
-                </div>
+    <div class="col-lg-10">
+        <div class="content-card shadow-sm">
+            <div class="card-body-custom p-4">
+                <form asp-action="CreateEquipment" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-section-title">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin cơ bản
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label asp-for="Name" class="form-label fw-bold">Tên thiết bị <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Ví dụ: Máy tiện CNC, Xe nâng hàng..." />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Type" class="form-label fw-bold">Loại thiết bị <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select">
+                                <option value="Máy móc">Máy móc</option>
+                                <option value="Xe cộ">Xe cộ</option>
+                                <option value="Thiết bị IT">Thiết bị IT</option>
+                                <option value="Dụng cụ">Dụng cụ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Manufacturer" class="form-label fw-bold">Nhà sản xuất</label>
+                            <input asp-for="Manufacturer" class="form-control" placeholder="Ví dụ: Toyota, Bosch, Dell..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Model" class="form-label fw-bold">Model</label>
+                            <input asp-for="Model" class="form-control" placeholder="Ví dụ: L-200, CNC-80..." />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="SerialNumber" class="form-label fw-bold">Số Serial</label>
+                            <input asp-for="SerialNumber" class="form-control" placeholder="Ví dụ: SN-90184..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Location" class="form-label fw-bold">Vị trí lắp đặt / Lưu trữ</label>
+                            <input asp-for="Location" class="form-control" placeholder="Ví dụ: Xưởng A, Tầng 2..." />
+                        </div>
+                    </div>
+
+                    <div class="form-section-title mt-5">
+                        <i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Thông tin mua hàng & Khai thác
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="PurchaseDate" class="form-label fw-bold">Ngày mua</label>
+                            <input asp-for="PurchaseDate" type="text" class="form-control datepicker" placeholder="dd/mm/yyyy" />
+                            <span asp-validation-for="PurchaseDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="PurchasePrice" class="form-label fw-bold">Giá mua (VNĐ)</label>
+                            <input asp-for="PurchasePrice" type="text" class="form-control" placeholder="Chỉ nhập số..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                            <span asp-validation-for="PurchasePrice" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="LifespanYears" class="form-label fw-bold">Tuổi thọ dự kiến (năm)</label>
+                            <input asp-for="LifespanYears" type="text" class="form-control" placeholder="Chỉ nhập số..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                            <span asp-validation-for="LifespanYears" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label asp-for="NextMaintenanceDate" class="form-label fw-bold">Lịch bảo trì tiếp theo</label>
+                            <input asp-for="NextMaintenanceDate" type="text" class="form-control datepicker" placeholder="dd/mm/yyyy" />
+                            <span asp-validation-for="NextMaintenanceDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-bold">Ghi chú thêm</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Thông số kỹ thuật đặc biệt, thông tin bảo hành..."></textarea>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Equipments" class="btn btn-light px-4">Hủy</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i>Lưu Thiết Bị</button>
+                    </div>
+                </form>
             </div>
-            <div class="row mb-3">
-                <div class="col-md-6"><label class="form-label fw-bold">Nhà sản xuất</label><input asp-for="Manufacturer" class="form-control" /></div>
-                <div class="col-md-6"><label class="form-label fw-bold">Model</label><input asp-for="Model" class="form-control" /></div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6"><label class="form-label fw-bold">Số Serial</label><input asp-for="SerialNumber" class="form-control" /></div>
-                <div class="col-md-6"><label class="form-label fw-bold">Vị trí</label><input asp-for="Location" class="form-control" placeholder="Ví dụ: Xưởng A, Tầng 2..." /></div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-4"><label class="form-label fw-bold">Ngày mua</label><input asp-for="PurchaseDate" type="date" class="form-control" /></div>
-                <div class="col-md-4"><label class="form-label fw-bold">Giá mua (VNĐ)</label><input asp-for="PurchasePrice" type="number" class="form-control" /></div>
-                <div class="col-md-4"><label class="form-label fw-bold">Tuổi thọ (năm)</label><input asp-for="LifespanYears" type="number" class="form-control" /></div>
-            </div>
-            <div class="mb-3"><label class="form-label fw-bold">Lịch bảo trì tiếp theo</label><input asp-for="NextMaintenanceDate" type="date" class="form-control" /></div>
-            <div class="mb-4"><label class="form-label fw-bold">Ghi chú</label><textarea asp-for="Notes" class="form-control" rows="2"></textarea></div>
-            <hr /><div class="text-end"><button type="submit" class="btn btn-primary px-4">Lưu Thiết Bị</button></div>
-        </form>
+        </div>
     </div>
 </div>
-</div>
-</div>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr(".datepicker", {
+            altInput: true,
+            altFormat: "d/m/Y",
+            dateFormat: "Y-m-d",
+            altInputClass: "form-control"
+        });
+    </script>
+}
