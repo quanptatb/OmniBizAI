@@ -1,37 +1,110 @@
 @model OmniBizAI.ViewModels.CertificateCreateViewModel
-@{ ViewData["Title"] = "Thêm Chứng Chỉ"; Layout = "~/Views/Shared/_Layout.cshtml"; }
+@{
+    ViewData["Title"] = "Thêm Chứng Chỉ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <style>
+        .flatpickr-calendar {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+            border: 1px solid var(--divider) !important;
+            border-radius: var(--r-md) !important;
+        }
+    </style>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0 text-gray-800">Thêm Chứng Chỉ Nhân Viên</h2>
-    <a asp-action="Certificates" class="btn btn-secondary btn-sm">← Quay lại</a>
+    <div>
+        <h4 class="page-title mb-1"><i class="fas fa-plus-circle me-2 text-warning"></i>Thêm Chứng Chỉ Nhân Viên</h4>
+        <p class="mb-0 text-muted" style="font-size:.84rem">Đăng ký chứng chỉ, bằng cấp hoặc năng lực mới cho nhân viên.</p>
+    </div>
+    <a asp-action="Certificates" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
 </div>
-<div class="row justify-content-center"><div class="col-lg-7">
-<div class="card shadow">
-    <div class="card-body">
-        <form asp-action="AddCertificate" method="post">
-            <div class="mb-3">
-                <label class="form-label fw-bold">Nhân viên *</label>
-                <select asp-for="UserId" class="form-select" required>
-                    <option value="">-- Chọn nhân viên --</option>
-                    @foreach (var u in Model.Users) { <option value="@u.Value">@u.Text</option> }
-                </select>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-card shadow-sm">
+            <div class="card-body-custom p-4">
+                <form asp-action="AddCertificate" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-4">
+                        <label asp-for="UserId" class="form-label fw-bold">Nhân viên <span class="text-danger">*</span></label>
+                        <select asp-for="UserId" class="form-select" required>
+                            <option value="">-- Chọn nhân viên --</option>
+                            @foreach (var u in Model.Users)
+                            {
+                                <option value="@u.Value">@u.Text</option>
+                            }
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="CertificateName" class="form-label fw-bold">Tên chứng chỉ <span class="text-danger">*</span></label>
+                        <input asp-for="CertificateName" class="form-control" placeholder="Ví dụ: Chứng chỉ Vận hành cẩu trục, An toàn lao động nhóm 3..." />
+                        <span asp-validation-for="CertificateName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label asp-for="IssuingOrganization" class="form-label fw-bold">Tổ chức cấp</label>
+                            <input asp-for="IssuingOrganization" class="form-control" placeholder="Ví dụ: Cục An toàn lao động..." />
+                            <span asp-validation-for="IssuingOrganization" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="CertificateNumber" class="form-label fw-bold">Số chứng chỉ / Số hiệu</label>
+                            <input asp-for="CertificateNumber" class="form-control" placeholder="Ví dụ: 123456/GCN..." />
+                            <span asp-validation-for="CertificateNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="Category" class="form-label fw-bold">Phân loại</label>
+                            <select asp-for="Category" class="form-select">
+                                <option value="Professional">Chuyên môn</option>
+                                <option value="Safety">An toàn LĐ</option>
+                                <option value="Technical">Kỹ thuật</option>
+                                <option value="Language">Ngoại ngữ</option>
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="IssuedDate" class="form-label fw-bold">Ngày cấp</label>
+                            <input asp-for="IssuedDate" type="text" class="form-control datepicker" placeholder="dd/mm/yyyy" />
+                            <span asp-validation-for="IssuedDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ExpiryDate" class="form-label fw-bold">Ngày hết hạn</label>
+                            <input asp-for="ExpiryDate" type="text" class="form-control datepicker" placeholder="dd/mm/yyyy" />
+                            <span asp-validation-for="ExpiryDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Certificates" class="btn btn-light px-4">Hủy</a>
+                        <button type="submit" class="btn btn-warning text-dark px-4"><i class="fas fa-save me-1"></i>Lưu Chứng Chỉ</button>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3"><label class="form-label fw-bold">Tên chứng chỉ *</label><input asp-for="CertificateName" class="form-control" placeholder="VD: Chứng chỉ Vận hành cẩu trục" /><span asp-validation-for="CertificateName" class="text-danger small"></span></div>
-            <div class="row mb-3">
-                <div class="col-md-8"><label class="form-label fw-bold">Tổ chức cấp</label><input asp-for="IssuingOrganization" class="form-control" /></div>
-                <div class="col-md-4"><label class="form-label fw-bold">Số chứng chỉ</label><input asp-for="CertificateNumber" class="form-control" /></div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-4"><label class="form-label fw-bold">Loại</label>
-                    <select asp-for="Category" class="form-select">
-                        <option value="Professional">Chuyên môn</option><option value="Safety">An toàn LĐ</option>
-                        <option value="Technical">Kỹ thuật</option><option value="Language">Ngoại ngữ</option>
-                    </select>
-                </div>
-                <div class="col-md-4"><label class="form-label fw-bold">Ngày cấp</label><input asp-for="IssuedDate" type="date" class="form-control" /></div>
-                <div class="col-md-4"><label class="form-label fw-bold">Ngày hết hạn</label><input asp-for="ExpiryDate" type="date" class="form-control" /></div>
-            </div>
-            <hr /><div class="text-end"><button type="submit" class="btn btn-warning text-dark px-4">Lưu Chứng Chỉ</button></div>
-        </form>
+        </div>
     </div>
 </div>
-</div></div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr(".datepicker", {
+            altInput: true,
+            altFormat: "d/m/Y",
+            dateFormat: "Y-m-d",
+            altInputClass: "form-control"
+        });
+    </script>
+}

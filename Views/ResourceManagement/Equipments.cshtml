@@ -8,7 +8,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-cogs text-primary me-2"></i>Thiết Bị & Máy Móc</h2>
     <div>
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Dashboard</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Quay lại</a>
         <a asp-action="CreateEquipment" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Thêm Thiết Bị</a>
     </div>
 </div>
@@ -104,6 +104,7 @@
                                     case "InUse": <span class="badge bg-primary">Đang dùng</span> break;
                                     case "Maintenance": <span class="badge bg-warning text-dark">Bảo trì</span> break;
                                     case "Retired": <span class="badge bg-secondary">Thanh lý</span> break;
+                                    case "Pending": <span class="badge bg-info">Chờ hoạt động</span> break;
                                     default: <span class="badge bg-light text-dark">@eq.Status</span> break;
                                 }
                             </td>

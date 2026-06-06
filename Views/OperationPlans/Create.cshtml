@@ -5,7 +5,28 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <style>
+    .flatpickr-calendar {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+        border: 1px solid var(--divider) !important;
+        border-radius: var(--r-md) !important;
+    }
+    .flatpickr-day.selected, 
+    .flatpickr-day.selected:focus, 
+    .flatpickr-day.selected:hover {
+        background: var(--apple-blue) !important;
+        border-color: var(--apple-blue) !important;
+    }
+    .flatpickr-months .flatpickr-month {
+        color: var(--text-primary) !important;
+    }
+    .flatpickr-current-month .numInputWrapper span.arrowUp:after {
+        border-bottom-color: var(--text-primary) !important;
+    }
+    .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+        border-top-color: var(--text-primary) !important;
+    }
     .plan-create-hero {
         background:
             radial-gradient(circle at top right, rgba(0,113,227,.16), transparent 32%),
@@ -495,12 +516,12 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="StartDate" class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
-                            <input asp-for="StartDate" type="date" class="form-control" id="startDateInput" />
+                            <input asp-for="StartDate" type="text" class="form-control" id="startDateInput" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
                             <span asp-validation-for="StartDate" class="text-danger" style="font-size:.78rem"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="EndDate" class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input asp-for="EndDate" type="date" class="form-control" id="endDateInput" />
+                            <input asp-for="EndDate" type="text" class="form-control" id="endDateInput" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
                             <span asp-validation-for="EndDate" class="text-danger" style="font-size:.78rem"></span>
                         </div>
                         <div class="col-12">
@@ -624,6 +645,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         (() => {
             const titleInput = document.getElementById('titleInput');
@@ -632,6 +654,30 @@
             const startDateInput = document.getElementById('startDateInput');
             const endDateInput = document.getElementById('endDateInput');
             const notesCounter = document.getElementById('notesCounter');
+
+            const startPicker = flatpickr(startDateInput, {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                altInputClass: "form-control",
+                onChange: function(selectedDates, dateStr, instance) {
+                    const start = selectedDates[0];
+                    const end = endPicker.selectedDates[0];
+                    if (start && end && end < start) {
+                        endPicker.setDate(start, true);
+                    }
+                    updateSummary();
+                }
+            });
+            const endPicker = flatpickr(endDateInput, {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                altInputClass: "form-control",
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateSummary();
+                }
+            });
 
             const typeMeta = {
                 Daily: {
@@ -671,7 +717,10 @@
             function formatDateVi(value) {
                 const date = parseLocalDate(value);
                 if (!date) return '--';
-                return date.toLocaleDateString('vi-VN');
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
             }
 
             function calculateInclusiveDays(startValue, endValue) {
@@ -690,7 +739,7 @@
             function ensureStartDate() {
                 if (startDateInput.value) return parseLocalDate(startDateInput.value);
                 const today = new Date();
-                startDateInput.value = toInputDate(today);
+                startPicker.setDate(today, true);
                 return today;
             }
 
@@ -705,7 +754,7 @@
                     end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
                 }
 
-                endDateInput.value = toInputDate(end);
+                endPicker.setDate(end, true);
                 updateSummary();
             }
 
@@ -836,7 +885,7 @@
                 const start = parseLocalDate(startDateInput.value);
                 const end = parseLocalDate(endDateInput.value);
                 if (start && end && end < start) {
-                    endDateInput.value = startDateInput.value;
+                    endPicker.setDate(start, true);
                 }
                 updateSummary();
             });
