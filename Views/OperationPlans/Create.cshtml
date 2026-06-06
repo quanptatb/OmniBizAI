@@ -71,6 +71,8 @@
         padding: 16px;
         height: 100%;
         box-shadow: var(--shadow-card);
+        display: flex;
+        flex-direction: column;
     }
     .plan-mini-card strong {
         display: block;
@@ -85,17 +87,18 @@
         line-height: 1.55;
     }
     .plan-mini-step {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         border-radius: 10px;
         background: rgba(0,113,227,.08);
         color: var(--apple-blue);
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-size: .82rem;
+        font-size: .84rem;
         font-weight: 700;
         margin-bottom: 12px;
+        flex-shrink: 0;
     }
     .plan-section-note {
         margin-top: 4px;
@@ -415,21 +418,21 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="plan-mini-card">
-                                    <span class="plan-mini-step">1</span>
+                                    <div class="plan-mini-step">1</div>
                                     <strong>Đặt tên dễ nhận diện</strong>
                                     <span>Nên nêu rõ phạm vi hoặc chu kỳ như sản xuất tuần 1, vận hành tháng 6 hoặc triển khai ca ngày.</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="plan-mini-card">
-                                    <span class="plan-mini-step">2</span>
+                                    <div class="plan-mini-step">2</div>
                                     <strong>Chốt nhịp thời gian</strong>
                                     <span>Chọn loại kế hoạch và dùng preset để tạo nhanh khung ngày, tuần hoặc hết tháng.</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="plan-mini-card">
-                                    <span class="plan-mini-step">3</span>
+                                    <div class="plan-mini-step">3</div>
                                     <strong>Viết mục tiêu ngắn gọn</strong>
                                     <span>Ghi các đầu việc trọng tâm, nguồn lực cần dùng hoặc deadline quan trọng để đội dễ bám theo.</span>
                                 </div>
@@ -655,16 +658,22 @@
             const endDateInput = document.getElementById('endDateInput');
             const notesCounter = document.getElementById('notesCounter');
 
+            const todayStr = new Date().toISOString().split('T')[0];
+
             const startPicker = flatpickr(startDateInput, {
                 altInput: true,
                 altFormat: "d/m/Y",
                 dateFormat: "Y-m-d",
                 altInputClass: "form-control",
+                minDate: "today",
                 onChange: function(selectedDates, dateStr, instance) {
                     const start = selectedDates[0];
-                    const end = endPicker.selectedDates[0];
-                    if (start && end && end < start) {
-                        endPicker.setDate(start, true);
+                    if (start) {
+                        endPicker.set('minDate', start);
+                        const end = endPicker.selectedDates[0];
+                        if (end && end < start) {
+                            endPicker.setDate(start, true);
+                        }
                     }
                     updateSummary();
                 }
@@ -674,6 +683,7 @@
                 altFormat: "d/m/Y",
                 dateFormat: "Y-m-d",
                 altInputClass: "form-control",
+                minDate: startDateInput.value || "today",
                 onChange: function(selectedDates, dateStr, instance) {
                     updateSummary();
                 }
@@ -884,6 +894,7 @@
             startDateInput.addEventListener('change', () => {
                 const start = parseLocalDate(startDateInput.value);
                 const end = parseLocalDate(endDateInput.value);
+                if (start) endPicker.set('minDate', start);
                 if (start && end && end < start) {
                     endPicker.setDate(start, true);
                 }
@@ -901,6 +912,40 @@
                 button.addEventListener('click', () => {
                     applyDatePreset(button.dataset.datePreset || 'day');
                 });
+            });
+
+            // Block form submit if dates are invalid
+            document.getElementById('planCreateForm').addEventListener('submit', function(e) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const start = parseLocalDate(startDateInput.value);
+                const end = parseLocalDate(endDateInput.value);
+                let errorMsg = null;
+
+                if (!start) {
+                    errorMsg = 'Vui lòng chọn ngày bắt đầu.';
+                } else if (start < today) {
+                    errorMsg = 'Ngày bắt đầu không được nhỏ hơn hôm nay.';
+                } else if (!end) {
+                    errorMsg = 'Vui lòng chọn ngày kết thúc.';
+                } else if (end < start) {
+                    errorMsg = 'Ngày kết thúc không được nhỏ hơn ngày bắt đầu.';
+                }
+
+                if (errorMsg) {
+                    e.preventDefault();
+                    let alertEl = document.getElementById('clientDateError');
+                    if (!alertEl) {
+                        alertEl = document.createElement('div');
+                        alertEl.id = 'clientDateError';
+                        alertEl.className = 'alert alert-danger mb-0 mt-3';
+                        alertEl.style.borderRadius = 'var(--r-md)';
+                        const timelineBox = document.querySelector('.plan-timeline-box');
+                        if (timelineBox) timelineBox.after(alertEl);
+                    }
+                    alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation me-2"></i>' + errorMsg;
+                    alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             });
 
             updateSummary();
