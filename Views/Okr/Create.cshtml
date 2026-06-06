@@ -421,7 +421,10 @@
         <h4 class="page-title mb-1"><i class="fa-solid fa-bullseye me-2"></i>Tạo OKR mới</h4>
         <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Thiết lập mục tiêu, phạm vi phụ trách và các key result từ dữ liệu đã có trong hệ thống.</p>
     </div>
-    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-controller="KpiSetup" asp-action="ImportMeetingSummary" class="btn btn-light"><i class="fa-solid fa-file-waveform me-1"></i>Import từ cuộc họp</a>
+        <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
+    </div>
 </div>
 
 <form asp-action="Create" method="post" id="okrCreateForm">

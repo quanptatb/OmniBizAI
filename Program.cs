@@ -64,6 +64,7 @@ builder.Services.AddScoped<EvaluationService>();
 builder.Services.AddScoped<MissionVisionService>();
 builder.Services.AddScoped<OkrProgressService>();
 builder.Services.AddScoped<KpiOkrDashboardService>();
+builder.Services.AddScoped<MeetingSummaryImportService>();
 
 // New Business Module Services
 builder.Services.AddScoped<CrmService>();

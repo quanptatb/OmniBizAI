@@ -259,7 +259,10 @@
         <h4 class="page-title mb-1"><i class="fa-solid fa-chart-column me-2"></i>Tạo KPI mới</h4>
         <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Thiết lập chỉ tiêu hiệu suất từ dữ liệu sẵn có của phòng ban, OKR, key result và kỳ đánh giá trong hệ thống.</p>
     </div>
-    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="ImportMeetingSummary" class="btn btn-light"><i class="fa-solid fa-file-waveform me-1"></i>Import từ cuộc họp</a>
+        <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
+    </div>
 </div>
 
 <form asp-action="Create" method="post" id="kpiCreateForm">

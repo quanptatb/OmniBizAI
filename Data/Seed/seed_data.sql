@@ -20,8 +20,11 @@ DELETE FROM NotificationDeliveries;
 DELETE FROM Notifications;
 DELETE FROM AuditLogs;
 DELETE FROM AiInsights;
+DELETE FROM ImportStagingRows;
+DELETE FROM ImportJobs;
 DELETE FROM Attachments;
 DELETE FROM WorkItemComments;
+DELETE FROM EmployeeProfiles;
 DELETE FROM EvaluationResults;
 DELETE FROM EvaluationPeriods;
 DELETE FROM KpiCheckIns;
@@ -30,6 +33,7 @@ DELETE FROM Expenses;
 DELETE FROM PaymentRequests;
 DELETE FROM Budgets;
 DELETE FROM CustomerContacts;
+DELETE FROM CustomerSites;
 DELETE FROM Customers;
 DELETE FROM WorkItemChecklists;
 DELETE FROM WorkItemAssignments;
@@ -41,8 +45,12 @@ DELETE FROM PurchaseOrders;
 DELETE FROM Vendors;
 DELETE FROM KpiTargets;
 DELETE FROM KpiDefinitions;
+DELETE FROM OkrEmployeeAllocations;
+DELETE FROM OkrDepartmentAllocations;
+DELETE FROM OkrMissionMappings;
 DELETE FROM OkrKeyResults;
 DELETE FROM OkrObjectives;
+DELETE FROM MissionVisions;
 DELETE FROM AppUsers;
 DELETE FROM Positions;
 DELETE FROM OrganizationUnits;
@@ -234,6 +242,21 @@ VALUES (NEWID(), @T, 'MAIN', N'OmniBiz Digital Solutions', N'Technology Services
   '{"TaxCode":"0315678901","Address":"Tầng 12, Tòa nhà Landmark Plus, Q. Bình Thạnh, TP.HCM","Phone":"028-3820-9999","Website":"https://omnibiz.vn","FoundedYear":2015,"EmployeeCount":105}',
   1, @CompanyStart, 0);
 
+-- ── Mission / Vision / Strategic Goals ──
+DECLARE @Vision2027 UNIQUEIDENTIFIER   = 'C9000000-0000-0000-0000-000000000001';
+DECLARE @MissionCore UNIQUEIDENTIFIER  = 'C9000000-0000-0000-0000-000000000002';
+DECLARE @GoalRecurring UNIQUEIDENTIFIER = 'C9000000-0000-0000-0000-000000000003';
+DECLARE @GoalGoLive UNIQUEIDENTIFIER   = 'C9000000-0000-0000-0000-000000000004';
+DECLARE @GoalNps UNIQUEIDENTIFIER      = 'C9000000-0000-0000-0000-000000000005';
+
+IF NOT EXISTS (SELECT 1 FROM MissionVisions WHERE Id = @Vision2027)
+INSERT INTO MissionVisions (Id, TenantId, [Type], TargetYear, Content, FinancialTarget, IsActive, CreatedAt, IsDeleted) VALUES
+  (@Vision2027, @T, 1, 2027, N'Trở thành đối tác chuyển đổi số được ưu tiên lựa chọn cho các doanh nghiệp chuỗi đa chi nhánh tại Việt Nam.', NULL, 1, @CompanyStart, 0),
+  (@MissionCore, @T, 2, 2026, N'Chuẩn hóa vận hành, tăng trưởng bền vững và ra quyết định dựa trên dữ liệu theo thời gian thực.', NULL, 1, @CompanyStart, 0),
+  (@GoalRecurring, @T, 3, 2026, N'Tăng doanh thu recurring từ khách hàng hiện hữu 25% trong năm 2026.', 120000000000.0, 1, @CompanyStart, 0),
+  (@GoalGoLive, @T, 3, 2026, N'Rút ngắn thời gian go-live trung bình còn 30 ngày cho các dự án ERP mới.', NULL, 1, @CompanyStart, 0),
+  (@GoalNps, @T, 3, 2026, N'Nâng điểm NPS khách hàng doanh nghiệp lên tối thiểu 55 điểm trước cuối năm 2026.', NULL, 1, @CompanyStart, 0);
+
 PRINT N'✅ Part 1: Core setup hoàn tất.';
 
 -- ============================================================================
@@ -371,6 +394,21 @@ INSERT INTO Customers (Id, TenantId, Code, [Name], TaxCode, IsActive, CreatedAt,
   (@Cust1, @T, 'CUST-001', N'Công ty Cổ phần Xây dựng Hòa Bình', '0301234567', 1, @Now, 0),
   (@Cust2, @T, 'CUST-002', N'Tập đoàn Vingroup', '0101245367', 1, @Now, 0);
 
+DECLARE @Cust2SiteHcm UNIQUEIDENTIFIER = 'B2000000-0000-0000-0000-000000000011';
+DECLARE @Cust2SiteHn UNIQUEIDENTIFIER  = 'B2000000-0000-0000-0000-000000000012';
+DECLARE @Cust2Contact1 UNIQUEIDENTIFIER = 'B2100000-0000-0000-0000-000000000011';
+DECLARE @Cust2Contact2 UNIQUEIDENTIFIER = 'B2100000-0000-0000-0000-000000000012';
+
+IF NOT EXISTS (SELECT 1 FROM CustomerSites WHERE Id = @Cust2SiteHcm)
+INSERT INTO CustomerSites (Id, TenantId, CustomerId, Code, [Name], Address, City, IsActive, CreatedAt, IsDeleted) VALUES
+  (@Cust2SiteHcm, @T, @Cust2, 'SITE-VGR-HCM', N'Vingroup Landmark 81', N'208 Nguyễn Hữu Cảnh, Bình Thạnh, TP.HCM', N'TP.HCM', 1, @Now, 0),
+  (@Cust2SiteHn, @T, @Cust2, 'SITE-VGR-HN', N'Vingroup Metropolis Hà Nội', N'29 Liễu Giai, Ba Đình, Hà Nội', N'Hà Nội', 1, @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM CustomerContacts WHERE Id = @Cust2Contact1)
+INSERT INTO CustomerContacts (Id, TenantId, CustomerId, FullName, Email, PhoneNumber, JobTitle, IsPrimary, CreatedAt, IsDeleted) VALUES
+  (@Cust2Contact1, @T, @Cust2, N'Nguyễn Thùy Dương', 'duong.nt@vingroup.vn', '0901234567', N'IT Program Manager', 1, @Now, 0),
+  (@Cust2Contact2, @T, @Cust2, N'Phạm Quốc Cường', 'cuong.pq@vingroup.vn', '0909876543', N'Head of Enterprise Platforms', 0, @Now, 0);
+
 -- 4.2. Finance (Budgets, Expenses, PaymentRequests)
 DECLARE @BudgetIT UNIQUEIDENTIFIER = 'BD000000-0000-0000-0000-000000000001';
 DECLARE @BudgetMkt UNIQUEIDENTIFIER = 'BD000000-0000-0000-0000-000000000002';
@@ -423,9 +461,20 @@ INSERT INTO KpiCheckIns (Id, TenantId, KpiTargetId, UserId, CheckInDate, Progres
 
 -- 4.6. Evaluation (Kỳ đánh giá & Kết quả)
 DECLARE @EvalPeriod UNIQUEIDENTIFIER = 'B5000000-0000-0000-0000-000000000001';
+DECLARE @EvalPeriodQ3 UNIQUEIDENTIFIER = 'B5000000-0000-0000-0000-000000000002';
+DECLARE @EvalPeriodJul UNIQUEIDENTIFIER = 'B5000000-0000-0000-0000-000000000003';
+DECLARE @EvalPeriodAug UNIQUEIDENTIFIER = 'B5000000-0000-0000-0000-000000000004';
+DECLARE @EvalPeriodSep UNIQUEIDENTIFIER = 'B5000000-0000-0000-0000-000000000005';
 IF NOT EXISTS (SELECT 1 FROM EvaluationPeriods WHERE Id = @EvalPeriod)
 INSERT INTO EvaluationPeriods (Id, TenantId, PeriodName, StartDate, EndDate, [Status], CreatedAt, IsDeleted) VALUES
   (@EvalPeriod, @T, N'Đánh giá hiệu suất Quý 1/2026', '2026-04-01', '2026-04-15', 2, @Now, 0);
+
+IF NOT EXISTS (SELECT 1 FROM EvaluationPeriods WHERE Id = @EvalPeriodQ3)
+INSERT INTO EvaluationPeriods (Id, TenantId, PeriodName, StartDate, EndDate, [Status], Description, CreatedAt, IsDeleted) VALUES
+  (@EvalPeriodQ3, @T, N'Đánh giá hiệu suất Q3/2026', '2026-07-01', '2026-09-30', 1, N'Kỳ đánh giá chính dùng cho bộ mục tiêu quý 3/2026 được import từ cuộc họp liên phòng ban.', @Now, 0),
+  (@EvalPeriodJul, @T, N'Đánh giá tháng 07/2026', '2026-07-01', '2026-07-31', 1, N'Kỳ check-in tháng 7 cho KPI upsell và triển khai.', @Now, 0),
+  (@EvalPeriodAug, @T, N'Đánh giá tháng 08/2026', '2026-08-01', '2026-08-31', 1, N'Kỳ check-in tháng 8 cho KPI upsell và triển khai.', @Now, 0),
+  (@EvalPeriodSep, @T, N'Đánh giá tháng 09/2026', '2026-09-01', '2026-09-30', 1, N'Kỳ check-in tháng 9 cho KPI upsell và triển khai.', @Now, 0);
 
 IF NOT EXISTS (SELECT 1 FROM EvaluationResults WHERE EvaluationPeriodId = @EvalPeriod)
 INSERT INTO EvaluationResults (Id, TenantId, EvaluationPeriodId, UserId, TotalScore, Classification, ReviewComment, SubmissionStatus, CreatedAt, IsDeleted) VALUES

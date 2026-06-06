@@ -64,6 +64,7 @@
 
     .kanban-column {
         width: 310px;
+        max-width: 85vw;
         flex-shrink: 0;
         background: rgba(255, 255, 255, 0.65);
         backdrop-filter: blur(15px);
@@ -74,12 +75,12 @@
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
         display: flex;
         flex-direction: column;
-        max-height: 70vh;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        max-height: 75vh;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .kanban-column:hover {
-        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.07);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
     }
 
     .kanban-column-header {
@@ -143,21 +144,23 @@
     .kanban-card {
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.03);
-        border-radius: 12px;
-        padding: 14px;
+        border-radius: 14px;
+        padding: 16px;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
         cursor: grab;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .kanban-card:active {
         cursor: grabbing;
-        transform: scale(0.98);
+        transform: scale(0.96);
     }
 
     .kanban-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     }
 
     .kanban-card-top {
@@ -332,6 +335,36 @@
     .color-picker-dot input:checked {
         border: 2px solid #1d1d1f;
         box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    }
+
+    /* Mobile/Tablet Responsive Adjustments */
+    @@media (max-width: 768px) {
+        .kanban-page {
+            padding: 12px;
+            margin-top: 5px;
+            border-radius: 12px;
+        }
+        .kanban-column {
+            width: 280px;
+            max-width: 85vw;
+        }
+        .kanban-title {
+            font-size: 22px;
+        }
+        .kanban-toolbar {
+            padding: 16px;
+        }
+        .kanban-metrics {
+            margin-top: 8px;
+        }
+        .kanban-metrics span {
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+        .kanban-board-container {
+            margin-top: 10px;
+            padding-bottom: 10px;
+        }
     }
 </style>
 

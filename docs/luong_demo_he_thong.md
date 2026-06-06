@@ -1,238 +1,433 @@
-# Kịch Bản Demo Luồng Nghiệp Vụ Hệ Thống OmniBizAI
+# Kịch bản demo end-to-end OmniBizAI
 
-Tài liệu này hướng dẫn chi tiết luồng chạy thử (demo flow) tích hợp toàn bộ các module nghiệp vụ trong hệ thống **OmniBizAI** (ERP & Quản lý doanh nghiệp thông minh tích hợp AI). 
+Tài liệu này dùng để demo toàn bộ hệ thống OmniBizAI theo một câu chuyện xuyên suốt, có vai diễn, lời thoại, tài khoản, màn hình thao tác và kết quả kỳ vọng sau mỗi cảnh.
 
-Kịch bản demo được xây dựng dựa trên một tình huống thực tế của doanh nghiệp: **"Triển khai dự án ERP cho Tập đoàn Vingroup và thực hiện mua sắm nâng cấp hạ tầng Server IT để phục vụ dự án."**
+Chủ đề chính của buổi demo:
 
----
-
-## 🔑 Danh Sách Tài Khoản Thử Nghiệm (Seed Data Accounts)
-
-Tất cả tài khoản dưới đây đều sử dụng mật khẩu mặc định là: `123`
-
-| Vai trò trong hệ thống (Role) | Họ và tên | Email đăng nhập | Bộ phận (Org Unit) |
-| :--- | :--- | :--- | :--- |
-| **Giám Đốc (Executive)** | Nguyễn Minh Tuấn | `giamdoc@omnibiz.vn` | Ban Giám Đốc (BOD) |
-| **Phó GĐ Kinh Doanh (Executive)** | Trần Thị Hồng Nhung | `pgd.kinhdoanh@omnibiz.vn` | Ban Giám Đốc (BOD) |
-| **Trưởng Phòng IT (Dept Manager)** | Phạm Đức Anh | `tp.it@omnibiz.vn` | Phòng CNTT (IT) |
-| **Trưởng Phòng Tài Chính (Dept Manager)** | Võ Thị Lan Anh | `tp.finance@omnibiz.vn` | Phòng Tài Chính (FIN) |
-| **Trưởng Phòng Kinh Doanh (Dept Manager)** | Hoàng Thị Mai | `tp.sales@omnibiz.vn` | Phòng Kinh Doanh (SALE) |
-| **Nhân Viên Kinh Doanh (Staff)** | Vũ Ngọc Hải | `vu.ngoc.hai@omnibiz.vn` | Phòng Kinh Doanh (SALE) |
-| **Kế Toán Trưởng (Accountant)** | Nguyễn Thị Hạnh | `ketoan.truong@omnibiz.vn` | Phòng Tài Chính (FIN) |
-| **Quản trị hệ thống (System Admin)** | System Administrator | `sysadmin@omnibiz.vn` | Phòng CNTT (IT) |
+**Ngày 02/07/2026, Ban điều hành OmniBiz họp liên phòng ban để chốt mục tiêu Quý 3/2026 cho chiến dịch upsell khách hàng hiện hữu. Sau cuộc họp, hệ thống phải tự biến bản summarize thành OKR/KPI, rồi kéo toàn bộ dữ liệu đi xuyên suốt CRM, vận hành, phê duyệt, mua sắm, kho, tài chính, đánh giá hiệu suất và dashboard.**
 
 ---
 
-## 📋 Sơ đồ Luồng Nghiệp Vụ End-to-End
+## 1. Tài khoản dùng trong demo
 
-```mermaid
-graph TD
-    A[Bước 1: Thiết lập OKR/KPI năm] --> B[Bước 2: Tạo Cơ hội bán hàng & CRM]
-    B --> C[Bước 3: Đề xuất nâng cấp Server & AI Risk Analysis]
-    C --> D[Bước 4: Quy trình Phê duyệt đa cấp]
-    D --> E[Bước 5: Lập kế hoạch & Quản lý Kanban]
-    E --> F[Bước 6: Yêu cầu mua sắm & Nhập kho]
-    F --> G[Bước 7: Yêu cầu thanh toán & Sổ quỹ]
-    G --> H[Bước 8: Đánh giá hiệu suất nhân sự]
-    H --> I[Bước 9: Báo cáo Dashboard & Cảnh báo bất thường AI]
-```
+Mật khẩu mặc định cho toàn bộ tài khoản: `123`
 
----
-
-## 🛠️ Chi Tiết Các Bước Thực Hiện Demo
-
-### 🚀 Bước 1: Thiết lập mục tiêu chiến lược (OKRs / KPIs)
-*Doanh nghiệp thiết lập mục tiêu doanh thu năm và liên kết mục tiêu này với các chỉ số hiệu suất phòng ban.*
-
-* **Người thực hiện:** Giám Đốc (Nguyễn Minh Tuấn - `giamdoc@omnibiz.vn`)
-* **Chức năng chính:** Quản lý OKRs, KPIs.
-* **Đường dẫn trên UI:** `/Okr/Dashboard` hoặc `/Okr/Index` và `/KpiSetup`
-* **Các bước thao tác:**
-  1. Đăng nhập với tài khoản `giamdoc@omnibiz.vn`.
-  2. Truy cập vào mục **Mục tiêu (OKRs)** -> Chọn **Tạo OKR mới** để thiết lập mục tiêu năm:
-     * **Tiêu đề:** *Tăng trưởng doanh thu 30% trong năm 2026*
-     * **Chu kỳ:** *2026*
-     * **Cấp độ:** *Công ty (Company)*
-  3. Thêm các **Kết quả then chốt (Key Results - KRs)** liên kết:
-     * *Đạt mốc doanh thu 50 tỷ VNĐ* (Target: 50.0 tỷ VNĐ)
-     * *Có 20 khách hàng doanh nghiệp mới* (Target: 20 khách hàng)
-  4. Truy cập **KPI Setup** -> Thiết lập chỉ tiêu cho **Trưởng phòng Kinh doanh (Hoàng Thị Mai)**:
-     * **KPI:** *Doanh số bán hàng hàng tháng*
-     * **Chỉ tiêu:** *2.000 triệu VNĐ/tháng*
-
-> [!TIP]
-> Việc liên kết OKR cấp công ty xuống KPI của từng bộ phận giúp đảm bảo toàn bộ nhân sự trong doanh nghiệp đi đúng hướng chiến lược chung.
+| Vai trò | Họ tên | Email | Bộ phận |
+|---|---|---|---|
+| Giám đốc | Nguyễn Minh Tuấn | `giamdoc@omnibiz.vn` | Ban Giám Đốc |
+| TP Kinh doanh | Hoàng Thị Mai | `tp.sales@omnibiz.vn` | Phòng Kinh Doanh |
+| TP Marketing | Bùi Quang Hải | `tp.marketing@omnibiz.vn` | Phòng Marketing |
+| TP Vận hành | Ngô Thị Thanh Hằng | `tp.ops@omnibiz.vn` | Phòng Vận Hành |
+| TP CNTT | Phạm Đức Anh | `tp.it@omnibiz.vn` | Phòng Công Nghệ Thông Tin |
+| TP Tài chính | Võ Thị Lan Anh | `tp.finance@omnibiz.vn` | Phòng Tài Chính |
+| TP Nhân sự | Đặng Văn Khôi | `tp.hr@omnibiz.vn` | Phòng Nhân Sự |
+| Kế toán trưởng | Nguyễn Thị Hạnh | `ketoan.truong@omnibiz.vn` | Phòng Tài Chính |
+| NV Kinh doanh | Vũ Ngọc Hải | `vu.ngoc.hai@omnibiz.vn` | Phòng Kinh Doanh |
+| Quản trị hệ thống | System Administrator | `sysadmin@omnibiz.vn` | Phòng Công Nghệ Thông Tin |
 
 ---
 
-### 🤝 Bước 2: Quản lý khách hàng & Cơ hội bán hàng (CRM)
-*Bộ phận kinh doanh tìm kiếm, chăm sóc và ghi nhận cơ hội bán hàng lớn từ Tập đoàn Vingroup.*
+## 2. Đạo cụ dữ liệu đã chuẩn bị
 
-* **Người thực hiện:** Nhân Viên Kinh Doanh (Vũ Ngọc Hải - `vu.ngoc.hai@omnibiz.vn`)
-* **Chức năng chính:** Quản lý Khách hàng, Cơ hội bán hàng, Lịch sử tương tác.
-* **Đường dẫn trên UI:** `/Customers` và `/SalesOpportunity`
-* **Các bước thao tác:**
-  1. Đăng nhập với tài khoản `vu.ngoc.hai@omnibiz.vn`.
-  2. Truy cập **Khách hàng** -> Chọn **Tập đoàn Vingroup** (`CUST-002`) để xem thông tin chi tiết.
-  3. Truy cập **Cơ hội bán hàng (Sales Opportunities)** -> Chọn **Tạo cơ hội mới**:
-     * **Tiêu đề:** *Triển khai ERP cho Vingroup*
-     * **Giá trị ước tính:** *500.000.000 VNĐ*
-     * **Giai đoạn:** *Đề xuất (Proposal)*
-     * **Tỷ lệ thành công:** *70%*
-     * **Mức độ nhiệt (Temperature):** *Ấm (Warm)*
-  4. Ghi nhận một **Tương tác (Interaction)**: Tạo cuộc họp khởi động dự án trực tiếp với đại diện Vingroup để chốt yêu cầu kỹ thuật.
-
----
-
-### 💻 Bước 3: Đề xuất yêu cầu vận hành & Phân tích rủi ro bằng AI
-*Để chuẩn bị hạ tầng đáp ứng dự án ERP lớn của Vingroup, bộ phận IT cần nâng cấp hệ thống Server Core.*
-
-* **Người thực hiện:** Trưởng Phòng IT (Phạm Đức Anh - `tp.it@omnibiz.vn`)
-* **Chức năng chính:** Tạo Đề xuất vận hành, Sử dụng Gemini AI phân tích rủi ro.
-* **Đường dẫn trên UI:** `/Operations` hoặc `/Operations/Create`
-* **Các bước thao tác:**
-  1. Đăng nhập với tài khoản `tp.it@omnibiz.vn`.
-  2. Truy cập **Yêu cầu vận hành (Operation Requests)** -> Chọn **Tạo yêu cầu mới**:
-     * **Tiêu đề:** *Nâng cấp hệ thống server core*
-     * **Loại yêu cầu:** *IT-SUPPORT*
-     * **Độ ưu tiên:** *Cao (High)*
-     * **Tổng kinh phí dự kiến:** *50.000.000 VNĐ*
-     * **Mô tả:** *Cần nâng cấp thêm RAM và ổ cứng cho cụm server database để đáp ứng tải tăng cao của hệ thống ERP.*
-  3. Nhấp vào nút **AI Insights / Phân tích rủi ro AI** (sử dụng Gemini API tích hợp):
-     * Hệ thống gửi ngữ cảnh yêu cầu qua Gemini để phân tích.
-     * AI trả về báo cáo phân tích: *Việc nâng cấp server DB có thể gây downtime 2-4 tiếng ảnh hưởng đến giao dịch hiện tại. Khuyến nghị thực hiện nâng cấp vào 2h sáng Chủ Nhật và chuẩn bị sẵn phương án backup dữ liệu dự phòng.*
-  4. Trưởng phòng IT ghi nhận đề xuất của AI vào kế hoạch và nhấn **Gửi duyệt (Submit)** yêu cầu để chuyển lên cấp trên.
+1. Summary cuộc họp mẫu để import OKR/KPI: [demo_meeting_summary_q3_2026.md](/d:/DATN/OmniBizAI/docs/demo_meeting_summary_q3_2026.md)
+2. Route import mới: `/KpiSetup/ImportMeetingSummary`
+3. Khách hàng chiến lược đã seed:
+   - `CUST-002` Tập đoàn Vingroup
+   - Site: `SITE-VGR-HCM`, `SITE-VGR-HN`
+   - Contact: Nguyễn Thùy Dương, Phạm Quốc Cường
+4. Mission/Vision đã seed sẵn cho demo import:
+   - Tăng doanh thu recurring từ khách hàng hiện hữu 25% trong năm 2026
+   - Rút ngắn thời gian go-live trung bình còn 30 ngày
+   - Nâng điểm NPS khách hàng doanh nghiệp lên tối thiểu 55 điểm
+5. Evaluation period đã seed sẵn:
+   - `Đánh giá hiệu suất Q3/2026`
+   - `Đánh giá tháng 07/2026`
+   - `Đánh giá tháng 08/2026`
+   - `Đánh giá tháng 09/2026`
 
 ---
 
-### ✍️ Bước 4: Quy trình phê duyệt đa cấp (Approval Flow)
-*Yêu cầu nâng cấp Server IT trị giá 50 triệu VNĐ cần được duyệt qua Trưởng phòng Tài chính (để kiểm tra ngân sách) và Giám đốc (để phê duyệt tối cao).*
+## 3. Bản đồ coverage module
 
-* **Người thực hiện:** 
-  1. Trưởng Phòng Tài Chính (Võ Thị Lan Anh - `tp.finance@omnibiz.vn`)
-  2. Giám Đốc (Nguyễn Minh Tuấn - `giamdoc@omnibiz.vn`)
-* **Chức năng chính:** Danh sách phê duyệt của tôi (My Tasks), Duyệt/Từ chối yêu cầu.
-* **Đường dẫn trên UI:** `/Approvals/MyTasks`
-* **Các bước thao tác:**
-  1. **Duyệt cấp 1 (Tài chính):** 
-     * Đăng nhập với tài khoản `tp.finance@omnibiz.vn`.
-     * Truy cập mục **Phê duyệt của tôi (My Tasks)** -> Chọn yêu cầu *Nâng cấp hệ thống server core*.
-     * Kiểm tra hạn mức ngân sách IT Quý 2 (`BD-IT-Q2` còn đủ hạn mức).
-     * Nhập ghi chú: *"Đã kiểm tra ngân sách IT Q2, đủ hạn mức chi."* và bấm **Phê duyệt (Approve)**.
-  2. **Duyệt cấp 2 (Lãnh đạo phê duyệt tối cao):**
-     * Đăng nhập với tài khoản `giamdoc@omnibiz.vn`.
-     * Truy cập mục **Phê duyệt của tôi (My Tasks)** -> Chọn yêu cầu đã qua bước Tài chính.
-     * Xem chi tiết rủi ro AI đã phân tích.
-     * Nhập ghi chú: *"Đồng ý triển khai gấp, chú ý sao lưu dữ liệu trước khi thực hiện."* và bấm **Phê duyệt (Approve)**.
+| Cảnh | Module được cover |
+|---|---|
+| Cảnh 1 | Mission/Vision, OKR, KPI Setup, Import từ summary cuộc họp |
+| Cảnh 2 | CRM, Customer, Contact, Site, Sales Opportunity |
+| Cảnh 3 | Order Management, Order Process |
+| Cảnh 4 | Operations, AI Insights |
+| Cảnh 5 | Approvals |
+| Cảnh 6 | Workflow Kanban, Operation Plans |
+| Cảnh 7 | Resource Management, Maintenance |
+| Cảnh 8 | Procurement, Purchase Order, Inventory, Goods Receipt, Goods Issue |
+| Cảnh 9 | Finance, Budget, Payment Request, Expenses, Cash Book |
+| Cảnh 10 | KPI Check-in, Evaluation, Leave |
+| Cảnh 11 | Dashboard, Reports, Anomaly Alerts, Settings |
 
 ---
 
-### 📋 Bước 5: Chuyển đổi công việc & Quản lý Kanban (Workflow)
-*Sau khi Yêu cầu Vận hành được duyệt, Trưởng phòng IT tiến hành lập kế hoạch chi tiết dưới dạng các thẻ công việc trên bảng Kanban.*
+## 4. Vở diễn chính
 
-* **Người thực hiện:** Trưởng Phòng IT (Phạm Đức Anh - `tp.it@omnibiz.vn`)
-* **Chức năng chính:** Kanban Board, Tạo/Cập nhật công việc, Giao việc, Viết Checklist và Bình luận.
-* **Đường dẫn trên UI:** `/Workflow/Kanban`
-* **Các bước thao tác:**
-  1. Đăng nhập với tài khoản `tp.it@omnibiz.vn`.
-  2. Truy cập **Quy trình & Kanban (Workflow)** -> Thấy các công việc được tự động chuyển đổi từ yêu cầu vận hành hoặc tạo thủ công:
-     * *Khảo sát và đánh giá hệ thống hiện tại* (Trạng thái: *In Progress*)
-     * *Lên kế hoạch mua sắm thiết bị* (Trạng thái: *Todo*)
-  3. Chọn thẻ công việc *Khảo sát và đánh giá hệ thống hiện tại* để xem chi tiết:
-     * **Giao việc (Assignee):** Gán cho bản thân (`tp.it@omnibiz.vn`).
-     * **Tạo Checklist:**
-       - [x] *Kiểm tra RAM usage server web*
-       - [x] *Kiểm tra Disk IOPS server db*
-       - [ ] *Tổng hợp report đánh giá cấu hình cần mua*
-     * **Bình luận (Comments):** Ghi chú tiến độ: *"Đã hoàn thành kiểm tra RAM và Disk IOPS. Đang đợi báo giá linh kiện từ phía Vendor."*
-  4. Thực hiện kéo thả thẻ công việc từ cột **Todo** sang **In Progress** hoặc **Done** trên giao diện trực quan.
+## Cảnh 1. Phòng họp điều hành: import OKR/KPI từ summary cuộc họp
 
----
+**Thời điểm:** sáng ngày **02/07/2026**
 
-### 📦 Bước 6: Yêu cầu mua sắm thiết bị & Nhập kho (Procurement & Inventory)
-*Triển khai mua sắm linh kiện thiết bị Server Dell PowerEdge theo phê duyệt.*
+**Lời thoại mở màn**
 
-* **Người thực hiện:** 
-  1. Trưởng Phòng IT (`tp.it@omnibiz.vn`)
-  2. Nhân Viên Kho / Trưởng Phòng Vận Hành (Ngô Thị Thanh Hằng - `tp.ops@omnibiz.vn`)
-* **Chức năng chính:** Yêu cầu mua sắm, Đơn mua hàng (PO), Phiếu nhập kho, Cảnh báo kho.
-* **Đường dẫn trên UI:** `/Procurement` và `/Inventory`
-* **Các bước thao tác:**
-  1. **Đề xuất mua sắm:** Trưởng phòng IT tạo **Đề xuất mua sắm (Procurement Request - PR)** cho sản phẩm *Dell PowerEdge Server* gửi đến nhà cung cấp *Dell Việt Nam* (`VND-DELL`).
-  2. **Tạo Đơn mua hàng:** Bộ phận mua hàng/kế toán chuyển đổi PR thành **Đơn mua hàng (Purchase Order - PO)** gửi nhà cung cấp.
-  3. **Nhập kho thiết bị:** 
-     * Khi hàng được giao đến, Trưởng phòng Vận hành (`tp.ops@omnibiz.vn`) vào mục **Nhập kho (Goods Receipts)** -> Tạo phiếu nhập kho liên kết với PO.
-     * Hệ thống tự động cập nhật số lượng tồn kho sản phẩm *Dell PowerEdge Server* trong kho.
-     * Hệ thống giải tỏa trạng thái cảnh báo **Tồn kho thấp (Low Stock Alert)** của sản phẩm này thành trạng thái bình thường.
+- Giám đốc: “Quý 3 này chúng ta phải tăng doanh thu từ khách hàng hiện hữu, không chỉ bán thêm mà còn phải go-live nhanh hơn.”
+- TP Kinh doanh: “Sales cần KPI theo doanh thu upsell từng tháng.”
+- TP Marketing: “Marketing sẽ chịu KPI về số demo upsell đủ điều kiện.”
+- TP Vận hành: “Operations cam kết giảm thời gian go-live và kéo NPS lên.”
 
----
+**Người thao tác:** `giamdoc@omnibiz.vn`
 
-### 💵 Bước 7: Yêu cầu thanh toán & Ghi nhận sổ quỹ (Finance)
-*Thực hiện thanh toán đợt 1 cho nhà cung cấp thiết bị và ghi nhận chi phí vào sổ quỹ tiền mặt.*
+**Màn hình**
 
-* **Người thực hiện:**
-  1. Trưởng Phòng IT (`tp.it@omnibiz.vn`)
-  2. Kế Toán Trưởng (Nguyễn Thị Hạnh - `ketoan.truong@omnibiz.vn`)
-* **Chức năng chính:** Yêu cầu thanh toán (Payment Requests), Quản lý chi phí (Expenses), Sổ quỹ (Cash Book).
-* **Đường dẫn trên UI:** `/Finance` hoặc `/CashBook`
-* **Các bước thao tác:**
-  1. **Tạo yêu cầu thanh toán:** Trưởng phòng IT đăng nhập, tạo **Yêu cầu thanh toán (Payment Request)** trị giá *25.000.000 VNĐ* đợt 1 cho thiết bị server.
-  2. **Duyệt và Chi tiền:**
-     * Kế toán trưởng đăng nhập `ketoan.truong@omnibiz.vn`.
-     * Duyệt yêu cầu thanh toán trên.
-     * Thực hiện chi tiền và ghi nhận giao dịch chi (TransactionType: *Expense*, Category: *Mua sắm trang thiết bị*) trị giá *25.000.000 VNĐ* vào **Sổ quỹ (Cash Book)**.
-     * Số tiền này tự động khấu trừ vào **Ngân sách IT Q2/2026** (`BD-IT-Q2`), giúp kiểm soát ngân sách theo thời gian thực.
+1. Vào `/MissionVision`
+2. Xác nhận các chiến lược seed sẵn đã có trong hệ thống
+3. Vào `/KpiSetup/ImportMeetingSummary`
+4. Nhấn `Nạp mẫu demo Q3/2026`
+5. Nhấn `Phân tích summary và dựng preview`
+6. Kiểm tra preview:
+   - 1 objective
+   - 4 key result
+   - 4 KPI
+   - match được Sales, Marketing, Operations
+   - match được kỳ `Đánh giá hiệu suất Q3/2026`
+7. Nhấn `Tạo 1 OKR + 4 KPI`
+
+**Kết quả mong đợi**
+
+1. Hệ thống tạo 1 objective:
+   - `Tăng doanh thu khách hàng hiện hữu thêm 18% trong Q3/2026 thông qua upsell gói dịch vụ ERP và rút ngắn thời gian triển khai`
+2. Hệ thống tạo 4 KR:
+   - Doanh thu upsell đạt 18 tỷ
+   - Tỷ lệ chốt cơ hội upsell đạt 32%
+   - Thời gian go-live giảm còn 21 ngày
+   - NPS đạt 55 điểm
+3. Hệ thống tạo 4 KPI linked với từng KR
+4. Có thể mở `/Okr/Details/{id}` để chứng minh objective, KR và mapping phòng ban đã được tạo thật
+
+**Thông điệp demo**
+
+“Điểm nhấn ở đây là ban điều hành không cần nhập tay từng OKR/KPI sau họp nữa. Summary cuộc họp được chuyển thành cấu hình thực thi ngay trong hệ thống.”
 
 ---
 
-### 🎖️ Bước 8: Đánh giá hiệu suất nhân sự cuối kỳ (HR / Performance Evaluation)
-*Cuối quý, hệ thống tự động tổng hợp kết quả OKR/KPI để đánh giá hiệu quả công việc của nhân sự.*
+## Cảnh 2. Đội kinh doanh tiếp nhận mục tiêu: CRM và cơ hội bán hàng
 
-* **Người thực hiện:**
-  1. Trưởng Phòng Nhân Sự (Đặng Văn Khôi - `tp.hr@omnibiz.vn`)
-  2. Trưởng Phòng IT (`tp.it@omnibiz.vn`)
-  3. Giám Đốc (`giamdoc@omnibiz.vn`)
-* **Chức năng chính:** Check-in KPI, Đánh giá nhân sự.
-* **Đường dẫn trên UI:** `/KpiCheckIn` và `/Evaluation`
-* **Các bước thao tác:**
-  1. **Check-in kết quả:** Trưởng phòng IT thực hiện **Check-in KPI** cuối tháng/quý: Báo cáo tỷ lệ uptime đạt 99.9%, hệ thống ghi nhận.
-  2. **Tự đánh giá:** Trưởng phòng IT tự đánh giá năng lực trong kỳ đánh giá *Đánh giá hiệu suất Quý 1/2026*.
-  3. **Đánh giá của Quản lý:** Giám đốc đăng nhập, chấm điểm đánh giá hiệu suất cho Trưởng phòng IT:
-     * **Tổng điểm:** *85.0/100*
-     * **Xếp loại:** *B+*
-     * **Nhận xét:** *Hệ thống hạ tầng hoạt động ổn định, dự án server triển khai đúng tiến độ. Cần cải thiện thêm tốc độ hỗ trợ ticket nội bộ.*
+**Thời điểm:** chiều ngày **02/07/2026**
+
+**Lời thoại**
+
+- TP Kinh doanh: “Muốn đạt 18 tỷ upsell thì phải ưu tiên nhóm enterprise hiện hữu trước.”
+- NV Kinh doanh: “Em sẽ bám Vingroup vì bên đó đang có nhu cầu mở rộng rollout.”
+
+**Người thao tác:** `vu.ngoc.hai@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Customers`
+2. Mở khách hàng `CUST-002 - Tập đoàn Vingroup`
+3. Trình diễn luôn:
+   - contact chính
+   - 2 địa điểm triển khai
+4. Vào `/SalesOpportunity`
+5. Tạo mới cơ hội:
+   - Tiêu đề: `Upsell rollout ERP giai đoạn 2 cho Vingroup`
+   - Giá trị ước tính: `18.000.000.000`
+   - Giai đoạn: `Proposal`
+   - Probability: `65%`
+   - Temperature: `Warm`
+6. Ghi nhận interaction:
+   - Subject: `Họp scope rollout Q3/2026`
+   - Type: `Meeting`
+   - Priority: `High`
+
+**Kết quả mong đợi**
+
+1. CRM thể hiện khách hàng, site, contact, lịch sử tương tác
+2. Sales opportunity xuất hiện trên pipeline
+3. Có thể nói rõ đây chính là đầu vào thực tế để nuôi `KR1` và `KR2`
 
 ---
 
-### 📊 Bước 9: Phân tích Dashboard thông minh & Cảnh báo bất thường bằng AI
-*Nhà lãnh đạo xem xét bức tranh toàn cảnh doanh nghiệp thông qua các biểu đồ phân tích thông minh và nhận cảnh báo sớm rủi ro tài chính.*
+## Cảnh 3. Từ cơ hội sang thực thi: Order Management và Order Process
 
-* **Người thực hiện:** Giám Đốc (Nguyễn Minh Tuấn - `giamdoc@omnibiz.vn`)
-* **Chức năng chính:** Dashboard tổng hợp, AI Insights, Phát hiện bất thường chi phí (Anomaly Alerts).
-* **Đường dẫn trên UI:** `/Dashboard` hoặc `/AnomalyAlerts`
-* **Các bước thao tác:**
-  1. Đăng nhập với tài khoản `giamdoc@omnibiz.vn`.
-  2. Xem các chỉ số tài chính, doanh thu, tiến độ OKRs, ngân sách phòng ban trên **Dashboard tổng thể**.
-  3. Hệ thống tích hợp dịch vụ **Phát hiện bất thường (Anomaly Detection Service)** tự động quét dữ liệu:
-     * Phát hiện một chi phí tăng đột biến bất thường (như mua sắm server hoặc chi phí vượt ngân sách dự kiến).
-     * Đưa ra **Cảnh báo bất thường (Anomaly Alerts)** kèm phân tích nguyên nhân để Giám đốc kịp thời kiểm soát rủi ro dòng tiền.
+**Thời điểm:** ngày **03/07/2026**
+
+**Lời thoại**
+
+- TP Kinh doanh: “Nếu Vingroup duyệt proposal, đơn hàng phải vào hệ thống ngay để vận hành và tài chính bám được.”
+
+**Người thao tác:** `tp.sales@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/OrderManagement`
+2. Tạo một đơn hàng/dự án dịch vụ mới cho rollout ERP giai đoạn 2
+3. Gắn mô tả liên quan Vingroup, giá trị hợp đồng dự kiến, deadline triển khai
+4. Vào `/OrderProcess`
+5. Trình diễn luồng trạng thái xử lý đơn hàng
+
+**Thông điệp demo**
+
+“Cơ hội bán hàng không đứng riêng. Khi chín muồi, nó đi tiếp vào order/process để các phòng ban downstream bám tiến độ thật.”
 
 ---
 
-## 💡 Hướng Dẫn Validate Hệ Thống (Dành Cho Nhà Phát Triển)
+## Cảnh 4. Đội IT và vận hành mở yêu cầu thực thi: Operations + AI Insights
 
-Để đảm bảo dữ liệu sẵn sàng phục vụ buổi demo, vui lòng kiểm tra các điều kiện sau:
+**Thời điểm:** ngày **04/07/2026**
 
-1. **Khởi chạy ứng dụng:** 
-   Chạy lệnh `npm run dev` (hoặc khởi động server ASP.NET Core thông qua Visual Studio/VS Code) để chạy dự án tại local.
-2. **Khởi tạo dữ liệu mẫu (Seed Data):**
-   * Đảm bảo rằng file `Data/Seed/seed_data.sql` đã được import thành công vào database.
-   * Khi khởi động dự án lần đầu, `Program.cs` sẽ tự động chạy migration và băm mật khẩu (`123`) cho các tài khoản mặc định.
-3. **Cấu hình AI (Gemini API Key):**
-   * Kiểm tra cấu hình API Key của Google Gemini trong file `appsettings.json` hoặc `appsettings.Development.json` tại mục:
-     ```json
-     "Gemini": {
-       "ApiKey": "YOUR_GEMINI_API_KEY_HERE"
-     }
-     ```
-   * Đảm bảo API Key hợp lệ để kiểm thử các tính năng phân tích rủi ro yêu cầu vận hành (AI Insights) và phát hiện bất thường hoạt động trơn tru.
+**Lời thoại**
+
+- TP Vận hành: “Muốn go-live trong 21 ngày thì hạ tầng và kế hoạch triển khai phải nâng cấp.”
+- TP CNTT: “Tôi sẽ tạo yêu cầu vận hành và cho AI phân tích rủi ro ngay.”
+
+**Người thao tác:** `tp.it@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Operations/Create`
+2. Tạo yêu cầu:
+   - Tiêu đề: `Nâng cấp hạ tầng triển khai ERP cho Vingroup phase 2`
+   - Type: `IT-SUPPORT`
+   - Priority: `High`
+   - Tổng kinh phí dự kiến: `50.000.000`
+   - Mô tả: thêm RAM, SSD, backup plan, lịch cutover
+3. Mở AI Insights từ module Operations
+4. Hỏi AI theo ngữ cảnh:
+   - “Phân tích rủi ro downtime và đề xuất lịch nâng cấp phù hợp”
+
+**Kết quả mong đợi**
+
+1. Yêu cầu vận hành mới xuất hiện trong danh sách
+2. Phần AI trả về phân tích rủi ro và gợi ý giờ nâng cấp
+3. Đây là bước nối giữa mục tiêu chiến lược và công việc triển khai thật
+
+---
+
+## Cảnh 5. Phê duyệt đa cấp
+
+**Thời điểm:** ngày **04/07/2026**
+
+**Lời thoại**
+
+- TP Tài chính: “Tôi chỉ duyệt khi nhìn thấy ngân sách còn đủ.”
+- Giám đốc: “Nếu rủi ro AI đã rõ và ngân sách ổn, tôi duyệt để chạy kịp quý.”
+
+**Người thao tác**
+
+1. `tp.finance@omnibiz.vn`
+2. `giamdoc@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Approvals/MyTasks`
+2. Tài chính duyệt bước 1, ghi chú:
+   - `Ngân sách IT hiện còn đủ cho hạng mục nâng cấp`
+3. Giám đốc duyệt bước 2, ghi chú:
+   - `Phê duyệt, yêu cầu backup đầy đủ trước cutover`
+
+**Kết quả mong đợi**
+
+1. Approval task đổi trạng thái
+2. Operation request đi từ submitted sang approved/in progress
+3. Có thể mở audit trail hoặc activity log để chứng minh phê duyệt đa cấp
+
+---
+
+## Cảnh 6. Chuyển yêu cầu thành kế hoạch và công việc: Workflow Kanban + Operation Plans
+
+**Thời điểm:** ngày **05/07/2026**
+
+**Lời thoại**
+
+- TP CNTT: “Sau khi duyệt, tôi không muốn chỉ có một request. Tôi cần checklist, người phụ trách, deadline và tiến độ nhìn được ngay.”
+
+**Người thao tác:** `tp.it@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Workflow/Kanban`
+2. Trình diễn các thẻ công việc được sinh ra hoặc tạo thêm:
+   - Khảo sát hạ tầng
+   - Chốt cấu hình mua sắm
+   - Chuẩn bị backup
+3. Kéo thả trạng thái `Todo -> In Progress -> Done`
+4. Vào `/OperationPlans/Create`
+5. Tạo kế hoạch triển khai cutover từ **06/07/2026** đến **20/07/2026**
+6. Nếu có AI plan analysis, trình diễn thêm phần phân tích rủi ro lịch
+
+**Kết quả mong đợi**
+
+1. Lãnh đạo thấy được request không còn là “một tờ phiếu”
+2. Nó đã biến thành work items có deadline, có assignee và có plan thực thi
+
+---
+
+## Cảnh 7. Bảo đảm nguồn lực và độ sẵn sàng: Resource Management + Maintenance
+
+**Thời điểm:** ngày **06/07/2026**
+
+**Lời thoại**
+
+- TP Vận hành: “Nếu thiết bị, ca trực và lịch bảo trì không sẵn sàng thì KR3 sẽ vỡ.”
+
+**Người thao tác:** `tp.ops@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/ResourceManagement`
+2. Xem phân công không gian, thiết bị, ca làm việc hoặc chứng chỉ nhân sự
+3. Vào `/Maintenance`
+4. Tạo hoặc mở sự cố/bảo trì liên quan server triển khai
+5. Nếu phù hợp, bấm phân tích AI cho incident
+
+**Thông điệp demo**
+
+“OmniBizAI không chỉ quản KPI trên giấy. Nó còn chạm tới tài nguyên, thiết bị và readiness thực tế để mục tiêu khả thi.”
+
+---
+
+## Cảnh 8. Mua sắm và kho: Procurement + Inventory
+
+**Thời điểm:** ngày **07/07/2026**
+
+**Lời thoại**
+
+- TP CNTT: “Đã duyệt thì phải mua hàng và nhập kho theo đúng trace.”
+- TP Vận hành: “Tôi cần nhìn được hàng về kho trước khi triển khai.”
+
+**Người thao tác**
+
+1. `tp.it@omnibiz.vn`
+2. `tp.ops@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Procurement`
+2. Tạo Procurement Request cho server/phụ kiện
+3. Chuyển sang Purchase Order
+4. Vào `/GoodsReceipt/Create`
+5. Lập phiếu nhập kho theo PO
+6. Vào `/Inventory`
+7. Xem tồn kho, cảnh báo stock alert, threshold
+8. Nếu cần, trình diễn `/GoodsIssue/Create` để xuất thiết bị cho đội triển khai
+
+**Kết quả mong đợi**
+
+1. Chuỗi PR -> PO -> GR hoạt động đầy đủ
+2. Dashboard kho phản ánh được thay đổi tồn
+3. Có thể nói rõ chi phí này là phần thực thi cho OKR đã import từ cuộc họp
+
+---
+
+## Cảnh 9. Thanh toán và dòng tiền: Finance + Cash Book
+
+**Thời điểm:** ngày **08/07/2026**
+
+**Lời thoại**
+
+- TP Tài chính: “Tôi muốn biết khoản mua này ăn vào ngân sách nào.”
+- Kế toán trưởng: “Sau khi duyệt thanh toán, sổ quỹ phải phản ánh ngay.”
+
+**Người thao tác**
+
+1. `tp.it@omnibiz.vn`
+2. `ketoan.truong@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Finance`
+2. Tạo Payment Request đợt 1 cho hạng mục nâng cấp
+3. Mở Budget IT để chỉ ra hạn mức còn lại
+4. Kế toán trưởng duyệt/ghi nhận expense
+5. Vào `/CashBook`
+6. Trình diễn giao dịch chi tiền đã xuất hiện
+
+**Kết quả mong đợi**
+
+1. Budget usage thay đổi theo thời gian thực
+2. Cash transaction phản ánh luồng tiền chi thật
+3. Đây là điểm cực mạnh để demo “từ mục tiêu -> công việc -> tiền”
+
+---
+
+## Cảnh 10. Cuối tháng đầu quý: KPI Check-in + Evaluation + Leave
+
+**Thời điểm:** ngày **31/07/2026**
+
+**Lời thoại**
+
+- TP Kinh doanh: “Tháng đầu quý tôi muốn check-in luôn KPI upsell.”
+- TP Nhân sự: “Dữ liệu KPI phải chảy xuống đánh giá hiệu suất cuối kỳ.”
+
+**Người thao tác**
+
+1. `tp.sales@omnibiz.vn`
+2. `tp.ops@omnibiz.vn`
+3. `tp.hr@omnibiz.vn`
+4. `giamdoc@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/KpiCheckIn`
+2. Check-in KPI doanh thu upsell, KPI lead upsell, KPI go-live hoặc NPS
+3. Nếu muốn cover thêm HR, vào `/Leave/Create`
+4. Tạo một đơn nghỉ phép mẫu cho nhân sự triển khai
+5. Vào `/Evaluation/Create`
+6. Tạo evaluation cuối kỳ gắn với period `Đánh giá hiệu suất Q3/2026`
+
+**Kết quả mong đợi**
+
+1. KPI imported ở Cảnh 1 có thể check-in thật
+2. Evaluation lấy được ngữ cảnh từ kỳ đánh giá
+3. HR module không đứng riêng mà sống cùng nhịp quản trị hiệu suất
+
+---
+
+## Cảnh 11. Tổng kết với lãnh đạo: Dashboard + Reports + Anomaly Alerts + Settings
+
+**Thời điểm:** ngày **01/08/2026**
+
+**Lời thoại kết**
+
+- Giám đốc: “Tôi muốn mở một màn hình và thấy từ chiến lược, doanh thu, vận hành, ngân sách đến rủi ro.”
+
+**Người thao tác:** `giamdoc@omnibiz.vn` hoặc `sysadmin@omnibiz.vn`
+
+**Màn hình**
+
+1. Vào `/Dashboard`
+2. Vào `/Okr/Dashboard`
+3. Vào `/Reports/KpiOkr`, `/Reports/Executive`, `/Reports/Finance`, `/Reports/Crm`
+4. Vào `/AnomalyAlerts`
+5. Nếu cần kết thúc đẹp, vào `/Settings/Company` hoặc `/Settings/Modules` để cho thấy hệ thống còn hỗ trợ cấu hình doanh nghiệp
+
+**Kết quả mong đợi**
+
+1. Dashboard hiển thị OKR/KPI vừa import cùng dữ liệu vận hành và tài chính
+2. Reports cho thấy cùng một câu chuyện nhưng dưới góc nhìn lãnh đạo
+3. Anomaly Alerts cho thấy lớp cảnh báo chủ động, không chờ sự cố bùng nổ rồi mới phản ứng
+
+---
+
+## 5. Checklist để buổi demo “mượt như thật”
+
+1. Seed lại database trước buổi demo bằng `Data/Seed/seed_data.sql`
+2. Đảm bảo đăng nhập được bằng các tài khoản ở mục 1
+3. Ưu tiên bắt đầu bằng `/KpiSetup/ImportMeetingSummary` vì đây là “wow moment”
+4. Sau mỗi cảnh chỉ cần chốt một câu: dữ liệu từ bước trước đã chảy sang bước sau như thế nào
+5. Nếu thời gian ngắn, chạy tối thiểu 5 cảnh:
+   - Cảnh 1
+   - Cảnh 2
+   - Cảnh 4
+   - Cảnh 9
+   - Cảnh 11
+
+---
+
+## 6. Câu chốt khi kết thúc demo
+
+“OmniBizAI không chỉ là bộ màn hình rời rạc. Một summary cuộc họp ngày 02/07/2026 có thể được biến thành OKR/KPI thực thi, rồi toàn bộ dữ liệu ấy tiếp tục sống trong CRM, vận hành, phê duyệt, mua sắm, kho, tài chính, nhân sự và dashboard lãnh đạo mà không cần nhập đi nhập lại bằng tay.”
