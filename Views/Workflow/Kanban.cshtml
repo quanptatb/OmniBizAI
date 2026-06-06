@@ -4,6 +4,14 @@
     ViewData["Title"] = "Kanban workflow";
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Kanban</span>";
     var colList = Model.Columns.OrderBy(c => c.SortOrder).ToList();
+    object? burndownData = Model.Burndown is null
+        ? null
+        : new
+        {
+            labels = Model.Burndown.Points.Select(p => p.DateLabel),
+            ideal = Model.Burndown.Points.Select(p => p.IdealRemaining),
+            actual = Model.Burndown.Points.Select(p => p.ActualRemaining)
+        };
 }
 
 <style>
@@ -83,6 +91,12 @@
         box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
     }
 
+    .kanban-column.wip-exceeded {
+        border-color: rgba(255, 59, 48, 0.3);
+        border-top-color: #ff3b30 !important;
+        box-shadow: 0 10px 32px rgba(255, 59, 48, 0.12);
+    }
+
     .kanban-column-header {
         padding: 16px;
         display: flex;
@@ -119,6 +133,37 @@
         font-size: 11px;
         color: #86868b;
         margin-top: 2px;
+    }
+
+    .column-subline {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 3px;
+    }
+
+    .wip-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        width: fit-content;
+        border-radius: 999px;
+        padding: 2px 7px;
+        font-size: 10px;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.05);
+        color: #6e6e73;
+    }
+
+    .wip-badge.is-limited {
+        background: rgba(0, 122, 255, 0.1);
+        color: #0058b0;
+    }
+
+    .wip-badge.is-exceeded {
+        background: rgba(255, 59, 48, 0.12);
+        color: #c01818;
     }
 
     .inline-column-input {
@@ -366,6 +411,115 @@
             padding-bottom: 10px;
         }
     }
+
+    .swimlane-toggle {
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 12px;
+        padding: 3px;
+        display: inline-flex;
+        gap: 2px;
+    }
+
+    .swimlane-toggle button {
+        border: 0;
+        background: transparent;
+        color: #6e6e73;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .swimlane-toggle button.active {
+        background: #ffffff;
+        color: #1d1d1f;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .swimlane-label {
+        font-size: 10px;
+        font-weight: 800;
+        color: #6e6e73;
+        text-transform: uppercase;
+        letter-spacing: 0;
+        padding: 7px 8px 3px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .kanban-card-ghost {
+        opacity: .45;
+        transform: rotate(1deg);
+    }
+
+    .kanban-card.remote-sync {
+        outline: 2px solid rgba(0, 122, 255, .45);
+    }
+
+    .kanban-toast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1080;
+        max-width: 360px;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #1d1d1f;
+        color: #ffffff;
+        font-size: 13px;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, .2);
+    }
+
+    .kanban-toast.error {
+        background: #c01818;
+    }
+
+    .sprint-strip {
+        background: rgba(255, 255, 255, .64);
+        border: 1px solid rgba(0, 0, 0, .05);
+        border-radius: 14px;
+        padding: 14px;
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(260px, 420px);
+        gap: 18px;
+        align-items: center;
+    }
+
+    .sprint-kicker {
+        color: #86868b;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0;
+    }
+
+    .sprint-name {
+        font-size: 16px;
+        font-weight: 800;
+        color: #1d1d1f;
+        margin: 2px 0;
+    }
+
+    .sprint-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-right: 10px;
+        color: #6e6e73;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .burndown-shell {
+        height: 150px;
+        min-width: 0;
+    }
+
+    @@media (max-width: 992px) {
+        .sprint-strip {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
 <div class="kanban-page">
@@ -380,20 +534,107 @@
                     <span><i class="fa-solid fa-clock"></i> @Model.OverdueCards quá hạn</span>
                 </div>
             </div>
-            <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#newWorkItemModal">
-                <i class="fa-solid fa-plus me-2"></i>Tạo thẻ công việc
-            </button>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-action="Analytics" class="btn btn-light btn-sm rounded-pill px-3 py-2 border" style="font-weight:700">
+                    <i class="fa-solid fa-chart-line me-2"></i>Analytics
+                </a>
+                <button type="button" class="btn btn-light btn-sm rounded-pill px-3 py-2 border" style="font-weight:700" data-bs-toggle="modal" data-bs-target="#newSprintModal">
+                    <i class="fa-solid fa-flag-checkered me-2"></i>Tạo sprint
+                </button>
+                <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#newWorkItemModal">
+                    <i class="fa-solid fa-plus me-2"></i>Tạo thẻ công việc
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div class="swimlane-toggle" role="group" aria-label="Swimlane">
+                <button type="button" class="active" data-swimlane-mode="none"><i class="fa-solid fa-table-columns me-1"></i>Board</button>
+                <button type="button" data-swimlane-mode="assignee"><i class="fa-solid fa-user-check me-1"></i>Người</button>
+                <button type="button" data-swimlane-mode="department"><i class="fa-solid fa-sitemap me-1"></i>Phòng ban</button>
+                <button type="button" data-swimlane-mode="priority"><i class="fa-solid fa-flag me-1"></i>Ưu tiên</button>
+            </div>
+            <small style="color:#86868b;font-weight:600"><i class="fa-solid fa-arrows-up-down-left-right me-1"></i>Kéo thẻ giữa các cột để cập nhật realtime</small>
+        </div>
+
+        @if (Model.ActiveSprint is not null)
+        {
+            <div class="sprint-strip mb-3">
+                <div>
+                    <div class="sprint-kicker">Sprint / Iteration</div>
+                    <div class="sprint-name">@Model.ActiveSprint.Name</div>
+                    <div class="mb-2" style="color:#86868b;font-size:12px">@Model.ActiveSprint.DateRange · @Model.ActiveSprint.Goal</div>
+                    <div>
+                        <span class="sprint-stat"><i class="fa-solid fa-list-check"></i>@Model.ActiveSprint.TotalItems thẻ</span>
+                        <span class="sprint-stat"><i class="fa-solid fa-circle-check"></i>@Model.ActiveSprint.DoneItems xong</span>
+                        <span class="sprint-stat"><i class="fa-solid fa-hourglass-half"></i>@Model.ActiveSprint.RemainingItems còn lại</span>
+                    </div>
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        @if (Model.ActiveSprint.Status == SprintStatus.Planned)
+                        {
+                            <form asp-action="UpdateSprintStatus" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="sprintId" value="@Model.ActiveSprint.Id" />
+                                <input type="hidden" name="status" value="@SprintStatus.Active" />
+                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                <input type="hidden" name="sprint" value="@Model.SprintFilter" />
+                                <button type="submit" class="btn btn-sm btn-dark" style="border-radius:10px"><i class="fa-solid fa-play me-1"></i>Start</button>
+                            </form>
+                        }
+                        @if (Model.ActiveSprint.Status is SprintStatus.Active or SprintStatus.Planned)
+                        {
+                            <form asp-action="UpdateSprintStatus" method="post" class="d-inline" onsubmit="return confirm('Đóng sprint này?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="sprintId" value="@Model.ActiveSprint.Id" />
+                                <input type="hidden" name="status" value="@SprintStatus.Closed" />
+                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                <input type="hidden" name="sprint" value="@Model.SprintFilter" />
+                                <button type="submit" class="btn btn-sm btn-light border" style="border-radius:10px"><i class="fa-solid fa-lock me-1"></i>Close</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+                <div class="burndown-shell">
+                    @if (Model.Burndown is not null)
+                    {
+                        <canvas id="sprintBurndownChart"></canvas>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center h-100 text-muted" style="font-size:12px">Start sprint để xem burndown.</div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+            <a asp-action="Kanban" asp-route-quick="mine" class="btn btn-sm @(Model.QuickFilter == "mine" ? "btn-dark" : "btn-light border")" style="border-radius:999px"><i class="fa-solid fa-user-check me-1"></i>Của tôi</a>
+            <a asp-action="Kanban" asp-route-quick="overdue" class="btn btn-sm @(Model.QuickFilter == "overdue" ? "btn-dark" : "btn-light border")" style="border-radius:999px"><i class="fa-solid fa-clock me-1"></i>Quá hạn</a>
+            <a asp-action="Kanban" asp-route-quick="unassigned" class="btn btn-sm @(Model.QuickFilter == "unassigned" ? "btn-dark" : "btn-light border")" style="border-radius:999px"><i class="fa-solid fa-user-slash me-1"></i>Chưa giao</a>
+            @foreach (var saved in Model.SavedViews)
+            {
+                <span class="d-inline-flex align-items-center">
+                    <a asp-action="Kanban" asp-route-savedViewId="@saved.Id" class="btn btn-sm @(Model.SavedViewId == saved.Id ? "btn-dark" : "btn-light border")" style="border-radius:999px 0 0 999px"><i class="fa-solid fa-bookmark me-1"></i>@saved.Name</a>
+                    <form asp-action="DeleteKanbanView" method="post" onsubmit="return confirm('Xóa saved view này?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@saved.Id" />
+                        <button type="submit" class="btn btn-sm btn-light border" style="border-left:0;border-radius:0 999px 999px 0" title="Xóa saved view"><i class="fa-solid fa-xmark"></i></button>
+                    </form>
+                </span>
+            }
         </div>
 
         <form method="get" asp-action="Kanban" class="row g-3 align-items-end">
-            <div class="col-lg-5">
+            <div class="col-lg-4">
                 <label class="form-label text-muted small fw-bold">Tìm kiếm</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0" style="border-radius:10px 0 0 10px"><i class="fa-solid fa-search"></i></span>
                     <input type="text" name="search" value="@Model.SearchTerm" class="form-control border-start-0 bg-light" style="border-radius:0 10px 10px 0" placeholder="Mã yêu cầu, tiêu đề công việc...">
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <label class="form-label text-muted small fw-bold">Phòng ban</label>
                 <select name="dept" class="form-select bg-light" style="border-radius:10px">
                     <option value="">Tất cả phòng ban</option>
@@ -403,9 +644,84 @@
                     }
                 </select>
             </div>
-            <div class="col-lg-3 d-flex gap-2">
+            <div class="col-lg-3">
+                <label class="form-label text-muted small fw-bold">Sprint</label>
+                <select name="sprint" class="form-select bg-light" style="border-radius:10px">
+                    <option value="">Tất cả sprint</option>
+                    @foreach (var sprint in Model.SprintOptions)
+                    {
+                        <option value="@sprint.Value" selected="@(Model.SprintFilter?.ToString() == sprint.Value)">@sprint.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label text-muted small fw-bold">Người phụ trách</label>
+                <select name="assignedTo" class="form-select bg-light" style="border-radius:10px">
+                    <option value="">Tất cả</option>
+                    @foreach (var user in Model.Assignees)
+                    {
+                        <option value="@user.Value" selected="@(Model.AssignedToFilter?.ToString() == user.Value)">@user.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label text-muted small fw-bold">Ưu tiên</label>
+                <select name="priority" class="form-select bg-light" style="border-radius:10px">
+                    <option value="">Tất cả</option>
+                    @foreach (var p in Enum.GetValues<PriorityLevel>())
+                    {
+                        <option value="@p" selected="@(Model.PriorityFilter == p)">@p</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label text-muted small fw-bold">Tag</label>
+                <select name="tag" class="form-select bg-light" style="border-radius:10px">
+                    <option value="">Tất cả</option>
+                    @foreach (var tag in Model.TagOptions)
+                    {
+                        <option value="@tag.Value" selected="@(Model.TagFilter?.ToString() == tag.Value)">@tag.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label text-muted small fw-bold">Từ hạn</label>
+                <input type="date" name="dueFrom" value="@(Model.DueFrom?.ToString("yyyy-MM-dd"))" class="form-control bg-light" style="border-radius:10px" />
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label text-muted small fw-bold">Đến hạn</label>
+                <input type="date" name="dueTo" value="@(Model.DueTo?.ToString("yyyy-MM-dd"))" class="form-control bg-light" style="border-radius:10px" />
+            </div>
+            <div class="col-lg-2">
+                <label class="form-label text-muted small fw-bold">File</label>
+                <div class="form-check form-switch bg-light px-3 py-2" style="border-radius:10px">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" name="hasAttachment" value="true" id="hasAttachmentFilter" checked="@Model.HasAttachmentFilter">
+                    <label class="form-check-label small fw-bold" for="hasAttachmentFilter">Có file</label>
+                </div>
+            </div>
+            <input type="hidden" name="quick" value="@Model.QuickFilter" />
+            <div class="col-lg-2 d-flex gap-2">
                 <button type="submit" class="btn btn-dark w-100" style="border-radius:10px"><i class="fa-solid fa-filter me-2"></i>Lọc</button>
                 <a asp-action="Kanban" class="btn btn-light border" style="border-radius:10px" title="Xóa bộ lọc"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </form>
+        <form asp-action="SaveKanbanView" method="post" class="row g-2 align-items-end mt-2">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="search" value="@Model.SearchTerm" />
+            <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+            <input type="hidden" name="sprint" value="@Model.SprintFilter" />
+            <input type="hidden" name="assignedTo" value="@Model.AssignedToFilter" />
+            <input type="hidden" name="priority" value="@Model.PriorityFilter" />
+            <input type="hidden" name="tag" value="@Model.TagFilter" />
+            <input type="hidden" name="dueFrom" value="@(Model.DueFrom?.ToString("yyyy-MM-dd"))" />
+            <input type="hidden" name="dueTo" value="@(Model.DueTo?.ToString("yyyy-MM-dd"))" />
+            <input type="hidden" name="hasAttachment" value="@Model.HasAttachmentFilter.ToString().ToLowerInvariant()" />
+            <input type="hidden" name="quick" value="@Model.QuickFilter" />
+            <div class="col-lg-4">
+                <input type="text" name="name" class="form-control form-control-sm bg-light" style="border-radius:10px" maxlength="120" placeholder="Tên saved view..." />
+            </div>
+            <div class="col-lg-2">
+                <button type="submit" class="btn btn-sm btn-light border w-100" style="border-radius:10px"><i class="fa-solid fa-bookmark me-1"></i>Lưu view</button>
             </div>
         </form>
     </div>
@@ -417,12 +733,23 @@
             {
                 var column = colList[i];
                 var accentColor = string.IsNullOrWhiteSpace(column.AccentColor) ? "#8e8e93" : column.AccentColor;
+                var wipBadgeClass = column.IsWipExceeded ? "is-exceeded" : column.HasWipLimit ? "is-limited" : "";
 
-                <section class="kanban-column" style="border-top-color: @accentColor" data-column-id="@column.Id" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <section class="kanban-column @(column.IsWipExceeded ? "wip-exceeded" : "")" style="border-top-color: @accentColor" data-column-id="@column.Id">
                     <div class="kanban-column-header">
                         <div class="column-title-container" ondblclick="makeEditable(this, '@column.Id')" title="Nhấp đúp để đổi tên">
                             <h2>@column.Title</h2>
-                            <span>@column.Items.Count thẻ</span>
+                            <div class="column-subline">
+                                <span class="column-card-count">@column.Items.Count thẻ</span>
+                                <span class="wip-badge @wipBadgeClass" title="WIP limit" data-wip-limit="@column.WipLimit">
+                                    <i class="fa-solid @(column.IsWipExceeded ? "fa-triangle-exclamation" : "fa-gauge-simple-high")"></i>
+                                    @(column.HasWipLimit ? column.WipLabel : "Không giới hạn")
+                                </span>
+                                @if (column.WipEnforced)
+                                {
+                                    <span class="wip-badge is-limited" title="Chặn khi vượt WIP limit"><i class="fa-solid fa-lock"></i>Chặn</span>
+                                }
+                            </div>
                         </div>
                         
                         <!-- Column actions dropdown -->
@@ -440,6 +767,7 @@
                                             <input type="hidden" name="direction" value="left" />
                                             <input type="hidden" name="search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <input type="hidden" name="sprint" value="@Model.SprintFilter" />
                                             <button type="submit" class="dropdown-item"><i class="fa-solid fa-chevron-left me-2"></i>Di chuyển sang trái</button>
                                         </form>
                                     </li>
@@ -453,10 +781,30 @@
                                             <input type="hidden" name="direction" value="right" />
                                             <input type="hidden" name="search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <input type="hidden" name="sprint" value="@Model.SprintFilter" />
                                             <button type="submit" class="dropdown-item"><i class="fa-solid fa-chevron-right me-2"></i>Di chuyển sang phải</button>
                                         </form>
                                     </li>
                                 }
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <div class="px-3 py-2" style="min-width:230px">
+                                        <form asp-action="UpdateColumnWip" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="columnId" value="@column.Id" />
+                                            <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                            <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <input type="hidden" name="sprint" value="@Model.SprintFilter" />
+                                            <label class="form-label mb-1" style="font-size:11px;font-weight:700;color:#86868b">WIP limit</label>
+                                            <input type="number" name="wipLimit" value="@column.WipLimit" min="1" max="999" class="form-control form-control-sm mb-2" placeholder="Không giới hạn" style="border-radius:8px;font-size:12px" />
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" name="wipEnforced" value="true" id="wipEnforced_@column.Id" checked="@column.WipEnforced">
+                                                <label class="form-check-label" for="wipEnforced_@column.Id" style="font-size:12px">Chặn khi vượt</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-dark w-100" style="border-radius:8px;font-size:12px">Lưu WIP</button>
+                                        </form>
+                                    </div>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 @if (!column.IsDoneColumn && !column.IsCancelledColumn && i != 0)
                                 {
@@ -466,6 +814,7 @@
                                             <input type="hidden" name="columnId" value="@column.Id" />
                                             <input type="hidden" name="search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                                            <input type="hidden" name="sprint" value="@Model.SprintFilter" />
                                             <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash me-2"></i>Xóa thanh này</button>
                                         </form>
                                     </li>
@@ -494,13 +843,27 @@
                                 };
                             }
 
-                            <article class="kanban-card @priorityClass" draggable="true" ondragstart="drag(event)" data-card-id="@card.Id">
+                            <article class="kanban-card @priorityClass" data-card-id="@card.Id" data-column-id="@column.Id" data-assignee="@(card.AssignedTo ?? "Chưa giao")" data-department="@card.Department" data-priority="@card.Priority" data-sprint="@(card.SprintName ?? "Backlog")">
                                 <div class="kanban-card-top">
                                     @if (card.OperationRequestId != Guid.Empty)
                                     {
                                         <a asp-controller="Operations" asp-action="Details" asp-route-id="@card.OperationRequestId" class="kanban-request">@card.RequestNo</a>
                                     }
-                                    <span class="kanban-priority @priorityClass">@card.Priority</span>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        @if (card.HasBlockingDependencies)
+                                        {
+                                            <span class="kanban-priority priority-critical" title="@card.BlockingDependencyCount blocker chưa Done">
+                                                <i class="fa-solid fa-link"></i> @card.BlockingDependencyCount
+                                            </span>
+                                        }
+                                        @if (card.HasAttachments)
+                                        {
+                                            <span class="kanban-priority priority-normal" title="@card.AttachmentCount file đính kèm">
+                                                <i class="fa-solid fa-paperclip"></i> @card.AttachmentCount
+                                            </span>
+                                        }
+                                        <span class="kanban-priority @priorityClass">@card.Priority</span>
+                                    </div>
                                 </div>
                                 <h3><a asp-action="Details" asp-route-id="@card.Id" style="color:inherit;text-decoration:none">@card.Title</a></h3>
                                 @if (!string.IsNullOrWhiteSpace(card.Description))
@@ -509,19 +872,45 @@
                                 }
                                 <div class="kanban-meta">
                                     <span><i class="fa-solid fa-sitemap"></i>@card.Department</span>
+                                    <span><i class="fa-solid fa-flag-checkered"></i>@(card.SprintName ?? "Backlog")</span>
                                     <span><i class="fa-regular fa-calendar"></i>@(card.DueDate?.ToString("dd/MM/yyyy") ?? "Không hạn")</span>
                                     <span><i class="fa-solid fa-user-check"></i>@(card.AssignedTo ?? "Chưa giao")</span>
                                 </div>
+                                @if (card.Tags.Any())
+                                {
+                                    <div class="kanban-meta" style="margin-top:-4px">
+                                        @foreach (var tag in card.Tags.Take(3))
+                                        {
+                                            <span><i class="fa-solid fa-tag"></i>@tag</span>
+                                        }
+                                    </div>
+                                }
                                 @if (card.ChecklistTotal > 0)
                                 {
-                                    var progress = Math.Round((decimal)card.ChecklistDone / card.ChecklistTotal * 100);
                                     <div class="kanban-checklist">
                                         <div class="d-flex justify-content-between text-xs text-muted mb-1" style="font-size: 10px">
-                                            <span>Checklist</span>
-                                            <span>@card.ChecklistDone/@card.ChecklistTotal</span>
+                                            <span>Tiến độ</span>
+                                            <span>
+                                                @card.ChecklistDone/@card.ChecklistTotal · @card.ProgressPercent%
+                                                @if (card.HasChecklistOverdue)
+                                                {
+                                                    <i class="fa-solid fa-triangle-exclamation text-danger ms-1" title="@card.ChecklistOverdueCount checklist quá hạn"></i>
+                                                }
+                                            </span>
                                         </div>
-                                        <div class="progress" role="progressbar" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">
-                                            <div class="progress-bar" style="width: @progress%"></div>
+                                        <div class="progress" role="progressbar" aria-valuenow="@card.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar" style="width: @card.ProgressPercent%"></div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="kanban-checklist">
+                                        <div class="d-flex justify-content-between text-xs text-muted mb-1" style="font-size: 10px">
+                                            <span>Tiến độ</span><span>@card.ProgressPercent%</span>
+                                        </div>
+                                        <div class="progress" role="progressbar" aria-valuenow="@card.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar" style="width: @card.ProgressPercent%"></div>
                                         </div>
                                     </div>
                                 }
@@ -537,6 +926,7 @@
                                             <input type="hidden" name="ColumnId" value="@colList[i - 1].Id" />
                                             <input type="hidden" name="Search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="Dept" value="@Model.DepartmentFilter" />
+                                            <input type="hidden" name="Sprint" value="@Model.SprintFilter" />
                                             <button type="submit" class="btn btn-sm btn-light border p-1 px-2" style="font-size:10px" title="Sang trái">
                                                 <i class="fa-solid fa-arrow-left"></i>
                                             </button>
@@ -550,6 +940,7 @@
                                             <input type="hidden" name="ColumnId" value="@colList[i + 1].Id" />
                                             <input type="hidden" name="Search" value="@Model.SearchTerm" />
                                             <input type="hidden" name="Dept" value="@Model.DepartmentFilter" />
+                                            <input type="hidden" name="Sprint" value="@Model.SprintFilter" />
                                             <button type="submit" class="btn btn-sm btn-light border p-1 px-2" style="font-size:10px" title="Sang phải">
                                                 <i class="fa-solid fa-arrow-right"></i>
                                             </button>
@@ -579,6 +970,7 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="search" value="@Model.SearchTerm" />
                     <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                    <input type="hidden" name="sprint" value="@Model.SprintFilter" />
                     <input type="text" name="title" class="form-control mb-2" placeholder="Tiêu đề thanh mới..." style="border-radius: 8px; font-size:13px" required />
                     
                     <div class="color-preset-picker mb-3">
@@ -604,6 +996,18 @@
                             </label>
                         </div>
                     </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-7">
+                            <label class="form-label small text-muted mb-1" style="font-size:11px">WIP limit</label>
+                            <input type="number" name="wipLimit" min="1" max="999" class="form-control form-control-sm" placeholder="Không giới hạn" style="border-radius:8px;font-size:12px" />
+                        </div>
+                        <div class="col-5 d-flex align-items-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="wipEnforced" value="true" id="newColumnWipEnforced">
+                                <label class="form-check-label" for="newColumnWipEnforced" style="font-size:11px">Chặn</label>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-sm btn-dark flex-grow-1" style="border-radius: 8px; font-size:12px">Tạo</button>
@@ -623,6 +1027,7 @@
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="search" value="@Model.SearchTerm" />
                 <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                <input type="hidden" name="sprint" value="@Model.SprintFilter" />
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold" id="newWorkItemModalLabel" style="font-size:18px">Tạo thẻ Kanban</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
@@ -636,6 +1041,16 @@
                                 @foreach (var request in Model.OperationRequests)
                                 {
                                     <option value="@request.Value">@request.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted">Sprint</label>
+                            <select asp-for="CreateForm.SprintId" name="SprintId" class="form-select" style="border-radius:10px">
+                                <option value="">Backlog</option>
+                                @foreach (var sprint in Model.AssignableSprintOptions)
+                                {
+                                    <option value="@sprint.Value" selected="@(Model.CreateForm.SprintId?.ToString() == sprint.Value)">@sprint.Text</option>
                                 }
                             </select>
                         </div>
@@ -691,6 +1106,57 @@
     </div>
 </div>
 
+<!-- Modal Create Sprint -->
+<div class="modal fade" id="newSprintModal" tabindex="-1" aria-labelledby="newSprintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px; border:none; box-shadow:0 10px 40px rgba(0,0,0,0.15)">
+            <form asp-action="CreateSprint" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                <input type="hidden" name="dept" value="@Model.DepartmentFilter" />
+                <input type="hidden" name="sprint" value="@Model.SprintFilter" />
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="newSprintModalLabel" style="font-size:18px">Tạo sprint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-muted">Tên sprint</label>
+                            <input asp-for="CreateSprintForm.Name" name="Name" class="form-control" style="border-radius:10px" maxlength="120" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-muted">Trạng thái</label>
+                            <select asp-for="CreateSprintForm.Status" name="Status" class="form-select" style="border-radius:10px">
+                                <option value="@SprintStatus.Planned">Kế hoạch</option>
+                                <option value="@SprintStatus.Active">Đang chạy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Ngày bắt đầu</label>
+                            <input asp-for="CreateSprintForm.StartDate" name="StartDate" type="date" class="form-control" style="border-radius:10px" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Ngày kết thúc</label>
+                            <input asp-for="CreateSprintForm.EndDate" name="EndDate" type="date" class="form-control" style="border-radius:10px" />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted">Mục tiêu sprint</label>
+                            <textarea asp-for="CreateSprintForm.Goal" name="Goal" class="form-control" style="border-radius:10px" rows="3" maxlength="1000"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border px-4" style="border-radius:10px" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-dark px-4" style="border-radius:10px"><i class="fa-solid fa-flag-checkered me-2"></i>Tạo sprint</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
 <script>
     // Show / Hide Add Column Form
     function showAddColumnForm() {
@@ -769,64 +1235,251 @@
         });
     }
 
-    // HTML5 Drag and Drop Handlers
-    function drag(ev) {
-        ev.dataTransfer.setData("cardId", ev.target.getAttribute("data-card-id"));
+    let kanbanConnection = null;
+    let dragState = null;
+    let activeSwimlane = localStorage.getItem('kanban.swimlane') || 'none';
+    const sprintBurndownData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(burndownData));
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initSortableKanban();
+        initSwimlanes();
+        initKanbanRealtime();
+        initSprintBurndown();
+        updateColumnCounts();
+    });
+
+    function initSprintBurndown() {
+        const canvas = document.getElementById('sprintBurndownChart');
+        if (!canvas || !window.Chart || !sprintBurndownData) return;
+
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: sprintBurndownData.labels,
+                datasets: [
+                    { label: 'Ideal', data: sprintBurndownData.ideal, borderColor: '#8e8e93', backgroundColor: 'transparent', borderDash: [5, 5], tension: .25, pointRadius: 0 },
+                    { label: 'Actual', data: sprintBurndownData.actual, borderColor: '#007aff', backgroundColor: 'rgba(0,122,255,.08)', fill: true, tension: .35, pointRadius: 2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
     }
 
-    function allowDrop(ev) {
-        ev.preventDefault();
+    function initSortableKanban() {
+        document.querySelectorAll('.kanban-card').forEach((card, index) => {
+            card.dataset.originalOrder = index.toString();
+        });
+
+        document.querySelectorAll('.kanban-card-list').forEach(list => {
+            if (!window.Sortable) return;
+            new Sortable(list, {
+                group: 'kanban-board',
+                animation: 150,
+                draggable: '.kanban-card',
+                filter: '.swimlane-label,.kanban-empty',
+                ghostClass: 'kanban-card-ghost',
+                onStart: evt => {
+                    dragState = {
+                        from: evt.from,
+                        nextSibling: evt.item.nextElementSibling,
+                        previousColumnId: evt.from.closest('.kanban-column')?.dataset.columnId || ''
+                    };
+                },
+                onEnd: async evt => {
+                    const card = evt.item;
+                    const targetColumn = evt.to.closest('.kanban-column');
+                    const targetColumnId = targetColumn?.dataset.columnId || '';
+                    const cardId = card.dataset.cardId || '';
+                    if (!cardId || !targetColumnId || !dragState) return;
+
+                    if (dragState.previousColumnId === targetColumnId && evt.oldIndex === evt.newIndex) {
+                        applySwimlane(activeSwimlane);
+                        return;
+                    }
+
+                    const result = await moveCardAjax(cardId, targetColumnId);
+                    if (!result.success) {
+                        restoreDraggedCard(card);
+                        showKanbanToast(result.message || 'Không thể di chuyển thẻ.', true);
+                    } else {
+                        card.dataset.columnId = targetColumnId;
+                        showKanbanToast(result.message || 'Đã di chuyển thẻ.', false);
+                    }
+                    dragState = null;
+                    updateColumnCounts();
+                    applySwimlane(activeSwimlane);
+                }
+            });
+        });
     }
 
-    function drop(ev) {
-        ev.preventDefault();
-        const cardId = ev.dataTransfer.getData("cardId");
-        let target = ev.target;
-        
-        while (target && !target.classList.contains('kanban-column')) {
-            target = target.parentElement;
+    async function moveCardAjax(cardId, columnId) {
+        const body = new URLSearchParams();
+        body.append('__RequestVerificationToken', getCsrfToken());
+        body.append('Id', cardId);
+        body.append('ColumnId', columnId);
+        body.append('Search', document.querySelector('input[name="search"]')?.value || '');
+        body.append('Dept', document.querySelector('select[name="dept"]')?.value || '');
+        body.append('Sprint', document.querySelector('select[name="sprint"]')?.value || '');
+        body.append('AssignedTo', document.querySelector('select[name="assignedTo"]')?.value || '');
+        body.append('Priority', document.querySelector('select[name="priority"]')?.value || '');
+        body.append('Tag', document.querySelector('select[name="tag"]')?.value || '');
+        body.append('DueFrom', document.querySelector('input[name="dueFrom"]')?.value || '');
+        body.append('DueTo', document.querySelector('input[name="dueTo"]')?.value || '');
+        body.append('HasAttachment', document.querySelector('input[name="hasAttachment"]')?.checked ? 'true' : 'false');
+        body.append('Quick', document.querySelector('input[name="quick"]')?.value || '');
+        body.append('ClientId', kanbanConnection?.connectionId || '');
+
+        try {
+            const response = await fetch('/Workflow/Move', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: body.toString()
+            });
+            return await response.json();
+        } catch {
+            return { success: false, message: 'Không thể kết nối máy chủ.' };
         }
-        if (!target) return;
+    }
 
-        const columnId = target.getAttribute("data-column-id");
-        if (!cardId || !columnId) return;
+    function restoreDraggedCard(card) {
+        if (!dragState?.from) return;
+        if (dragState.nextSibling && dragState.nextSibling.parentElement === dragState.from) {
+            dragState.from.insertBefore(card, dragState.nextSibling);
+        } else {
+            dragState.from.appendChild(card);
+        }
+        card.dataset.columnId = dragState.previousColumnId;
+    }
 
-        // Create form dynamically to post moving card action
-        const form = document.createElement('form');
-        form.method = 'post';
-        form.action = '/Workflow/Move';
+    function initKanbanRealtime() {
+        if (!window.signalR) return;
+        kanbanConnection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/kanban')
+            .withAutomaticReconnect()
+            .build();
 
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = '__RequestVerificationToken';
-        tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-        form.appendChild(tokenInput);
+        kanbanConnection.on('WorkItemMoved', event => {
+            if (event?.sourceClientId && event.sourceClientId === kanbanConnection.connectionId) return;
+            syncMovedCard(event);
+        });
 
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = 'Id';
-        idInput.value = cardId;
-        form.appendChild(idInput);
+        kanbanConnection.start().catch(() => {
+            showKanbanToast('Realtime Kanban chưa kết nối.', true);
+        });
+    }
 
-        const colInput = document.createElement('input');
-        colInput.type = 'hidden';
-        colInput.name = 'ColumnId';
-        colInput.value = columnId;
-        form.appendChild(colInput);
+    function syncMovedCard(event) {
+        const cardId = event?.workItemId || event?.WorkItemId;
+        const columnId = event?.columnId || event?.ColumnId;
+        if (!cardId || !columnId) {
+            showKanbanToast('Kanban đã thay đổi, đang cập nhật...', false);
+            window.setTimeout(() => window.location.reload(), 900);
+            return;
+        }
 
-        const searchInput = document.createElement('input');
-        searchInput.type = 'hidden';
-        searchInput.name = 'Search';
-        searchInput.value = document.querySelector('input[name="search"]')?.value || '';
-        form.appendChild(searchInput);
+        const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        const targetList = document.querySelector(`.kanban-column[data-column-id="${columnId}"] .kanban-card-list`);
+        if (!card || !targetList) {
+            showKanbanToast('Kanban đã thay đổi, đang cập nhật...', false);
+            window.setTimeout(() => window.location.reload(), 900);
+            return;
+        }
 
-        const deptInput = document.createElement('input');
-        deptInput.type = 'hidden';
-        deptInput.name = 'Dept';
-        deptInput.value = document.querySelector('select[name="dept"]')?.value || '';
-        form.appendChild(deptInput);
+        targetList.appendChild(card);
+        card.dataset.columnId = columnId;
+        card.classList.add('remote-sync');
+        window.setTimeout(() => card.classList.remove('remote-sync'), 1200);
+        updateColumnCounts();
+        applySwimlane(activeSwimlane);
+        showKanbanToast(`${event.movedBy || 'Một người dùng'} vừa di chuyển thẻ.`, false);
+    }
 
-        document.body.appendChild(form);
-        form.submit();
+    function initSwimlanes() {
+        document.querySelectorAll('[data-swimlane-mode]').forEach(button => {
+            button.classList.toggle('active', button.dataset.swimlaneMode === activeSwimlane);
+            button.addEventListener('click', () => {
+                activeSwimlane = button.dataset.swimlaneMode || 'none';
+                localStorage.setItem('kanban.swimlane', activeSwimlane);
+                document.querySelectorAll('[data-swimlane-mode]').forEach(btn => btn.classList.toggle('active', btn === button));
+                applySwimlane(activeSwimlane);
+            });
+        });
+        applySwimlane(activeSwimlane);
+    }
+
+    function applySwimlane(mode) {
+        document.querySelectorAll('.swimlane-label').forEach(label => label.remove());
+        document.querySelectorAll('.kanban-card-list').forEach(list => {
+            const cards = Array.from(list.querySelectorAll('.kanban-card'));
+            if (mode === 'none') {
+                cards
+                    .sort((a, b) => Number(a.dataset.originalOrder || 0) - Number(b.dataset.originalOrder || 0))
+                    .forEach(card => list.appendChild(card));
+                return;
+            }
+
+            const grouped = new Map();
+            cards.forEach(card => {
+                const key = getSwimlaneValue(card, mode);
+                if (!grouped.has(key)) grouped.set(key, []);
+                grouped.get(key).push(card);
+            });
+
+            Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b, 'vi')).forEach(key => {
+                const label = document.createElement('div');
+                label.className = 'swimlane-label';
+                label.textContent = key;
+                list.appendChild(label);
+                grouped.get(key).forEach(card => list.appendChild(card));
+            });
+        });
+    }
+
+    function getSwimlaneValue(card, mode) {
+        if (mode === 'assignee') return card.dataset.assignee || 'Chưa giao';
+        if (mode === 'department') return card.dataset.department || 'Chưa phân phòng ban';
+        if (mode === 'priority') return card.dataset.priority || 'Normal';
+        return '';
+    }
+
+    function updateColumnCounts() {
+        document.querySelectorAll('.kanban-column').forEach(column => {
+            const count = column.querySelectorAll('.kanban-card').length;
+            const countLabel = column.querySelector('.column-card-count');
+            if (countLabel) countLabel.textContent = `${count} thẻ`;
+
+            const wipBadge = column.querySelector('.wip-badge[data-wip-limit]');
+            const wipLimit = Number(wipBadge?.dataset.wipLimit || 0);
+            if (!wipBadge || !wipLimit) return;
+
+            wipBadge.classList.toggle('is-exceeded', count > wipLimit);
+            wipBadge.classList.toggle('is-limited', count <= wipLimit);
+            wipBadge.innerHTML = `<i class="fa-solid ${count > wipLimit ? 'fa-triangle-exclamation' : 'fa-gauge-simple-high'}"></i>${count} / ${wipLimit}`;
+            column.classList.toggle('wip-exceeded', count > wipLimit);
+        });
+    }
+
+    function showKanbanToast(message, isError) {
+        const oldToast = document.querySelector('.kanban-toast');
+        if (oldToast) oldToast.remove();
+        const toast = document.createElement('div');
+        toast.className = `kanban-toast${isError ? ' error' : ''}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        window.setTimeout(() => toast.remove(), 2800);
+    }
+
+    function getCsrfToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
 </script>

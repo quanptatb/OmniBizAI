@@ -25,6 +25,8 @@ public class ApprovalTask : TenantEntity
 
     public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
+    public byte[] RowVersion { get; set; } = [];
+
     [StringLength(1000)]
     public string? DecisionNote { get; set; }
 

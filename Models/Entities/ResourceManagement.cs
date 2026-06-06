@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using OmniBizAI.Models.Entities.Common;
+using OmniBizAI.Models.Entities.Enums;
 
 namespace OmniBizAI.Models.Entities;
 
@@ -39,8 +40,9 @@ public class ShiftAssignment : TenantEntity
 
     public DateOnly WorkDate { get; set; }
 
-    [StringLength(50)]
-    public string Status { get; set; } = "Scheduled"; // Scheduled, CheckedIn, CheckedOut, Absent, Late
+    public ShiftAssignmentStatus Status { get; set; } = ShiftAssignmentStatus.Scheduled;
+
+    public byte[] RowVersion { get; set; } = [];
 
     public TimeOnly? ActualCheckIn { get; set; }
     public TimeOnly? ActualCheckOut { get; set; }
@@ -78,8 +80,7 @@ public class MaintenanceRecord : TenantEntity
     public Guid EquipmentId { get; set; }
     public Equipment? Equipment { get; set; }
 
-    [Required, StringLength(50)]
-    public string MaintenanceType { get; set; } = "Preventive"; // Preventive, Corrective, Emergency
+    public MaintenanceType MaintenanceType { get; set; } = MaintenanceType.Preventive;
 
     [Required]
     public DateOnly ScheduledDate { get; set; }
@@ -89,8 +90,7 @@ public class MaintenanceRecord : TenantEntity
     public Guid? TechnicianUserId { get; set; }
     public AppUser? TechnicianUser { get; set; }
 
-    [StringLength(50)]
-    public string Status { get; set; } = "Scheduled"; // Scheduled, InProgress, Completed, Cancelled
+    public MaintenanceRecordStatus Status { get; set; } = MaintenanceRecordStatus.Scheduled;
 
     public string? Description { get; set; }
     public string? WorkDone { get; set; }
@@ -122,8 +122,7 @@ public class Workspace : TenantEntity
 
     public int? Capacity { get; set; } // Sức chứa tối đa
 
-    [StringLength(50)]
-    public string Status { get; set; } = "Active"; // Active, Maintenance, Inactive
+    public WorkspaceStatus Status { get; set; } = WorkspaceStatus.Active;
 
     public string? Notes { get; set; }
 

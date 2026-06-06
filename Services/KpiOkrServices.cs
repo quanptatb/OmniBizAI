@@ -225,7 +225,7 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
         var count = await db.OperationPlans.CountAsync(p => p.TenantId == tenant.TenantId);
         var plan = new OperationPlan
         {
-            TenantId = tenant.TenantId, Code = $"OP-OKR-{DateTime.Today.Year}-{count + 1:D3}", Title = o.ObjectiveName, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = "Draft", CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, OkrObjective = o
+            TenantId = tenant.TenantId, Code = $"OP-OKR-{DateTime.Today.Year}-{count + 1:D3}", Title = o.ObjectiveName, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = OperationPlanStatus.Draft, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, OkrObjective = o
         };
         db.OperationPlans.Add(plan);
 
@@ -558,7 +558,7 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
         var count = await db.OperationPlans.CountAsync(p => p.TenantId == tenant.TenantId);
         var plan = new OperationPlan
         {
-            TenantId = tenant.TenantId, Code = $"OP-KPI-{DateTime.Today.Year}-{count + 1:D3}", Title = k.Name, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = "Draft", CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, KpiDefinition = k
+            TenantId = tenant.TenantId, Code = $"OP-KPI-{DateTime.Today.Year}-{count + 1:D3}", Title = k.Name, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = OperationPlanStatus.Draft, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, KpiDefinition = k
         };
         db.OperationPlans.Add(plan);
 

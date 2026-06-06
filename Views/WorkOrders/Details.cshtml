@@ -1,0 +1,318 @@
+@model OmniBizAI.ViewModels.WorkOrderDetailViewModel
+@using OmniBizAI.Models.Entities.Enums
+@{
+    ViewData["Title"] = $"WO {Model.Code}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string StatusBadge(WorkOrderStatus s) => s switch
+    {
+        WorkOrderStatus.Open => "bg-secondary",
+        WorkOrderStatus.Assigned => "bg-info",
+        WorkOrderStatus.InProgress => "bg-primary",
+        WorkOrderStatus.OnHold => "bg-warning text-dark",
+        WorkOrderStatus.Completed => "bg-success",
+        WorkOrderStatus.Cancelled => "bg-dark",
+        _ => "bg-light text-dark"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="h4 mb-0"><i class="fas fa-wrench text-primary me-2"></i>@Model.Code <span class="badge @StatusBadge(Model.Status) ms-2">@Model.Status</span></h2>
+        <div class="text-muted small mt-1">@Model.Title</div>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Danh sách</a>
+        <a asp-action="Mobile" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm"><i class="fas fa-mobile-alt me-1"></i>Mobile</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success py-2">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger py-2">@TempData["ErrorMessage"]</div>
+}
+
+<div class="row g-3">
+    <!-- LEFT: Info & Checklist & Parts -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="small text-muted">Thiết bị</div>
+                        <div class="fw-bold">@Model.EquipmentName</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="small text-muted">Loại</div>
+                        <div>@Model.Type</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="small text-muted">Ưu tiên</div>
+                        <div>@Model.Priority</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted">Technician</div>
+                        <div>@(Model.TechnicianName ?? "— Chưa giao —")</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="small text-muted">Bắt đầu dự kiến</div>
+                        <div>@(Model.ScheduledStart?.LocalDateTime.ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="small text-muted">Kết thúc dự kiến</div>
+                        <div>@(Model.ScheduledEnd?.LocalDateTime.ToString("dd/MM/yyyy HH:mm") ?? "—")</div>
+                    </div>
+                    @if (Model.IncidentId.HasValue)
+                    {
+                        <div class="col-12">
+                            <div class="small text-muted">Liên kết sự cố</div>
+                            <a asp-controller="Maintenance" asp-action="IncidentDetail" asp-route-id="@Model.IncidentId">@Model.IncidentTitle</a>
+                        </div>
+                    }
+                    @if (Model.PmScheduleId.HasValue)
+                    {
+                        <div class="col-12">
+                            <div class="small text-muted">Liên kết PM Schedule</div>
+                            <div>@Model.PmTaskName</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <div class="col-12">
+                            <div class="small text-muted">Mô tả</div>
+                            <div>@Model.Description</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- CHECKLIST -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <strong><i class="fas fa-tasks me-1"></i>Checklist</strong>
+                <span class="badge bg-light text-dark ms-2">@Model.ChecklistDoneCount / @Model.ChecklistTotal</span>
+            </div>
+            <div class="card-body">
+                @if (Model.ChecklistItems.Count == 0)
+                {
+                    <div class="text-muted text-center py-3">Không có mục checklist.</div>
+                }
+                @foreach (var c in Model.ChecklistItems)
+                {
+                    <form method="post" asp-action="ToggleChecklist" class="d-flex align-items-center mb-2 gap-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="itemId" value="@c.Id" />
+                        <input type="hidden" name="completed" value="@(!c.IsCompleted)" />
+                        <button type="submit" class="btn btn-sm @(c.IsCompleted ? "btn-success" : "btn-outline-secondary")" style="width:32px">
+                            @(c.IsCompleted ? Html.Raw("<i class='fas fa-check'></i>") : Html.Raw("&nbsp;"))
+                        </button>
+                        <div class="flex-grow-1">
+                            <span class="@(c.IsCompleted ? "text-decoration-line-through text-muted" : "")">@c.Title</span>
+                            @if (c.IsCompleted && c.CompletedAt.HasValue)
+                            {
+                                <small class="text-muted ms-2">— @c.CompletedByName, @c.CompletedAt.Value.LocalDateTime.ToString("dd/MM HH:mm")</small>
+                            }
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <!-- PARTS USAGE -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong><i class="fas fa-cogs me-1"></i>Phụ tùng đã dùng</strong>
+                <span class="text-muted small">Tổng: <strong>@Model.TotalPartsCost.ToString("N0")</strong></span>
+            </div>
+            <div class="card-body">
+                @if (Model.Status == WorkOrderStatus.InProgress || Model.Status == WorkOrderStatus.OnHold || Model.Status == WorkOrderStatus.Assigned || Model.Status == WorkOrderStatus.Open)
+                {
+                    <form method="post" asp-action="AddPart" class="row g-2 mb-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="col-md-7">
+                            <select name="sparePartId" class="form-select form-select-sm" required>
+                                <option value="">-- Chọn phụ tùng --</option>
+                                @foreach (var p in Model.AvailableSpareParts)
+                                {
+                                    <option value="@p.Id">@p.Code — @p.Name (tồn: @p.StockQuantity @p.Unit)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" name="quantity" min="1" value="1" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-plus me-1"></i>Thêm</button>
+                        </div>
+                    </form>
+                }
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr><th>Mã</th><th>Tên</th><th class="text-end">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.PartUsages.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center text-muted">Chưa ghi nhận phụ tùng nào.</td></tr>
+                        }
+                        @foreach (var p in Model.PartUsages)
+                        {
+                            <tr>
+                                <td>@p.SparePartCode</td>
+                                <td>@p.SparePartName</td>
+                                <td class="text-end">@p.QuantityUsed</td>
+                                <td class="text-end">@(p.UnitCost?.ToString("N0") ?? "—")</td>
+                                <td class="text-end">@(p.LineTotal?.ToString("N0") ?? "—")</td>
+                                <td class="text-end">
+                                    @if (Model.Status != WorkOrderStatus.Completed && Model.Status != WorkOrderStatus.Cancelled)
+                                    {
+                                        <form method="post" asp-action="RemovePart" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@Model.Id" />
+                                            <input type="hidden" name="usageId" value="@p.Id" />
+                                            <button type="submit" class="btn btn-link text-danger btn-sm p-0" onclick="return confirm('Hoàn trả về kho?')">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.Status == WorkOrderStatus.Completed)
+        {
+            <div class="card shadow-sm mb-3 border-success">
+                <div class="card-header bg-success text-white"><strong>Đã hoàn thành</strong></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3"><div class="small text-muted">Thực hiện bởi</div><div>@Model.CompletedByName</div></div>
+                        <div class="col-md-3"><div class="small text-muted">Tại</div><div>@(Model.CompletedAt?.LocalDateTime.ToString("dd/MM/yyyy HH:mm") ?? "—")</div></div>
+                        <div class="col-md-3"><div class="small text-muted">Giờ thực tế</div><div>@(Model.ActualHours?.ToString("N2") ?? "—")</div></div>
+                        <div class="col-md-3"><div class="small text-muted">Chi phí thực tế</div><div class="fw-bold">@(Model.ActualCost?.ToString("N0") ?? "—")</div></div>
+                        <div class="col-12"><div class="small text-muted">Công việc đã làm</div><div>@Model.WorkDone</div></div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- RIGHT: Actions -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white"><strong>Hành động</strong></div>
+            <div class="card-body">
+                @if (Model.NextStatuses.Count == 0)
+                {
+                    <div class="text-muted text-center py-2">Work Order đã đóng.</div>
+                }
+
+                @if (Model.NextStatuses.Contains(WorkOrderStatus.Assigned) || Model.Status == WorkOrderStatus.Assigned)
+                {
+                    <form method="post" asp-action="Assign" class="mb-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <label class="form-label small">Giao cho technician</label>
+                        <div class="input-group input-group-sm">
+                            <select name="technicianId" class="form-select" required>
+                                <option value="">-- Chọn --</option>
+                                @foreach (var t in Model.Technicians)
+                                {
+                                    <option value="@t.Value" selected="@(Model.TechnicianId?.ToString() == t.Value)">@t.Text</option>
+                                }
+                            </select>
+                            <button class="btn btn-info text-white"><i class="fas fa-user-plus"></i></button>
+                        </div>
+                    </form>
+                }
+
+                @if (Model.NextStatuses.Contains(WorkOrderStatus.InProgress))
+                {
+                    <form method="post" asp-action="Start" class="mb-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-play me-1"></i>Bắt đầu</button>
+                    </form>
+                }
+
+                @if (Model.NextStatuses.Contains(WorkOrderStatus.OnHold))
+                {
+                    <form method="post" asp-action="Hold" class="mb-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-warning w-100"><i class="fas fa-pause me-1"></i>Tạm dừng</button>
+                    </form>
+                }
+
+                @if (Model.NextStatuses.Contains(WorkOrderStatus.Completed))
+                {
+                    <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#completeModal"><i class="fas fa-check me-1"></i>Hoàn thành</button>
+                }
+
+                @if (Model.NextStatuses.Contains(WorkOrderStatus.Cancelled))
+                {
+                    <form method="post" asp-action="Cancel" class="mb-2" onsubmit="return confirm('Huỷ Work Order?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input name="reason" class="form-control form-control-sm mb-1" placeholder="Lý do huỷ..." />
+                        <button class="btn btn-outline-dark w-100"><i class="fas fa-times me-1"></i>Huỷ</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white"><strong>Chi phí</strong></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><span class="text-muted">Dự kiến</span><span>@(Model.EstimatedCost?.ToString("N0") ?? "—")</span></div>
+                <div class="d-flex justify-content-between"><span class="text-muted">Phụ tùng</span><span>@Model.TotalPartsCost.ToString("N0")</span></div>
+                <div class="d-flex justify-content-between"><span class="text-muted">Thực tế</span><span class="fw-bold">@(Model.ActualCost?.ToString("N0") ?? "—")</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- COMPLETE MODAL -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="Complete">
+            <div class="modal-content">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="WorkOrderId" value="@Model.Id" />
+                <div class="modal-header"><h5 class="modal-title">Hoàn thành Work Order @Model.Code</h5></div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small">Bắt đầu thực tế</label>
+                        <input name="ActualStart" type="datetime-local" class="form-control" value="@Model.ActualStart?.LocalDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Số giờ thực tế</label>
+                        <input name="ActualHours" type="number" step="0.25" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Chi phí nhân công (chưa gồm phụ tùng @Model.TotalPartsCost.ToString("N0"))</label>
+                        <input name="LaborCost" type="number" step="1000" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Công việc đã làm *</label>
+                        <textarea name="WorkDone" rows="4" class="form-control" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-success">Xác nhận hoàn thành</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

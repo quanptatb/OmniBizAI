@@ -13,6 +13,9 @@ public class PaymentRequest : TenantEntity
     public Guid? PurchaseOrderId { get; set; }
     public PurchaseOrder? PurchaseOrder { get; set; }
 
+    public Guid? OperationRequestId { get; set; }
+    public OperationRequest? OperationRequest { get; set; }
+
     public Guid RequestedByUserId { get; set; }
     public AppUser? RequestedByUser { get; set; }
 

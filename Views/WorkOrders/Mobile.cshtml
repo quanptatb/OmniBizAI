@@ -1,0 +1,134 @@
+@model OmniBizAI.ViewModels.WorkOrderDetailViewModel
+@using OmniBizAI.Models.Entities.Enums
+@{
+    ViewData["Title"] = $"WO {Model.Code} — Mobile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .mobile-wo .btn-block-lg { width: 100%; padding: .9rem; font-size: 1.05rem; font-weight: 600; }
+    .mobile-wo .checklist-item { display: flex; align-items: center; padding: .6rem .5rem; border-bottom: 1px solid #eef; }
+    .mobile-wo .check-btn { width: 44px; height: 44px; border-radius: 22px; flex-shrink: 0; }
+    .mobile-wo .check-btn.done { background: #198754; color: #fff; border-color: #198754; }
+    .mobile-wo .item-label { font-size: 1rem; margin-left: .8rem; line-height: 1.3; }
+    .mobile-wo .item-label.done { text-decoration: line-through; color: #888; }
+    .mobile-wo .info-row { display: flex; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid #f0f0f0; }
+    .mobile-wo .info-row .label { color: #888; font-size: .85rem; }
+    .mobile-wo .info-row .value { font-weight: 600; }
+</style>
+
+<div class="mobile-wo" style="max-width: 600px; margin: 0 auto;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link p-0 text-secondary"><i class="fas fa-arrow-left me-1"></i>Desktop</a>
+        <span class="badge bg-primary fs-6">@Model.Status</span>
+    </div>
+
+    <h3 class="mb-1">@Model.Code</h3>
+    <div class="text-muted mb-3">@Model.Title</div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+            <div class="info-row"><span class="label">Thiết bị</span><span class="value">@Model.EquipmentName</span></div>
+            <div class="info-row"><span class="label">Loại</span><span class="value">@Model.Type</span></div>
+            <div class="info-row"><span class="label">Ưu tiên</span><span class="value">@Model.Priority</span></div>
+            <div class="info-row"><span class="label">Bắt đầu DK</span><span class="value">@(Model.ScheduledStart?.LocalDateTime.ToString("dd/MM HH:mm") ?? "—")</span></div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success py-2">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger py-2">@TempData["ErrorMessage"]</div>
+    }
+
+    <!-- Quick action -->
+    <div class="mb-3">
+        @if (Model.NextStatuses.Contains(WorkOrderStatus.InProgress))
+        {
+            <form method="post" asp-action="Start">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button class="btn btn-primary btn-block-lg"><i class="fas fa-play me-1"></i>Bắt đầu công việc</button>
+            </form>
+        }
+        @if (Model.NextStatuses.Contains(WorkOrderStatus.Completed))
+        {
+            <button class="btn btn-success btn-block-lg" data-bs-toggle="modal" data-bs-target="#mCompleteModal"><i class="fas fa-check me-1"></i>Hoàn thành</button>
+        }
+    </div>
+
+    <!-- Checklist -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white"><strong>Checklist (@Model.ChecklistDoneCount/@Model.ChecklistTotal)</strong></div>
+        <div class="card-body p-2">
+            @if (Model.ChecklistItems.Count == 0)
+            {
+                <div class="text-center text-muted py-3">Không có checklist.</div>
+            }
+            @foreach (var c in Model.ChecklistItems)
+            {
+                <form method="post" asp-action="ToggleChecklist" class="checklist-item m-0">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="itemId" value="@c.Id" />
+                    <input type="hidden" name="completed" value="@(!c.IsCompleted)" />
+                    <input type="hidden" name="mobile" value="true" />
+                    <button type="submit" class="btn check-btn @(c.IsCompleted ? "done" : "btn-outline-secondary")">
+                        @(c.IsCompleted ? Html.Raw("<i class='fas fa-check'></i>") : Html.Raw(""))
+                    </button>
+                    <div class="item-label @(c.IsCompleted ? "done" : "")">@c.Title</div>
+                </form>
+            }
+        </div>
+    </div>
+
+    <!-- Parts (compact) -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white"><strong>Phụ tùng đã dùng</strong></div>
+        <div class="card-body p-2">
+            @if (Model.PartUsages.Count == 0)
+            {
+                <div class="text-center text-muted py-2">Chưa ghi nhận.</div>
+            }
+            @foreach (var p in Model.PartUsages)
+            {
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>
+                        <div class="fw-bold">@p.SparePartCode</div>
+                        <div class="small text-muted">@p.SparePartName</div>
+                    </div>
+                    <div class="text-end"><div>@p.QuantityUsed</div><small class="text-muted">@(p.LineTotal?.ToString("N0") ?? "—")</small></div>
+                </div>
+            }
+            @if (Model.Status != WorkOrderStatus.Completed && Model.Status != WorkOrderStatus.Cancelled)
+            {
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm w-100 mt-2">Thêm phụ tùng (chuyển desktop)</a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Mobile complete modal -->
+<div class="modal fade" id="mCompleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-bottom">
+        <form method="post" asp-action="Complete">
+            <div class="modal-content">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="WorkOrderId" value="@Model.Id" />
+                <div class="modal-header"><h5>Hoàn thành @Model.Code</h5></div>
+                <div class="modal-body">
+                    <div class="mb-2"><label class="form-label small">Số giờ làm</label><input name="ActualHours" type="number" step="0.25" class="form-control form-control-lg" /></div>
+                    <div class="mb-2"><label class="form-label small">Chi phí nhân công</label><input name="LaborCost" type="number" step="1000" class="form-control form-control-lg" /></div>
+                    <div class="mb-2"><label class="form-label small">Đã làm gì *</label><textarea name="WorkDone" rows="4" class="form-control" required></textarea></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-success btn-lg">Xác nhận</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

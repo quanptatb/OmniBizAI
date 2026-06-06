@@ -1,21 +1,97 @@
 @model OmniBizAI.ViewModels.OperationPlanDetailViewModel
+@using OmniBizAI.Models.Entities.Enums
 @{
     ViewData["Title"] = $"Kế hoạch: {Model.Code}";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var aiAnalysis = TempData["AiAnalysis"] as string;
 }
+@functions {
+    private static string TaskStatusLabel(string status) => status switch
+    {
+        "Todo" => "Cần làm",
+        "InProgress" => "Đang làm",
+        "Done" => "Xong",
+        "Delayed" => "Trễ hạn",
+        "Cancelled" => "Đã hủy",
+        _ => status
+    };
+
+    private static string TimelineStyle(DateTime planStart, DateTime planEnd, DateTime itemStart, DateTime itemEnd)
+    {
+        var totalMinutes = Math.Max((planEnd - planStart).TotalMinutes, 1);
+        var left = Math.Clamp((itemStart - planStart).TotalMinutes / totalMinutes * 100, 0, 100);
+        var right = Math.Clamp((itemEnd - planStart).TotalMinutes / totalMinutes * 100, 0, 100);
+        var width = Math.Max(right - left, 2);
+        return $"left:{left:0.##}%;width:{width:0.##}%";
+    }
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h4 mb-0 text-gray-800">
         @Model.Title 
-        @if(Model.Status == "Draft") { <span class="badge bg-secondary ms-2 fs-6">Nháp</span> }
-        else if(Model.Status == "Approved") { <span class="badge bg-info ms-2 fs-6">Đã Duyệt</span> }
-        else if(Model.Status == "InProgress") { <span class="badge bg-primary ms-2 fs-6">Đang Thực Hiện</span> }
-        else if(Model.Status == "Completed") { <span class="badge bg-success ms-2 fs-6">Hoàn Thành</span> }
+        <span class="badge @Model.StatusBadgeClass ms-2 fs-6">@Model.StatusLabel</span>
     </h2>
-    <div>
+    <div class="d-flex gap-2 flex-wrap justify-content-end">
+        @if (Model.CanSubmit)
+        {
+            <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-paper-plane fa-sm"></i> Gửi duyệt
+                </button>
+            </form>
+        }
+        @if (Model.Status == "Submitted" && (User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN")))
+        {
+            <form asp-action="Approve" asp-route-id="@Model.Id" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success shadow-sm">
+                    <i class="fas fa-check fa-sm"></i> Duyệt nhanh
+                </button>
+            </form>
+        }
+        @if (Model.CanStart)
+        {
+            <form asp-action="Start" asp-route-id="@Model.Id" method="post" class="d-inline">
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-play fa-sm"></i> Bắt đầu
+                </button>
+            </form>
+        }
+        @if (Model.CanComplete)
+        {
+            <form asp-action="Complete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success shadow-sm">
+                    <i class="fas fa-flag-checkered fa-sm"></i> Hoàn thành
+                </button>
+            </form>
+        }
+        @if (Model.CanCancel)
+        {
+            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Hủy kế hoạch này?');">
+                <button type="submit" class="btn btn-outline-danger shadow-sm">
+                    <i class="fas fa-ban fa-sm"></i> Hủy
+                </button>
+            </form>
+        }
+        <a asp-action="Gantt" asp-route-id="@Model.Id" class="btn btn-outline-primary shadow-sm">
+            <i class="fas fa-chart-gantt fa-sm"></i> Gantt
+        </a>
         <form asp-action="Analyze" asp-route-id="@Model.Id" method="post" class="d-inline">
-            <button type="submit" class="btn btn-warning shadow-sm me-2">
+            <button type="submit" class="btn btn-warning shadow-sm">
                 <i class="fas fa-magic fa-sm text-dark"></i> Phân tích AI Copilot
             </button>
         </form>
@@ -52,6 +128,22 @@
                     <span class="text-muted small fw-bold text-uppercase">Thời gian thực hiện</span>
                     <div>@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</div>
                 </div>
+                <div class="mb-3">
+                    <span class="text-muted small fw-bold text-uppercase">Projected End</span>
+                    <div class="@(Model.ProjectedEndDate.HasValue && Model.ProjectedEndDate.Value > Model.EndDate ? "text-danger fw-bold" : "fw-bold")">
+                        @(Model.ProjectedEndDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa tính")
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted small fw-bold text-uppercase">Critical Path</span>
+                    <div><span class="badge bg-danger">@Model.CriticalTaskCount task critical</span></div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.CriticalPathError))
+                {
+                    <div class="alert alert-danger py-2 small">
+                        <i class="fas fa-triangle-exclamation"></i> @Model.CriticalPathError
+                    </div>
+                }
                 <div class="mb-4">
                     <span class="text-muted small fw-bold text-uppercase">Tiến độ tổng thể (@Model.ProgressPercent%)</span>
                     <div class="progress mt-1" style="height: 12px;">
@@ -69,6 +161,36 @@
                 }
             </div>
         </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Change Order gần đây</h6>
+            </div>
+            <div class="card-body">
+                @if (!Model.ChangeOrders.Any())
+                {
+                    <div class="text-muted small">Chưa có thay đổi lịch/assignee sau baseline.</div>
+                }
+                else
+                {
+                    @foreach (var co in Model.ChangeOrders.Take(5))
+                    {
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="fw-bold small">@co.TaskName</div>
+                            <div class="text-muted small">
+                                @co.OldStartTime.ToString("dd/MM HH:mm") - @co.OldEndTime.ToString("dd/MM HH:mm")
+                                <i class="fas fa-arrow-right mx-1"></i>
+                                @co.NewStartTime.ToString("dd/MM HH:mm") - @co.NewEndTime.ToString("dd/MM HH:mm")
+                            </div>
+                            <div class="small">@co.Reason</div>
+                            <div class="text-muted" style="font-size:.72rem">
+                                Duyệt bởi @(co.ApprovedByName ?? "Hệ thống") lúc @(co.ApprovedAt?.ToLocalTime().ToString("dd/MM HH:mm") ?? co.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm"))
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
     </div>
 
     <!-- Cột danh sách công việc -->
@@ -76,9 +198,17 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">Danh Sách Công Việc (@Model.Tasks.Count)</h6>
-                <a asp-action="AddTask" asp-route-id="@Model.Id" class="btn btn-sm btn-primary">
-                    <i class="fas fa-plus fa-sm"></i> Thêm Công Việc
-                </a>
+                <div class="d-flex gap-2">
+                    <a asp-action="Gantt" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-chart-gantt fa-sm"></i> Gantt
+                    </a>
+                    @if (Model.CanAddTasks)
+                    {
+                        <a asp-action="AddTask" asp-route-id="@Model.Id" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus fa-sm"></i> Thêm Công Việc
+                        </a>
+                    }
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
@@ -87,7 +217,10 @@
                         <div class="p-4 text-center text-muted">
                             <i class="fas fa-tasks fa-3x mb-3 text-gray-300"></i>
                             <p>Kế hoạch này chưa có công việc nào.</p>
-                            <a asp-action="AddTask" asp-route-id="@Model.Id" class="btn btn-outline-primary mt-2">Bắt đầu thêm công việc</a>
+                            @if (Model.CanAddTasks)
+                            {
+                                <a asp-action="AddTask" asp-route-id="@Model.Id" class="btn btn-outline-primary mt-2">Bắt đầu thêm công việc</a>
+                            }
                         </div>
                     }
                     @foreach (var task in Model.Tasks)
@@ -98,6 +231,7 @@
                                 <div class="col-md-5">
                                     <h6 class="fw-bold mb-1 text-dark">
                                         @task.Name 
+                                        @if(task.IsCriticalPath) { <span class="badge bg-danger ms-1">Critical Path</span> }
                                         @if(isDelayed) { <span class="badge bg-danger ms-1">Trễ Hạn</span> }
                                     </h6>
                                     <div class="small text-muted mb-2">@task.Description</div>
@@ -115,6 +249,27 @@
                                     <div class="small @(isDelayed ? "text-danger fw-bold" : "text-dark")">
                                         @task.StartTime.ToString("dd/MM HH:mm") - @task.EndTime.ToString("dd/MM HH:mm")
                                     </div>
+                                    <div class="small mt-2 @(task.IsCriticalPath ? "text-danger fw-bold" : "text-muted")">
+                                        Slack: @task.SlackLabel
+                                    </div>
+                                    @if (task.EquipmentId.HasValue)
+                                    {
+                                        <div class="small mt-1 @(task.OeePercent.HasValue ? "text-success fw-bold" : "text-muted")">
+                                            OEE: @task.OeeLabel
+                                            @if (task.OeePercent.HasValue)
+                                            {
+                                                <span class="text-muted fw-normal">
+                                                    (A @task.OeeAvailabilityPercent?.ToString("0.#")% · P @task.OeePerformancePercent?.ToString("0.#")% · Q @task.OeeQualityPercent?.ToString("0.#")%)
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    @if (task.EarlyStart.HasValue && task.LateStart.HasValue)
+                                    {
+                                        <div class="small text-muted">
+                                            ES/LS: @task.EarlyStart.Value.ToString("dd/MM HH:mm") / @task.LateStart.Value.ToString("dd/MM HH:mm")
+                                        </div>
+                                    }
                                 </div>
                                 <div class="col-md-3 text-md-end mt-3 mt-md-0">
                                     <div class="small fw-bold text-muted mb-1">Tiến độ (@task.ProgressPercent%)</div>
@@ -127,8 +282,164 @@
                                         @if(task.Status == "Todo") { <span class="badge bg-secondary">Cần làm</span> }
                                         else if(task.Status == "InProgress") { <span class="badge bg-primary">Đang làm</span> }
                                         else if(task.Status == "Done") { <span class="badge bg-success">Xong</span> }
+                                        else if(task.Status == "Delayed") { <span class="badge bg-danger">Trễ hạn</span> }
+                                        else if(task.Status == "Cancelled") { <span class="badge bg-dark">Đã hủy</span> }
+                                    </div>
+                                    @if (Model.Status is "Approved" or "InProgress")
+                                    {
+                                        var statusOptions = new[] { task.Status }.Concat(task.NextStatuses).Distinct().ToList();
+                                        <form asp-action="UpdateTask" asp-route-id="@Model.Id" method="post" class="d-flex gap-1 mt-2 justify-content-md-end align-items-center flex-wrap">
+                                            <input type="hidden" name="taskId" value="@task.Id" />
+                                            <select name="status" class="form-select form-select-sm" style="width:118px">
+                                                @foreach (var status in statusOptions)
+                                                {
+                                                    <option value="@status" selected="@(status == task.Status ? "selected" : null)">@TaskStatusLabel(status)</option>
+                                                }
+                                            </select>
+                                            <input type="number" name="progressPercent" value="@task.ProgressPercent" min="0" max="100" class="form-control form-control-sm" style="width:76px" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Lưu tiến độ">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                            @if (task.EquipmentId.HasValue)
+                                            {
+                                                <div class="w-100"></div>
+                                                <input type="datetime-local" name="actualStartTime" value="@((task.ActualStartTime ?? task.StartTime).ToString("yyyy-MM-ddTHH:mm"))" class="form-control form-control-sm" style="width:155px" title="Actual start" />
+                                                <input type="datetime-local" name="actualEndTime" value="@(task.ActualEndTime?.ToString("yyyy-MM-ddTHH:mm"))" class="form-control form-control-sm" style="width:155px" title="Actual end" />
+                                                <input type="number" name="unitsProduced" value="@(task.UnitsProduced?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" min="0" step="0.01" class="form-control form-control-sm" style="width:92px" placeholder="Produced" title="Units produced" />
+                                                <input type="number" name="unitsGood" value="@(task.UnitsGood?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" min="0" step="0.01" class="form-control form-control-sm" style="width:82px" placeholder="Good" title="Units good" />
+                                            }
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                            @if (task.Baseline != null)
+                            {
+                                <div class="mt-3 pt-3 border-top">
+                                    <div class="d-flex justify-content-between text-muted small mb-1">
+                                        <span>Baseline vs thực tế</span>
+                                        <span>@Model.StartDate.ToString("dd/MM") - @Model.EndDate.ToString("dd/MM")</span>
+                                    </div>
+                                    <div class="position-relative bg-light rounded" style="height:42px;overflow:hidden">
+                                        <div class="position-absolute rounded bg-secondary" style="top:7px;height:10px;@TimelineStyle(Model.StartDate, Model.EndDate, task.Baseline.BaselineStart, task.Baseline.BaselineEnd)" title="Baseline"></div>
+                                        <div class="position-absolute rounded bg-primary" style="top:25px;height:10px;@TimelineStyle(Model.StartDate, Model.EndDate, task.StartTime, task.EndTime)" title="Thực tế"></div>
+                                    </div>
+                                    <div class="d-flex gap-3 small text-muted mt-1 flex-wrap">
+                                        <span><span class="badge bg-secondary">&nbsp;</span> Baseline: @task.Baseline.BaselineStart.ToString("dd/MM HH:mm") - @task.Baseline.BaselineEnd.ToString("dd/MM HH:mm")</span>
+                                        <span><span class="badge bg-primary">&nbsp;</span> Thực tế: @task.StartTime.ToString("dd/MM HH:mm") - @task.EndTime.ToString("dd/MM HH:mm")</span>
                                     </div>
                                 </div>
+                            }
+                            @if (Model.CanRequestChangeOrder)
+                            {
+                                <form asp-action="ChangeTaskPlan" asp-route-id="@Model.Id" method="post" class="mt-3 pt-3 border-top">
+                                    <input type="hidden" name="taskId" value="@task.Id" />
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Bắt đầu mới</label>
+                                            <input type="datetime-local" name="startTime" value="@task.StartTime.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Kết thúc mới</label>
+                                            <input type="datetime-local" name="endTime" value="@task.EndTime.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Nhân sự</label>
+                                            <select name="assignedUserId" class="form-select form-select-sm">
+                                                <option value="" selected="@(task.AssignedUserId.HasValue ? null : "selected")">Chưa gán</option>
+                                                @foreach (var user in Model.Users)
+                                                {
+                                                    <option value="@user.Value" selected="@(task.AssignedUserId?.ToString() == user.Value ? "selected" : null)">@user.Text</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">Thiết bị</label>
+                                            <select name="equipmentId" class="form-select form-select-sm">
+                                                <option value="" selected="@(task.EquipmentId.HasValue ? null : "selected")">Chưa gán</option>
+                                                @foreach (var equipment in Model.Equipments)
+                                                {
+                                                    <option value="@equipment.Value" selected="@(task.EquipmentId?.ToString() == equipment.Value ? "selected" : null)">@equipment.Text</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <label class="form-label small fw-bold">Lý do change order</label>
+                                            <input name="reason" class="form-control form-control-sm" minlength="10" maxlength="1000" placeholder="Nhập lý do thay đổi lịch hoặc người phụ trách..." />
+                                        </div>
+                                        <div class="col-md-3 text-md-end">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning w-100">
+                                                <i class="fas fa-code-branch"></i> Lập change order
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            }
+                            <div class="mt-3 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div class="fw-bold small text-uppercase text-muted">Dependencies</div>
+                                    <span class="badge bg-light text-dark border">@task.Predecessors.Count predecessor / @task.Successors.Count successor</span>
+                                </div>
+                                @if (task.Predecessors.Any() || task.Successors.Any())
+                                {
+                                    <div class="row g-2 mt-1">
+                                        <div class="col-md-6">
+                                            <div class="small fw-bold text-muted mb-1">Phụ thuộc trước</div>
+                                            @foreach (var dep in task.Predecessors)
+                                            {
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-2 py-1 mb-1 small">
+                                                    <span><span class="badge bg-secondary">@dep.TypeLabel</span> @dep.PredecessorTaskName</span>
+                                                    <form asp-action="DeleteDependency" asp-route-id="@Model.Id" method="post">
+                                                        <input type="hidden" name="dependencyId" value="@dep.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Xóa dependency"><i class="fas fa-xmark"></i></button>
+                                                    </form>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="small fw-bold text-muted mb-1">Ảnh hưởng sau</div>
+                                            @foreach (var dep in task.Successors)
+                                            {
+                                                <div class="d-flex justify-content-between align-items-center bg-light rounded px-2 py-1 mb-1 small">
+                                                    <span><span class="badge bg-secondary">@dep.TypeLabel</span> @dep.SuccessorTaskName</span>
+                                                    <form asp-action="DeleteDependency" asp-route-id="@Model.Id" method="post">
+                                                        <input type="hidden" name="dependencyId" value="@dep.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Xóa dependency"><i class="fas fa-xmark"></i></button>
+                                                    </form>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.Status is not ("Completed" or "Cancelled") && Model.DependencyTaskOptions.Count > 1)
+                                {
+                                    <form asp-action="AddDependency" asp-route-id="@Model.Id" method="post" class="row g-2 mt-2 align-items-end">
+                                        <input type="hidden" name="successorTaskId" value="@task.Id" />
+                                        <div class="col-md-5">
+                                            <label class="form-label small fw-bold">Predecessor</label>
+                                            <select name="predecessorTaskId" class="form-select form-select-sm" required>
+                                                <option value="">Chọn task trước</option>
+                                                @foreach (var option in Model.DependencyTaskOptions.Where(o => o.Value != task.Id.ToString()))
+                                                {
+                                                    <option value="@option.Value">@option.Text</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold">Loại</label>
+                                            <select name="type" class="form-select form-select-sm">
+                                                <option value="@PlanTaskDependencyType.FinishToStart">FS</option>
+                                                <option value="@PlanTaskDependencyType.StartToStart">SS</option>
+                                                <option value="@PlanTaskDependencyType.FinishToFinish">FF</option>
+                                                <option value="@PlanTaskDependencyType.StartToFinish">SF</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                                <i class="fas fa-link"></i> Thêm
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
                             </div>
                         </div>
                     }

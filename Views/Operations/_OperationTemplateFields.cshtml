@@ -1,0 +1,68 @@
+@model OmniBizAI.ViewModels.OperationRequestTemplateEditViewModel
+
+<div class="row g-4 mb-4">
+    <div class="col-md-12">
+        <label asp-for="Title" class="form-label">Tiêu đề template <span style="color:var(--danger)">*</span></label>
+        <input asp-for="Title" class="form-control" placeholder="VD: Sửa máy in hết mực, đăng ký phòng họp..." />
+        <span asp-validation-for="Title" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Type" class="form-label">Loại yêu cầu <span style="color:var(--danger)">*</span></label>
+        <select asp-for="Type" class="form-select">
+            <option value="">-- Chọn loại yêu cầu --</option>
+            <option value="IT_SUPPORT">Hỗ trợ IT & Thiết bị</option>
+            <option value="PROCUREMENT">Đề xuất mua sắm</option>
+            <option value="FACILITY">Bảo trì cơ sở vật chất</option>
+            <option value="Maintenance_PM">Bảo trì phòng ngừa (PM)</option>
+            <option value="Maintenance_CM">Bảo trì khắc phục (CM)</option>
+            <option value="Maintenance">Bảo trì khác</option>
+            <option value="SERVICE">Cung cấp dịch vụ/Sản phẩm</option>
+            <option value="OTHER">Khác</option>
+        </select>
+        <span asp-validation-for="Type" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="DefaultDepartmentId" class="form-label">Phòng ban mặc định <span style="color:var(--danger)">*</span></label>
+        <select asp-for="DefaultDepartmentId" class="form-select">
+            <option value="">-- Chọn phòng ban --</option>
+            @foreach (var dept in Model.Departments)
+            {
+                <option value="@dept.Value" selected="@(Model.DefaultDepartmentId.ToString() == dept.Value)">@dept.Text</option>
+            }
+        </select>
+        <span asp-validation-for="DefaultDepartmentId" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Priority" class="form-label">Mức ưu tiên</label>
+        <select asp-for="Priority" class="form-select">
+            @foreach (var p in EnumHelper.GetSelectList<PriorityLevel>())
+            {
+                var priority = Enum.Parse<PriorityLevel>(p.Value);
+                <option value="@((int)priority)" selected="@(Model.Priority == priority)">@p.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check form-switch">
+            <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" />
+            <label asp-for="IsActive" class="form-check-label">Cho phép sử dụng</label>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <label asp-for="Description" class="form-label">Mô tả mặc định</label>
+        <textarea asp-for="Description" rows="4" class="form-control" placeholder="Nội dung sẽ được điền vào yêu cầu khi chọn template..."></textarea>
+        <span asp-validation-for="Description" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-12">
+        <label asp-for="DefaultLinesJson" class="form-label">DefaultLines JSON</label>
+        <textarea asp-for="DefaultLinesJson" rows="7" class="form-control" style="font-family:Consolas,monospace;font-size:.82rem" placeholder='[{"productServiceId":null,"productName":"Mực in HP 12A","quantity":1,"unitPrice":250000,"note":"Dự kiến thay mực"}]'></textarea>
+        <span asp-validation-for="DefaultLinesJson" class="text-danger small"></span>
+        <small class="text-muted d-block mt-1">Có thể để trống. Khi lưu từ yêu cầu đã hoàn thành, hệ thống tự sinh JSON từ các dòng hàng/dịch vụ.</small>
+    </div>
+</div>
