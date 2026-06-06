@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OmniBizAI.Data;
 
@@ -11,9 +12,11 @@ using OmniBizAI.Data;
 namespace OmniBizAI.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602145029_FixManagerUserId")]
+    partial class FixManagerUserId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3760,9 +3763,6 @@ namespace OmniBizAI.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<Guid?>("OperationRequestId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -3776,10 +3776,6 @@ namespace OmniBizAI.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OperationRequestId")
-                        .IsUnique()
-                        .HasFilter("[OperationRequestId] IS NOT NULL");
 
                     b.HasIndex("TenantId");
 
@@ -3948,9 +3944,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("KpiDefinitionId")
-                        .IsUnique()
-                        .HasFilter("[KpiDefinitionId] IS NOT NULL");
+                    b.HasIndex("KpiDefinitionId");
 
                     b.HasIndex("OkrObjectiveId")
                         .IsUnique()
@@ -8263,18 +8257,11 @@ namespace OmniBizAI.Data.Migrations
 
             modelBuilder.Entity("OmniBizAI.Models.Entities.OkrObjective", b =>
                 {
-                    b.HasOne("OmniBizAI.Models.Entities.OperationRequest", "OperationRequest")
-                        .WithOne("OkrObjective")
-                        .HasForeignKey("OmniBizAI.Models.Entities.OkrObjective", "OperationRequestId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("OmniBizAI.Models.Entities.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("OperationRequest");
 
                     b.Navigation("Tenant");
                 });
@@ -8336,8 +8323,8 @@ namespace OmniBizAI.Data.Migrations
             modelBuilder.Entity("OmniBizAI.Models.Entities.OperationPlan", b =>
                 {
                     b.HasOne("OmniBizAI.Models.Entities.KpiDefinition", "KpiDefinition")
-                        .WithOne("OperationPlan")
-                        .HasForeignKey("OmniBizAI.Models.Entities.OperationPlan", "KpiDefinitionId")
+                        .WithMany()
+                        .HasForeignKey("KpiDefinitionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OmniBizAI.Models.Entities.OkrObjective", "OkrObjective")
@@ -9534,8 +9521,6 @@ namespace OmniBizAI.Data.Migrations
 
                     b.Navigation("EmployeeAssignments");
 
-                    b.Navigation("OperationPlan");
-
                     b.Navigation("Targets");
                 });
 
@@ -9578,8 +9563,6 @@ namespace OmniBizAI.Data.Migrations
                     b.Navigation("KpiDefinition");
 
                     b.Navigation("Lines");
-
-                    b.Navigation("OkrObjective");
 
                     b.Navigation("WorkItems");
                 });

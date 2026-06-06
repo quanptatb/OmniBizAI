@@ -44,4 +44,10 @@ public class OperationRequest : TenantEntity
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
     public ICollection<AiInsight> AiInsights { get; set; } = new List<AiInsight>();
     public ICollection<OperationComment> Comments { get; set; } = new List<OperationComment>();
+
+    // Liên kết 1-1 với KpiDefinition (Đề xuất tạo KPI)
+    public KpiDefinition? KpiDefinition { get; set; }
+
+    // Liên kết 1-1 với OkrObjective (Đề xuất tạo OKR)
+    public OkrObjective? OkrObjective { get; set; }
 }

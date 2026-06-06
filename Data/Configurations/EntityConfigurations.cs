@@ -51,6 +51,11 @@ public class OrganizationUnitConfiguration : IEntityTypeConfiguration<Organizati
             .HasForeignKey(e => e.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(e => e.ManagerUser)
+            .WithMany()
+            .HasForeignKey(e => e.ManagerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 }
@@ -72,6 +77,16 @@ public class OperationRequestConfiguration : IEntityTypeConfiguration<OperationR
         builder.HasOne(e => e.RequestedByUser)
             .WithMany()
             .HasForeignKey(e => e.RequestedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.KpiDefinition)
+            .WithOne(k => k.OperationRequest)
+            .HasForeignKey<KpiDefinition>(k => k.OperationRequestId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.OkrObjective)
+            .WithOne(o => o.OperationRequest)
+            .HasForeignKey<OkrObjective>(o => o.OperationRequestId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasQueryFilter(e => !e.IsDeleted);
