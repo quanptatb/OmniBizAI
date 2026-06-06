@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Page content fade-in ────────────────────────────────────
     document.querySelectorAll('.glass-card,.content-card,.stat-card').forEach((el, i) => {
         el.classList.add('fade-in');
-        if (i < 12) el.style.animationDelay = `${i * 0.05}s`;
     });
 
     // ── Button press effect (Apple scale 0.97) ──────────────────
