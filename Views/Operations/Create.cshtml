@@ -109,7 +109,7 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
     }
-    .operation-type-card {
+    .operation-type-grid button {
         border: 1px solid var(--divider);
         border-radius: var(--r-md);
         background: var(--canvas);
@@ -119,17 +119,17 @@
         transition: all var(--ease-fast);
         box-shadow: var(--shadow-card);
     }
-    .operation-type-card:hover {
+    .operation-type-grid button:hover {
         border-color: rgba(0,113,227,.18);
         box-shadow: 0 12px 28px rgba(0,0,0,.08);
         transform: translateY(-1px);
     }
-    .operation-type-card.is-active {
+    .operation-type-grid button.is-active {
         border-color: rgba(0,113,227,.22);
         background: linear-gradient(180deg, rgba(0,113,227,.055), rgba(255,255,255,.98));
         box-shadow: 0 16px 30px rgba(0,113,227,.12);
     }
-    .operation-type-card i {
+    .operation-type-grid button i {
         width: 40px;
         height: 40px;
         border-radius: 13px;
@@ -140,12 +140,12 @@
         justify-content: center;
         margin-bottom: 10px;
     }
-    .operation-type-card strong {
+    .operation-type-grid button strong {
         display: block;
         margin-bottom: 4px;
         font-size: .92rem;
     }
-    .operation-type-card span {
+    .operation-type-grid button span {
         display: block;
         font-size: .78rem;
         color: var(--text-secondary);
@@ -349,9 +349,33 @@
 
 <form asp-action="Create" method="post" id="operationCreateForm">
     @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 p-3 rounded" style="background:var(--danger-bg);border:1px solid rgba(255,59,48,.2);border-radius:var(--r-sm)"></div>
 
     <div class="row g-4">
         <div class="col-xl-8">
+            <div class="content-card mb-4" style="padding:14px 16px;background:rgba(0,122,255,.04);border:1px solid rgba(0,122,255,.12);border-radius:12px">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                        <label asp-for="TemplateId" class="form-label">Tạo từ template</label>
+                        <select asp-for="TemplateId" class="form-select" id="templatePicker">
+                            <option value="">-- Không dùng template --</option>
+                            @foreach (var template in Model.Templates)
+                            {
+                                <option value="@template.Value" selected="@(Model.TemplateId?.ToString() == template.Value)">@template.Text</option>
+                            }
+                        </select>
+                    </div>
+                    @if (User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
+                    {
+                        <div class="col-md-4 text-md-end">
+                            <a asp-action="Templates" class="btn btn-light border w-100" style="border-radius:8px">
+                                <i class="fa-solid fa-layer-group me-1"></i>Quản lý template
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
             <div class="content-card operation-create-hero mb-4">
                 <div class="card-body-custom">
                     <div class="d-flex flex-column gap-3">
@@ -359,12 +383,15 @@
                             <div>
                                 <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Form đã nối với dữ liệu tổ chức và danh mục hiện có</span>
                                 <h5>Tạo yêu cầu nhanh hơn bằng cách chọn đúng loại việc, đúng phòng ban và đúng bối cảnh.</h5>
-                                <p>Sau khi lưu nháp, mình vẫn có thể bổ sung dòng hàng, theo dõi phê duyệt và cập nhật trạng thái xử lý trên cùng một luồng vận hành.</p>
+                                <p>Sau khi lưu nháp, mình vẫn có thể bổ dung dòng hàng, theo dõi phê duyệt và cập nhật trạng thái xử lý trên cùng một luồng vận hành.</p>
                             </div>
                             <div class="operation-hero-icon">
                                 <i class="fa-solid fa-diagram-next"></i>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -577,6 +604,44 @@
                     </div>
                 </div>
             </div>
+            @if (Model.Lines.Any())
+            {
+                <div class="content-card mb-4">
+                    <div class="card-header-custom" style="padding:12px 16px;background:var(--parchment);border-bottom:1px solid var(--divider);font-weight:700;font-size:.86rem">
+                        <i class="fa-solid fa-list-ul me-1"></i>Dòng mặc định từ template
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table mb-0 align-middle" style="font-size:.84rem">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">SP/DV</th>
+                                    <th class="text-end">SL</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end pe-3">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < Model.Lines.Count; i++)
+                                {
+                                    <tr>
+                                        <td class="ps-3">
+                                            @(Model.Lines[i].ProductName ?? Model.Lines[i].Note ?? "Dòng template")
+                                            <input type="hidden" asp-for="Lines[i].ProductServiceId" />
+                                            <input type="hidden" asp-for="Lines[i].ProductName" />
+                                            <input type="hidden" asp-for="Lines[i].Quantity" />
+                                            <input type="hidden" asp-for="Lines[i].UnitPrice" />
+                                            <input type="hidden" asp-for="Lines[i].Note" />
+                                        </td>
+                                        <td class="text-end">@Model.Lines[i].Quantity.ToString("N2")</td>
+                                        <td class="text-end">@(Model.Lines[i].UnitPrice?.ToString("N0") ?? "0") ₫</td>
+                                        <td class="text-end pe-3" style="font-weight:700">@Model.Lines[i].LineAmount.ToString("N0") ₫</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
 
         <div class="col-xl-4">
@@ -830,16 +895,22 @@
                 }
 
                 const routingHintBadge = document.getElementById('routingHintBadge');
-                routingHintBadge.innerHTML = departmentText && !departmentText.startsWith('--')
-                    ? `<i class="fa-solid fa-share-nodes"></i>Chuyển đến ${departmentText}`
-                    : '<i class="fa-solid fa-share-nodes"></i>Chưa gán phòng ban';
+                if (routingHintBadge) {
+                    routingHintBadge.innerHTML = departmentText && !departmentText.startsWith('--')
+                        ? `<i class="fa-solid fa-share-nodes"></i>Chuyển đến ${departmentText}`
+                        : '<i class="fa-solid fa-share-nodes"></i>Chưa gán phòng ban';
+                }
 
                 const customerHintBadge = document.getElementById('customerHintBadge');
-                customerHintBadge.innerHTML = customerText.startsWith('--')
-                    ? '<i class="fa-solid fa-user-group"></i>Nội bộ'
-                    : `<i class="fa-solid fa-user-group"></i>${customerText}`;
+                if (customerHintBadge) {
+                    customerHintBadge.innerHTML = customerText.startsWith('--')
+                        ? '<i class="fa-solid fa-user-group"></i>Nội bộ'
+                        : `<i class="fa-solid fa-user-group"></i>${customerText}`;
+                }
 
-                descriptionCounter.textContent = `${descriptionInput.value.length} ký tự`;
+                if (descriptionCounter) {
+                    descriptionCounter.textContent = `${descriptionInput.value.length} ký tự`;
+                }
 
                 const hasClearTitle = title.length >= 12;
                 const hasRouting = Boolean(type) && Boolean(departmentInput.value);
@@ -899,7 +970,9 @@
             descriptionInput.addEventListener('input', updateSummary);
             typeInput.addEventListener('change', updateSummary);
             departmentInput.addEventListener('change', updateSummary);
-            customerInput.addEventListener('change', updateSummary);
+            if (customerInput) {
+                customerInput.addEventListener('change', updateSummary);
+            }
             priorityInput.addEventListener('change', updateSummary);
             dueDateInput.addEventListener('change', updateSummary);
             totalAmountInput.addEventListener('input', updateSummary);
@@ -913,5 +986,11 @@
 
             updateSummary();
         })();
+
+        document.getElementById('templatePicker')?.addEventListener('change', function () {
+            const value = this.value;
+            const url = value ? `/Operations/Create?templateId=${encodeURIComponent(value)}` : '/Operations/Create';
+            window.location.href = url;
+        });
     </script>
 }

@@ -105,4 +105,49 @@ public class ApprovalsController : Controller
         TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
         return RedirectToAction(nameof(MyTasks));
     }
+
+    // ── Bulk Approve (F6.4) ──────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkApprove(List<Guid> selectedTaskIds, string? note)
+    {
+        if (selectedTaskIds.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Chưa chọn yêu cầu nào.";
+            return RedirectToAction(nameof(MyTasks));
+        }
+        var result = await _service.BulkApproveAsync(selectedTaskIds, note);
+        if (result.SuccessCount > 0)
+        {
+            await _notif.BroadcastAsync(
+                $"✅ {_tenant.UserFullName} phê duyệt hàng loạt ({result.SuccessCount})",
+                $"{_tenant.UserFullName} đã phê duyệt {result.SuccessCount} yêu cầu.{(note != null ? $" Ghi chú: {note}" : "")}");
+        }
+        TempData[result.Success ? "SuccessMessage" : "ToastWarningMessage"] = result.Message;
+        return RedirectToAction(nameof(MyTasks));
+    }
+
+    // ── Bulk Reject (F6.4) ───────────────────────────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkReject(List<Guid> selectedTaskIds, string reason)
+    {
+        if (selectedTaskIds.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Chưa chọn yêu cầu nào.";
+            return RedirectToAction(nameof(MyTasks));
+        }
+        if (string.IsNullOrWhiteSpace(reason) || reason.Length < 10)
+        {
+            TempData["ErrorMessage"] = "Vui lòng nhập lý do từ chối (tối thiểu 10 ký tự).";
+            return RedirectToAction(nameof(MyTasks));
+        }
+        var result = await _service.BulkRejectAsync(selectedTaskIds, reason);
+        if (result.SuccessCount > 0)
+        {
+            await _notif.BroadcastAsync(
+                $"❌ {_tenant.UserFullName} từ chối hàng loạt ({result.SuccessCount})",
+                $"{_tenant.UserFullName} đã từ chối {result.SuccessCount} yêu cầu. Lý do: {reason}");
+        }
+        TempData[result.Success ? "SuccessMessage" : "ToastWarningMessage"] = result.Message;
+        return RedirectToAction(nameof(MyTasks));
+    }
 }

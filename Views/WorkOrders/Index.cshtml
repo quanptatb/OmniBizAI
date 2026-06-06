@@ -1,0 +1,120 @@
+@model OmniBizAI.ViewModels.WorkOrderListViewModel
+@using OmniBizAI.Models.Entities.Enums
+@{
+    ViewData["Title"] = "Work Orders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string StatusBadge(WorkOrderStatus s) => s switch
+    {
+        WorkOrderStatus.Open => "bg-secondary",
+        WorkOrderStatus.Assigned => "bg-info",
+        WorkOrderStatus.InProgress => "bg-primary",
+        WorkOrderStatus.OnHold => "bg-warning text-dark",
+        WorkOrderStatus.Completed => "bg-success",
+        WorkOrderStatus.Cancelled => "bg-dark",
+        _ => "bg-light text-dark"
+    };
+    string PriorityBadge(PriorityLevel p) => p switch
+    {
+        PriorityLevel.Critical => "bg-danger",
+        PriorityLevel.High => "bg-warning text-dark",
+        PriorityLevel.Normal => "bg-light text-dark border",
+        _ => "bg-light text-muted border"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-wrench text-primary me-2"></i>Work Orders</h2>
+    <div>
+        <a asp-controller="Maintenance" asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Dashboard bảo trì</a>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Tạo Work Order</a>
+    </div>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col"><div class="card border-0 bg-light shadow-sm"><div class="card-body py-2 text-center"><div class="h4 fw-bold">@Model.OpenCount</div><div class="small text-muted">Open</div></div></div></div>
+    <div class="col"><div class="card border-0 bg-info text-white shadow-sm"><div class="card-body py-2 text-center"><div class="h4 fw-bold">@Model.AssignedCount</div><div class="small opacity-75">Assigned</div></div></div></div>
+    <div class="col"><div class="card border-0 bg-primary text-white shadow-sm"><div class="card-body py-2 text-center"><div class="h4 fw-bold">@Model.InProgressCount</div><div class="small opacity-75">In Progress</div></div></div></div>
+    <div class="col"><div class="card border-0 bg-warning shadow-sm"><div class="card-body py-2 text-center"><div class="h4 fw-bold">@Model.OnHoldCount</div><div class="small">On Hold</div></div></div></div>
+    <div class="col"><div class="card border-0 bg-success text-white shadow-sm"><div class="card-body py-2 text-center"><div class="h4 fw-bold">@Model.CompletedCount</div><div class="small opacity-75">Completed</div></div></div></div>
+</div>
+
+<form method="get" class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Trạng thái</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var s in Enum.GetValues<WorkOrderStatus>())
+                    {
+                        <option value="@s" selected="@(Model.StatusFilter == s)">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Thiết bị</label>
+                <select name="equipmentId" class="form-select form-select-sm">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var e in Model.Equipments)
+                    {
+                        <option value="@e.Value" selected="@(Model.EquipmentFilter?.ToString() == e.Value)">@e.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Technician</label>
+                <select name="technicianId" class="form-select form-select-sm">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var t in Model.Technicians)
+                    {
+                        <option value="@t.Value" selected="@(Model.TechnicianFilter?.ToString() == t.Value)">@t.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100">Lọc</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã</th>
+                    <th>Tiêu đề</th>
+                    <th>Thiết bị</th>
+                    <th>Loại</th>
+                    <th>Ưu tiên</th>
+                    <th>Trạng thái</th>
+                    <th>Technician</th>
+                    <th>Lịch</th>
+                    <th class="text-end">Chi phí</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr><td colspan="9" class="text-center text-muted py-4">Chưa có Work Order nào.</td></tr>
+                }
+                @foreach (var w in Model.Items)
+                {
+                    <tr>
+                        <td><a asp-action="Details" asp-route-id="@w.Id" class="fw-bold text-decoration-none">@w.Code</a></td>
+                        <td>@w.Title</td>
+                        <td><span class="text-muted small">@w.EquipmentName</span></td>
+                        <td><span class="badge bg-light text-dark border">@w.Type</span></td>
+                        <td><span class="badge @PriorityBadge(w.Priority)">@w.Priority</span></td>
+                        <td><span class="badge @StatusBadge(w.Status)">@w.Status</span></td>
+                        <td>@(w.TechnicianName ?? "—")</td>
+                        <td class="small text-muted">@(w.ScheduledStart?.LocalDateTime.ToString("dd/MM HH:mm") ?? "—")</td>
+                        <td class="text-end">@(w.ActualCost.HasValue ? w.ActualCost.Value.ToString("N0") : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

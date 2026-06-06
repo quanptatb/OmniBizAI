@@ -32,6 +32,13 @@
                         <label class="form-label" style="margin-bottom:4px">Đơn mua hàng</label>
                         <div style="font-weight:500">@(Model.PurchaseOrderNo ?? "Không liên kết")</div>
                     </div>
+                    @if (Model.OperationRequestId.HasValue)
+                    {
+                        <div class="col-sm-6">
+                            <label class="form-label" style="margin-bottom:4px">Yêu cầu vận hành</label>
+                            <div style="font-weight:600"><a asp-controller="Operations" asp-action="Details" asp-route-id="@Model.OperationRequestId" style="color:var(--apple-blue);text-decoration:none">@Model.OperationRequestNo</a></div>
+                        </div>
+                    }
                     <div class="col-sm-6">
                         <label class="form-label" style="margin-bottom:4px">Hạn thanh toán</label>
                         <div style="font-weight:500;color:@(Model.IsOverdue ? "var(--danger)" : "var(--text-primary)")">

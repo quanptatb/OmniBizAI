@@ -104,13 +104,14 @@
         {
             var priColor = task.RequestPriority switch { "Critical" => "#ff3b30", "High" => "#ff9500", "Normal" => "#007AFF", "Low" => "#34c759", _ => "#94a3b8" };
             var priLabel = task.RequestPriority switch { "Critical" => "Nguy cấp", "High" => "Cao", "Normal" => "Bình thường", "Low" => "Thấp", _ => task.RequestPriority };
+            var targetController = task.TargetType switch { "OperationPlan" => "OperationPlans", "SalesOrder" => "OrderManagement", _ => "Operations" };
             <div class="content-card mb-3 animate-fade-in" style="border-left:3px solid #ff9500">
                 <div class="card-body-custom">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             <h6 class="fw-bold mb-1" style="font-size:.92rem">
                                 <a asp-action="Details" asp-route-id="@task.Id" style="color:var(--text-primary);text-decoration:none">
-                                    <a asp-controller="Operations" asp-action="Details" asp-route-id="@task.TargetId" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@task.RequestNo</a>
+                                    <span style="color:var(--apple-blue);font-weight:600">@task.RequestNo</span>
                                     — @task.RequestTitle
                                 </a>
                             </h6>
@@ -129,6 +130,9 @@
                         <span class="badge rounded-pill" style="background:@(priColor)18;color:@priColor;font-size:.68rem;padding:4px 10px;border:1px solid @(priColor)30;white-space:nowrap">@priLabel</span>
                     </div>
                     <div class="d-flex gap-2 justify-content-end">
+                        <a asp-controller="@targetController" asp-action="Details" asp-route-id="@task.TargetId" class="btn btn-sm btn-light border px-3" style="border-radius:8px;font-size:.78rem">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Mở đối tượng
+                        </a>
                         <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-light border px-3" style="border-radius:8px;font-size:.78rem">
                             <i class="fa-solid fa-eye me-1"></i>Chi tiết
                         </a>

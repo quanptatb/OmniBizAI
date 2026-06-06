@@ -51,6 +51,163 @@ public enum WorkItemStatus
     Cancelled = 5
 }
 
+public enum SprintStatus
+{
+    Planned = 1,
+    Active = 2,
+    Closed = 3
+}
+
+public enum WorkItemDependencyType
+{
+    BlockedBy = 1,
+    RelatesTo = 2,
+    Duplicates = 3
+}
+
+public enum OperationPlanStatus
+{
+    Draft = 1,
+    Submitted = 2,
+    Approved = 3,
+    InProgress = 4,
+    Completed = 5,
+    Cancelled = 6
+}
+
+public enum PlanChangeOrderStatus
+{
+    Approved = 1,
+    Cancelled = 2
+}
+
+public enum PlanTaskDependencyType
+{
+    FinishToStart = 1,
+    StartToStart = 2,
+    FinishToFinish = 3,
+    StartToFinish = 4
+}
+
+public enum PlanTaskStatus
+{
+    Todo = 1,
+    InProgress = 2,
+    Done = 3,
+    Delayed = 4,
+    Cancelled = 5
+}
+
+public enum EquipmentStatus
+{
+    Available = 1,
+    InUse = 2,
+    Maintenance = 3,
+    OutOfOrder = 4,
+    Retired = 5
+}
+
+public enum EquipmentCostType
+{
+    Purchase = 1,
+    Maintenance = 2,
+    Repair = 3,
+    SparePart = 4,
+    Other = 5
+}
+
+public enum ShiftAssignmentStatus
+{
+    Scheduled = 1,
+    CheckedIn = 2,
+    CheckedOut = 3,
+    Absent = 4,
+    Late = 5,
+    Cancelled = 6
+}
+
+public enum MaintenanceType
+{
+    Preventive = 1,
+    Corrective = 2,
+    Predictive = 3,
+    Emergency = 4,
+    Inspection = 5
+}
+
+public enum MaintenanceRecordStatus
+{
+    Scheduled = 1,
+    InProgress = 2,
+    Completed = 3,
+    Cancelled = 4
+}
+
+public enum WorkspaceStatus
+{
+    Active = 1,
+    Maintenance = 2,
+    Inactive = 3
+}
+
+public enum IncidentStatus
+{
+    Open = 1,
+    Investigating = 2,
+    InProgress = 3,
+    Resolved = 4,
+    Closed = 5,
+    Reopened = 6
+}
+
+public enum IncidentSeverity
+{
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Critical = 4
+}
+
+public enum PmFrequency
+{
+    Daily = 1,
+    Weekly = 2,
+    Monthly = 3,
+    Quarterly = 4,
+    Yearly = 5,
+    ByRunHours = 6,
+    ByCycles = 7
+}
+
+public enum SensorReadingStatus
+{
+    Normal = 1,
+    Warning = 2,
+    Critical = 3
+}
+
+public enum OperationSlaBreachType
+{
+    ApprovalWarning = 1,
+    ApprovalOverdue = 2,
+    ResolutionWarning = 3,
+    ResolutionOverdue = 4
+}
+
+public enum OperationAssignmentRole
+{
+    Primary = 1,
+    Support = 2,
+    Watcher = 3
+}
+
+public enum OperationCommentType
+{
+    Note = 1,
+    Question = 2,
+    Decision = 3
+}
+
 public enum ApprovalStatus
 {
     Pending = 1,
@@ -335,4 +492,55 @@ public enum QcStatus
     Pending = 1,
     Passed = 2,
     Failed = 3
+}
+
+// ── Maintenance Module Enums (F5.x) ──────────────────────────────────────────
+
+public enum WorkOrderType
+{
+    Preventive = 1,
+    Corrective = 2,
+    Inspection = 3,
+    Predictive = 4,
+    Emergency = 5
+}
+
+public enum WorkOrderStatus
+{
+    Open = 1,
+    Assigned = 2,
+    InProgress = 3,
+    OnHold = 4,
+    Completed = 5,
+    Cancelled = 6
+}
+
+public enum SparePartRequisitionStatus
+{
+    Draft = 1,
+    Submitted = 2,
+    Approved = 3,
+    Issued = 4,
+    Rejected = 5,
+    Cancelled = 6
+}
+
+public enum PmTriggerType
+{
+    TimeBased = 1,
+    RunHoursBased = 2,
+    CyclesBased = 3,
+    ConditionBased = 4
+}
+
+public enum FailureModeCategory
+{
+    Mechanical = 1,
+    Electrical = 2,
+    Hydraulic = 3,
+    Pneumatic = 4,
+    Software = 5,
+    Human = 6,
+    Environmental = 7,
+    Other = 8
 }

@@ -126,6 +126,9 @@ public class OperationRequestListViewModel
     public int InProgressCount { get; set; }
     public int CompletedCount { get; set; }
     public int OverdueCount { get; set; }
+    public int CriticalCount { get; set; }
+    public int CriticalOverdueCount { get; set; }
+    public int OverBudgetCount { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
@@ -147,15 +150,40 @@ public class OperationRequestListItem
     public string Type { get; set; } = "";
     public string Status { get; set; } = "";
     public string Priority { get; set; } = "";
+    public int PriorityWeight { get; set; }
     public string Department { get; set; } = "";
     public string CreatedBy { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public DateOnly? DueDate { get; set; }
+    public DateTimeOffset? ApprovalDueAt { get; set; }
+    public DateTimeOffset? ResolutionDueAt { get; set; }
+    public DateTimeOffset? SlaDueAt { get; set; }
+    public string SlaStage { get; set; } = "";
     public decimal? TotalAmount { get; set; }
-    public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled";
+    public decimal? EstimatedCost { get; set; }
+    public decimal? ActualCost { get; set; }
+    public decimal? CostVariance { get; set; }
+    public decimal? CostVariancePercent { get; set; }
+    public bool IsCostOverrun => CostVariancePercent.HasValue && CostVariancePercent.Value > 20;
+    public bool IsCritical => Priority == "Critical";
+    public bool IsSlaOverdue => SlaDueAt.HasValue && SlaDueAt.Value < DateTimeOffset.UtcNow && Status != "Completed" && Status != "Cancelled";
+    public bool IsOverdue => IsSlaOverdue || (DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled");
+    public bool IsCriticalAndOverdue => IsCritical && IsOverdue;
+    public string PriorityQueueClass => Priority switch
+    {
+        "Critical" => "priority-flag-critical",
+        "High" => "priority-flag-high",
+        "Normal" => "priority-flag-normal",
+        "Low" => "priority-flag-low",
+        _ => "priority-flag-default"
+    };
+    public string PriorityQueueLabel => PriorityWeight > 0 ? $"W{PriorityWeight}" : "";
 
     // SLA computed properties
-    public int? DaysRemaining => DueDate.HasValue ? DueDate.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber : null;
+    public double? SlaHoursRemaining => SlaDueAt.HasValue ? (SlaDueAt.Value - DateTimeOffset.UtcNow).TotalHours : null;
+    public int? DaysRemaining => SlaHoursRemaining.HasValue
+        ? (int)Math.Ceiling(SlaHoursRemaining.Value / 24)
+        : DueDate.HasValue ? DueDate.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber : null;
     public int ProcessingDays => (DateTime.Today - CreatedAt.Date).Days;
     public string SlaStatus
     {
@@ -163,6 +191,12 @@ public class OperationRequestListItem
         {
             if (Status == "Completed") return "Completed";
             if (Status == "Cancelled") return "Cancelled";
+            if (SlaHoursRemaining.HasValue)
+            {
+                if (SlaHoursRemaining.Value < 0) return "Overdue";
+                if (SlaHoursRemaining.Value <= 2) return "AtRisk";
+                return "OnTrack";
+            }
             if (!DueDate.HasValue) return "OnTrack";
             var rem = DaysRemaining ?? 0;
             if (rem < 0) return "Overdue";
@@ -176,6 +210,7 @@ public class OperationRequestListItem
         {
             if (Status == "Completed") return "Đã hoàn thành";
             if (Status == "Cancelled") return "Đã huỷ";
+            if (SlaHoursRemaining.HasValue) return FormatSlaHours(SlaHoursRemaining.Value);
             if (!DueDate.HasValue) return "Không có hạn";
             var rem = DaysRemaining ?? 0;
             if (rem < 0) return $"Quá hạn {Math.Abs(rem)} ngày";
@@ -183,10 +218,21 @@ public class OperationRequestListItem
             return $"Còn {rem} ngày";
         }
     }
+
+    public string SlaBadgeText => SlaHoursRemaining.HasValue ? FormatSlaHours(SlaHoursRemaining.Value) : SlaLabel;
+
+    private static string FormatSlaHours(double hours)
+    {
+        if (hours < 0) return $"Quá hạn {Math.Abs(hours):0.#} giờ";
+        if (hours < 24) return $"Còn {hours:0.#} giờ";
+        return $"Còn {Math.Ceiling(hours / 24):0} ngày";
+    }
 }
 
 public class OperationRequestCreateViewModel
 {
+    public Guid? TemplateId { get; set; }
+
     [Required(ErrorMessage = "Tiêu đề không được để trống")]
     [StringLength(250, ErrorMessage = "Tiêu đề không quá 250 ký tự")]
     public string Title { get; set; } = string.Empty;
@@ -218,6 +264,57 @@ public class OperationRequestCreateViewModel
     public List<SelectOption> Customers { get; set; } = new();
     public List<SelectOption> CustomerSites { get; set; } = new();
     public List<SelectOption> Products { get; set; } = new();
+    public List<SelectOption> Templates { get; set; } = new();
+}
+
+public class OperationRequestTemplateListViewModel
+{
+    public List<OperationRequestTemplateItem> Items { get; set; } = new();
+    public string? SearchTerm { get; set; }
+    public int ActiveCount => Items.Count(i => i.IsActive);
+    public int TotalUsage => Items.Sum(i => i.UsageCount);
+}
+
+public class OperationRequestTemplateItem
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string Priority { get; set; } = "";
+    public string Department { get; set; } = "";
+    public int DefaultLineCount { get; set; }
+    public bool IsActive { get; set; }
+    public int UsageCount { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? LastUsedAt { get; set; }
+}
+
+public class OperationRequestTemplateEditViewModel
+{
+    public Guid Id { get; set; }
+
+    [Required(ErrorMessage = "Tiêu đề template không được để trống")]
+    [StringLength(250)]
+    public string Title { get; set; } = "";
+
+    [Required(ErrorMessage = "Loại yêu cầu không được để trống")]
+    [StringLength(50)]
+    public string Type { get; set; } = "";
+
+    [Required]
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
+
+    [Required(ErrorMessage = "Phòng ban mặc định không được để trống")]
+    public Guid DefaultDepartmentId { get; set; }
+
+    [StringLength(2000)]
+    public string? Description { get; set; }
+
+    public string? DefaultLinesJson { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    public List<SelectOption> Departments { get; set; } = new();
 }
 
 public class OperationRequestDetailViewModel
@@ -234,9 +331,23 @@ public class OperationRequestDetailViewModel
     public string CreatedBy { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public DateOnly? DueDate { get; set; }
+    public DateTimeOffset? SubmittedAt { get; set; }
+    public DateTimeOffset? ApprovedAt { get; set; }
+    public DateTimeOffset? ApprovalDueAt { get; set; }
+    public DateTimeOffset? ResolutionDueAt { get; set; }
+    public DateTimeOffset? SlaDueAt { get; set; }
+    public string SlaStage { get; set; } = "";
     public decimal? TotalAmount { get; set; }
+    public decimal? EstimatedCost { get; set; }
+    public decimal? ActualCost { get; set; }
+    public decimal? CostVariance { get; set; }
+    public decimal? CostVariancePercent { get; set; }
+    public DateTimeOffset? CostVarianceCalculatedAt { get; set; }
+    public bool IsCostOverrun => CostVariancePercent.HasValue && CostVariancePercent.Value > 20;
     public string? Description { get; set; }
     public string? CustomerSiteName { get; set; }
+    public Guid? LinkedOperationPlanId { get; set; }
+    public string? LinkedOperationPlanCode { get; set; }
     public List<OrderLineDisplayItem> Lines { get; set; } = new();
     public List<ApprovalTaskItem> ApprovalTasks { get; set; } = new();
     public List<WorkItemListItem> WorkItems { get; set; } = new();
@@ -247,10 +358,24 @@ public class OperationRequestDetailViewModel
     public bool CanCancel { get; set; }
     public bool CanStartWork { get; set; }
     public bool CanComplete { get; set; }
-    public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled";
+    public bool CanManageWork { get; set; }
+    public bool CanAddLine { get; set; }
+    public bool CanAddComment { get; set; }
+    public bool CanAddProgress { get; set; }
+    public bool CanUploadAttachment { get; set; }
+    public bool CanManageAssignments { get; set; }
+    public bool IsProgressStale { get; set; }
+    public decimal CurrentProgressPercent { get; set; }
+    public DateTimeOffset? LastProgressAt { get; set; }
+    public List<string> NextStatuses { get; set; } = new();
+    public bool IsSlaOverdue => SlaDueAt.HasValue && SlaDueAt.Value < DateTimeOffset.UtcNow && Status != "Completed" && Status != "Cancelled";
+    public bool IsOverdue => IsSlaOverdue || (DueDate.HasValue && DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && Status != "Completed" && Status != "Cancelled");
 
     // SLA computed properties
-    public int? DaysRemaining => DueDate.HasValue ? DueDate.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber : null;
+    public double? SlaHoursRemaining => SlaDueAt.HasValue ? (SlaDueAt.Value - DateTimeOffset.UtcNow).TotalHours : null;
+    public int? DaysRemaining => SlaHoursRemaining.HasValue
+        ? (int)Math.Ceiling(SlaHoursRemaining.Value / 24)
+        : DueDate.HasValue ? DueDate.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber : null;
     public int ProcessingDays => (DateTime.Today - CreatedAt.Date).Days;
     public string SlaStatus
     {
@@ -258,6 +383,12 @@ public class OperationRequestDetailViewModel
         {
             if (Status == "Completed") return "Completed";
             if (Status == "Cancelled") return "Cancelled";
+            if (SlaHoursRemaining.HasValue)
+            {
+                if (SlaHoursRemaining.Value < 0) return "Overdue";
+                if (SlaHoursRemaining.Value <= 2) return "AtRisk";
+                return "OnTrack";
+            }
             if (!DueDate.HasValue) return "OnTrack";
             var rem = DaysRemaining ?? 0;
             if (rem < 0) return "Overdue";
@@ -271,6 +402,7 @@ public class OperationRequestDetailViewModel
         {
             if (Status == "Completed") return "Đã hoàn thành";
             if (Status == "Cancelled") return "Đã huỷ";
+            if (SlaHoursRemaining.HasValue) return FormatSlaHours(SlaHoursRemaining.Value);
             if (!DueDate.HasValue) return "Không có hạn";
             var rem = DaysRemaining ?? 0;
             if (rem < 0) return $"Quá hạn {Math.Abs(rem)} ngày";
@@ -279,11 +411,30 @@ public class OperationRequestDetailViewModel
         }
     }
 
-    public List<OperationCommentViewModel> Comments { get; set; } = new();
+    public string SlaBadgeText => SlaHoursRemaining.HasValue ? FormatSlaHours(SlaHoursRemaining.Value) : SlaLabel;
 
-    public bool CanHold => Status == "InProgress";
-    public bool CanResume => Status == "OnHold";
-    public bool CanReopen => Status == "Completed" || Status == "Cancelled";
+    private static string FormatSlaHours(double hours)
+    {
+        if (hours < 0) return $"Quá hạn {Math.Abs(hours):0.#} giờ";
+        if (hours < 24) return $"Còn {hours:0.#} giờ";
+        return $"Còn {Math.Ceiling(hours / 24):0} ngày";
+    }
+
+    public List<OperationCommentViewModel> Comments { get; set; } = new();
+    public int CommentCount => Comments.Sum(c => c.TotalThreadCount);
+    public List<OperationProgressLogItem> ProgressLogs { get; set; } = new();
+    public List<OperationAttachmentItem> Attachments { get; set; } = new();
+    public List<OperationAssignmentItem> Assignments { get; set; } = new();
+    public List<SelectOption> AssignableUsers { get; set; } = new();
+    public List<SelectOption> AssignableDepartments { get; set; } = new();
+
+    public bool CanHold => CanManageWork && (NextStatuses.Count > 0 ? NextStatuses.Contains("OnHold") : Status == "InProgress");
+    public bool CanResume => CanManageWork && (NextStatuses.Count > 0 ? NextStatuses.Contains("InProgress") && Status == "OnHold" : Status == "OnHold");
+    public bool CanReopen => CanManageWork && (NextStatuses.Count > 0 ? NextStatuses.Contains("InProgress") && (Status == "Completed" || Status == "Cancelled") : Status == "Completed" || Status == "Cancelled");
+    public bool CanConvertToPlan => string.Equals(Type, "Project", StringComparison.OrdinalIgnoreCase)
+        && Status == "Approved"
+        && CanManageWork
+        && !LinkedOperationPlanId.HasValue;
 
     public string StatusLabel => Status switch
     {
@@ -292,6 +443,7 @@ public class OperationRequestDetailViewModel
         "InReview" => "Đang xem xét",
         "Approved" => "Đã duyệt",
         "InProgress" => "Đang xử lý",
+        "OnHold" => "Tạm dừng",
         "Completed" => "Hoàn thành",
         "Rejected" => "Bị từ chối",
         "Cancelled" => "Đã hủy",
@@ -308,13 +460,128 @@ public class OperationRequestDetailViewModel
     };
 }
 
+public class OperationAttachmentItem
+{
+    public Guid Id { get; set; }
+    public string FileName { get; set; } = "";
+    public string? ContentType { get; set; }
+    public long FileSize { get; set; }
+    public string UploadedByName { get; set; } = "";
+    public DateTimeOffset UploadedAt { get; set; }
+
+    public string FileSizeLabel
+    {
+        get
+        {
+            if (FileSize < 1024) return $"{FileSize} B";
+            if (FileSize < 1024 * 1024) return $"{FileSize / 1024d:0.#} KB";
+            return $"{FileSize / 1024d / 1024d:0.#} MB";
+        }
+    }
+
+    public string Icon => Path.GetExtension(FileName).ToLowerInvariant() switch
+    {
+        ".pdf" => "fa-file-pdf",
+        ".doc" or ".docx" => "fa-file-word",
+        ".xls" or ".xlsx" or ".csv" => "fa-file-excel",
+        ".ppt" or ".pptx" => "fa-file-powerpoint",
+        ".png" or ".jpg" or ".jpeg" or ".webp" => "fa-file-image",
+        ".zip" => "fa-file-zipper",
+        ".txt" => "fa-file-lines",
+        _ => "fa-paperclip"
+    };
+}
+
+public class OperationAssignmentItem
+{
+    public Guid Id { get; set; }
+    public OperationAssignmentRole Role { get; set; }
+    public string RoleLabel => Role switch
+    {
+        OperationAssignmentRole.Primary => "Primary",
+        OperationAssignmentRole.Support => "Support",
+        OperationAssignmentRole.Watcher => "Watcher",
+        _ => Role.ToString()
+    };
+    public Guid? AssignedUserId { get; set; }
+    public string? AssignedUserName { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+    public string? OrganizationUnitName { get; set; }
+    public string TargetName => AssignedUserName ?? OrganizationUnitName ?? "Chưa chọn";
+    public DateTimeOffset AssignedAt { get; set; }
+    public string? Note { get; set; }
+}
+
+public class OperationAssignmentInputViewModel
+{
+    public Guid OperationRequestId { get; set; }
+    public OperationAssignmentRole Role { get; set; } = OperationAssignmentRole.Support;
+    public Guid? AssignedUserId { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+
+    [StringLength(500)]
+    public string? Note { get; set; }
+}
+
+public class OperationProgressInputViewModel
+{
+    public Guid OperationRequestId { get; set; }
+
+    [Range(0, 100, ErrorMessage = "Tiến độ phải từ 0 đến 100%.")]
+    public decimal ProgressPercent { get; set; }
+
+    [StringLength(1000, ErrorMessage = "Ghi chú không quá 1000 ký tự.")]
+    public string? Note { get; set; }
+}
+
+public class OperationProgressLogItem
+{
+    public Guid Id { get; set; }
+    public decimal ProgressPercent { get; set; }
+    public string? Note { get; set; }
+    public string CreatedByName { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 public class OperationCommentViewModel
 {
     public Guid Id { get; set; }
     public string Content { get; set; } = "";
     public string AuthorName { get; set; } = "";
     public Guid AuthorUserId { get; set; }
+    public OperationCommentType Type { get; set; } = OperationCommentType.Note;
+    public Guid? ParentCommentId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public List<OperationCommentViewModel> Replies { get; set; } = new();
+    public int TotalThreadCount => 1 + Replies.Sum(r => r.TotalThreadCount);
+
+    public string TypeLabel => Type switch
+    {
+        OperationCommentType.Question => "Câu hỏi",
+        OperationCommentType.Decision => "Quyết định",
+        _ => "Ghi chú"
+    };
+
+    public string TypeIcon => Type switch
+    {
+        OperationCommentType.Question => "fa-circle-question",
+        OperationCommentType.Decision => "fa-circle-check",
+        _ => "fa-note-sticky"
+    };
+
+    public string TypeAccentColor => Type switch
+    {
+        OperationCommentType.Question => "var(--warning)",
+        OperationCommentType.Decision => "var(--success)",
+        _ => "var(--apple-blue)"
+    };
+
+    public string TypeBackground => Type switch
+    {
+        OperationCommentType.Question => "rgba(255, 193, 7, 0.12)",
+        OperationCommentType.Decision => "rgba(52, 199, 89, 0.12)",
+        _ => "rgba(0, 122, 255, 0.1)"
+    };
 }
 
 public class OperationStatisticsViewModel
@@ -434,6 +701,7 @@ public class ActivityLogItem
         "MarkPaid" => "Đánh dấu đã thanh toán",
         "Close" => "Đóng",
         "MoveKanbanCard" => "Di chuyển Kanban",
+        "CostOverrun" => "Vượt ngân sách",
         _ => Action
     };
 
@@ -454,6 +722,7 @@ public class ActivityLogItem
         "MarkPaid" => "fa-money-check-dollar",
         "Close" => "fa-lock",
         "MoveKanbanCard" => "fa-arrows-up-down",
+        "CostOverrun" => "fa-triangle-exclamation",
         _ => "fa-clock"
     };
 
@@ -467,6 +736,7 @@ public class ActivityLogItem
         "StartWork" => "#5856d6",
         "ReturnForRevision" => "#ff9500",
         "MarkPaid" => "#30b0c7",
+        "CostOverrun" => "var(--danger)",
         "Close" => "#636366",
         _ => "var(--text-muted)"
     };
@@ -550,6 +820,7 @@ public class ApprovalTaskDetailViewModel
     public List<ApprovalStepItem> AllSteps { get; set; } = new();
     // Assignees for reassign
     public List<SelectOption> AvailableAssignees { get; set; } = new();
+    public List<string> NextStatuses { get; set; } = new();
 }
 
 public class ApprovalStepItem
@@ -877,6 +1148,7 @@ public class PaymentRequestCreateViewModel
 
     public Guid? VendorId { get; set; }
     public Guid? PurchaseOrderId { get; set; }
+    public Guid? OperationRequestId { get; set; }
 
     [Required(ErrorMessage = "Số tiền không được để trống")]
     [Range(0.01, double.MaxValue, ErrorMessage = "Số tiền phải lớn hơn 0")]
@@ -889,6 +1161,7 @@ public class PaymentRequestCreateViewModel
 
     public List<SelectOption> Vendors { get; set; } = new();
     public List<SelectOption> PurchaseOrders { get; set; } = new();
+    public List<SelectOption> OperationRequests { get; set; } = new();
 }
 
 public class PaymentRequestDetailViewModel
@@ -900,6 +1173,8 @@ public class PaymentRequestDetailViewModel
     public string Status { get; set; } = "";
     public string? VendorName { get; set; }
     public string? PurchaseOrderNo { get; set; }
+    public string? OperationRequestNo { get; set; }
+    public Guid? OperationRequestId { get; set; }
     public string RequestedBy { get; set; } = "";
     public DateOnly? DueDate { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
@@ -1152,17 +1427,47 @@ public class KanbanBoardViewModel
 {
     public string? SearchTerm { get; set; }
     public Guid? DepartmentFilter { get; set; }
+    public Guid? SprintFilter { get; set; }
+    public Guid? AssignedToFilter { get; set; }
+    public PriorityLevel? PriorityFilter { get; set; }
+    public Guid? TagFilter { get; set; }
+    public DateOnly? DueFrom { get; set; }
+    public DateOnly? DueTo { get; set; }
+    public bool HasAttachmentFilter { get; set; }
+    public string? QuickFilter { get; set; }
+    public Guid? SavedViewId { get; set; }
     public List<SelectOption> Departments { get; set; } = new();
     public List<SelectOption> OperationRequests { get; set; } = new();
+    public List<SelectOption> SprintOptions { get; set; } = new();
+    public List<SelectOption> AssignableSprintOptions { get; set; } = new();
+    public List<SelectOption> TagOptions { get; set; } = new();
+    public List<KanbanSavedViewItem> SavedViews { get; set; } = new();
     /// <summary>Only subordinates the current user can assign to.</summary>
     public List<SelectOption> Assignees { get; set; } = new();
     public List<KanbanColumnViewModel> Columns { get; set; } = new();
     public WorkItemCreateViewModel CreateForm { get; set; } = new();
+    public WorkflowSprintCreateViewModel CreateSprintForm { get; set; } = new();
+    public SprintSummaryViewModel? ActiveSprint { get; set; }
+    public SprintBurndownViewModel? Burndown { get; set; }
     public int TotalCards => Columns.Sum(c => c.Items.Count);
     public int OverdueCards => Columns.Sum(c => c.Items.Count(i => i.IsOverdue));
     public int BlockedCards => Columns.Where(c => c.Status == WorkItemStatus.Blocked).Sum(c => c.Items.Count);
+    public bool HasAdvancedFilter => AssignedToFilter.HasValue
+        || PriorityFilter.HasValue
+        || TagFilter.HasValue
+        || DueFrom.HasValue
+        || DueTo.HasValue
+        || HasAttachmentFilter
+        || !string.IsNullOrWhiteSpace(QuickFilter)
+        || SavedViewId.HasValue;
     /// <summary>True if the user can manage (add/edit/delete) columns.</summary>
     public bool CanManageColumns { get; set; }
+}
+
+public class KanbanSavedViewItem
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
 }
 
 public class KanbanColumnViewModel
@@ -1179,7 +1484,12 @@ public class KanbanColumnViewModel
     public int SortOrder { get; set; }
     public bool IsDoneColumn { get; set; }
     public bool IsCancelledColumn { get; set; }
+    public int? WipLimit { get; set; }
+    public bool WipEnforced { get; set; }
     public List<KanbanCardViewModel> Items { get; set; } = new();
+    public bool HasWipLimit => WipLimit.HasValue;
+    public bool IsWipExceeded => WipLimit.HasValue && Items.Count > WipLimit.Value;
+    public string WipLabel => WipLimit.HasValue ? $"{Items.Count} / {WipLimit.Value}" : $"{Items.Count}";
 }
 
 public class KanbanCardViewModel
@@ -1194,12 +1504,22 @@ public class KanbanCardViewModel
     public string Title { get; set; } = "";
     public string? Description { get; set; }
     public string Department { get; set; } = "";
+    public Guid? SprintId { get; set; }
+    public string? SprintName { get; set; }
     public string Priority { get; set; } = "";
     public string PriorityClass { get; set; } = "";
     public string? AssignedTo { get; set; }
     public DateOnly? DueDate { get; set; }
     public int ChecklistDone { get; set; }
     public int ChecklistTotal { get; set; }
+    public int ChecklistOverdueCount { get; set; }
+    public int ProgressPercent { get; set; }
+    public int AttachmentCount { get; set; }
+    public List<string> Tags { get; set; } = new();
+    public int BlockingDependencyCount { get; set; }
+    public bool HasBlockingDependencies => BlockingDependencyCount > 0;
+    public bool HasChecklistOverdue => ChecklistOverdueCount > 0;
+    public bool HasAttachments => AttachmentCount > 0;
     public bool IsOverdue => DueDate.HasValue
         && DueDate.Value < DateOnly.FromDateTime(DateTime.Today)
         && !IsDone && !IsCancelled;
@@ -1220,6 +1540,7 @@ public class WorkItemCreateViewModel
     public string? Description { get; set; }
 
     public Guid? OrganizationUnitId { get; set; }
+    public Guid? SprintId { get; set; }
     public Guid? AssignedToUserId { get; set; }
     public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
     public DateOnly? DueDate { get; set; }
@@ -1234,6 +1555,8 @@ public class WorkItemMoveViewModel
     public WorkItemStatus Status { get; set; }
     public string? Search { get; set; }
     public Guid? Dept { get; set; }
+    public Guid? Sprint { get; set; }
+    public string? ClientId { get; set; }
 }
 
 public class WorkItemEditViewModel
@@ -1248,6 +1571,7 @@ public class WorkItemEditViewModel
     public string? Description { get; set; }
 
     public Guid? OrganizationUnitId { get; set; }
+    public Guid? SprintId { get; set; }
     public Guid? AssignedToUserId { get; set; }
     public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
     public DateOnly? DueDate { get; set; }
@@ -1259,6 +1583,7 @@ public class WorkItemEditViewModel
     public List<SelectOption> Assignees { get; set; } = new();
     public List<SelectOption> StatusOptions { get; set; } = new();
     public List<SelectOption> ColumnOptions { get; set; } = new();
+    public List<SelectOption> SprintOptions { get; set; } = new();
 }
 
 public class WorkItemDetailViewModel
@@ -1275,6 +1600,8 @@ public class WorkItemDetailViewModel
     public string RequestNo { get; set; } = "";
     public string RequestTitle { get; set; } = "";
     public Guid OperationRequestId { get; set; }
+    public Guid? SprintId { get; set; }
+    public string? SprintName { get; set; }
     public string? AssignedTo { get; set; }
     public Guid? AssignedToUserId { get; set; }
     public DateOnly? DueDate { get; set; }
@@ -1285,15 +1612,26 @@ public class WorkItemDetailViewModel
     public List<WorkItemChecklistItem> Checklists { get; set; } = new();
     public List<WorkItemCommentItem> Comments { get; set; } = new();
     public List<WorkItemAssignmentItem> AssignmentHistory { get; set; } = new();
+    public List<WorkItemDependencyItem> BlockingDependencies { get; set; } = new();
+    public List<WorkItemDependencyItem> BlockedItems { get; set; } = new();
+    public List<SelectOption> DependencyOptions { get; set; } = new();
+    public List<SelectOption> ChecklistAssignees { get; set; } = new();
 }
 
 public class WorkItemChecklistItem
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
+    public int SortOrder { get; set; }
+    public Guid? AssignedToUserId { get; set; }
+    public string? AssignedToName { get; set; }
+    public DateOnly? DueDate { get; set; }
     public bool IsCompleted { get; set; }
     public string? CompletedByName { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
+    public bool IsOverdue => !IsCompleted
+        && DueDate.HasValue
+        && DueDate.Value < DateOnly.FromDateTime(DateTime.Today);
 }
 
 public class WorkItemCommentItem
@@ -1313,6 +1651,69 @@ public class WorkItemAssignmentItem
     public DateTimeOffset? CompletedAt { get; set; }
 }
 
+public class WorkItemDependencyItem
+{
+    public Guid Id { get; set; }
+    public Guid WorkItemId { get; set; }
+    public string Title { get; set; } = "";
+    public string StatusLabel { get; set; } = "";
+    public WorkItemStatus Status { get; set; }
+    public WorkItemDependencyType Type { get; set; }
+    public bool IsDone => Status == WorkItemStatus.Done;
+}
+
+public class SprintSummaryViewModel
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public string? Goal { get; set; }
+    public SprintStatus Status { get; set; }
+    public int TotalItems { get; set; }
+    public int DoneItems { get; set; }
+    public bool IsActive => Status == SprintStatus.Active;
+    public int RemainingItems => Math.Max(0, TotalItems - DoneItems);
+    public string DateRange => $"{StartDate:dd/MM} - {EndDate:dd/MM}";
+}
+
+public class SprintBurndownViewModel
+{
+    public Guid SprintId { get; set; }
+    public string SprintName { get; set; } = "";
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
+    public int TotalScope { get; set; }
+    public int DoneCount { get; set; }
+    public int RemainingCount => Math.Max(0, TotalScope - DoneCount);
+    public List<SprintBurndownPoint> Points { get; set; } = new();
+}
+
+public class SprintBurndownPoint
+{
+    public string DateLabel { get; set; } = "";
+    public int IdealRemaining { get; set; }
+    public int ActualRemaining { get; set; }
+}
+
+public class WorkflowSprintCreateViewModel
+{
+    [Required(ErrorMessage = "Tên sprint không được để trống")]
+    [StringLength(120, ErrorMessage = "Tên sprint không quá 120 ký tự")]
+    public string Name { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Ngày bắt đầu không được để trống")]
+    public DateOnly StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
+    [Required(ErrorMessage = "Ngày kết thúc không được để trống")]
+    public DateOnly EndDate { get; set; } = DateOnly.FromDateTime(DateTime.Today).AddDays(13);
+
+    [StringLength(1000, ErrorMessage = "Mục tiêu không quá 1000 ký tự")]
+    public string? Goal { get; set; }
+
+    public SprintStatus Status { get; set; } = SprintStatus.Planned;
+}
+
 // ── Column management ────────────────────────────────────────────────────────
 public class KanbanColumnCreateViewModel
 {
@@ -1325,6 +1726,10 @@ public class KanbanColumnCreateViewModel
 
     [StringLength(50)]
     public string AccentColor { get; set; } = "#94a3b8";
+
+    [Range(1, 999)]
+    public int? WipLimit { get; set; }
+    public bool WipEnforced { get; set; }
 
     public bool IsDoneColumn { get; set; }
     public bool IsCancelledColumn { get; set; }
@@ -1344,13 +1749,70 @@ public class KanbanColumnEditViewModel
     [StringLength(50)]
     public string AccentColor { get; set; } = "#94a3b8";
 
+    [Range(1, 999)]
+    public int? WipLimit { get; set; }
+    public bool WipEnforced { get; set; }
+
     public bool IsDoneColumn { get; set; }
     public bool IsCancelledColumn { get; set; }
+}
+
+public class KanbanColumnWipLimitViewModel
+{
+    public Guid ColumnId { get; set; }
+
+    [Range(1, 999)]
+    public int? WipLimit { get; set; }
+
+    public bool WipEnforced { get; set; }
 }
 
 public class KanbanColumnReorderViewModel
 {
     public List<Guid> ColumnIds { get; set; } = new();
+}
+
+public class WorkflowAnalyticsViewModel
+{
+    public DateOnly FromDate { get; set; }
+    public DateOnly ToDate { get; set; }
+    public int TotalCards { get; set; }
+    public int CompletedCards { get; set; }
+    public int MovedCards { get; set; }
+    public double AverageLeadDays { get; set; }
+    public double AverageCycleDays { get; set; }
+    public List<CycleTimeTrendItem> CycleTimeTrend { get; set; } = new();
+    public List<ColumnTimeAnalyticsItem> ColumnTimes { get; set; } = new();
+    public List<CumulativeFlowPoint> CumulativeFlow { get; set; } = new();
+}
+
+public class CycleTimeTrendItem
+{
+    public string PeriodLabel { get; set; } = "";
+    public double AverageCycleDays { get; set; }
+    public int CompletedCount { get; set; }
+}
+
+public class ColumnTimeAnalyticsItem
+{
+    public Guid? ColumnId { get; set; }
+    public string ColumnTitle { get; set; } = "";
+    public string AccentColor { get; set; } = "#8e8e93";
+    public double AverageHours { get; set; }
+    public int VisitCount { get; set; }
+    public bool IsBottleneck { get; set; }
+}
+
+public class CumulativeFlowPoint
+{
+    public string DateLabel { get; set; } = "";
+    public List<ColumnCountPoint> Columns { get; set; } = new();
+}
+
+public class ColumnCountPoint
+{
+    public string ColumnTitle { get; set; } = "";
+    public int Count { get; set; }
 }
 
 // ===== REPORTS =====
@@ -2356,6 +2818,8 @@ public class GoodsIssueLineDisplay
     public string? ItemName { get; set; }
     public decimal RequestedQuantity { get; set; }
     public decimal IssuedQuantity { get; set; }
+    public decimal? UnitCost { get; set; }
+    public decimal? LineAmount { get; set; }
     public string? UnitOfMeasure { get; set; }
     public string? Note { get; set; }
     public decimal FulfillRate => RequestedQuantity > 0 ? IssuedQuantity / RequestedQuantity * 100 : 0;
@@ -2400,6 +2864,8 @@ public class GoodsIssueLineInput
     public decimal RequestedQuantity { get; set; }
     [Range(0, double.MaxValue, ErrorMessage = "Số lượng xuất phải >= 0")]
     public decimal IssuedQuantity { get; set; }
+    [Range(0, double.MaxValue)]
+    public decimal? UnitCost { get; set; }
     [StringLength(50)]
     public string? UnitOfMeasure { get; set; }
     [StringLength(500)]
@@ -3302,4 +3768,29 @@ public class OrderProcessItemViewModel
     public int PendingApprovalLevels { get; set; }
     public decimal? QcPassRate { get; set; }
     public string TraceabilityCode { get; set; } = "";
+}
+
+// ===== COMMAND CENTER (F7) =====
+public class CommandCenterViewModel
+{
+    public int OpenRequests { get; set; }
+    public int OpenRequestsDelta { get; set; }
+    public int CriticalIncidents { get; set; }
+    public int CriticalIncidentsDelta { get; set; }
+    public int OverduePm { get; set; }
+    public int EquipmentInMaintenance { get; set; }
+    public int SlaBreachToday { get; set; }
+    public int SlaBreachYesterday { get; set; }
+    public int PendingApprovals { get; set; }
+    public int PendingApprovalsDelta { get; set; }
+    public List<EquipmentHeatmapItem> EquipmentHeatmap { get; set; } = new();
+}
+
+public class EquipmentHeatmapItem
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string? Location { get; set; }
 }

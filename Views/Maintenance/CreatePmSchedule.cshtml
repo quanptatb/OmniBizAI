@@ -29,7 +29,7 @@
                         <option value="Monthly" selected>Hàng tháng</option>
                         <option value="Quarterly">Hàng quý (3 tháng)</option>
                         <option value="Yearly">Hàng năm</option>
-                        <option value="Every_X_Hours">Theo giờ vận hành</option>
+                        <option value="ByRunHours">Theo giờ vận hành</option>
                     </select>
                 </div>
                 <div class="col-md-6" id="freqValueGroup" style="display:none">
@@ -58,6 +58,44 @@
                 <label class="form-label fw-bold">Hướng dẫn thực hiện</label>
                 <textarea asp-for="Instructions" class="form-control" rows="4" placeholder="Bước 1: Tắt nguồn thiết bị&#10;Bước 2: Tháo nắp..."></textarea>
             </div>
+
+            <hr />
+            <h6 class="fw-bold text-primary">Cấu hình kích hoạt PM tự động (F5.4)</h6>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Loại kích hoạt</label>
+                    <select asp-for="TriggerType" class="form-select" id="triggerSelect">
+                        <option value="TimeBased">Theo thời gian (mặc định)</option>
+                        <option value="RunHoursBased">Theo giờ chạy</option>
+                        <option value="CyclesBased">Theo số chu kỳ</option>
+                        <option value="ConditionBased">Theo điều kiện sensor</option>
+                    </select>
+                </div>
+                <div class="col-md-4 trigger-hours" style="display:none">
+                    <label class="form-label">Ngưỡng giờ chạy giữa 2 lần PM</label>
+                    <input asp-for="IntervalHours" type="number" step="0.5" class="form-control" placeholder="Ví dụ: 500" />
+                </div>
+                <div class="col-md-4 trigger-cycles" style="display:none">
+                    <label class="form-label">Ngưỡng chu kỳ giữa 2 lần PM</label>
+                    <input asp-for="IntervalCycles" type="number" class="form-control" placeholder="Ví dụ: 10000" />
+                </div>
+                <div class="col-md-4 trigger-cond" style="display:none">
+                    <label class="form-label">Sensor type</label>
+                    <select asp-for="ConditionSensorType" class="form-select">
+                        <option value="">-- Chọn --</option>
+                        <option value="Temperature">Temperature</option>
+                        <option value="Vibration">Vibration</option>
+                        <option value="Pressure">Pressure</option>
+                        <option value="RPM">RPM</option>
+                        <option value="Current">Current</option>
+                    </select>
+                </div>
+                <div class="col-md-4 trigger-cond" style="display:none">
+                    <label class="form-label">Ngưỡng cảnh báo</label>
+                    <input asp-for="ConditionThreshold" type="number" step="0.1" class="form-control" placeholder="Ví dụ: 6 (mm/s)" />
+                </div>
+            </div>
+
             <hr /><div class="text-end"><button type="submit" class="btn btn-primary px-5">Tạo Kế Hoạch PM</button></div>
         </form>
     </div>
@@ -67,7 +105,17 @@
 <partial name="_ValidationScriptsPartial" />
 <script>
 document.getElementById('freqSelect').addEventListener('change', function() {
-    document.getElementById('freqValueGroup').style.display = this.value === 'Every_X_Hours' ? 'block' : 'none';
+    document.getElementById('freqValueGroup').style.display = this.value === 'ByRunHours' ? 'block' : 'none';
 });
+
+function showTrigger(value) {
+    document.querySelectorAll('.trigger-hours, .trigger-cycles, .trigger-cond').forEach(el => el.style.display = 'none');
+    if (value === 'RunHoursBased') document.querySelectorAll('.trigger-hours').forEach(el => el.style.display = 'block');
+    if (value === 'CyclesBased') document.querySelectorAll('.trigger-cycles').forEach(el => el.style.display = 'block');
+    if (value === 'ConditionBased') document.querySelectorAll('.trigger-cond').forEach(el => el.style.display = 'block');
+}
+const triggerSel = document.getElementById('triggerSelect');
+triggerSel.addEventListener('change', e => showTrigger(e.target.value));
+showTrigger(triggerSel.value);
 </script>
 }

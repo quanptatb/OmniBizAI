@@ -1,0 +1,86 @@
+@model OmniBizAI.ViewModels.SparePartRequisitionListViewModel
+@using OmniBizAI.Models.Entities.Enums
+@{
+    ViewData["Title"] = "Phiếu yêu cầu phụ tùng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string Badge(SparePartRequisitionStatus s) => s switch
+    {
+        SparePartRequisitionStatus.Draft => "bg-light text-dark border",
+        SparePartRequisitionStatus.Submitted => "bg-info text-white",
+        SparePartRequisitionStatus.Approved => "bg-primary",
+        SparePartRequisitionStatus.Issued => "bg-success",
+        SparePartRequisitionStatus.Rejected => "bg-danger",
+        SparePartRequisitionStatus.Cancelled => "bg-dark",
+        _ => "bg-light text-dark"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>Phiếu yêu cầu phụ tùng (SPR)</h2>
+    <div>
+        <form method="post" asp-action="AutoReorder" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('Tự tạo phiếu Draft cho mọi phụ tùng dưới ngưỡng?')">
+                <i class="fas fa-magic me-1"></i>Auto-reorder
+            </button>
+        </form>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Tạo phiếu</a>
+    </div>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col"><div class="card bg-light shadow-sm text-center"><div class="card-body py-2"><div class="h4">@Model.DraftCount</div><div class="small text-muted">Draft</div></div></div></div>
+    <div class="col"><div class="card bg-info text-white shadow-sm text-center"><div class="card-body py-2"><div class="h4">@Model.SubmittedCount</div><div class="small opacity-75">Submitted</div></div></div></div>
+    <div class="col"><div class="card bg-primary text-white shadow-sm text-center"><div class="card-body py-2"><div class="h4">@Model.ApprovedCount</div><div class="small opacity-75">Approved</div></div></div></div>
+    <div class="col"><div class="card bg-success text-white shadow-sm text-center"><div class="card-body py-2"><div class="h4">@Model.IssuedCount</div><div class="small opacity-75">Issued</div></div></div></div>
+</div>
+
+<form method="get" class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    @foreach (var s in Enum.GetValues<SparePartRequisitionStatus>())
+                    {
+                        <option value="@s" selected="@(Model.StatusFilter == s)">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2"><button class="btn btn-outline-primary btn-sm w-100">Lọc</button></div>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr><th>Mã</th><th>Trạng thái</th><th>Lý do</th><th>Người yêu cầu</th><th>WO</th><th class="text-center">SL dòng</th><th class="text-center">Tổng SL</th><th>Ngày tạo</th></tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">Chưa có phiếu nào.</td></tr>
+                }
+                @foreach (var r in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@r.Id" class="fw-bold">@r.Code</a>
+                            @if (r.IsAutoReorder) { <span class="badge bg-warning text-dark ms-1" title="Auto-reorder">auto</span> }
+                        </td>
+                        <td><span class="badge @Badge(r.Status)">@r.Status</span></td>
+                        <td>@r.Reason</td>
+                        <td>@(r.RequestedByName ?? "—")</td>
+                        <td>@(r.LinkedWorkOrderCode ?? "—")</td>
+                        <td class="text-center">@r.LineCount</td>
+                        <td class="text-center">@r.TotalQuantity</td>
+                        <td class="small text-muted">@r.CreatedAt.LocalDateTime.ToString("dd/MM HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

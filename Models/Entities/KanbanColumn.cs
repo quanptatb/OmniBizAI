@@ -22,6 +22,12 @@ public class KanbanColumn : TenantEntity
     /// <summary>Sort position on the board (0-based, ascending).</summary>
     public int SortOrder { get; set; }
 
+    /// <summary>Maximum number of active cards expected in this column. Null means no limit.</summary>
+    public int? WipLimit { get; set; }
+
+    /// <summary>If true, moving or creating cards beyond WIP limit is blocked.</summary>
+    public bool WipEnforced { get; set; }
+
     /// <summary>If true, this column represents a "completed" state and will close related work.</summary>
     public bool IsDoneColumn { get; set; }
 

@@ -75,7 +75,8 @@ else
                                     case "Monthly": @("Hàng tháng") break;
                                     case "Quarterly": @("Hàng quý") break;
                                     case "Yearly": @("Hàng năm") break;
-                                    case "Every_X_Hours": @($"Mỗi {pm.FrequencyValue}h") break;
+                                    case "ByRunHours": @($"Mỗi {pm.FrequencyValue}h vận hành") break;
+                                    case "ByCycles": @($"Mỗi {pm.FrequencyValue} chu kỳ") break;
                                     default: @pm.Frequency break;
                                 }
                             </td>

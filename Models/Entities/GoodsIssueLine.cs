@@ -21,6 +21,12 @@ public class GoodsIssueLine : TenantEntity
     [Column(TypeName = "decimal(18,2)")]
     public decimal IssuedQuantity { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? UnitCost { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? LineAmount { get; set; }
+
     [StringLength(50)]
     public string? UnitOfMeasure { get; set; }
 

@@ -66,8 +66,49 @@
     .row-priority-critical:hover td {
         background-color: rgba(255, 59, 48, 0.05) !important;
     }
+    .row-priority-critical-overdue td {
+        background-color: rgba(255, 59, 48, 0.07) !important;
+        box-shadow: inset 3px 0 0 var(--danger);
+    }
     .row-priority-high:hover td {
         background-color: rgba(255, 149, 0, 0.04) !important;
+    }
+    .priority-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 9px;
+        border-radius: 8px;
+        font-size: .76rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+    .priority-flag-critical {
+        color: var(--danger);
+        background: rgba(255, 59, 48, .08);
+        border-color: rgba(255, 59, 48, .18);
+    }
+    .priority-flag-high {
+        color: var(--warning);
+        background: rgba(255, 149, 0, .08);
+        border-color: rgba(255, 149, 0, .18);
+    }
+    .priority-flag-normal {
+        color: var(--success);
+        background: rgba(52, 199, 89, .07);
+        border-color: rgba(52, 199, 89, .14);
+    }
+    .priority-flag-low {
+        color: var(--info);
+        background: rgba(0, 122, 255, .06);
+        border-color: rgba(0, 122, 255, .12);
+    }
+    .priority-weight {
+        font-size: .64rem;
+        padding: 1px 5px;
+        border-radius: 6px;
+        background: rgba(255,255,255,.7);
     }
 </style>
 
@@ -110,6 +151,9 @@
     </div>
     <div class="col-6 col-md">
         <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-exclamation-triangle"></i></div><div class="stat-value">@Model.OverdueCount</div><div class="stat-label">Quá hạn</div></div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-flag"></i></div><div class="stat-value">@Model.CriticalCount</div><div class="stat-label">Critical</div></div>
     </div>
 </div>
 
@@ -167,6 +211,12 @@
     <a href="/Operations?status=Overdue&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "Overdue" ? "active" : "")">
         Quá hạn <span class="badge bg-danger text-white">@Model.OverdueCount</span>
     </a>
+    <a href="/Operations?status=CriticalOverdue&search=@Model.SearchTerm&priority=&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "CriticalOverdue" ? "active" : "")">
+        Critical quá hạn <span class="badge bg-danger text-white">@Model.CriticalOverdueCount</span>
+    </a>
+    <a href="/Operations?status=OverBudget&search=@Model.SearchTerm&priority=@Model.PriorityFilter&dept=@Model.DeptFilter" class="segment-tab @(activeStatus == "OverBudget" ? "active" : "")">
+        Vượt ngân sách <span class="badge bg-danger text-white">@Model.OverBudgetCount</span>
+    </a>
 </div>
 
 <!-- Filters -->
@@ -185,6 +235,8 @@
                 <select name="status" class="form-select" style="border-radius:8px">
                     @foreach (var s in EnumHelper.GetSelectList<OperationStatus>(Model.StatusFilter, includeAll: true))
                     { <option value="@s.Value" selected="@s.Selected">@s.Text</option> }
+                    <option value="CriticalOverdue" selected="@(Model.StatusFilter == "CriticalOverdue")">Critical & quá hạn</option>
+                    <option value="OverBudget" selected="@(Model.StatusFilter == "OverBudget")">Vượt ngân sách</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -214,6 +266,7 @@
     <div class="card-header-custom">
         <h5><i class="fa-solid fa-list-check"></i> Danh sách yêu cầu</h5>
         <div class="d-flex gap-2">
+            <a asp-action="Templates" class="btn btn-light btn-sm" style="border-radius:8px; border: 1px solid rgba(0,0,0,0.08);"><i class="fa-solid fa-layer-group me-1"></i>Templates</a>
             <a asp-action="Statistics" class="btn btn-light btn-sm" style="border-radius:8px; border: 1px solid rgba(0,0,0,0.08);"><i class="fa-solid fa-chart-pie me-1"></i>Thống kê SLA</a>
             <a asp-controller="Workflow" asp-action="Kanban" class="btn btn-light btn-sm" style="border-radius:8px"><i class="fa-solid fa-table-columns me-1"></i>Kanban</a>
             @if (User.IsInRole("STAFF") || User.IsInRole("DEPARTMENT_MANAGER") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
@@ -247,9 +300,6 @@
                             "Rejected" or "Cancelled" => "badge-behind",
                             _ => ""
                         };
-                        var pc = item.Priority switch {
-                            "Low" => "var(--info)", "Normal" => "var(--success)", "High" => "var(--warning)", "Critical" => "var(--danger)", _ => "var(--text-muted)"
-                        };
                         var rowPriorityClass = item.Priority switch {
                                 "Critical" => "row-priority-critical",
                                 "High" => "row-priority-high",
@@ -257,7 +307,7 @@
                                 "Low" => "row-priority-low",
                                 _ => ""
                             };
-                            var overdueRowClass = item.IsOverdue ? "table-row-overdue" : "";
+                            var overdueRowClass = item.IsCriticalAndOverdue ? "row-priority-critical-overdue" : item.IsOverdue ? "table-row-overdue" : "";
                         <tr class="@rowPriorityClass @overdueRowClass">
                             <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.RequestNo</td>
                             <td>
@@ -267,11 +317,42 @@
                             <td>@item.Department</td>
                             <td>
                                 <span class="status-badge-soft @badge"><span class="status-dot"></span>@StatusLabel(item.Status)</span>
-                                @if (item.IsOverdue) { <div style="margin-top:3px"><span style="font-size:.65rem;color:var(--danger);font-weight:600"><i class="fa-solid fa-exclamation-triangle me-1"></i>Quá hạn</span></div> }
+                                @if (item.SlaDueAt.HasValue)
+                                {
+                                    <div style="margin-top:3px">
+                                        <span style="font-size:.65rem;color:@(item.IsSlaOverdue ? "var(--danger)" : item.SlaStatus == "AtRisk" ? "var(--warning)" : "var(--success)");font-weight:600">
+                                            <i class="fa-solid fa-clock me-1"></i>@item.SlaBadgeText
+                                        </span>
+                                    </div>
+                                }
+                                else if (item.IsOverdue) { <div style="margin-top:3px"><span style="font-size:.65rem;color:var(--danger);font-weight:600"><i class="fa-solid fa-exclamation-triangle me-1"></i>Quá hạn</span></div> }
                             </td>
-                            <td><span style="color:@pc;font-weight:500"><i class="fa-solid fa-circle" style="font-size:.4rem;vertical-align:middle;margin-right:4px"></i>@PriorityLabel(item.Priority)</span></td>
-                            <td style="font-weight:500">@(item.TotalAmount.HasValue && item.TotalAmount > 0 ? item.TotalAmount.Value.ToString("N0") + " ₫" : "—")</td>
-                            <td style="color:@(item.IsOverdue ? "var(--danger)" : "var(--text-muted)")">@(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                            <td>
+                                <span class="priority-flag @item.PriorityQueueClass">
+                                    <i class="fa-solid fa-flag"></i>@PriorityLabel(item.Priority)
+                                    <span class="priority-weight">@item.PriorityQueueLabel</span>
+                                </span>
+                                @if (item.IsCriticalAndOverdue)
+                                {
+                                    <div style="font-size:.68rem;color:var(--danger);font-weight:700;margin-top:4px">Xử lý ngay</div>
+                                }
+                            </td>
+                            <td style="font-weight:500">
+                                @(item.TotalAmount.HasValue && item.TotalAmount > 0 ? item.TotalAmount.Value.ToString("N0") + " ₫" : "—")
+                                @if (item.IsCostOverrun)
+                                {
+                                    <div style="font-size:.68rem;color:var(--danger);font-weight:700;margin-top:3px">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>+@item.CostVariancePercent?.ToString("0.#")%
+                                    </div>
+                                }
+                            </td>
+                            <td style="color:@(item.IsOverdue ? "var(--danger)" : "var(--text-muted)")">
+                                @(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")
+                                @if (item.SlaDueAt.HasValue)
+                                {
+                                    <div class="small text-muted">SLA: @item.SlaDueAt.Value.ToLocalTime().ToString("HH:mm dd/MM")</div>
+                                }
+                            </td>
                             <td class="text-end pe-4">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light" style="border-radius:8px">
                                     <i class="fa-solid fa-eye me-1"></i>Chi tiết

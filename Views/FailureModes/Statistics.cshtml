@@ -1,0 +1,112 @@
+@model OmniBizAI.ViewModels.FailureModeStatisticsViewModel
+@{
+    ViewData["Title"] = "Thống kê Failure Modes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var maxCount = Model.TopFailureModes.Any() ? Model.TopFailureModes.Max(f => f.IncidentCount) : 1;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-bar me-2 text-info"></i>Thống kê Failure Modes
+        </h1>
+        <p class="text-muted small mb-0">@Model.Months tháng gần nhất</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Statistics" asp-route-months="3" class="btn btn-sm btn-outline-secondary @(Model.Months == 3 ? "active" : "")">3 tháng</a>
+        <a asp-action="Statistics" asp-route-months="6" class="btn btn-sm btn-outline-secondary @(Model.Months == 6 ? "active" : "")">6 tháng</a>
+        <a asp-action="Statistics" asp-route-months="12" class="btn btn-sm btn-outline-secondary @(Model.Months == 12 ? "active" : "")">12 tháng</a>
+        <a asp-action="Index" class="btn btn-secondary shadow-sm ms-2">
+            <i class="fas fa-arrow-left me-1"></i>Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-start border-primary border-4 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-bold">Tổng sự cố</div>
+                <div class="h2 mb-0 text-primary">@Model.TotalIncidents</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-start border-success border-4 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-bold">Đã gắn Failure Mode</div>
+                <div class="h2 mb-0 text-success">@Model.TaggedIncidents</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-start border-info border-4 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-bold">Tỉ lệ gắn tag</div>
+                <div class="h2 mb-0 text-info">@Model.TaggingRate.ToString("F1")%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Failure Modes Chart -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-ranking-star me-1"></i>Top Failure Modes (theo số sự cố)
+        </h6>
+    </div>
+    <div class="card-body">
+        @if (!Model.TopFailureModes.Any())
+        {
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>
+                Chưa có dữ liệu thống kê.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width:50px">#</th>
+                            <th style="width:80px">Mã</th>
+                            <th style="width:200px">Tên</th>
+                            <th style="width:110px">Nhóm</th>
+                            <th>Phân bổ</th>
+                            <th class="text-center" style="width:90px">Incidents</th>
+                            <th class="text-end" style="width:110px">Downtime (h)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var rank = 1; }
+                        @foreach (var fm in Model.TopFailureModes)
+                        {
+                            var pct = maxCount > 0 ? (double)fm.IncidentCount / maxCount * 100.0 : 0;
+                            var barColor = rank <= 3 ? "bg-danger" : (rank <= 6 ? "bg-warning" : "bg-info");
+                            <tr>
+                                <td class="fw-bold text-muted">@rank</td>
+                                <td><code>@fm.Code</code></td>
+                                <td><strong>@fm.Name</strong></td>
+                                <td><span class="badge bg-secondary">@fm.Category</span></td>
+                                <td>
+                                    <div class="progress" style="height: 20px">
+                                        <div class="progress-bar @barColor" role="progressbar"
+                                             style="width: @pct.ToString("F0")%">
+                                            @fm.IncidentCount
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-bold">@fm.IncidentCount</td>
+                                <td class="text-end">@fm.TotalDowntimeHours.ToString("F1")</td>
+                            </tr>
+                            rank++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

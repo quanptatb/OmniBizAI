@@ -92,6 +92,7 @@
                                         <th>SP / Dịch vụ</th>
                                         <th class="text-end">SL yêu cầu</th>
                                         <th class="text-end">SL xuất <span style="color:var(--danger)">*</span></th>
+                                        <th class="text-end">Đơn giá</th>
                                         <th>ĐVT</th>
                                         <th>Ghi chú</th>
                                         <th class="text-center pe-3">Xóa</th>
@@ -112,6 +113,7 @@
                                             </td>
                                             <td class="text-end"><input type="number" name="Lines[@i].RequestedQuantity" value="@Model.Lines[i].RequestedQuantity" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" /></td>
                                             <td class="text-end"><input type="number" name="Lines[@i].IssuedQuantity" value="@Model.Lines[i].IssuedQuantity" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" required /></td>
+                                            <td class="text-end"><input type="number" name="Lines[@i].UnitCost" value="@Model.Lines[i].UnitCost" step="1000" min="0" class="form-control form-control-sm text-end" style="width:110px;display:inline-block;border-radius:8px" placeholder="Giá chuẩn" /></td>
                                             <td><input type="text" name="Lines[@i].UnitOfMeasure" value="@Model.Lines[i].UnitOfMeasure" class="form-control form-control-sm" style="width:70px;border-radius:8px" placeholder="Cái" /></td>
                                             <td><input type="text" name="Lines[@i].Note" value="@Model.Lines[i].Note" class="form-control form-control-sm" style="border-radius:8px;max-width:140px" placeholder="..." /></td>
                                             <td class="text-center pe-3"><button type="button" class="btn btn-sm text-danger" onclick="this.closest('tr').remove();reindex();"><i class="fa-solid fa-trash-can"></i></button></td>
@@ -150,6 +152,7 @@
                 + '<td><select name="Lines['+lineIdx+'].ProductServiceId" class="form-select form-select-sm" style="border-radius:8px;min-width:180px">' + opts + '</select><input type="hidden" name="Lines['+lineIdx+'].ItemName" /></td>'
                 + '<td class="text-end"><input type="number" name="Lines['+lineIdx+'].RequestedQuantity" value="0" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" /></td>'
                 + '<td class="text-end"><input type="number" name="Lines['+lineIdx+'].IssuedQuantity" value="0" step="0.01" min="0" class="form-control form-control-sm text-end" style="width:100px;display:inline-block;border-radius:8px" required /></td>'
+                + '<td class="text-end"><input type="number" name="Lines['+lineIdx+'].UnitCost" step="1000" min="0" class="form-control form-control-sm text-end" style="width:110px;display:inline-block;border-radius:8px" placeholder="Giá chuẩn" /></td>'
                 + '<td><input type="text" name="Lines['+lineIdx+'].UnitOfMeasure" class="form-control form-control-sm" style="width:70px;border-radius:8px" placeholder="Cái" /></td>'
                 + '<td><input type="text" name="Lines['+lineIdx+'].Note" class="form-control form-control-sm" style="border-radius:8px;max-width:140px" placeholder="..." /></td>'
                 + '<td class="text-center pe-3"><button type="button" class="btn btn-sm text-danger" onclick="this.closest(\'tr\').remove();reindex();"><i class="fa-solid fa-trash-can"></i></button></td>';

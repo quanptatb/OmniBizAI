@@ -54,16 +54,17 @@
                                 </div>
                             </td>
                             <td>
-                                @if(item.Status == "Draft") { <span class="badge bg-secondary">Nháp</span> }
-                                else if(item.Status == "Approved") { <span class="badge bg-info">Đã Duyệt</span> }
-                                else if(item.Status == "InProgress") { <span class="badge bg-primary">Đang Thực Hiện</span> }
-                                else if(item.Status == "Completed") { <span class="badge bg-success">Hoàn Thành</span> }
-                                else { <span class="badge bg-dark">@item.Status</span> }
+                                <span class="badge @item.StatusBadgeClass">@item.StatusLabel</span>
                             </td>
                             <td class="text-end">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                    Chi tiết <i class="fas fa-chevron-right ms-1"></i>
-                                </a>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a asp-action="Gantt" asp-route-id="@item.Id" class="btn btn-outline-primary" title="Xem Gantt">
+                                        <i class="fas fa-chart-gantt"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">
+                                        Chi tiết <i class="fas fa-chevron-right ms-1"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }

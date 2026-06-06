@@ -25,6 +25,13 @@
                         @foreach (var po in Model.PurchaseOrders) { <option value="@po.Value">@po.Text</option> }
                     </select>
                 </div>
+                <div class="col-12">
+                    <label class="form-label">Yêu cầu vận hành liên quan</label>
+                    <select asp-for="OperationRequestId" class="form-select">
+                        <option value="">— Không liên kết —</option>
+                        @foreach (var request in Model.OperationRequests) { <option value="@request.Value">@request.Text</option> }
+                    </select>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label">Tổng tiền (VNĐ) <span class="text-danger">*</span></label>
                     <div class="input-group">
