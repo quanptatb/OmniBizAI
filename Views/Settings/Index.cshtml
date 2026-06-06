@@ -1,0 +1,374 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Thiết lập hệ thống";
+    ViewData["Breadcrumb"] = "<span>Thiết lập hệ thống</span>";
+
+    var company = ViewBag.Company as OmniBizAI.ViewModels.CompanySettingsViewModel;
+    var modulesCount = (int)(ViewBag.ModulesCount ?? 0);
+    var enabledModulesCount = (int)(ViewBag.EnabledModulesCount ?? 0);
+    var theme = ViewBag.Theme as OmniBizAI.ViewModels.ThemeSettingsViewModel;
+    var parametersCount = (int)(ViewBag.ParametersCount ?? 0);
+    var enumLabelsCount = (int)(ViewBag.EnumLabelsCount ?? 0);
+    var backupCount = (int)(ViewBag.BackupCount ?? 0);
+    var auditLogsCount = (int)(ViewBag.AuditLogsCount ?? 0);
+}
+
+<style>
+    /* Premium Settings Dashboard Styling */
+    .settings-dashboard-container {
+        padding: 8px 4px;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .settings-welcome-card {
+        background: linear-gradient(135deg, rgba(0, 113, 227, 0.06), rgba(0, 113, 227, 0.02));
+        border: 1px solid var(--divider);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 28px;
+        backdrop-filter: blur(20px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .settings-welcome-text h4 {
+        font-weight: 700;
+        margin-bottom: 6px;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, var(--text-primary), var(--apple-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .settings-welcome-text p {
+        font-size: 0.84rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .settings-card {
+        background: var(--canvas);
+        border: 1px solid var(--divider);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 200px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+        text-decoration: none !important;
+        color: inherit !important;
+    }
+
+    .settings-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 100% 0%, rgba(0, 113, 227, 0.05) 0%, transparent 60%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .settings-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
+        border-color: var(--apple-blue);
+    }
+
+    .settings-card:hover::before {
+        opacity: 1;
+    }
+
+    .settings-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .settings-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    .settings-card:hover .settings-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .settings-info {
+        flex: 1;
+    }
+
+    .settings-card-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+    }
+
+    .settings-card-desc {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    .settings-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid var(--divider);
+    }
+
+    .settings-stat {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .settings-arrow {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--parchment);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+        border: 1px solid var(--divider);
+    }
+
+    .settings-card:hover .settings-arrow {
+        background: var(--apple-blue);
+        color: #fff;
+        border-color: var(--apple-blue);
+        transform: translateX(4px);
+    }
+
+    .theme-preview-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .theme-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="settings-dashboard-container">
+    <!-- Header Welcome Card -->
+    <div class="settings-welcome-card shadow-sm">
+        <div class="settings-welcome-text">
+            <h4>Hệ thống Cài đặt & Cấu hình</h4>
+            <p>Tùy chỉnh các tham số nghiệp vụ, quản lý phân hệ, sao lưu dữ liệu và cấu hình giao diện cho tenant của bạn.</p>
+        </div>
+        <div>
+            <span class="status-badge-soft badge-on-track" style="font-weight: 600; padding: 6px 14px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px;">
+                <span class="pulse-dot" style="width: 7px; height: 7px; background-color: var(--success, #34c759)"></span>Đang hoạt động
+            </span>
+        </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="settings-grid">
+        <!-- 1. Company Settings -->
+        <a href="@Url.Action("Company", "Settings")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #0072FF, #00C6FF);">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Cài đặt công ty</h5>
+                        <p class="settings-card-desc">Cập nhật thông tin doanh nghiệp, ngành nghề kinh doanh, loại hình hoạt động và xem Tenant ID của bạn.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <i class="fa-solid fa-briefcase text-primary opacity-75"></i>
+                    @(company?.CompanyName ?? "Chưa thiết lập")
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+
+        <!-- 2. Modules Management -->
+        <a href="@Url.Action("Modules", "Settings")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #AF52DE, #5856D6);">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Quản lý Modules</h5>
+                        <p class="settings-card-desc">Bật hoặc tắt các phân hệ để tối ưu tài nguyên, dọn dẹp sidebar điều hướng cho phù hợp với doanh nghiệp.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <i class="fa-solid fa-toggle-on text-success opacity-75"></i>
+                    Đã kích hoạt @enabledModulesCount/@modulesCount modules
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+
+        <!-- 3. System Parameters -->
+        <a href="@Url.Action("Parameters", "Settings")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #FF9500, #FF5E3A);">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Tham số hệ thống</h5>
+                        <p class="settings-card-desc">Cấu hình các biến số vận hành lõi, thông tin máy chủ, port hoặc các thiết lập mặc định của hệ thống.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <i class="fa-solid fa-gears text-warning opacity-75"></i>
+                    @parametersCount tham số hoạt động
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+
+        <!-- 4. System Labels -->
+        <a href="@Url.Action("EnumLabels", "Settings")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #30D158, #1C9A44);">
+                        <i class="fa-solid fa-tags"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Nhãn hệ thống</h5>
+                        <p class="settings-card-desc">Tùy biến ngôn ngữ hiển thị của các trạng thái quy trình, nhãn độ ưu tiên, danh mục tài nguyên theo đặc thù.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <i class="fa-solid fa-language text-success opacity-75"></i>
+                    @enumLabelsCount nhãn trạng thái
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+
+        <!-- 5. Theme & Appearance -->
+        <a href="@Url.Action("Appearance", "Settings")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #FF2D55, #FF5E3A);">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Giao diện</h5>
+                        <p class="settings-card-desc">Thiết lập màu sắc thương hiệu, font chữ, độ bo góc, logo và tagline. Hỗ trợ thay đổi Realtime thời gian thực.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <span class="theme-preview-dots me-1">
+                        <span class="theme-dot" style="background: @(theme?.AccentColor ?? "#0066cc")"></span>
+                        <span class="theme-dot" style="background: @(theme?.CanvasColor ?? "#ffffff")"></span>
+                        <span class="theme-dot" style="background: @(theme?.SidebarBg ?? "#1d1d1f")"></span>
+                    </span>
+                    Font: @(theme?.FontFamily ?? "Inter")
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+
+        <!-- 6. Database Backup -->
+        <a href="@Url.Action("Index", "Backup")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #5AC8FA, #0071E3);">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Sao lưu dữ liệu</h5>
+                        <p class="settings-card-desc">Quản lý các bản sao lưu vật lý SQL Server (.bak) hoặc xuất dữ liệu portable dạng JSON để lưu trữ.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <i class="fa-solid fa-floppy-disk text-info opacity-75"></i>
+                    @backupCount bản sao lưu hiện có
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+
+        <!-- 7. Audit Logs -->
+        <a href="@Url.Action("Index", "Audit")" class="settings-card shadow-sm">
+            <div>
+                <div class="settings-card-header">
+                    <div class="settings-icon-wrapper" style="background: linear-gradient(135deg, #8E8E93, #636366);">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="settings-info">
+                        <h5 class="settings-card-title">Nhật ký hoạt động</h5>
+                        <p class="settings-card-desc">Truy vết lịch sử thao tác của các thành viên, các sự kiện tạo, sửa, xóa dữ liệu để bảo đảm an toàn thông tin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card-footer">
+                <span class="settings-stat">
+                    <i class="fa-solid fa-list-check text-secondary opacity-75"></i>
+                    @auditLogsCount logs ghi nhận
+                </span>
+                <span class="settings-arrow"><i class="fa-solid fa-chevron-right"></i></span>
+            </div>
+        </a>
+    </div>
+</div>

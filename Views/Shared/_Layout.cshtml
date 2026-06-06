@@ -275,7 +275,7 @@
                 <div class="sidebar-footer-actions">
                     @if (User.IsInRole("AUDITOR") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("TENANT_ADMIN"))
                     {
-                        <a href="@Url.Action("Company", "Settings")" class="btn-settings @(inSettings ? "active" : "")" title="Cài đặt hệ thống">
+                        <a href="@Url.Action("Index", "Settings")" class="btn-settings @(inSettings ? "active" : "")" title="Cài đặt hệ thống">
                             <i class="fa-solid fa-gear"></i>
                         </a>
                     }

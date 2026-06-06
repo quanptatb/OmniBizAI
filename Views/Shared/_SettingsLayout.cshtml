@@ -325,8 +325,13 @@
     <!-- Header of Settings Page -->
     <div class="settings-ide-header">
         <div class="settings-ide-title-bar">
-            <h3 class="settings-title">Cài đặt</h3>
-            <span class="settings-subtitle">Cấu hình hệ thống OmniBizAI</span>
+            <h3 class="settings-title" style="display: flex; align-items: center; gap: 10px;">
+                <a href="@Url.Action("Index", "Settings")" style="text-decoration:none; display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--text-primary), var(--apple-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    <i class="fa-solid fa-chevron-left" style="font-size: 0.95rem; color: var(--apple-blue); -webkit-text-fill-color: var(--apple-blue);"></i>
+                    <span>Cấu hình</span>
+                </a>
+            </h3>
+            <span class="settings-subtitle">Hệ thống OmniBizAI</span>
         </div>
         <div class="settings-ide-search-bar">
             <div class="input-group">
