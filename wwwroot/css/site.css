@@ -57,6 +57,7 @@ html{
     font-size:15px;
     scroll-behavior:smooth;
     -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
 }
 
 body,.app-body{
@@ -290,6 +291,7 @@ a:hover{text-decoration:none}
     display:flex;align-items:center;gap:10px;
     padding:12px 18px;border-radius:var(--r-md);
     font-size:.82rem;font-weight:500;
+    -webkit-backdrop-filter:blur(12px);
     backdrop-filter:blur(12px);
     animation:slideInRight .35s var(--ease);
     max-width:380px;
@@ -1255,6 +1257,7 @@ html[data-nav-mode="card-sidebar"] #supportingBranch > .nav-group-items {
 
 .settings-nav-group-header {
     cursor: pointer;
+    -webkit-user-select: none;
     user-select: none;
     transition: color var(--ease-fast);
 }
