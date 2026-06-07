@@ -50,7 +50,7 @@ public class OperationSlaService(ApplicationDbContext db) : IOperationSlaService
         var approvalRequests = await db.OperationRequests
             .AsNoTracking()
             .Where(r => !r.IsDeleted
-                && ApprovalStatuses.Contains(r.Status)
+                && (r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview)
                 && r.ApprovalDueAt.HasValue
                 && r.ApprovalDueAt.Value <= warningCutoff)
             .ToListAsync(cancellationToken);
@@ -71,7 +71,7 @@ public class OperationSlaService(ApplicationDbContext db) : IOperationSlaService
         var resolutionRequests = await db.OperationRequests
             .AsNoTracking()
             .Where(r => !r.IsDeleted
-                && ResolutionStatuses.Contains(r.Status)
+                && (r.Status == OperationStatus.Approved || r.Status == OperationStatus.InProgress || r.Status == OperationStatus.OnHold)
                 && r.ResolutionDueAt.HasValue
                 && r.ResolutionDueAt.Value <= warningCutoff)
             .ToListAsync(cancellationToken);

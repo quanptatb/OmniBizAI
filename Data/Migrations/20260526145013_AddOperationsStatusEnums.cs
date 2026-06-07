@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,9 +10,7 @@ namespace OmniBizAI.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_WorkItems_TenantId_Status_DueDate",
-                table: "WorkItems");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_WorkItems_TenantId_Status_DueDate' AND object_id = OBJECT_ID('WorkItems')) DROP INDEX [IX_WorkItems_TenantId_Status_DueDate] ON [WorkItems];");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
@@ -72,13 +70,8 @@ namespace OmniBizAI.Data.Migrations
                 oldType: "nvarchar(50)",
                 oldMaxLength: 50);
 
-            migrationBuilder.DropIndex(
-                name: "IX_OperationRequests_Dashboard_Status_DueDate",
-                table: "OperationRequests");
-
-            migrationBuilder.DropIndex(
-                name: "IX_OperationRequests_Dashboard_Status_UpdatedAt",
-                table: "OperationRequests");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_OperationRequests_Dashboard_Status_DueDate' AND object_id = OBJECT_ID('OperationRequests')) DROP INDEX [IX_OperationRequests_Dashboard_Status_DueDate] ON [OperationRequests];");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_OperationRequests_Dashboard_Status_UpdatedAt' AND object_id = OBJECT_ID('OperationRequests')) DROP INDEX [IX_OperationRequests_Dashboard_Status_UpdatedAt] ON [OperationRequests];");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
@@ -178,9 +171,7 @@ namespace OmniBizAI.Data.Migrations
                 oldType: "nvarchar(50)",
                 oldMaxLength: 50);
 
-            migrationBuilder.DropIndex(
-                name: "IX_ApprovalTasks_Dashboard_Status",
-                table: "ApprovalTasks");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ApprovalTasks_Dashboard_Status' AND object_id = OBJECT_ID('ApprovalTasks')) DROP INDEX [IX_ApprovalTasks_Dashboard_Status] ON [ApprovalTasks];");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Status",
@@ -389,13 +380,8 @@ END;
                 oldType: "nvarchar(30)",
                 oldMaxLength: 30);
 
-            migrationBuilder.DropIndex(
-                name: "IX_OperationRequests_Dashboard_Status_DueDate",
-                table: "OperationRequests");
-
-            migrationBuilder.DropIndex(
-                name: "IX_OperationRequests_Dashboard_Status_UpdatedAt",
-                table: "OperationRequests");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_OperationRequests_Dashboard_Status_DueDate' AND object_id = OBJECT_ID('OperationRequests')) DROP INDEX [IX_OperationRequests_Dashboard_Status_DueDate] ON [OperationRequests];");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_OperationRequests_Dashboard_Status_UpdatedAt' AND object_id = OBJECT_ID('OperationRequests')) DROP INDEX [IX_OperationRequests_Dashboard_Status_UpdatedAt] ON [OperationRequests];");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Status",
@@ -495,9 +481,7 @@ END;
                 oldType: "nvarchar(30)",
                 oldMaxLength: 30);
 
-            migrationBuilder.DropIndex(
-                name: "IX_ApprovalTasks_Dashboard_Status",
-                table: "ApprovalTasks");
+            migrationBuilder.Sql("IF EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ApprovalTasks_Dashboard_Status' AND object_id = OBJECT_ID('ApprovalTasks')) DROP INDEX [IX_ApprovalTasks_Dashboard_Status] ON [ApprovalTasks];");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Status",
