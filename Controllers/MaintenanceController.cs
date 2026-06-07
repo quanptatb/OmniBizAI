@@ -248,7 +248,7 @@ public class MaintenanceController : Controller
             {
                 await _service.SimulateSensorDataAsync(firstEquipment.Id);
                 return Json(new { 
-                    success = true, 
+                    success = true,  
                     equipmentId = firstEquipment.Id, 
                     name = firstEquipment.Name, 
                     message = $"Đã giả lập thành công dữ liệu cảm biến cảnh báo cho thiết bị: {firstEquipment.Name}." 
