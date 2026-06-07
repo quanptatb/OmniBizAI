@@ -2,22 +2,33 @@
 @{
     Layout = "~/Views/Shared/_SettingsLayout.cshtml";
     ViewData["Title"] = "Tham số hệ thống";
-    ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tham số</span>";
+    ViewData["Breadcrumb"] = "<a href='/Settings' style='color:var(--text-muted);text-decoration:none;transition:color 0.2s;' onmouseover='this.style.color=\"var(--apple-blue)\"' onmouseout='this.style.color=\"var(--text-muted)\"'>Thiết lập</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tham số hệ thống</span>";
 }
 
 <style>
+    .parameters-container {
+        animation: fadeIn 0.4s ease;
+    }
+
     .parameter-group-card {
         border: 1px solid var(--divider);
-        border-radius: 14px;
+        border-radius: 16px;
         background: var(--canvas);
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.01);
+        margin-bottom: 24px;
+        transition: all 0.25s ease;
+    }
+
+    .parameter-group-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+        border-color: rgba(0, 113, 227, 0.15);
     }
 
     .parameter-group-header {
         background: linear-gradient(180deg, var(--parchment), var(--canvas));
         border-bottom: 1px solid var(--divider) !important;
-        padding: 16px 20px !important;
+        padding: 18px 24px !important;
     }
 
     .parameter-table {
@@ -29,12 +40,13 @@
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: var(--text-muted) !important;
-        padding: 12px 20px !important;
+        padding: 14px 24px !important;
         border-bottom: 1px solid var(--divider) !important;
+        font-weight: 700;
     }
 
     .parameter-table td {
-        padding: 14px 20px !important;
+        padding: 16px 24px !important;
         vertical-align: middle;
         border-bottom: 1px solid var(--divider) !important;
     }
@@ -45,24 +57,25 @@
 
     .param-key {
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 600;
         color: var(--text-primary);
         background: var(--parchment);
-        padding: 3px 8px;
+        padding: 4px 10px;
         border-radius: 6px;
         border: 1px solid var(--divider);
     }
 
     .param-type-badge {
         font-size: 0.65rem;
-        font-weight: 600;
+        font-weight: 700;
         padding: 3px 8px;
         border-radius: 6px;
         background: rgba(0, 113, 227, 0.06);
         color: var(--apple-blue);
         border: 1px solid rgba(0, 113, 227, 0.12);
         display: inline-block;
+        text-transform: uppercase;
     }
 
     .btn-save-inline {
@@ -84,13 +97,14 @@
         background: var(--apple-blue);
         color: #fff;
         border-color: var(--apple-blue);
+        box-shadow: 0 4px 10px rgba(0, 113, 227, 0.2);
     }
 
     .inline-edit-input {
         font-size: 0.82rem !important;
-        height: 32px !important;
-        padding: 4px 10px !important;
-        border-radius: 6px !important;
+        height: 34px !important;
+        padding: 4px 12px !important;
+        border-radius: 8px !important;
         border: 1px solid var(--hairline) !important;
         background: var(--canvas) !important;
         transition: all 0.2s ease;
@@ -103,117 +117,119 @@
     }
 
     .locked-indicator {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: var(--text-muted);
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
         background: var(--parchment);
         padding: 4px 10px;
         border-radius: 20px;
         border: 1px solid var(--divider);
-        font-weight: 550;
+        font-weight: 600;
     }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="page-title mb-1"><i class="fa-solid fa-sliders text-primary me-2"></i>Tham số hệ thống</h4>
-        <p class="text-muted mb-0" style="font-size:.82rem">Cấu hình các tham số vận hành cốt lõi cho tenant hiện tại</p>
-    </div>
-    <button type="button" class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createParamModal" style="border-radius: 8px; padding: 8px 18px;">
-        <i class="fa-solid fa-plus me-2"></i> Thêm tham số
-    </button>
-</div>
-
-@if (TempData["SuccessMessage"] != null) {
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius:12px; background:rgba(52,199,89,.12); color:#1b7a35">
-        <div class="d-flex align-items-center">
-            <i class="fa-solid fa-circle-check me-2" style="font-size: 1.1rem"></i>
-            <span>@TempData["SuccessMessage"]</span>
+<div class="parameters-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="page-title mb-1 fw-bold"><i class="fa-solid fa-sliders text-primary me-2"></i>Tham số hệ thống</h4>
+            <p class="text-muted mb-0" style="font-size:.82rem">Cấu hình các tham số vận hành cốt lõi cho tenant hiện tại</p>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.8rem; top: 50%; transform: translateY(-50%);"></button>
+        <button type="button" class="btn-primary-custom" data-bs-toggle="modal" data-bs-target="#createParamModal" style="border-radius: 10px; padding: 10px 20px;">
+            <i class="fa-solid fa-plus me-2"></i> Thêm tham số
+        </button>
     </div>
-}
 
-<div class="d-flex flex-column gap-4">
-    @foreach (var g in Model.Groups) {
-        <div class="parameter-group-card shadow-sm fade-in">
-            <div class="card-header-custom parameter-group-header">
-                <h5 class="mb-0" style="font-size: 0.95rem; font-weight: 650; color: var(--text-primary)">
-                    <i class="fa-solid fa-folder-open text-primary me-2" style="font-size: 0.9rem"></i> @g.GroupName
-                </h5>
+    @if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius:12px; background:rgba(52,199,89,.12); color:#1b7a35">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-check me-2" style="font-size: 1.1rem"></i>
+                <span>@TempData["SuccessMessage"]</span>
             </div>
-            <div class="p-0">
-                <table class="table parameter-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 30%">Key</th>
-                            <th style="width: 45%">Giá trị</th>
-                            <th style="width: 13%">Loại</th>
-                            <th style="width: 12%" class="text-end">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var p in g.Parameters) {
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.8rem; top: 50%; transform: translateY(-50%);"></button>
+        </div>
+    }
+
+    <div class="d-flex flex-column">
+        @foreach (var g in Model.Groups) {
+            <div class="parameter-group-card shadow-sm fade-in">
+                <div class="card-header-custom parameter-group-header">
+                    <h5 class="mb-0 fw-bold" style="font-size: 0.95rem; color: var(--text-primary)">
+                        <i class="fa-solid fa-folder-open text-primary me-2" style="font-size: 0.9rem"></i> @g.GroupName
+                    </h5>
+                </div>
+                <div class="p-0 table-responsive">
+                    <table class="table parameter-table">
+                        <thead>
                             <tr>
-                                <td>
-                                    <span class="param-key" title="@p.Key">@p.Key</span>
-                                </td>
-                                <td>
-                                    @if (p.IsEditable) {
-                                        <form asp-action="UpdateParameter" method="post" class="d-flex gap-2 align-items-center">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@p.Id" />
-                                            <input type="text" name="value" value="@p.Value" class="form-control inline-edit-input flex-grow-1" />
-                                            <button type="submit" class="btn-save-inline" title="Lưu thay đổi">
-                                                <i class="fa-solid fa-check"></i>
-                                            </button>
-                                        </form>
-                                    } else { 
-                                        <span class="text-secondary" style="font-size: .85rem; padding-left: 4px;">@p.Value</span> 
-                                    }
-                                </td>
-                                <td>
-                                    <span class="param-type-badge">@p.ValueType</span>
-                                </td>
-                                <td class="text-end">
-                                    @if(!p.IsEditable){
-                                        <span class="locked-indicator" title="Tham số hệ thống bắt buộc">
-                                            <i class="fa-solid fa-lock"></i> Khóa
-                                        </span>
-                                    }
-                                    else {
-                                        <form asp-action="DeleteParameter" method="post" class="d-inline" onsubmit="return confirm('Bạn chắc chắn muốn xóa tham số &quot;@p.Key&quot;?')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@p.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px; padding: 5px 10px; font-size: 0.72rem;" title="Xóa tham số">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </form>
-                                    }
-                                </td>
+                                <th style="width: 25%">Key</th>
+                                <th style="width: 50%">Giá trị</th>
+                                <th style="width: 13%">Loại</th>
+                                <th style="width: 12%" class="text-end">Trạng thái</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in g.Parameters) {
+                                <tr>
+                                    <td>
+                                        <span class="param-key" title="@p.Key">@p.Key</span>
+                                    </td>
+                                    <td>
+                                        @if (p.IsEditable) {
+                                            <form asp-action="UpdateParameter" method="post" class="d-flex gap-2 align-items-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@p.Id" />
+                                                <input type="text" name="value" value="@p.Value" class="form-control inline-edit-input flex-grow-1" />
+                                                <button type="submit" class="btn-save-inline" title="Lưu thay đổi">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </button>
+                                            </form>
+                                        } else { 
+                                            <span class="text-secondary" style="font-size: .84rem; padding-left: 4px; font-weight: 550;">@p.Value</span> 
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="param-type-badge">@p.ValueType</span>
+                                    </td>
+                                    <td class="text-end">
+                                        @if(!p.IsEditable){
+                                            <span class="locked-indicator" title="Tham số hệ thống bắt buộc">
+                                                <i class="fa-solid fa-lock"></i> Khóa
+                                            </span>
+                                        }
+                                        else {
+                                            <form asp-action="DeleteParameter" method="post" class="d-inline" onsubmit="return confirm('Bạn chắc chắn muốn xóa tham số &quot;@p.Key&quot;?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@p.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 6px 12px; font-size: 0.72rem; font-weight:600;" title="Xóa tham số">
+                                                    <i class="fa-solid fa-trash-can me-1"></i> Xóa
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    }
-    @if (!Model.Groups.Any()) { 
-        <div class="content-card" style="border-radius: 14px;">
-            <div class="card-body-custom text-center py-5" style="color:var(--text-muted)">
-                <i class="fa-solid fa-sliders fa-2x mb-2 opacity-50"></i>
-                <div>Chưa có tham số hệ thống nào được thiết lập.</div>
-            </div>
-        </div> 
-    }
+        }
+        @if (!Model.Groups.Any()) { 
+            <div class="content-card" style="border-radius: 16px;">
+                <div class="card-body-custom text-center py-5" style="color:var(--text-muted)">
+                    <i class="fa-solid fa-sliders fa-2x mb-2 opacity-50"></i>
+                    <div>Chưa có tham số hệ thống nào được thiết lập.</div>
+                </div>
+            </div> 
+        }
+    </div>
 </div>
 
 <!-- Create Parameter Modal -->
 <div class="modal fade" id="createParamModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:18px;">
             <form asp-action="CreateParameter" method="post">
                 @Html.AntiForgeryToken()
                 <div class="modal-header border-0 pb-0" style="padding: 24px 24px 8px 24px;">
@@ -225,20 +241,20 @@
                 <div class="modal-body" style="padding: 16px 24px 24px 24px;">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Tên nhóm <span class="text-danger">*</span></label>
-                            <input type="text" name="group" class="form-control" required placeholder="VD: SmtpSettings" style="border-radius: 8px;" />
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem;">Tên nhóm <span class="text-danger">*</span></label>
+                            <input type="text" name="group" class="form-control" required placeholder="VD: SmtpSettings" style="border-radius: 10px; padding: 10px 14px;" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Key <span class="text-danger">*</span></label>
-                            <input type="text" name="key" class="form-control" required placeholder="VD: ServerPort" style="border-radius: 8px;" />
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem;">Key <span class="text-danger">*</span></label>
+                            <input type="text" name="key" class="form-control" required placeholder="VD: ServerPort" style="border-radius: 10px; padding: 10px 14px;" />
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label">Giá trị</label>
-                            <input type="text" name="value" class="form-control" placeholder="Nhập giá trị tham số..." style="border-radius: 8px;" />
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem;">Giá trị</label>
+                            <input type="text" name="value" class="form-control" placeholder="Nhập giá trị tham số..." style="border-radius: 10px; padding: 10px 14px;" />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Loại dữ liệu</label>
-                            <select name="valueType" class="form-select" style="border-radius: 8px;">
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem;">Loại dữ liệu</label>
+                            <select name="valueType" class="form-select" style="border-radius: 10px; padding: 10px 14px;">
                                 <option value="String">String</option>
                                 <option value="Integer">Integer</option>
                                 <option value="Boolean">Boolean</option>
@@ -247,13 +263,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="p-3 mt-3" style="background:rgba(0,113,227,.04); border-radius:10px; font-size:.75rem; color:var(--apple-blue); border: 1px solid rgba(0,113,227,0.08);">
+                    <div class="p-3 mt-3" style="background:rgba(0,113,227,.04); border-radius:12px; font-size:.75rem; color:var(--apple-blue); border: 1px solid rgba(0,113,227,0.08);">
                         <i class="fa-solid fa-circle-info me-1"></i> Tham số mới tạo sẽ thuộc nhóm cấu hình của riêng Tenant này và có quyền chỉnh sửa.
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0" style="padding: 0 24px 24px 24px;">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 550; padding: 8px 16px;">Hủy</button>
-                    <button type="submit" class="btn btn-primary" style="background: var(--apple-blue); border-color: var(--apple-blue); border-radius: 8px; font-weight: 550; padding: 8px 20px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600; padding: 10px 18px;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--apple-blue); border-color: var(--apple-blue); border-radius: 10px; font-weight: 600; padding: 10px 22px;">
                         <i class="fa-solid fa-plus me-1"></i> Tạo tham số
                     </button>
                 </div>

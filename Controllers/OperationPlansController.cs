@@ -50,6 +50,11 @@ public class OperationPlansController : Controller
     [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> Create(OperationPlanCreateViewModel vm)
     {
+        if (vm.StartDate.Date < DateTime.Today)
+            ModelState.AddModelError(nameof(vm.StartDate), "Ngày bắt đầu không được nhỏ hơn hôm nay.");
+        if (vm.EndDate.Date < vm.StartDate.Date)
+            ModelState.AddModelError(nameof(vm.EndDate), "Ngày kết thúc không được nhỏ hơn ngày bắt đầu.");
+
         if (!ModelState.IsValid) return View(vm);
         var id = await _service.CreatePlanAsync(vm);
         TempData["SuccessMessage"] = "Khởi tạo Kế hoạch thành công.";

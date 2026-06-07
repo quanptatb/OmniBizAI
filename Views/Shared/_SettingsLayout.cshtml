@@ -280,6 +280,13 @@
         }
     }
 
+    .settings-back-btn:hover {
+        background: var(--apple-blue) !important;
+        color: #fff !important;
+        border-color: var(--apple-blue) !important;
+        transform: scale(1.05);
+    }
+
     @@keyframes fadeIn {
         from { opacity: 0; transform: translateY(4px); }
         to { opacity: 1; transform: translateY(0); }
@@ -325,8 +332,15 @@
     <!-- Header of Settings Page -->
     <div class="settings-ide-header">
         <div class="settings-ide-title-bar">
-            <h3 class="settings-title">Cài đặt</h3>
-            <span class="settings-subtitle">Cấu hình hệ thống OmniBizAI</span>
+            <h3 class="settings-title" style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                <a href="@Url.Action("Index", "Dashboard")" class="settings-back-btn" title="Thoát thiết lập" style="text-decoration:none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--parchment); border: 1px solid var(--divider); color: var(--apple-blue); font-size: 0.82rem; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <a href="@Url.Action("Index", "Settings")" style="text-decoration:none; font-weight: 700; background: linear-gradient(135deg, var(--text-primary), var(--apple-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Cấu hình
+                </a>
+            </h3>
+            <span class="settings-subtitle">Hệ thống OmniBizAI</span>
         </div>
         <div class="settings-ide-search-bar">
             <div class="input-group">
@@ -352,6 +366,9 @@
                     <i class="fa-solid fa-chevron-down me-1"></i> <span>HỆ THỐNG</span>
                 </div>
                 <div class="settings-nav-items">
+                    <a href="@Url.Action("Index", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "Index" ? "active" : "")" data-keywords="tong quan he thong thong ke status overview dashboard">
+                        <i class="fa-solid fa-compass"></i> <span>Tổng quan thiết lập</span>
+                    </a>
                     <a href="@Url.Action("Company", "Settings")" class="settings-nav-item @(currentController == "Settings" && currentAction == "Company" ? "active" : "")" data-keywords="công ty doanh nghiệp tenant thong tin">
                         <i class="fa-solid fa-building-columns"></i> <span>Cài đặt công ty</span>
                     </a>

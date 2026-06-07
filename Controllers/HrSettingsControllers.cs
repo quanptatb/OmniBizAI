@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Services;
 using OmniBizAI.ViewModels;
 
@@ -153,7 +154,40 @@ public class PositionsController : Controller
 public class SettingsController : Controller
 {
     private readonly SettingsService _service;
-    public SettingsController(SettingsService service) => _service = service;
+    private readonly BackupService _backup;
+    private readonly Data.ApplicationDbContext _db;
+    private readonly ITenantContext _tenant;
+
+    public SettingsController(SettingsService service, BackupService backup, Data.ApplicationDbContext db, ITenantContext tenant)
+    {
+        _service = service;
+        _backup = backup;
+        _db = db;
+        _tenant = tenant;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var company = await _service.GetCompanySettingsAsync();
+        var modules = await _service.GetModulesAsync();
+        var theme = await _service.GetThemeAsync();
+        var parameters = await _service.GetParametersAsync();
+        var enumLabels = await _service.GetEnumLabelsAsync();
+        
+        var backupInfo = await _backup.GetBackupDashboardAsync();
+        var auditLogsCount = await _db.AuditLogs.CountAsync(a => a.TenantId == _tenant.TenantId);
+
+        ViewBag.Company = company;
+        ViewBag.ModulesCount = modules.Items.Count;
+        ViewBag.EnabledModulesCount = modules.Items.Count(m => m.Status == "Enabled");
+        ViewBag.Theme = theme;
+        ViewBag.ParametersCount = parameters.Groups.Sum(g => g.Parameters.Count);
+        ViewBag.EnumLabelsCount = enumLabels.Groups.Sum(g => g.Items.Count);
+        ViewBag.BackupCount = backupInfo.TotalBackups;
+        ViewBag.AuditLogsCount = auditLogsCount;
+
+        return View();
+    }
 
     public async Task<IActionResult> Company()
     {

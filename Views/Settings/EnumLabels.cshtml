@@ -2,27 +2,31 @@
 @{
     Layout = "~/Views/Shared/_SettingsLayout.cshtml";
     ViewData["Title"] = "Quản lý nhãn hệ thống";
-    ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Nhãn hệ thống</span>";
+    ViewData["Breadcrumb"] = "<a href='/Settings' style='color:var(--text-muted);text-decoration:none;transition:color 0.2s;' onmouseover='this.style.color=\"var(--apple-blue)\"' onmouseout='this.style.color=\"var(--text-muted)\"'>Thiết lập</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Nhãn hệ thống</span>";
 }
 
 <style>
+    .labels-container {
+        animation: fadeIn 0.4s ease;
+    }
+
     .search-card-wrapper {
         background: var(--parchment);
         border: 1px solid var(--divider);
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
     }
 
     .label-group-card-container {
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .label-group-card-container:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px);
     }
 
     .label-group-card-inner {
-        border-radius: 14px !important;
+        border-radius: 16px !important;
         border: 1px solid var(--divider) !important;
         background: var(--canvas) !important;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
@@ -39,12 +43,13 @@
         font-size: 0.72rem !important;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        padding: 10px 14px !important;
+        padding: 12px 16px !important;
         border-bottom: 1px solid var(--divider) !important;
+        font-weight: 700;
     }
 
     .label-table td {
-        padding: 12px 14px !important;
+        padding: 14px 16px !important;
         vertical-align: middle;
         border-bottom: 1px solid var(--divider) !important;
     }
@@ -54,25 +59,26 @@
     }
 
     .custom-input-label {
-        font-size: 0.78rem !important;
-        height: 28px !important;
-        border-radius: 6px !important;
+        font-size: 0.8rem !important;
+        height: 32px !important;
+        border-radius: 8px !important;
         border: 1px solid var(--hairline) !important;
         background: var(--canvas) !important;
-        padding: 2px 8px !important;
+        padding: 4px 10px !important;
         transition: all 0.2s ease;
     }
 
     .custom-input-label:focus {
         border-color: var(--apple-blue) !important;
-        box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.12) !important;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12) !important;
         outline: none;
     }
 
     .custom-input-label.overridden-field {
         border-color: #30d158 !important;
-        background: rgba(48, 209, 88, 0.02) !important;
-        font-weight: 550;
+        background: rgba(48, 209, 88, 0.03) !important;
+        font-weight: 600;
+        color: #1b7a35 !important;
     }
 
     .sticky-action-bar {
@@ -81,112 +87,114 @@
         z-index: 100;
         background: var(--canvas);
         border: 1px solid var(--divider);
-        border-radius: 14px;
-        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.05);
-        opacity: 0.98;
+        border-radius: 16px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.04);
+        backdrop-filter: blur(20px);
     }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="page-title mb-1"><i class="fa-solid fa-tags text-primary me-2"></i>Quản lý nhãn hệ thống</h4>
-        <p class="text-muted mb-0" style="font-size:.82rem">Định nghĩa lại tên hiển thị cho các trạng thái, độ ưu tiên, danh mục nghiệp vụ</p>
-    </div>
-</div>
-
-@if (TempData["SuccessMessage"] != null) {
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius:12px; background:rgba(52,199,89,.12); color:#1b7a35">
-        <div class="d-flex align-items-center">
-            <i class="fa-solid fa-circle-check me-2" style="font-size: 1.1rem"></i>
-            <span>@TempData["SuccessMessage"]</span>
+<div class="labels-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="page-title mb-1 fw-bold"><i class="fa-solid fa-tags text-primary me-2"></i>Quản lý nhãn hệ thống</h4>
+            <p class="text-muted mb-0" style="font-size:.82rem">Định nghĩa lại tên hiển thị cho các trạng thái, độ ưu tiên, danh mục nghiệp vụ</p>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.8rem; top: 50%; transform: translateY(-50%);"></button>
     </div>
-}
 
-<form asp-action="SaveEnumLabels" method="post">
-    @Html.AntiForgeryToken()
+    @if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius:12px; background:rgba(52,199,89,.12); color:#1b7a35">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-check me-2" style="font-size: 1.1rem"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size: 0.8rem; top: 50%; transform: translateY(-50%);"></button>
+        </div>
+    }
 
-    <!-- Search Tool -->
-    <div class="search-card-wrapper mb-4">
-        <div class="card-body-custom py-3 px-4">
-            <div class="row align-items-center g-3">
-                <div class="col-md-6">
-                    <div class="input-group" style="border-radius: 8px; border: 1px solid var(--hairline); background: var(--canvas); padding: 2px;">
-                        <span class="input-group-text bg-transparent border-0 text-muted pe-1"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" id="labelSearch" class="form-control border-0 bg-transparent ps-2" placeholder="Tìm kiếm nhãn hoặc giá trị..." style="font-size: 0.84rem;" />
+    <form asp-action="SaveEnumLabels" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- Search Tool -->
+        <div class="search-card-wrapper mb-4">
+            <div class="card-body-custom py-3 px-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6">
+                        <div class="input-group" style="border-radius: 10px; border: 1px solid var(--hairline); background: var(--canvas); padding: 2px;">
+                            <span class="input-group-text bg-transparent border-0 text-muted pe-1"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="labelSearch" class="form-control border-0 bg-transparent ps-2" placeholder="Tìm kiếm nhãn hoặc giá trị..." style="font-size: 0.84rem;" />
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6 text-md-end text-start">
-                    <span class="text-muted small" style="font-weight: 550;">
-                        <i class="fa-solid fa-circle-nodes text-primary me-1"></i> @Model.Groups.Count nhóm danh mục • @Model.Groups.Sum(g => g.Items.Count) nhãn trạng thái
-                    </span>
+                    <div class="col-md-6 text-md-end text-start">
+                        <span class="text-muted small" style="font-weight: 600;">
+                            <i class="fa-solid fa-circle-nodes text-primary me-1"></i> @Model.Groups.Count nhóm danh mục • @Model.Groups.Sum(g => g.Items.Count) nhãn trạng thái
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Label Groups Grid -->
-    <div class="row g-4" id="labelGroups">
-        @foreach (var group in Model.Groups)
-        {
-            <div class="col-md-6 col-xl-4 label-group-card" data-group="@group.EnumTypeName">
-                <div class="label-group-card-container h-100">
-                    <div class="content-card label-group-card-inner h-100 animate-fade-in">
-                        <div class="card-header-custom d-flex justify-content-between align-items-center" style="padding: 14px 18px; background: var(--parchment);">
-                            <h5 class="mb-0" style="font-size: 0.88rem; font-weight: 650; color: var(--text-primary)">
-                                <i class="fa-solid fa-folder-open text-primary me-2" style="font-size: 0.82rem;"></i>@group.DisplayName
-                            </h5>
-                            <span class="badge" style="background: rgba(0, 113, 227, 0.08); color: var(--apple-blue); font-size: 0.65rem; font-weight: 600; border: 1px solid rgba(0, 113, 227, 0.1);">@group.Items.Count giá trị</span>
-                        </div>
-                        <div class="p-0">
-                            <table class="table label-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 30%">Mã</th>
-                                        <th style="width: 35%">Mặc định</th>
-                                        <th style="width: 35%">Tùy chỉnh</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in group.Items)
-                                    {
-                                        <tr class="label-row" data-label="@item.DefaultLabel @item.EnumValue">
-                                            <td>
-                                                <code style="background: var(--parchment); padding: 3px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; border: 1px solid var(--divider); color: var(--text-primary)">@item.EnumValue</code>
-                                            </td>
-                                            <td style="color: var(--text-muted); font-size: 0.8rem;">
-                                                @item.DefaultLabel
-                                            </td>
-                                            <td>
-                                                <input type="text" name="label.@item.FullKey"
-                                                       value="@(item.CustomLabel ?? item.DefaultLabel)"
-                                                       class="form-control custom-input-label @(item.IsOverridden ? "overridden-field" : "")" />
-                                            </td>
+        <!-- Label Groups Grid -->
+        <div class="row g-4" id="labelGroups">
+            @foreach (var group in Model.Groups)
+            {
+                <div class="col-md-6 col-xl-4 label-group-card" data-group="@group.EnumTypeName">
+                    <div class="label-group-card-container h-100">
+                        <div class="content-card label-group-card-inner h-100 animate-fade-in">
+                            <div class="card-header-custom d-flex justify-content-between align-items-center" style="padding: 16px 20px; background: var(--parchment); border-bottom: 1px solid var(--divider);">
+                                <h5 class="mb-0 fw-bold" style="font-size: 0.88rem; color: var(--text-primary)">
+                                    <i class="fa-solid fa-folder-open text-primary me-2" style="font-size: 0.85rem;"></i>@group.DisplayName
+                                </h5>
+                                <span class="badge" style="background: rgba(0, 113, 227, 0.08); color: var(--apple-blue); font-size: 0.65rem; font-weight: 700; border: 1px solid rgba(0, 113, 227, 0.1);">@group.Items.Count giá trị</span>
+                            </div>
+                            <div class="p-0">
+                                <table class="table label-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 30%">Mã</th>
+                                            <th style="width: 35%">Mặc định</th>
+                                            <th style="width: 35%">Tùy chỉnh</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in group.Items)
+                                        {
+                                            <tr class="label-row" data-label="@item.DefaultLabel @item.EnumValue">
+                                                <td>
+                                                    <code style="background: var(--parchment); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; border: 1px solid var(--divider); color: var(--text-primary)">@item.EnumValue</code>
+                                                </td>
+                                                <td style="color: var(--text-muted); font-size: 0.8rem; font-weight: 500;">
+                                                    @item.DefaultLabel
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="label.@item.FullKey"
+                                                           value="@(item.CustomLabel ?? item.DefaultLabel)"
+                                                           class="form-control custom-input-label @(item.IsOverridden ? "overridden-field" : "")" />
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
-
-    <!-- Sticky Save Bar -->
-    <div class="content-card sticky-action-bar mt-4">
-        <div class="card-body-custom py-3 px-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center align-items-start gap-3">
-            <div class="text-muted" style="font-size: 0.78rem;">
-                <i class="fa-solid fa-circle-question text-warning me-1" style="font-size: 0.85rem;"></i>
-                Nhập nhãn mới &amp; nhấn Lưu. Để khôi phục mặc định: xóa nội dung ô tùy chỉnh.
-            </div>
-            <button type="submit" class="btn-primary-custom" style="padding: 8px 22px; border-radius: 8px; font-weight: 600; width: 100%; max-width: 200px; justify-content: center;">
-                <i class="fa-solid fa-save me-1"></i> Lưu tất cả nhãn
-            </button>
+            }
         </div>
-    </div>
-</form>
+
+        <!-- Sticky Save Bar -->
+        <div class="content-card sticky-action-bar mt-4">
+            <div class="card-body-custom py-3 px-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center align-items-start gap-3">
+                <div class="text-muted" style="font-size: 0.78rem; font-weight: 500;">
+                    <i class="fa-solid fa-circle-question text-warning me-1" style="font-size: 0.85rem;"></i>
+                    Nhập nhãn mới &amp; nhấn Lưu. Để khôi phục mặc định: xóa nội dung ô tùy chỉnh.
+                </div>
+                <button type="submit" class="btn-primary-custom" style="padding: 10px 24px; border-radius: 10px; font-weight: 600; width: 100%; max-width: 220px; justify-content: center;">
+                    <i class="fa-solid fa-save me-1"></i> Lưu tất cả nhãn
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
 <script>
