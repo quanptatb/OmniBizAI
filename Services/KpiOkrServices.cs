@@ -268,7 +268,90 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "OkrObjective", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync(); return true;
     }
+
+    public async Task<bool> AddKeyResultAsync(Guid okrId, string name, string? unit, decimal targetValue, bool isInverse)
+    {
+        var okr = await db.OkrObjectives.FindAsync(okrId);
+        if (okr is null || okr.TenantId != tenant.TenantId || okr.IsDeleted) return false;
+
+        var kr = new OkrKeyResult
+        {
+            TenantId = tenant.TenantId,
+            OkrObjectiveId = okrId,
+            KeyResultName = name.Trim(),
+            Unit = unit,
+            TargetValue = targetValue,
+            CurrentValue = 0,
+            IsInverse = isInverse,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.OkrKeyResults.Add(kr);
+
+        db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName,
+            Action = "AddKeyResult", EntityName = "OkrKeyResult", EntityId = kr.Id,
+            NewValuesJson = $"{{\"KeyResultName\":\"{kr.KeyResultName}\",\"TargetValue\":{kr.TargetValue}}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateAllocationsAsync(Guid okrId, List<Guid> departmentIds, List<Guid> employeeIds)
+    {
+        var okr = await db.OkrObjectives
+            .Include(o => o.DepartmentAllocations)
+            .Include(o => o.EmployeeAllocations)
+            .FirstOrDefaultAsync(o => o.Id == okrId && o.TenantId == tenant.TenantId && !o.IsDeleted);
+
+        if (okr is null) return false;
+
+        var tid = tenant.TenantId;
+        var now = DateTimeOffset.UtcNow;
+
+        // Update departments
+        db.RemoveRange(okr.DepartmentAllocations);
+        if (departmentIds != null)
+        {
+            foreach (var depId in departmentIds.Distinct())
+            {
+                okr.DepartmentAllocations.Add(new OkrDepartmentAllocation
+                {
+                    TenantId = tid,
+                    OrganizationUnitId = depId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = now
+                });
+            }
+        }
+
+        // Update employees
+        db.RemoveRange(okr.EmployeeAllocations);
+        if (employeeIds != null)
+        {
+            foreach (var empId in employeeIds.Distinct())
+            {
+                okr.EmployeeAllocations.Add(new OkrEmployeeAllocation
+                {
+                    TenantId = tid,
+                    UserId = empId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = now
+                });
+            }
+        }
+
+        okr.UpdatedAt = now;
+        okr.UpdatedByUserId = tenant.UserId;
+
+        await db.SaveChangesAsync();
+        return true;
+    }
 }
+
 
 // ── KPI Management Service ───────────────────────────────────────────────────
 public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant)
