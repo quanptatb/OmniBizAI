@@ -17,6 +17,10 @@
 {
     <div class="alert alert-success alert-dismissible fade show mb-4">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4">@TempData["ErrorMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
 
 <div class="row">
     <!-- Chi tiết sự cố -->
@@ -31,6 +35,7 @@
                             case "Open": <span class="badge bg-danger">Đang mở</span> break;
                             case "InProgress": <span class="badge bg-primary">Đang xử lý</span> break;
                             case "Resolved": <span class="badge bg-success">Đã giải quyết</span> break;
+                            case "Closed": <span class="badge bg-dark">Đã đóng</span> break;
                             default: <span class="badge bg-secondary">@Model.Status</span> break;
                         }
                     </td></tr>
@@ -42,6 +47,15 @@
                     <tr><td class="text-muted">Kỹ thuật viên</td><td>@(Model.TechnicianName ?? "Chưa phân công")</td></tr>
                     @if (Model.DowntimeHours.HasValue) {
                         <tr><td class="text-muted">Ngừng máy</td><td class="fw-bold @(Model.DowntimeHours > 4 ? "text-danger" : "")">@Model.DowntimeHours giờ</td></tr>
+                    }
+                    @if (Model.PartsCost.HasValue) {
+                        <tr><td class="text-muted">Chi phí phụ tùng</td><td>@Model.PartsCost?.ToString("N0") đ</td></tr>
+                    }
+                    @if (Model.LaborCost.HasValue) {
+                        <tr><td class="text-muted">Chi phí nhân công</td><td>@Model.LaborCost?.ToString("N0") đ</td></tr>
+                    }
+                    @if (Model.TotalCost.HasValue) {
+                        <tr><td class="text-muted">Tổng chi phí</td><td class="fw-bold text-primary">@Model.TotalCost?.ToString("N0") đ</td></tr>
                     }
                 </table>
 
@@ -89,7 +103,41 @@
 
     <!-- Giải quyết sự cố -->
     <div class="col-lg-7">
-        @if (Model.Status != "Resolved" && Model.Status != "Closed")
+        @if (Model.Status == "Open")
+        {
+            <div class="card shadow mb-4 border-primary">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">Sự cố đang mở</h6>
+                        <div class="small text-muted">Bấm "Bắt đầu xử lý" để kỹ thuật viên ghi nhận đang làm.</div>
+                    </div>
+                    <form asp-action="StartIncident" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play me-1"></i>Bắt đầu xử lý
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (Model.Status == "Resolved")
+        {
+            <div class="card shadow mb-4 border-dark">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-1">Đã giải quyết — chờ đóng</h6>
+                        <div class="small text-muted">Quản lý xác nhận đóng sự cố để chốt sổ.</div>
+                    </div>
+                    <form asp-action="CloseIncident" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-dark">
+                            <i class="fas fa-lock me-1"></i>Đóng sự cố
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (Model.Status == "Open" || Model.Status == "InProgress")
         {
             <div class="card shadow mb-4 border-success">
                 <div class="card-header py-3 bg-success text-white"><h6 class="m-0 fw-bold">✅ Xác Nhận Giải Quyết Sự Cố</h6></div>
@@ -104,9 +152,19 @@
                             <label class="form-label fw-bold">Cách giải quyết *</label>
                             <textarea name="Resolution" class="form-control" rows="3" placeholder="Đã thay thế... đã sửa chữa..." required></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Thời gian ngừng máy (giờ)</label>
-                            <input type="number" name="DowntimeHours" step="0.5" class="form-control" placeholder="Ví dụ: 2.5" />
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Ngừng máy (giờ)</label>
+                                <input type="number" name="DowntimeHours" step="0.5" class="form-control" placeholder="2.5" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Chi phí phụ tùng (đ)</label>
+                                <input type="number" name="PartsCost" step="1000" min="0" class="form-control" placeholder="2.450.000" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Chi phí nhân công (đ)</label>
+                                <input type="number" name="LaborCost" step="1000" min="0" class="form-control" placeholder="800.000" />
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-success w-100">
                             <i class="fas fa-check-circle me-2"></i>Xác Nhận Đã Giải Quyết

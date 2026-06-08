@@ -481,7 +481,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     {
         var r = await db.OperationRequests.FindAsync(id);
         if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.InProgress) return false;
-        r.Status = (OperationStatus)9; // OnHold
+        r.Status = OperationStatus.OnHold;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Hold", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"OnHold\"}", CreatedAt = DateTimeOffset.UtcNow });
@@ -493,7 +493,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     public async Task<bool> ResumeAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || (int)r.Status != 9) return false; // 9 is OnHold
+        if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.OnHold) return false;
         r.Status = OperationStatus.InProgress;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;

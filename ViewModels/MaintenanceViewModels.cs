@@ -34,6 +34,9 @@ public class MaintenanceIncidentDetailViewModel
     public string? RootCause { get; set; }
     public string? Resolution { get; set; }
     public decimal? DowntimeHours { get; set; }
+    public decimal? PartsCost { get; set; }
+    public decimal? LaborCost { get; set; }
+    public decimal? TotalCost { get; set; }
     public Guid? MaintenanceRecordId { get; set; }
     public string? AiAnalysis { get; set; }
 }
@@ -70,6 +73,8 @@ public class ResolveIncidentViewModel
     public string? RootCause { get; set; }
     [Required] public string Resolution { get; set; } = string.Empty;
     public decimal? DowntimeHours { get; set; }
+    public decimal? PartsCost { get; set; }
+    public decimal? LaborCost { get; set; }
 }
 
 // ─── PM SCHEDULES ─────────────────────────────────────────────────────────────
