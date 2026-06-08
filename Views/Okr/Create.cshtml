@@ -1,120 +1,987 @@
 @model OmniBizAI.ViewModels.OkrCreateViewModel
-@{ ViewData["Title"] = "Tạo OKR mới"; }
+@{
+    ViewData["Title"] = "Tạo OKR mới";
+    ViewData["Breadcrumb"] = "<a href='/Okr' style='color:var(--apple-blue);text-decoration:none'>OKR</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+
+    if (Model.KeyResults is null || !Model.KeyResults.Any())
+    {
+        Model.KeyResults = new List<OmniBizAI.ViewModels.OkrKeyResultCreateItem> { new() };
+    }
+}
+
+@section Styles {
+<style>
+    .okr-create-hero {
+        background:
+            radial-gradient(circle at top right, rgba(0,113,227,.12), transparent 34%),
+            linear-gradient(135deg, rgba(255,255,255,.98), rgba(245,245,247,.96));
+    }
+    .okr-create-hero p {
+        max-width: 760px;
+        color: var(--text-secondary);
+        margin: 10px 0 0;
+    }
+    .okr-mini-metric {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: rgba(255,255,255,.78);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .okr-mini-metric i {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        flex-shrink: 0;
+    }
+    .okr-mini-metric strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .okr-mini-metric span {
+        display: block;
+        font-size: .74rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .okr-section-note {
+        font-size: .8rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+    .okr-selection-panel {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,250,252,.95));
+        overflow: hidden;
+        height: 100%;
+    }
+    .okr-selection-head {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--divider);
+    }
+    .okr-selection-head h6 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .92rem;
+        font-weight: 700;
+    }
+    .okr-selection-head p {
+        margin: 6px 0 0;
+        font-size: .78rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+    }
+    .okr-selection-body {
+        padding: 16px 18px 18px;
+    }
+    .okr-native-select {
+        display: none;
+    }
+    .okr-smart-picker {
+        display: grid;
+        gap: 12px;
+    }
+    .okr-picker-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .okr-picker-meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .okr-picker-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        font-size: .76rem;
+        font-weight: 700;
+    }
+    .okr-picker-count.empty {
+        background: rgba(142,142,147,.12);
+        color: var(--text-muted);
+    }
+    .okr-picker-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .okr-picker-action {
+        border: 1px solid var(--divider);
+        background: var(--canvas);
+        color: var(--text-secondary);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: .74rem;
+        font-weight: 600;
+        line-height: 1;
+        cursor: pointer;
+        transition: all var(--ease-fast);
+    }
+    .okr-picker-action:hover {
+        color: var(--apple-blue);
+        border-color: rgba(0,113,227,.14);
+        background: rgba(0,113,227,.04);
+    }
+    .okr-picker-search-wrap {
+        position: relative;
+    }
+    .okr-picker-search-wrap i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: .8rem;
+    }
+    .okr-picker-search {
+        width: 100%;
+        padding: 10px 14px 10px 36px;
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        font-size: .85rem;
+        background: rgba(255,255,255,.9);
+        transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+    }
+    .okr-picker-search:focus {
+        outline: none;
+        border-color: rgba(0,113,227,.32);
+        box-shadow: 0 0 0 3px rgba(0,113,227,.08);
+    }
+    .okr-picker-list {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: rgba(255,255,255,.72);
+        max-height: 288px;
+        overflow: auto;
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+    }
+    .okr-picker-list::-webkit-scrollbar {
+        width: 8px;
+    }
+    .okr-picker-list::-webkit-scrollbar-thumb {
+        background: rgba(142,142,147,.35);
+        border-radius: 999px;
+    }
+    .okr-picker-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        transition: all var(--ease-fast);
+        color: var(--text-secondary);
+    }
+    .okr-picker-option:hover {
+        background: rgba(0,113,227,.04);
+        border-color: rgba(0,113,227,.08);
+    }
+    .okr-picker-option.is-selected {
+        background: linear-gradient(135deg, rgba(0,113,227,.09), rgba(90,200,250,.08));
+        border-color: rgba(0,113,227,.16);
+        color: var(--text-primary);
+    }
+    .okr-picker-check {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1px solid var(--hairline);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+        background: #fff;
+        color: transparent;
+        transition: all var(--ease-fast);
+    }
+    .okr-picker-option.is-selected .okr-picker-check {
+        background: var(--apple-blue);
+        border-color: var(--apple-blue);
+        color: #fff;
+    }
+    .okr-picker-option-body {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+    }
+    .okr-picker-option-text {
+        font-size: .84rem;
+        line-height: 1.45;
+        color: inherit;
+        word-break: break-word;
+    }
+    .okr-picker-option-hint {
+        font-size: .72rem;
+        color: var(--text-muted);
+    }
+    .okr-picker-empty {
+        padding: 24px 14px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: .8rem;
+    }
+    .okr-picker-hidden {
+        display: none !important;
+    }
+    .okr-selection-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    .okr-selection-preview .more {
+        background: rgba(142,142,147,.12);
+        color: var(--text-secondary);
+        border-color: rgba(142,142,147,.08);
+    }
+    .okr-selection-preview .empty {
+        color: var(--text-muted);
+        font-size: .8rem;
+    }
+    .okr-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: .76rem;
+        font-weight: 600;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+        max-width: 100%;
+    }
+    .okr-chip i {
+        font-size: .68rem;
+    }
+    .okr-kr-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .okr-kr-toolbar .hint {
+        font-size: .8rem;
+        color: var(--text-muted);
+    }
+    .okr-kr-list {
+        display: grid;
+        gap: 14px;
+    }
+    .okr-kr-item {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,247,249,.95));
+        padding: 18px;
+        box-shadow: var(--shadow-card);
+    }
+    .okr-kr-item-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+    .okr-kr-item-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .okr-kr-item-title i {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,159,10,.12);
+        color: var(--warning);
+    }
+    .okr-summary-card {
+        position: sticky;
+        top: 72px;
+    }
+    .okr-summary-block {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .okr-summary-block:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .okr-summary-label {
+        display: block;
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 8px;
+    }
+    .okr-summary-value {
+        color: var(--text-primary);
+        font-size: .92rem;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+    .okr-summary-kpis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .okr-summary-kpi {
+        padding: 14px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.82);
+    }
+    .okr-summary-kpi strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .okr-summary-kpi span {
+        font-size: .73rem;
+        color: var(--text-muted);
+    }
+    .okr-steps {
+        display: grid;
+        gap: 10px;
+    }
+    .okr-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: .84rem;
+        line-height: 1.5;
+    }
+    .okr-step strong {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0,113,227,.1);
+        color: var(--apple-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: .76rem;
+    }
+    @@media (max-width: 991.98px) {
+        .okr-summary-card {
+            position: static;
+        }
+        .okr-summary-kpis {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .okr-summary-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .okr-mini-metric {
+            padding: 12px;
+        }
+    }
+</style>
+}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3"><i class="bi bi-plus-circle me-2"></i>Tạo OKR mới</h1>
-    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Quay lại</a>
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-bullseye me-2"></i>Tạo OKR mới</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Thiết lập mục tiêu, phạm vi phụ trách và các key result từ dữ liệu đã có trong hệ thống.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
 </div>
 
-<form asp-action="Create" method="post">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-transparent"><h5 class="mb-0">Thông tin mục tiêu</h5></div>
-        <div class="card-body">
-            <div class="alert alert-light border mb-3 small">
-                <strong>Thiết lập theo bước:</strong> 1) Mục tiêu 2) Phạm vi áp dụng (phòng ban/mission/nhân sự) 3) Key Results đo lường.
-            </div>
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <label asp-for="ObjectiveName" class="form-label">Tên mục tiêu <span class="text-danger">*</span></label>
-                    <input asp-for="ObjectiveName" class="form-control" placeholder="VD: Tăng doanh thu Q2 lên 20%" />
-                    <span asp-validation-for="ObjectiveName" class="text-danger"></span>
-                </div>
-                <div class="col-md-2">
-                    <label asp-for="Level" class="form-label">Cấp độ</label>
-                    <select asp-for="Level" class="form-select">
-                        @foreach (var l in EnumHelper.GetSelectList<OkrLevel>())
-                        { <option value="@l.Value">@l.Text</option> }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label asp-for="Cycle" class="form-label">Chu kỳ</label>
-                    <input asp-for="Cycle" class="form-control" placeholder="VD: Q2-2026" />
-                </div>
-            </div>
-            <div class="row g-3 mt-1">
-                <div class="col-md-4">
-                    <label asp-for="SelectedDepartmentIds" class="form-label">Phòng ban áp dụng</label>
-                    <small class="text-muted d-block mb-1">Có thể chọn nhiều phòng ban bằng Ctrl/⌘ + click</small>
-                <div class="col-md-6">
-                    <label asp-for="SelectedDepartmentIds" class="form-label">Phòng ban áp dụng</label>
-                    <select asp-for="SelectedDepartmentIds" class="form-select" multiple size="4">
-                        @foreach (var d in Model.Departments) { <option value="@d.Value">@d.Text</option> }
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="SelectedMissionIds" class="form-label">Liên kết sứ mệnh/tầm nhìn</label>
-                    <small class="text-muted d-block mb-1">Gắn với định hướng chiến lược liên quan</small>
-                <div class="col-md-6">
-                    <label asp-for="SelectedMissionIds" class="form-label">Liên kết sứ mệnh/tầm nhìn</label>
-                    <select asp-for="SelectedMissionIds" class="form-select" multiple size="4">
-                        @foreach (var m in Model.Missions) { <option value="@m.Value">@m.Text</option> }
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="SelectedEmployeeIds" class="form-label">Nhân sự phụ trách</label>
-                    <small class="text-muted d-block mb-1">Chọn các cá nhân chịu trách nhiệm chính</small>
-                    <select asp-for="SelectedEmployeeIds" class="form-select" multiple size="4">
-                        @foreach (var e in Model.Employees) { <option value="@e.Value">@e.Text</option> }
-                    </select>
-                </div>
-            </div>
+<form asp-action="Create" method="post" id="okrCreateForm">
+    @Html.AntiForgeryToken()
 
-        </div>
-    </div>
-
-    <!-- Key Results -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-key me-2"></i>Key Results</h5>
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addKeyResult()"><i class="bi bi-plus me-1"></i>Thêm KR</button>
-        </div>
-        <div class="card-body" id="keyResultsContainer">
-            <div class="kr-row row g-3 mb-3 align-items-end" data-index="0">
-                <div class="col-md-5">
-                    <label class="form-label">Tên Key Result</label>
-                    <input name="KeyResults[0].KeyResultName" class="form-control" placeholder="VD: Doanh thu đạt 5 tỷ" required />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Đơn vị</label>
-                    <input name="KeyResults[0].Unit" class="form-control" placeholder="VNĐ, %, ..." />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Mục tiêu</label>
-                    <input name="KeyResults[0].TargetValue" type="number" step="0.01" class="form-control" required />
-                </div>
-                <div class="col-md-2">
-                    <div class="form-check mt-4">
-                        <input name="KeyResults[0].IsInverse" type="checkbox" value="true" class="form-check-input" />
-                        <label class="form-check-label">Chỉ số nghịch</label>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="content-card okr-create-hero mb-4">
+                <div class="card-body-custom">
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>OKR mới sẽ khởi tạo ở trạng thái Draft</span>
+                            <p>Tạo một objective rõ ràng, gán phạm vi thực thi bằng phòng ban, sứ mệnh và nhân sự, sau đó thêm các key result để hệ thống có thể theo dõi tiến độ ngay khi kích hoạt.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="okr-mini-metric">
+                                    <i class="fa-solid fa-sitemap"></i>
+                                    <div>
+                                        <strong>@Model.Departments.Count</strong>
+                                        <span>Phòng ban sẵn có</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="okr-mini-metric">
+                                    <i class="fa-solid fa-star"></i>
+                                    <div>
+                                        <strong>@Model.Missions.Count</strong>
+                                        <span>Định hướng chiến lược</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="okr-mini-metric">
+                                    <i class="fa-solid fa-users"></i>
+                                    <div>
+                                        <strong>@Model.Employees.Count</strong>
+                                        <span>Nhân sự hoạt động</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
+                        }
                     </div>
                 </div>
-                <div class="col-md-1">
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('.kr-row').remove()"><i class="bi bi-trash"></i></button>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-flag-checkered"></i> Mục tiêu chính</h5>
+                        <div class="okr-section-note">Đây là phần mô tả objective cấp công ty, phòng ban hoặc cá nhân.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="ObjectiveName" class="form-label">Tên mục tiêu <span class="text-danger">*</span></label>
+                            <input asp-for="ObjectiveName" class="form-control" id="objectiveNameInput" placeholder="Ví dụ: Tăng trưởng doanh thu khách hàng hiện hữu thêm 20% trong Q3" />
+                            <span asp-validation-for="ObjectiveName" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Level" class="form-label">Cấp độ OKR</label>
+                            <select asp-for="Level" class="form-select" id="levelInput">
+                                @foreach (var level in EnumHelper.GetSelectList<OkrLevel>(Model.Level.ToString()))
+                                {
+                                    <option value="@level.Value" selected="@level.Selected">@level.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Cycle" class="form-label">Chu kỳ áp dụng</label>
+                            <input asp-for="Cycle" class="form-control" id="cycleInput" placeholder="Ví dụ: Q3-2026" />
+                            <span asp-validation-for="Cycle" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Gợi ý sử dụng</label>
+                            <div class="form-control" style="display:flex;align-items:center;min-height:44px;background:var(--parchment)">
+                                <span style="font-size:.82rem;color:var(--text-secondary)">
+                                    <i class="fa-solid fa-lightbulb me-2" style="color:var(--warning)"></i>
+                                    Đặt objective ngắn gọn, đo được qua các KR bên dưới.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-diagram-project"></i> Phạm vi áp dụng theo dữ liệu sẵn có</h5>
+                        <div class="okr-section-note">Bấm để chọn nhiều mục, tìm kiếm trực tiếp và dùng thao tác nhanh thay vì phải giữ Ctrl hoặc Command.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-xl-4">
+                            <div class="okr-selection-panel">
+                                <div class="okr-selection-head">
+                                    <h6><i class="fa-solid fa-sitemap" style="color:var(--apple-blue)"></i> Phòng ban áp dụng</h6>
+                                    <p>Liên kết objective với các đơn vị triển khai chính trong doanh nghiệp.</p>
+                                </div>
+                                <div class="okr-selection-body">
+                                    <select asp-for="SelectedDepartmentIds" class="okr-native-select" id="departmentSelect" multiple size="8">
+                                        @foreach (var department in Model.Departments)
+                                        {
+                                            <option value="@department.Value">@department.Text</option>
+                                        }
+                                    </select>
+                                    <div class="okr-smart-picker" data-picker-root data-select-id="departmentSelect" data-placeholder="Tìm phòng ban..." data-empty-search="Không tìm thấy phòng ban phù hợp." data-item-label="phòng ban"></div>
+                                    <div class="okr-selection-preview" id="departmentPreview"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-4">
+                            <div class="okr-selection-panel">
+                                <div class="okr-selection-head">
+                                    <h6><i class="fa-solid fa-star" style="color:var(--warning)"></i> Sứ mệnh và tầm nhìn</h6>
+                                    <p>Gắn objective với định hướng chiến lược để theo dõi mức độ bám sát.</p>
+                                </div>
+                                <div class="okr-selection-body">
+                                    <select asp-for="SelectedMissionIds" class="okr-native-select" id="missionSelect" multiple size="8">
+                                        @foreach (var mission in Model.Missions)
+                                        {
+                                            <option value="@mission.Value">@mission.Text</option>
+                                        }
+                                    </select>
+                                    <div class="okr-smart-picker" data-picker-root data-select-id="missionSelect" data-placeholder="Tìm sứ mệnh hoặc tầm nhìn..." data-empty-search="Không tìm thấy định hướng phù hợp." data-item-label="định hướng"></div>
+                                    <div class="okr-selection-preview" id="missionPreview"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 col-xl-4">
+                            <div class="okr-selection-panel">
+                                <div class="okr-selection-head">
+                                    <h6><i class="fa-solid fa-users" style="color:var(--success)"></i> Nhân sự phụ trách</h6>
+                                    <p>Chỉ định owner hoặc người đồng hành chịu trách nhiệm thực thi objective.</p>
+                                </div>
+                                <div class="okr-selection-body">
+                                    <select asp-for="SelectedEmployeeIds" class="okr-native-select" id="employeeSelect" multiple size="8">
+                                        @foreach (var employee in Model.Employees)
+                                        {
+                                            <option value="@employee.Value">@employee.Text</option>
+                                        }
+                                    </select>
+                                    <div class="okr-smart-picker" data-picker-root data-select-id="employeeSelect" data-placeholder="Tìm nhân sự..." data-empty-search="Không tìm thấy nhân sự phù hợp." data-item-label="nhân sự"></div>
+                                    <div class="okr-selection-preview" id="employeePreview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-key"></i> Key Results</h5>
+                        <div class="okr-section-note">Mỗi key result nên là một thước đo định lượng để hệ thống tính tiến độ.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="okr-kr-toolbar mb-3">
+                        <div class="hint">
+                            <i class="fa-solid fa-circle-info me-1" style="color:var(--apple-blue)"></i>
+                            Chọn “Chỉ số nghịch” cho các chỉ số càng thấp càng tốt, ví dụ tỷ lệ lỗi hoặc thời gian xử lý.
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="addKrBtn">
+                            <i class="fa-solid fa-plus me-1"></i>Thêm key result
+                        </button>
+                    </div>
+
+                    <div class="okr-kr-list" id="keyResultsContainer">
+                        @for (var i = 0; i < Model.KeyResults.Count; i++)
+                        {
+                            var item = Model.KeyResults[i];
+                            <div class="okr-kr-item" data-kr-item data-index="@i">
+                                <div class="okr-kr-item-head">
+                                    <div class="okr-kr-item-title">
+                                        <i class="fa-solid fa-key"></i>
+                                        <span>Key Result <span data-kr-number>@(i + 1)</span></span>
+                                    </div>
+                                    <button type="button" class="btn btn-light btn-sm" data-remove-kr title="Xóa key result">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-lg-6">
+                                        <label class="form-label">Tên key result <span class="text-danger">*</span></label>
+                                        <input name="KeyResults[@i].KeyResultName" value="@item.KeyResultName" class="form-control" placeholder="Ví dụ: Doanh thu từ khách hàng hiện hữu đạt 12 tỷ" required />
+                                    </div>
+                                    <div class="col-md-4 col-lg-2">
+                                        <label class="form-label">Đơn vị</label>
+                                        <input name="KeyResults[@i].Unit" value="@item.Unit" class="form-control" placeholder="%, tỷ, đơn" />
+                                    </div>
+                                    <div class="col-md-4 col-lg-2">
+                                        <label class="form-label">Mục tiêu <span class="text-danger">*</span></label>
+                                        <input name="KeyResults[@i].TargetValue" value="@item.TargetValue" type="number" min="0" step="0.01" class="form-control" required />
+                                    </div>
+                                    <div class="col-md-4 col-lg-2">
+                                        <label class="form-label d-block">Thuộc tính</label>
+                                        <div class="form-check form-switch mt-2">
+                                            <input name="KeyResults[@i].IsInverse" value="true" type="checkbox" class="form-check-input" @(item.IsInverse ? "checked" : "") />
+                                            <label class="form-check-label">Chỉ số nghịch</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>Tạo OKR</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        <div class="col-lg-4">
+            <div class="okr-summary-card">
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-eye"></i> Tóm tắt đang cấu hình</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="okr-summary-block pt-0">
+                            <span class="okr-summary-label">Objective</span>
+                            <div class="okr-summary-value" id="summaryObjective">Chưa nhập tên mục tiêu</div>
+                        </div>
+                        <div class="okr-summary-block">
+                            <span class="okr-summary-label">Thiết lập cơ bản</span>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="status-badge-soft" id="summaryLevel">Company</span>
+                                <span class="status-badge-soft" id="summaryCycle">Chưa có chu kỳ</span>
+                            </div>
+                        </div>
+                        <div class="okr-summary-block">
+                            <span class="okr-summary-label">Phạm vi đã chọn</span>
+                            <div class="okr-summary-kpis">
+                                <div class="okr-summary-kpi">
+                                    <strong id="summaryDepartmentCount">0</strong>
+                                    <span>Phòng ban</span>
+                                </div>
+                                <div class="okr-summary-kpi">
+                                    <strong id="summaryMissionCount">0</strong>
+                                    <span>Chiến lược</span>
+                                </div>
+                                <div class="okr-summary-kpi">
+                                    <strong id="summaryEmployeeCount">0</strong>
+                                    <span>Nhân sự</span>
+                                </div>
+                                <div class="okr-summary-kpi">
+                                    <strong id="summaryKrCount">@Model.KeyResults.Count</strong>
+                                    <span>Key Results</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="okr-summary-block">
+                            <span class="okr-summary-label">Quy trình đề xuất</span>
+                            <div class="okr-steps">
+                                <div class="okr-step"><strong>1</strong><span>Đặt objective rõ nghĩa, mô tả kết quả mong muốn trong một chu kỳ cụ thể.</span></div>
+                                <div class="okr-step"><strong>2</strong><span>Gắn objective với đúng phòng ban, định hướng chiến lược và người phụ trách.</span></div>
+                                <div class="okr-step"><strong>3</strong><span>Thêm key result đo lường được để sau này hệ thống cập nhật tiến độ chính xác.</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-rocket"></i> Hoàn tất tạo OKR</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <p style="font-size:.84rem;color:var(--text-secondary);margin-top:0">
+                            Sau khi tạo, OKR sẽ ở trạng thái Draft để bạn tiếp tục rà soát trước khi kích hoạt theo quy trình hiện tại.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-check me-1"></i>Tạo OKR
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">Hủy và quay lại</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </form>
 
 @section Scripts {
-<script>
-let krIndex = 1;
-function addKeyResult() {
-    const container = document.getElementById('keyResultsContainer');
-    const html = `<div class="kr-row row g-3 mb-3 align-items-end" data-index="${krIndex}">
-        <div class="col-md-5"><label class="form-label">Tên Key Result</label><input name="KeyResults[${krIndex}].KeyResultName" class="form-control" required /></div>
-        <div class="col-md-2"><label class="form-label">Đơn vị</label><input name="KeyResults[${krIndex}].Unit" class="form-control" /></div>
-        <div class="col-md-2"><label class="form-label">Mục tiêu</label><input name="KeyResults[${krIndex}].TargetValue" type="number" step="0.01" class="form-control" required /></div>
-        <div class="col-md-2"><div class="form-check mt-4"><input name="KeyResults[${krIndex}].IsInverse" type="checkbox" value="true" class="form-check-input" /><label class="form-check-label">Chỉ số nghịch</label></div></div>
-        <div class="col-md-1"><button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('.kr-row').remove()"><i class="bi bi-trash"></i></button></div>
-    </div>`;
-    container.insertAdjacentHTML('beforeend', html);
-    krIndex++;
-}
-</script>
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function shortenText(value, maxLength = 72) {
+            if (!value) return '';
+            return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+        }
+
+        function buildSelectionPreview(selectId, previewId, emptyText, iconClass) {
+            const select = document.getElementById(selectId);
+            const preview = document.getElementById(previewId);
+            if (!select || !preview) return 0;
+
+            const selected = Array.from(select.selectedOptions).map(option => option.text.trim()).filter(Boolean);
+            if (selected.length === 0) {
+                preview.innerHTML = `<span class="empty">${emptyText}</span>`;
+                return 0;
+            }
+
+            const visibleItems = selected.slice(0, 6);
+            const moreCount = selected.length - visibleItems.length;
+
+            preview.innerHTML = visibleItems.map(text => `
+                <span class="okr-chip">
+                    <i class="${iconClass}"></i>
+                    <span title="${escapeHtml(text)}">${escapeHtml(shortenText(text, 34))}</span>
+                </span>`).join('') + (moreCount > 0 ? `
+                <span class="okr-chip more">+${moreCount} mục</span>` : '');
+
+            return selected.length;
+        }
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = value || '';
+            return div.innerHTML;
+        }
+
+        function renderPickerOptions(select, list, keyword = '') {
+            const normalizedKeyword = keyword.trim().toLowerCase();
+            const options = Array.from(select.options);
+            const matched = options.filter(option => option.text.toLowerCase().includes(normalizedKeyword));
+            const emptySearch = list.dataset.emptySearch || 'Không tìm thấy dữ liệu phù hợp.';
+
+            if (matched.length === 0) {
+                list.innerHTML = `<div class="okr-picker-empty">${escapeHtml(emptySearch)}</div>`;
+                return;
+            }
+
+            list.innerHTML = matched.map(option => {
+                const selectedClass = option.selected ? 'is-selected' : '';
+                return `
+                    <button type="button"
+                            class="okr-picker-option ${selectedClass}"
+                            data-picker-option
+                            data-value="${escapeHtml(option.value)}"
+                            title="${escapeHtml(option.text)}">
+                        <span class="okr-picker-check">
+                            <i class="fa-solid fa-check" style="font-size:.68rem"></i>
+                        </span>
+                        <span class="okr-picker-option-body">
+                            <span class="okr-picker-option-text">${escapeHtml(shortenText(option.text, 92))}</span>
+                        </span>
+                    </button>`;
+            }).join('');
+        }
+
+        function updatePickerMeta(select, root) {
+            const count = Array.from(select.selectedOptions).length;
+            const countBadge = root.querySelector('[data-picker-count]');
+            if (!countBadge) return;
+
+            const label = root.dataset.itemLabel || 'mục';
+            countBadge.textContent = count === 0 ? `Chưa chọn ${label}` : `${count} ${label}`;
+            countBadge.classList.toggle('empty', count === 0);
+        }
+
+        function syncPicker(select, root, keyword = '') {
+            const list = root.querySelector('[data-picker-list]');
+            if (!list) return;
+            renderPickerOptions(select, list, keyword);
+            updatePickerMeta(select, root);
+        }
+
+        function initSmartPicker(root) {
+            const selectId = root.dataset.selectId;
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            const placeholder = root.dataset.placeholder || 'Tìm kiếm...';
+            const itemLabel = root.dataset.itemLabel || 'mục';
+            const emptySearch = root.dataset.emptySearch || 'Không tìm thấy dữ liệu phù hợp.';
+
+            root.innerHTML = `
+                <div class="okr-picker-toolbar">
+                    <div class="okr-picker-meta">
+                        <span class="okr-picker-count empty" data-picker-count>Chưa chọn ${escapeHtml(itemLabel)}</span>
+                    </div>
+                    <div class="okr-picker-actions">
+                        <button type="button" class="okr-picker-action" data-picker-select-all>Chọn tất cả</button>
+                        <button type="button" class="okr-picker-action" data-picker-clear>Gỡ chọn</button>
+                    </div>
+                </div>
+                <div class="okr-picker-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" class="okr-picker-search" data-picker-search placeholder="${escapeHtml(placeholder)}" autocomplete="off" />
+                </div>
+                <div class="okr-picker-list" data-picker-list data-empty-search="${escapeHtml(emptySearch)}"></div>`;
+
+            const searchInput = root.querySelector('[data-picker-search]');
+            const list = root.querySelector('[data-picker-list]');
+            const selectAllBtn = root.querySelector('[data-picker-select-all]');
+            const clearBtn = root.querySelector('[data-picker-clear]');
+
+            const rerender = () => {
+                syncPicker(select, root, searchInput?.value || '');
+                updateSummary();
+            };
+
+            renderPickerOptions(select, list, '');
+            updatePickerMeta(select, root);
+
+            searchInput?.addEventListener('input', () => {
+                syncPicker(select, root, searchInput.value);
+            });
+
+            list?.addEventListener('click', event => {
+                const optionButton = event.target.closest('[data-picker-option]');
+                if (!optionButton) return;
+
+                const option = Array.from(select.options).find(item => item.value === optionButton.dataset.value);
+                if (!option) return;
+
+                option.selected = !option.selected;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncPicker(select, root, searchInput?.value || '');
+            });
+
+            selectAllBtn?.addEventListener('click', () => {
+                Array.from(select.options).forEach(option => option.selected = true);
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncPicker(select, root, searchInput?.value || '');
+            });
+
+            clearBtn?.addEventListener('click', () => {
+                Array.from(select.options).forEach(option => option.selected = false);
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncPicker(select, root, searchInput?.value || '');
+            });
+
+            select.addEventListener('change', rerender);
+        }
+
+        function updateSummary() {
+            const objectiveInput = document.getElementById('objectiveNameInput');
+            const cycleInput = document.getElementById('cycleInput');
+            const levelInput = document.getElementById('levelInput');
+
+            const objective = (objectiveInput?.value || '').trim();
+            const cycle = (cycleInput?.value || '').trim();
+            const levelText = levelInput?.selectedOptions?.[0]?.text || 'Chưa chọn cấp độ';
+
+            document.getElementById('summaryObjective').textContent = objective || 'Chưa nhập tên mục tiêu';
+            document.getElementById('summaryLevel').textContent = levelText;
+            document.getElementById('summaryCycle').textContent = cycle || 'Chưa có chu kỳ';
+
+            document.getElementById('summaryDepartmentCount').textContent = buildSelectionPreview('departmentSelect', 'departmentPreview', 'Chưa chọn phòng ban nào.', 'fa-solid fa-building');
+            document.getElementById('summaryMissionCount').textContent = buildSelectionPreview('missionSelect', 'missionPreview', 'Chưa gắn định hướng chiến lược.', 'fa-solid fa-star');
+            document.getElementById('summaryEmployeeCount').textContent = buildSelectionPreview('employeeSelect', 'employeePreview', 'Chưa chọn nhân sự phụ trách.', 'fa-solid fa-user');
+            document.getElementById('summaryKrCount').textContent = document.querySelectorAll('[data-kr-item]').length.toString();
+        }
+
+        function renderKrRow(index, data) {
+            const keyResultName = data?.keyResultName || '';
+            const unit = data?.unit || '';
+            const targetValue = data?.targetValue || '';
+            const isInverse = data?.isInverse ? 'checked' : '';
+
+            return `
+                <div class="okr-kr-item" data-kr-item data-index="${index}">
+                    <div class="okr-kr-item-head">
+                        <div class="okr-kr-item-title">
+                            <i class="fa-solid fa-key"></i>
+                            <span>Key Result <span data-kr-number>${index + 1}</span></span>
+                        </div>
+                        <button type="button" class="btn btn-light btn-sm" data-remove-kr title="Xóa key result">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <label class="form-label">Tên key result <span class="text-danger">*</span></label>
+                            <input name="KeyResults[${index}].KeyResultName" value="${escapeHtml(keyResultName)}" class="form-control" placeholder="Ví dụ: Tỷ lệ giữ chân khách hàng đạt 92%" required />
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label">Đơn vị</label>
+                            <input name="KeyResults[${index}].Unit" value="${escapeHtml(unit)}" class="form-control" placeholder="%, tỷ, đơn" />
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label">Mục tiêu <span class="text-danger">*</span></label>
+                            <input name="KeyResults[${index}].TargetValue" value="${targetValue}" type="number" min="0" step="0.01" class="form-control" required />
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label d-block">Thuộc tính</label>
+                            <div class="form-check form-switch mt-2">
+                                <input name="KeyResults[${index}].IsInverse" value="true" type="checkbox" class="form-check-input" ${isInverse} />
+                                <label class="form-check-label">Chỉ số nghịch</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function reindexKeyResults() {
+            document.querySelectorAll('[data-kr-item]').forEach((item, index) => {
+                item.dataset.index = index;
+
+                const number = item.querySelector('[data-kr-number]');
+                if (number) number.textContent = (index + 1).toString();
+
+                const inputs = item.querySelectorAll('input');
+                inputs.forEach(input => {
+                    const currentName = input.getAttribute('name');
+                    if (!currentName) return;
+                    input.setAttribute('name', currentName.replace(/KeyResults\[\d+\]/, `KeyResults[${index}]`));
+                });
+            });
+
+            updateSummary();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('okrCreateForm');
+            const keyResultsContainer = document.getElementById('keyResultsContainer');
+            const addKrBtn = document.getElementById('addKrBtn');
+
+            document.querySelectorAll('[data-picker-root]').forEach(initSmartPicker);
+
+            if (form) {
+                form.querySelectorAll('#objectiveNameInput, #cycleInput, #levelInput, #departmentSelect, #missionSelect, #employeeSelect').forEach(input => {
+                    input.addEventListener('input', updateSummary);
+                    input.addEventListener('change', updateSummary);
+                });
+            }
+
+            if (addKrBtn && keyResultsContainer) {
+                addKrBtn.addEventListener('click', () => {
+                    const index = keyResultsContainer.querySelectorAll('[data-kr-item]').length;
+                    keyResultsContainer.insertAdjacentHTML('beforeend', renderKrRow(index));
+                    updateSummary();
+                });
+
+                keyResultsContainer.addEventListener('click', (event) => {
+                    const button = event.target.closest('[data-remove-kr]');
+                    if (!button) return;
+
+                    button.closest('[data-kr-item]')?.remove();
+
+                    if (keyResultsContainer.querySelectorAll('[data-kr-item]').length === 0) {
+                        keyResultsContainer.insertAdjacentHTML('beforeend', renderKrRow(0));
+                    }
+
+                    reindexKeyResults();
+                });
+
+                keyResultsContainer.addEventListener('input', updateSummary);
+                keyResultsContainer.addEventListener('change', updateSummary);
+            }
+
+            updateSummary();
+        });
+    </script>
 }

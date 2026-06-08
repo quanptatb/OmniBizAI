@@ -11,12 +11,14 @@ public class ResourceManagementService
     private readonly ApplicationDbContext _db;
     private readonly ITenantContext _tenant;
     private readonly GeminiService _gemini;
+    private readonly NumberSequenceService _seq;
 
-    public ResourceManagementService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini)
+    public ResourceManagementService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, NumberSequenceService seq)
     {
         _db = db;
         _tenant = tenant;
         _gemini = gemini;
+        _seq = seq;
     }
 
     // ─── DASHBOARD ──────────────────────────────────────────────────────────
@@ -153,11 +155,11 @@ public class ResourceManagementService
     public async Task<Guid> CreateEquipmentAsync(EquipmentCreateViewModel vm)
     {
         var tid = _tenant.TenantId;
-        var seq = await _db.Equipments.CountAsync(e => e.TenantId == tid) + 1;
+        var code = await _seq.NextCodeAsync("Equipment", "EQ-");
         var entity = new Equipment
         {
             TenantId = tid,
-            Code = $"EQ-{seq:D4}",
+            Code = code,
             Name = vm.Name, Type = vm.Type, Location = vm.Location,
             Manufacturer = vm.Manufacturer, Model = vm.Model, SerialNumber = vm.SerialNumber,
             PurchaseDate = vm.PurchaseDate, PurchasePrice = vm.PurchasePrice,

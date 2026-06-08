@@ -247,6 +247,7 @@ public class OperationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> Hold(Guid id)
     {
         var success = await _service.HoldAsync(id);
@@ -267,6 +268,7 @@ public class OperationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> Resume(Guid id)
     {
         var success = await _service.ResumeAsync(id);
@@ -287,6 +289,7 @@ public class OperationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "DEPARTMENT_MANAGER,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> Reopen(Guid id)
     {
         var success = await _service.ReopenAsync(id);

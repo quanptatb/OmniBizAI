@@ -34,14 +34,40 @@ public class MaintenanceIncidentDetailViewModel
     public string? RootCause { get; set; }
     public string? Resolution { get; set; }
     public decimal? DowntimeHours { get; set; }
+    public decimal? PartsCost { get; set; }
+    public decimal? LaborCost { get; set; }
+    public decimal? TotalCost { get; set; }
     public Guid? MaintenanceRecordId { get; set; }
     public string? AiAnalysis { get; set; }
+    public List<PartUsageDisplay> PartsUsed { get; set; } = new();
+    public List<SparePartOption> AvailableParts { get; set; } = new();
+}
+
+public class PartUsageDisplay
+{
+    public string PartCode { get; set; } = string.Empty;
+    public string PartName { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public string Unit { get; set; } = string.Empty;
+    public decimal? UnitCostAtTime { get; set; }
+    public decimal? LineTotal => UnitCostAtTime * Quantity;
 }
 
 public class IncidentCreateFormViewModel
 {
     public List<SelectOption> Equipments { get; set; } = new();
     public List<SelectOption> Technicians { get; set; } = new();
+    public List<SparePartOption> AvailableParts { get; set; } = new();
+}
+
+public class SparePartOption
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Unit { get; set; } = string.Empty;
+    public int StockQuantity { get; set; }
+    public decimal? UnitPrice { get; set; }
 }
 
 public class IncidentCreateViewModel
@@ -70,6 +96,17 @@ public class ResolveIncidentViewModel
     public string? RootCause { get; set; }
     [Required] public string Resolution { get; set; } = string.Empty;
     public decimal? DowntimeHours { get; set; }
+    public decimal? PartsCost { get; set; }
+    public decimal? LaborCost { get; set; }
+
+    /// <summary>Phụ tùng đã dùng để xử lý sự cố (sẽ tự trừ kho).</summary>
+    public List<PartUsageInput> PartsUsed { get; set; } = new();
+}
+
+public class PartUsageInput
+{
+    public Guid PartId { get; set; }
+    public int Quantity { get; set; }
 }
 
 // ─── PM SCHEDULES ─────────────────────────────────────────────────────────────
@@ -119,6 +156,8 @@ public class ExecutePmViewModel
     public DateOnly? NextDueDate { get; set; }
     public Guid? TechnicianUserId { get; set; }
     public List<SelectOption> Technicians { get; set; } = new();
+    public List<PartUsageInput> PartsUsed { get; set; } = new();
+    public List<SparePartOption> AvailableParts { get; set; } = new();
 }
 
 // ─── SPARE PARTS ──────────────────────────────────────────────────────────────

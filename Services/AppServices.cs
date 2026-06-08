@@ -205,11 +205,24 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     {
         var tid = tenant.TenantId;
         var count = await db.OperationRequests.CountAsync(r => r.TenantId == tid);
+
+        var dueDate = vm.DueDate;
+        if (!dueDate.HasValue)
+        {
+            var sla = await db.OperationSlaConfigs
+                .Where(s => s.TenantId == tid && !s.IsDeleted && s.IsActive && s.Priority == vm.Priority
+                    && (s.OrganizationUnitId == vm.OrganizationUnitId || s.OrganizationUnitId == null))
+                .OrderByDescending(s => s.OrganizationUnitId.HasValue)
+                .FirstOrDefaultAsync();
+            if (sla != null)
+                dueDate = DateOnly.FromDateTime(DateTime.Today.AddHours(sla.ResolveHours));
+        }
+
         var entity = new OperationRequest
         {
             TenantId = tid, RequestNo = $"OPR-{DateTime.Today.Year}-{count + 1:D3}", Title = vm.Title, Type = vm.Type,
             OrganizationUnitId = vm.OrganizationUnitId, CustomerId = vm.CustomerId, Priority = vm.Priority,
-            Status = OperationStatus.Draft, DueDate = vm.DueDate, Description = vm.Description, TotalAmount = vm.TotalAmount,
+            Status = OperationStatus.Draft, DueDate = dueDate, Description = vm.Description, TotalAmount = vm.TotalAmount,
             RequestedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
         };
         db.OperationRequests.Add(entity);
@@ -481,7 +494,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     {
         var r = await db.OperationRequests.FindAsync(id);
         if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.InProgress) return false;
-        r.Status = (OperationStatus)9; // OnHold
+        r.Status = OperationStatus.OnHold;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Hold", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"OnHold\"}", CreatedAt = DateTimeOffset.UtcNow });
@@ -493,7 +506,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     public async Task<bool> ResumeAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || (int)r.Status != 9) return false; // 9 is OnHold
+        if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.OnHold) return false;
         r.Status = OperationStatus.InProgress;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;

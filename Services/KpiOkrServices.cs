@@ -779,6 +779,7 @@ public class EvaluationService(ApplicationDbContext db, ITenantContext tenant)
             EvaluationPeriodId = vm.EvaluationPeriodId,
             TotalScore = vm.TotalScore,
             Classification = vm.Classification,
+            ReviewComment = vm.Comment?.Trim(),
             SubmissionStatus = EvaluationSubmissionStatus.Draft,
             CreatedByUserId = tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow

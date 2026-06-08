@@ -31,6 +31,9 @@ public class SparePart : TenantEntity
     public string? Notes { get; set; }
 
     public ICollection<MaintenancePartUsage> PartUsages { get; set; } = new List<MaintenancePartUsage>();
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 }
 
 /// <summary>Phụ tùng đã dùng trong một lần bảo trì</summary>
@@ -73,6 +76,12 @@ public class PmSchedule : TenantEntity
 
     public Guid? AssignedTechnicianId { get; set; }
     public AppUser? AssignedTechnician { get; set; }
+
+    /// <summary>Lần gần nhất gửi notification overdue/due-soon (để chống spam).</summary>
+    public DateTimeOffset? LastOverdueNotificationAt { get; set; }
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 }
 
 /// <summary>Sự cố / Hỏng hóc thiết bị (Failure/Incident)</summary>
@@ -108,6 +117,13 @@ public class MaintenanceIncident : TenantEntity
     public string? RootCause { get; set; } // Nguyên nhân gốc rễ
     public string? Resolution { get; set; } // Cách giải quyết
     public decimal? DowntimeHours { get; set; } // Thời gian ngừng máy (giờ)
+
+    public decimal? PartsCost { get; set; }
+    public decimal? LaborCost { get; set; }
+    public decimal? TotalCost { get; set; }
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
 }
 
 /// <summary>Dữ liệu IoT / Cảm biến của thiết bị (Giả lập)</summary>
