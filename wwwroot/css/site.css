@@ -282,7 +282,7 @@ a:hover{text-decoration:none}
 }
 
 /* ═══ PAGE CONTENT ════════════════════════════════════════════════ */
-.page-content{padding:28px 32px;flex:1}
+.page-content{padding:28px 32px;flex:1;min-width:0;overflow-x:hidden}
 .page-title{font-size:1.35rem;font-weight:700;color:var(--text-primary);letter-spacing:-.02em}
 
 /* ═══ TOAST (Apple-style) ════════════════════════════════════════ */
@@ -588,6 +588,19 @@ a:hover{text-decoration:none}
 .fw-medium{font-weight:500}
 
 /* ═══ RESPONSIVE ═══════════════════════════════════════════════ */
+
+/* Medium screens: 992px – 1199px (Nest Hub 1024×600, tablets) */
+@media(min-width:992px) and (max-width:1199.98px){
+    .page-content{padding:18px 20px}
+    .topbar{padding:0 16px}
+    .card-header-custom{padding:14px 18px}
+    .card-body-custom{padding:16px 18px}
+    /* Topbar breadcrumb truncate on medium */
+    .topbar-breadcrumb{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* Sidebar slightly narrower on medium */
+    :root{--sidebar-w:240px}
+}
+
 @media(max-width:991.98px){
     .sidebar{transform:translateX(-100%)}
     .sidebar.open{transform:translateX(0)}
@@ -642,7 +655,7 @@ a:hover{text-decoration:none}
     .card-body-custom, 
     .card-header-custom,
     .stat-card {
-        padding: 16px;
+        padding: 14px;
     }
     
     /* Fix row gap spacing */
@@ -650,6 +663,13 @@ a:hover{text-decoration:none}
         padding-top: 8px;
         padding-bottom: 8px;
     }
+}
+
+/* Ensure tables and wide content never overflow the page */
+.page-content > *,
+.content-card,
+.glass-card {
+    max-width: 100%;
 }
 
 .nav-group-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:0;color:rgba(255,255,255,.78);padding:9px 12px;border-radius:var(--r-sm);font-size:.82rem;margin-top:4px;cursor:pointer;transition:all var(--ease-fast)}
@@ -725,7 +745,7 @@ a:hover{text-decoration:none}
 
 /* Content card & form tokens reused in Profile */
 .content-card{background:var(--canvas);border:1px solid var(--divider);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card);transition:box-shadow var(--ease-fast)}
-.card-header-custom{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--divider)}
+.card-header-custom{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--divider);flex-wrap:wrap;gap:10px}
 .card-header-custom h5{margin:0;font-size:1rem;font-weight:600;display:flex;align-items:center;gap:8px}
 .card-body-custom{padding:22px 24px}
 

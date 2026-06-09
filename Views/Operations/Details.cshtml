@@ -15,6 +15,13 @@
 
 <style>
 /* Modern premium horizontal stepper styles */
+.stepper-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 24px;
+    scrollbar-width: none;
+}
+.stepper-wrapper::-webkit-scrollbar { display: none; }
 .stepper-container {
     display: flex;
     justify-content: space-between;
@@ -26,8 +33,8 @@
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 20px;
-    margin-bottom: 24px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+    min-width: 480px; /* ensure stepper never squishes too much */
 }
 
 .stepper-line-bg {
@@ -59,6 +66,7 @@
     align-items: center;
     z-index: 3;
     flex: 1;
+    min-width: 60px;
 }
 
 .step-node {
@@ -108,12 +116,12 @@
 
 .step-label {
     margin-top: 10px;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 500;
     color: var(--text-secondary);
     text-align: center;
     transition: color 0.3s ease;
-    max-width: 90px;
+    max-width: 80px;
     line-height: 1.3;
 }
 
@@ -150,6 +158,18 @@
 
 .last-mb-0:last-child {
     margin-bottom: 0 !important;
+}
+
+/* Details page responsive */
+@@media (max-width: 991.98px) {
+    .details-sla-banner {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+    .details-sla-banner .text-end {
+        text-align: left !important;
+    }
 }
 </style>
 
@@ -200,19 +220,19 @@
                 _ => "Đang trong tiến độ SLA"
             };
 
-            <div class="d-flex align-items-center justify-content-between p-3 mb-4 animate-fade-in" style="background:@slaBg; border: 1px solid @slaBorder; border-radius: 16px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-                <div class="d-flex align-items-center gap-3">
-                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border: 1px solid @slaBorder">
-                        <i class="fa-solid @slaIcon" style="font-size:1.2rem; color:@slaColor"></i>
+            <div class="d-flex align-items-center justify-content-between p-3 mb-4 animate-fade-in details-sla-banner" style="background:@slaBg; border: 1px solid @slaBorder; border-radius: 16px;">
+                <div class="d-flex align-items-center gap-3" style="min-width:0">
+                    <div style="width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; border: 1px solid @slaBorder; flex-shrink:0">
+                        <i class="fa-solid @slaIcon" style="font-size:1.1rem; color:@slaColor"></i>
                     </div>
-                    <div>
-                        <div style="font-weight:700; color:#1d1d1f; font-size:0.95rem">@slaTitle</div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary)">
-                            @Model.SlaLabel · @(Model.SlaStage == "Approval" ? "Hạn duyệt" : Model.SlaStage == "Resolution" ? "Hạn xử lý" : "SLA") @(Model.SlaDueAt?.ToLocalTime().ToString("HH:mm dd/MM/yyyy") ?? "chưa thiết lập") · Đã xử lý @Model.ProcessingDays ngày
+                    <div style="min-width:0">
+                        <div style="font-weight:700; color:#1d1d1f; font-size:0.9rem">@slaTitle</div>
+                        <div style="font-size:0.78rem; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis;">
+                            @Model.SlaLabel &middot; @(Model.SlaStage == "Approval" ? "Hạn duyệt" : Model.SlaStage == "Resolution" ? "Hạn xử lý" : "SLA") @(Model.SlaDueAt?.ToLocalTime().ToString("HH:mm dd/MM") ?? "chưa thiết lập") · @Model.ProcessingDays ngày
                         </div>
                     </div>
                 </div>
-                <div class="text-end">
+                <div style="flex-shrink:0;margin-left:12px">
                     @if (Model.SlaDueAt.HasValue)
                     {
                         <span class="badge" style="background: @slaColor; color: #fff; padding: 6px 12px; border-radius: 20px; font-weight:600; font-size: 0.78rem;">
@@ -338,6 +358,7 @@
                         var progressPercent = currentStepIndex * 25;
                         if (currentStatus == "Completed") progressPercent = 100;
                     }
+                    <div class="stepper-wrapper">
                     <div class="stepper-container">
                         <div class="stepper-line-bg"></div>
                         <div class="stepper-line-progress" style="width: @(progressPercent)%"></div>
@@ -402,10 +423,10 @@
 
                 <!-- Actions -->
                 <div class="d-flex flex-wrap gap-2" style="border-top:1px solid var(--divider);padding-top:16px">
-                    <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light" style="border-radius:8px"><i class="fa-solid fa-table-columns me-1"></i>Xem Kanban</a>
+                    <a asp-controller="Workflow" asp-action="Kanban" asp-route-search="@Model.RequestNo" class="btn btn-light btn-sm" style="border-radius:8px"><i class="fa-solid fa-table-columns me-1"></i>Kanban</a>
                     @if (Model.LinkedOperationPlanId.HasValue)
                     {
-                        <a asp-controller="OperationPlans" asp-action="Details" asp-route-id="@Model.LinkedOperationPlanId.Value" class="btn btn-outline-success" style="border-radius:8px">
+                        <a asp-controller="OperationPlans" asp-action="Details" asp-route-id="@Model.LinkedOperationPlanId.Value" class="btn btn-outline-success btn-sm" style="border-radius:8px">
                             <i class="fa-solid fa-calendar-check me-1"></i>Kế hoạch @Model.LinkedOperationPlanCode
                         </a>
                     }
@@ -413,7 +434,7 @@
                     {
                         <form asp-action="ConvertToPlan" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Chuyển yêu cầu Project này thành kế hoạch vận hành?');">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-success" style="border-radius:8px">
+                            <button type="submit" class="btn btn-outline-success btn-sm" style="border-radius:8px">
                                 <i class="fa-solid fa-diagram-project me-1"></i>Convert to Plan
                             </button>
                         </form>
@@ -422,30 +443,29 @@
                     {
                         <form asp-action="SaveAsTemplate" asp-route-id="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-layer-group me-1"></i>Lưu thành template</button>
+                            <button type="submit" class="btn btn-outline-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-layer-group me-1"></i>Lưu template</button>
                         </form>
                     }
-                    @if (Model.CanEdit) { <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary" style="border-radius:8px"><i class="fa-solid fa-pen me-1"></i>Chỉnh sửa</a> }
-                    @if (Model.CanSubmit) { <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-primary" style="border-radius:8px"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button></form> }
+                    @if (Model.CanEdit) { <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-pen me-1"></i>Sửa</a> }
+                    @if (Model.CanSubmit) { <form asp-action="Submit" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-primary btn-sm" style="border-radius:8px"><i class="fa-solid fa-paper-plane me-1"></i>Gửi duyệt</button></form> }
                     @if (Model.CanStartWork)
                     {
                         <form asp-action="StartWork" asp-route-id="@Model.Id" method="post" class="d-inline">@Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-play me-1"></i>Bắt đầu xử lý</button>
+                            <button type="submit" class="btn btn-success btn-sm" style="border-radius:8px"><i class="fa-solid fa-play me-1"></i>Bắt đầu</button>
                         </form>
                     }
                     @if (Model.CanComplete)
                     {
                         <form asp-action="Complete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hoàn thành yêu cầu này?')">@Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-success" style="border-radius:8px"><i class="fa-solid fa-check-double me-1"></i>Hoàn thành</button>
+                            <button type="submit" class="btn btn-success btn-sm" style="border-radius:8px"><i class="fa-solid fa-check-double me-1"></i>Hoàn thành</button>
                         </form>
                     }
-                    @if (Model.CanCancel) { <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Hủy yêu cầu</button></form> }
-                    
+                    @if (Model.CanCancel) { <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy yêu cầu này?');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-danger btn-sm" style="border-radius:8px"><i class="fa-solid fa-ban me-1"></i>Hủy</button></form> }
                     @if (Model.CanHold)
                     {
                         <form asp-action="Hold" asp-route-id="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn text-white px-3" style="border-radius:8px; background-color: var(--warning); border: none; font-weight: 500;">
+                            <button type="submit" class="btn btn-sm text-white" style="border-radius:8px; background-color: var(--warning); border: none; font-weight: 500;">
                                 <i class="fa-solid fa-pause me-1"></i>Tạm dừng
                             </button>
                         </form>
@@ -454,7 +474,7 @@
                     {
                         <form asp-action="Resume" asp-route-id="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn text-white px-3" style="border-radius:8px; background-color: var(--success); border: none; font-weight: 500;">
+                            <button type="submit" class="btn btn-success btn-sm" style="border-radius:8px; border: none; font-weight: 500;">
                                 <i class="fa-solid fa-play me-1"></i>Tiếp tục
                             </button>
                         </form>
@@ -463,7 +483,7 @@
                     {
                         <form asp-action="Reopen" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Mở lại yêu cầu này để tiếp tục xử lý?')">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-secondary px-3" style="border-radius:8px; font-weight: 500;">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm" style="border-radius:8px; font-weight: 500;">
                                 <i class="fa-solid fa-arrow-rotate-left me-1"></i>Mở lại
                             </button>
                         </form>

@@ -36,7 +36,7 @@
     background:var(--canvas);
     border-radius:var(--r-lg);
     border:1px solid var(--divider);
-    overflow:visible;
+    overflow:hidden;
     box-shadow:var(--shadow-card);
     transition:box-shadow var(--ease-fast);
 }

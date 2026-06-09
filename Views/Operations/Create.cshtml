@@ -5,6 +5,7 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <style>
     .operation-create-hero {
         background:
@@ -427,9 +428,6 @@
                         {
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
                         }
-                    </div>
-                </div>
-            </div>
 
             <div class="content-card mb-4">
                 <div class="card-header-custom">
@@ -589,7 +587,7 @@
                         </div>
                         <div class="col-md-4">
                             <label asp-for="DueDate" class="form-label">Hạn xử lý mong muốn</label>
-                            <input asp-for="DueDate" type="date" class="form-control" id="dueDateInput" min="@DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd")" />
+                            <input asp-for="DueDate" type="text" class="form-control" id="dueDateInput" placeholder="dd/mm/yyyy" value="@(Model.DueDate?.ToString("yyyy-MM-dd"))" />
                             <span asp-validation-for="DueDate" class="text-danger" style="font-size:.78rem"></span>
                         </div>
                         <div class="col-md-4">
@@ -744,6 +742,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         (() => {
             const titleInput = document.getElementById('titleInput');
@@ -753,6 +752,16 @@
             const customerInput = document.getElementById('customerInput');
             const priorityInput = document.getElementById('priorityInput');
             const dueDateInput = document.getElementById('dueDateInput');
+            flatpickr(dueDateInput, {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                altInputClass: "form-control",
+                minDate: "today",
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateSummary();
+                }
+            });
             const totalAmountInput = document.getElementById('totalAmountInput');
             const descriptionCounter = document.getElementById('descriptionCounter');
 
