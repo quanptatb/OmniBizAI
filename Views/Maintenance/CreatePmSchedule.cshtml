@@ -60,7 +60,10 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Hướng dẫn thực hiện</label>
+                            <label class="form-label">
+                                Hướng dẫn thực hiện
+                                <i class="fas fa-info-circle ms-1 text-muted" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-custom-class="wide-tooltip" title="Nhập các bước thực hiện bảo trì theo thứ tự, mỗi bước một dòng. Ví dụ:<br>Bước 1: Tắt nguồn thiết bị<br>Bước 2: Kiểm tra bộ phận cần bảo trì<br>Bước 3: Ghi nhận kết quả sau khi thực hiện" style="cursor: help;"></i>
+                            </label>
                             <textarea asp-for="Instructions" class="form-control" rows="4" placeholder="Bước 1: Tắt nguồn thiết bị&#10;Bước 2: Tháo nắp..."></textarea>
                         </div>
                     </div>
@@ -122,6 +125,12 @@
 </div>
 @section Styles {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .wide-tooltip .tooltip-inner {
+            max-width: 400px;
+            text-align: left;
+        }
+    </style>
 }
 @section Scripts {
 <partial name="_ValidationScriptsPartial" />
@@ -147,5 +156,11 @@ function showTrigger(value) {
 const triggerSel = document.getElementById('triggerSelect');
 triggerSel.addEventListener('change', e => showTrigger(e.target.value));
 showTrigger(triggerSel.value);
+
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl);
+});
 </script>
 }

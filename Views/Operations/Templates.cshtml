@@ -3,6 +3,17 @@
     ViewData["Title"] = "Template yêu cầu vận hành";
     ViewData["Breadcrumb"] = "<a href='/Operations' style='color:var(--apple-blue);text-decoration:none'>Vận hành</a> <i class=\"fa-solid fa-chevron-right mx-2\" style=\"font-size:.6rem;color:var(--text-muted)\"></i> <span>Templates</span>";
     string PriorityLabel(string p) => EnumHelper.Label<PriorityLevel>(p);
+    string TypeLabel(string? t) => t switch {
+        "IT_SUPPORT"     => "Hỗ trợ IT",
+        "PROCUREMENT"    => "Đề xuất mua sắm",
+        "FACILITY"       => "Bảo trì cơ sở vật chất",
+        "Maintenance_PM" => "Bảo trì phòng ngừa",
+        "Maintenance_CM" => "Bảo trì khắc phục",
+        "Maintenance"    => "Bảo trì",
+        "SERVICE"        => "Cung cấp dịch vụ/Sản phẩm",
+        "OTHER"          => "Khác",
+        _                => t ?? ""
+    };
 }
 
 @if (TempData["SuccessMessage"] != null)
@@ -75,7 +86,7 @@
                                 <div style="font-weight:700">@item.Title</div>
                                 <small class="text-muted">Tạo: @item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</small>
                             </td>
-                            <td>@item.Type</td>
+                            <td>@TypeLabel(item.Type)</td>
                             <td>@item.Department</td>
                             <td>@PriorityLabel(item.Priority)</td>
                             <td>@item.DefaultLineCount</td>
