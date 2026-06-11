@@ -16,6 +16,4 @@ public class ProductTraceability : TenantEntity
 
     [Required]
     public string OriginDetails { get; set; } = string.Empty; // Lưu thông tin nhật ký dạng JSON / RichText
-
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

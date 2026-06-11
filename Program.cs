@@ -108,6 +108,7 @@ builder.Services.AddScoped<ResourceAvailabilityService>();
 builder.Services.AddScoped<OperationPlanService>();
 builder.Services.AddScoped<ResourceManagementService>();
 builder.Services.AddScoped<MaintenanceService>();
+builder.Services.AddScoped<FailureModeService>();
 builder.Services.AddScoped<WorkOrderService>();
 builder.Services.AddScoped<SparePartRequisitionService>();
 builder.Services.AddScoped<SensorAnomalyDetector>();

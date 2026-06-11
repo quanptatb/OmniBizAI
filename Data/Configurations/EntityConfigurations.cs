@@ -1067,3 +1067,33 @@ public class FailureModeConfiguration : IEntityTypeConfiguration<FailureMode>
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 }
+
+public class SparePartConfiguration : IEntityTypeConfiguration<SparePart>
+{
+    public void Configure(EntityTypeBuilder<SparePart> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.HasIndex(e => new { e.TenantId, e.Code }).IsUnique();
+        builder.Property(e => e.Code).HasMaxLength(50).IsRequired();
+        builder.Property(e => e.Name).HasMaxLength(200).IsRequired();
+        builder.Property(e => e.UnitPrice).HasColumnType("decimal(18,4)");
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
+    }
+}
+
+public class MaintenancePartUsageConfiguration : IEntityTypeConfiguration<MaintenancePartUsage>
+{
+    public void Configure(EntityTypeBuilder<MaintenancePartUsage> builder)
+    {
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.UnitCostAtTime).HasColumnType("decimal(18,4)");
+
+        builder.HasOne(e => e.MaintenanceRecord)
+            .WithMany()
+            .HasForeignKey(e => e.MaintenanceRecordId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasQueryFilter(e => !e.IsDeleted);
+    }
+}

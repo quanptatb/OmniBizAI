@@ -3,8 +3,11 @@
     ViewData["Title"] = "Quản lý bảo trì";
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Bảo trì</span>";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fa-solid fa-screwdriver-wrench me-2" style="color:var(--apple-blue)"></i>Quản lý bảo trì</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-screwdriver-wrench me-2" style="color:var(--apple-blue)"></i>Quản Lý Bảo Trì</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Tổng quan hoạt động bảo trì, sửa chữa và vật tư dự phòng.</p>
+    </div>
     <div class="d-flex gap-2 flex-wrap">
         <a asp-action="Incidents" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-triangle-exclamation me-1"></i>Sự cố CM</a>
         <a asp-action="PmSchedules" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-calendar-days me-1"></i>Lịch PM</a>
