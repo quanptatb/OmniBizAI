@@ -42,8 +42,8 @@
                     {
                         <tr>
                             <td><strong>@item.Code</strong></td>
-                            <td>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none fw-bold">@item.Title</a>
+                            <td style="max-width: 300px;">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none fw-bold d-block text-truncate" title="@item.Title">@item.Title</a>
                                 <div class="text-muted small">@item.TaskCount công việc</div>
                             </td>
                             <td><span class="badge bg-secondary">@PlanTypeLabel(item.PlanType)</span></td>
@@ -68,7 +68,7 @@
                                     <a asp-action="Gantt" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Xem Gantt" style="border-radius:8px">
                                         <i class="fas fa-chart-gantt"></i>
                                     </a>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" style="border-radius:8px">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary text-nowrap" style="border-radius:8px">
                                         <i class="fas fa-chevron-right me-1"></i>Chi tiết
                                     </a>
                                 </div>

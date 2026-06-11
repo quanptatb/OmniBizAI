@@ -319,9 +319,9 @@
                             var overdueRowClass = item.IsCriticalAndOverdue ? "row-priority-critical-overdue" : item.IsOverdue ? "table-row-overdue" : "";
                         <tr class="@rowPriorityClass @overdueRowClass">
                             <td class="ps-4" style="font-weight:600;color:var(--apple-blue)">@item.RequestNo</td>
-                            <td>
-                                <div style="font-weight:600;margin-bottom:3px">@item.Title</div>
-                                <span class="badge" style="background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-weight:500">@item.Type</span>
+                            <td style="max-width: 300px;">
+                                <div class="text-truncate" style="font-weight:600;margin-bottom:3px" title="@item.Title">@item.Title</div>
+                                <span class="badge text-truncate" style="max-width: 100%;background:var(--parchment);color:var(--text-secondary);border:1px solid var(--divider);font-weight:500">@item.Type</span>
                             </td>
                             <td>@item.Department</td>
                             <td>
@@ -363,7 +363,7 @@
                                 }
                             </td>
                             <td class="text-end pe-4">
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light" style="border-radius:8px">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light text-nowrap" style="border-radius:8px">
                                     <i class="fa-solid fa-eye me-1"></i>Chi tiết
                                 </a>
                             </td>

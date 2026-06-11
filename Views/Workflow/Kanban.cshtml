@@ -103,6 +103,8 @@
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 10;
     }
 
     .column-title-container {
@@ -183,7 +185,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        min-height: 150px;
+        min-height: 280px; /* Tăng min-height để menu dropdown không bị cắt */
     }
 
     .kanban-card {
@@ -1454,9 +1456,25 @@
 
     function updateColumnCounts() {
         document.querySelectorAll('.kanban-column').forEach(column => {
-            const count = column.querySelectorAll('.kanban-card').length;
+            const list = column.querySelector('.kanban-card-list');
+            const count = list ? list.querySelectorAll('.kanban-card').length : 0;
             const countLabel = column.querySelector('.column-card-count');
             if (countLabel) countLabel.textContent = `${count} thẻ`;
+
+            if (list) {
+                let emptyDiv = list.querySelector('.kanban-empty');
+                if (count === 0) {
+                    if (!emptyDiv) {
+                        emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'kanban-empty';
+                        emptyDiv.innerHTML = '<i class="fa-regular fa-square"></i>\n                                <span>Chưa có thẻ công việc</span>';
+                        list.appendChild(emptyDiv);
+                    }
+                    emptyDiv.style.display = 'flex';
+                } else if (emptyDiv) {
+                    emptyDiv.style.display = 'none';
+                }
+            }
 
             const wipBadge = column.querySelector('.wip-badge[data-wip-limit]');
             const wipLimit = Number(wipBadge?.dataset.wipLimit || 0);
