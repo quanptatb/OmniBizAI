@@ -2,6 +2,13 @@
 @{
     ViewData["Title"] = "Quản lý Lịch trình & Kế hoạch";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string PlanTypeLabel(string? t) => t switch {
+        "Daily"   => "Kế hoạch ngày",
+        "Weekly"  => "Kế hoạch tuần",
+        "Monthly" => "Kế hoạch tháng",
+        "Yearly"  => "Kế hoạch năm",
+        _         => t ?? ""
+    };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -39,7 +46,7 @@
                                 <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none fw-bold">@item.Title</a>
                                 <div class="text-muted small">@item.TaskCount công việc</div>
                             </td>
-                            <td><span class="badge bg-secondary">@item.PlanType</span></td>
+                            <td><span class="badge bg-secondary">@PlanTypeLabel(item.PlanType)</span></td>
                             <td>
                                 <div class="small"><i class="fas fa-calendar-alt text-muted"></i> @item.StartDate.ToString("dd/MM/yyyy") - @item.EndDate.ToString("dd/MM/yyyy")</div>
                             </td>
@@ -57,12 +64,12 @@
                                 <span class="badge @item.StatusBadgeClass">@item.StatusLabel</span>
                             </td>
                             <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a asp-action="Gantt" asp-route-id="@item.Id" class="btn btn-outline-primary" title="Xem Gantt">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="Gantt" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Xem Gantt" style="border-radius:8px">
                                         <i class="fas fa-chart-gantt"></i>
                                     </a>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-primary">
-                                        Chi tiết <i class="fas fa-chevron-right ms-1"></i>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" style="border-radius:8px">
+                                        <i class="fas fa-chevron-right me-1"></i>Chi tiết
                                     </a>
                                 </div>
                             </td>
