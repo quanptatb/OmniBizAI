@@ -8,9 +8,14 @@
         </h1>
         <span class="text-muted small">Thiết lập chỉ tiêu đo lường hiệu suất</span>
     </div>
-    <a asp-action="Create" class="btn-primary-custom">
-        <i class="bi bi-plus-lg"></i> Tạo KPI mới
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-action="ImportMeetingSummary" class="btn btn-light">
+            <i class="bi bi-magic"></i> Import từ cuộc họp
+        </a>
+        <a asp-action="Create" class="btn-primary-custom">
+            <i class="bi bi-plus-lg"></i> Tạo KPI mới
+        </a>
+    </div>
 </div>
 
 <!-- Summary Stats -->

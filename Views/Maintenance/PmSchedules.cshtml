@@ -6,10 +6,13 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-calendar-check text-primary me-2"></i>Bảo Trì Phòng Ngừa (PM)</h2>
     <div>
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Dashboard</a>
-        <a asp-action="CreatePmSchedule" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Tạo Lịch PM</a>
+        <h4 class="page-title mb-1"><i class="fas fa-calendar-check text-primary me-2"></i>Bảo Trì Phòng Ngừa (PM)</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Theo dõi và quản lý kế hoạch bảo trì định kỳ cho các thiết bị.</p>
+    </div>
+    <div>
+        <a asp-action="Index" class="btn btn-light me-2"><i class="fas fa-chart-line me-1"></i>Dashboard</a>
+        <a asp-action="CreatePmSchedule" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Tạo Lịch PM</a>
     </div>
 </div>
 
@@ -19,8 +22,8 @@
 }
 
 <!-- Filter -->
-<div class="card shadow mb-4">
-    <div class="card-body py-2">
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-6">
                 <div class="form-check ms-2">
@@ -28,22 +31,22 @@
                     <label class="form-check-label text-danger fw-bold" for="chkOverdue">Chỉ hiện công việc quá hạn</label>
                 </div>
             </div>
-            <div class="col-md-3"><button type="submit" class="btn btn-outline-primary btn-sm w-100">Lọc</button></div>
+            <div class="col-md-auto ms-auto"><button type="submit" class="btn btn-primary px-4"><i class="fas fa-filter me-1"></i>Lọc</button></div>
         </form>
     </div>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="card shadow"><div class="card-body text-center py-5 text-muted">
+    <div class="content-card mb-4"><div class="card-body-custom text-center py-5 text-muted">
         <i class="fas fa-calendar-times fa-3x mb-3 d-block text-gray-300"></i>
         Chưa có kế hoạch bảo trì định kỳ nào. <a asp-action="CreatePmSchedule">Tạo lịch PM đầu tiên</a>.
     </div></div>
 }
 else
 {
-<div class="card shadow">
-    <div class="card-body p-0">
+<div class="content-card">
+    <div class="card-body-custom p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -75,7 +78,8 @@ else
                                     case "Monthly": @("Hàng tháng") break;
                                     case "Quarterly": @("Hàng quý") break;
                                     case "Yearly": @("Hàng năm") break;
-                                    case "Every_X_Hours": @($"Mỗi {pm.FrequencyValue}h") break;
+                                    case "ByRunHours": @($"Mỗi {pm.FrequencyValue}h vận hành") break;
+                                    case "ByCycles": @($"Mỗi {pm.FrequencyValue} chu kỳ") break;
                                     default: @pm.Frequency break;
                                 }
                             </td>

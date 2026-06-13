@@ -39,7 +39,85 @@ public class EquipmentDetailViewModel : EquipmentSummaryItem
     public string? SerialNumber { get; set; }
     public decimal? PurchasePrice { get; set; }
     public string? Notes { get; set; }
+    public EquipmentOeeSummaryViewModel Oee7Days { get; set; } = new();
+    public EquipmentOeeSummaryViewModel Oee30Days { get; set; } = new();
+    public EquipmentOeeSummaryViewModel Oee90Days { get; set; } = new();
+    public List<EquipmentOeeTrendPointViewModel> OeeTrend { get; set; } = new();
+    public List<EquipmentOeeTaskItemViewModel> RecentOeeTasks { get; set; } = new();
+    public EquipmentCostPerformanceViewModel CostPerformance { get; set; } = new();
+    public List<EquipmentCostLedgerItemViewModel> CostLedgers { get; set; } = new();
+    public List<EquipmentStatusHistoryItemViewModel> StatusHistories { get; set; } = new();
     public List<MaintenanceRecordItem> MaintenanceRecords { get; set; } = new();
+}
+
+public class EquipmentCostPerformanceViewModel
+{
+    public decimal PurchaseCost { get; set; }
+    public decimal MaintenanceCost { get; set; }
+    public decimal RepairCost { get; set; }
+    public decimal SparePartCost { get; set; }
+    public decimal OtherCost { get; set; }
+    public decimal TotalCost => PurchaseCost + MaintenanceCost + RepairCost + SparePartCost + OtherCost;
+    public decimal DowntimeHours { get; set; }
+    public int FailureCount { get; set; }
+    public decimal? MtbfHours { get; set; }
+    public decimal? MttrHours { get; set; }
+    public bool ShouldRecommendReplace { get; set; }
+    public decimal? CostToPurchasePercent { get; set; }
+}
+
+public class EquipmentCostLedgerItemViewModel
+{
+    public Guid Id { get; set; }
+    public string CostType { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public DateOnly OccurredDate { get; set; }
+    public string? SourceType { get; set; }
+    public Guid? SourceId { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class EquipmentStatusHistoryItemViewModel
+{
+    public Guid Id { get; set; }
+    public string? OldStatus { get; set; }
+    public string NewStatus { get; set; } = string.Empty;
+    public DateTimeOffset ChangedAt { get; set; }
+    public string? Reason { get; set; }
+    public string? ChangedByName { get; set; }
+}
+
+public class EquipmentOeeSummaryViewModel
+{
+    public int Days { get; set; }
+    public int TaskCount { get; set; }
+    public decimal? OeePercent { get; set; }
+    public decimal? AvailabilityPercent { get; set; }
+    public decimal? PerformancePercent { get; set; }
+    public decimal? QualityPercent { get; set; }
+    public decimal UnitsProduced { get; set; }
+    public decimal UnitsGood { get; set; }
+    public string OeeLabel => OeePercent.HasValue ? $"{OeePercent.Value:0.#}%" : "N/A";
+}
+
+public class EquipmentOeeTrendPointViewModel
+{
+    public DateOnly Date { get; set; }
+    public decimal? OeePercent { get; set; }
+    public int TaskCount { get; set; }
+}
+
+public class EquipmentOeeTaskItemViewModel
+{
+    public Guid Id { get; set; }
+    public string TaskName { get; set; } = string.Empty;
+    public string PlanCode { get; set; } = string.Empty;
+    public DateTime? ActualEndTime { get; set; }
+    public int? PlannedDurationMinutes { get; set; }
+    public int? ActualDurationMinutes { get; set; }
+    public decimal? UnitsProduced { get; set; }
+    public decimal? UnitsGood { get; set; }
+    public decimal? OeePercent { get; set; }
 }
 
 public class EquipmentCreateViewModel
@@ -52,7 +130,9 @@ public class EquipmentCreateViewModel
     public string? Model { get; set; }
     public string? SerialNumber { get; set; }
     public DateOnly? PurchaseDate { get; set; }
+    [Range(0.0, double.MaxValue, ErrorMessage = "Giá mua không được là số âm")]
     public decimal? PurchasePrice { get; set; }
+    [Range(0, int.MaxValue, ErrorMessage = "Tuổi thọ không được là số âm")]
     public int? LifespanYears { get; set; }
     public DateOnly? NextMaintenanceDate { get; set; }
     public string? Notes { get; set; }
@@ -145,6 +225,39 @@ public class ShiftAssignmentItem
     public string Status { get; set; } = string.Empty;
     public TimeOnly? ActualCheckIn { get; set; }
     public TimeOnly? ActualCheckOut { get; set; }
+}
+
+public class ResourceAvailabilityMatrixViewModel
+{
+    public DateOnly Date { get; set; }
+    public int DurationHours { get; set; } = 1;
+    public List<ResourceAvailabilityWorkerRowViewModel> Rows { get; set; } = new();
+    public List<int> Hours => Enumerable.Range(0, 24).ToList();
+
+    public int AvailableCount => Rows.SelectMany(r => r.Slots).Count(s => s.Status == "Available");
+    public int BusyCount => Rows.SelectMany(r => r.Slots).Count(s => s.Status == "Busy");
+    public int LeaveCount => Rows.SelectMany(r => r.Slots).Count(s => s.Status == "Leave");
+    public int NoShiftCount => Rows.SelectMany(r => r.Slots).Count(s => s.Status == "NoShift");
+}
+
+public class ResourceAvailabilityWorkerRowViewModel
+{
+    public Guid UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string? JobTitle { get; set; }
+    public List<ResourceAvailabilitySlotViewModel> Slots { get; set; } = new();
+}
+
+public class ResourceAvailabilitySlotViewModel
+{
+    public int Hour { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string CssClass { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string TimeLabel => $"{StartTime:HH:mm}-{EndTime:HH:mm}";
 }
 
 public class AssignShiftViewModel

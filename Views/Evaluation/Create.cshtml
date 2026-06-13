@@ -1,25 +1,615 @@
 @model OmniBizAI.ViewModels.EvaluationCreateViewModel
-@{ ViewData["Title"] = "Tạo đánh giá"; ViewData["Breadcrumb"] = "<a href='/Evaluation' style='color:var(--apple-blue);text-decoration:none'>Đánh giá</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>"; }
-<div class="content-card" style="max-width:560px">
-    <div class="card-header-custom"><h5><i class="fa-solid fa-star"></i> Tạo đánh giá hiệu suất</h5></div>
-    <div class="card-body-custom">
-        <form method="post" asp-action="Create">@Html.AntiForgeryToken()
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Nhân viên <span class="text-danger">*</span></label>
-                    <select asp-for="UserId" class="form-select"><option value="">— Chọn nhân viên —</option>@foreach(var u in Model.Users){<option value="@u.Value">@u.Text</option>}</select>
-                    <span asp-validation-for="UserId" class="text-danger" style="font-size:.78rem"></span>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Kỳ đánh giá <span class="text-danger">*</span></label>
-                    <select asp-for="EvaluationPeriodId" class="form-select"><option value="">— Chọn kỳ —</option>@foreach(var p in Model.Periods){<option value="@p.Value">@p.Text</option>}</select>
-                    <span asp-validation-for="EvaluationPeriodId" class="text-danger" style="font-size:.78rem"></span>
-                </div>
-                <div class="col-md-4"><label class="form-label">Điểm tổng</label><input asp-for="TotalScore" type="number" step="0.1" class="form-control" placeholder="0-100" /></div>
-                <div class="col-md-8"><label class="form-label">Xếp loại</label><input asp-for="Classification" class="form-control" placeholder="Xuất sắc / Tốt / Đạt..." /></div>
-                <div class="col-12"><label class="form-label">Nhận xét</label><textarea asp-for="Comment" class="form-control" rows="3" placeholder="Nhận xét..."></textarea></div>
-            </div>
-            <div class="d-flex gap-2 mt-4"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Tạo</button><a asp-action="Index" class="btn btn-light">Hủy</a></div>
-        </form>
+@{
+    ViewData["Title"] = "Tạo đánh giá";
+    ViewData["Breadcrumb"] = "<a href='/Evaluation' style='color:var(--apple-blue);text-decoration:none'>Đánh giá</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Tạo mới</span>";
+}
+
+@section Styles {
+<style>
+    .evaluation-create-hero {
+        background:
+            radial-gradient(circle at top right, rgba(255,159,10,.14), transparent 34%),
+            linear-gradient(135deg, rgba(255,255,255,.98), rgba(245,245,247,.96));
+    }
+    .evaluation-create-hero p {
+        max-width: 760px;
+        color: var(--text-secondary);
+        margin: 10px 0 0;
+    }
+    .evaluation-mini-metric {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        background: rgba(255,255,255,.82);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow-card);
+        height: 100%;
+    }
+    .evaluation-mini-metric i {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,159,10,.12);
+        color: var(--warning);
+        flex-shrink: 0;
+    }
+    .evaluation-mini-metric strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .evaluation-mini-metric span {
+        display: block;
+        font-size: .74rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .evaluation-section-note {
+        font-size: .8rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+    .evaluation-selection-panel {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,250,252,.95));
+        overflow: hidden;
+        height: 100%;
+    }
+    .evaluation-selection-head {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--divider);
+    }
+    .evaluation-selection-head h6 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .92rem;
+        font-weight: 700;
+    }
+    .evaluation-selection-head p {
+        margin: 6px 0 0;
+        font-size: .78rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+    }
+    .evaluation-selection-body {
+        padding: 16px 18px 18px;
+    }
+    .evaluation-score-shell {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        padding: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,247,249,.95));
+        box-shadow: var(--shadow-card);
+    }
+    .evaluation-score-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .evaluation-score-number strong {
+        display: block;
+        font-size: 2rem;
+        line-height: 1;
+        color: var(--text-primary);
+        letter-spacing: -.04em;
+    }
+    .evaluation-score-number span {
+        color: var(--text-muted);
+        font-size: .8rem;
+    }
+    .evaluation-score-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 700;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+        white-space: nowrap;
+    }
+    .evaluation-score-slider {
+        width: 100%;
+        accent-color: var(--apple-blue);
+    }
+    .evaluation-score-scale {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: .72rem;
+        color: var(--text-muted);
+        margin-top: 8px;
+    }
+    .evaluation-classification-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+    }
+    .evaluation-classification-chip {
+        border: 1px solid var(--divider);
+        background: var(--canvas);
+        color: var(--text-secondary);
+        border-radius: var(--r-md);
+        padding: 10px 12px;
+        font-size: .76rem;
+        font-weight: 700;
+        line-height: 1.35;
+        cursor: pointer;
+        transition: all var(--ease-fast);
+        text-align: center;
+    }
+    .evaluation-classification-chip:hover,
+    .evaluation-classification-chip.is-active {
+        color: var(--apple-blue);
+        border-color: rgba(0,113,227,.14);
+        background: rgba(0,113,227,.05);
+    }
+    .evaluation-helper-card {
+        border: 1px dashed rgba(255,159,10,.22);
+        border-radius: var(--r-lg);
+        padding: 14px 16px;
+        background: rgba(255,159,10,.045);
+    }
+    .evaluation-helper-card strong {
+        display: block;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    .evaluation-helper-card span {
+        font-size: .8rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+    .evaluation-summary-card {
+        position: sticky;
+        top: 72px;
+    }
+    .evaluation-summary-block {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--divider);
+    }
+    .evaluation-summary-block:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+    .evaluation-summary-label {
+        display: block;
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 8px;
+    }
+    .evaluation-summary-value {
+        color: var(--text-primary);
+        font-size: .92rem;
+        font-weight: 600;
+        line-height: 1.45;
+    }
+    .evaluation-summary-kpis {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .evaluation-summary-kpi {
+        padding: 14px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--divider);
+        background: rgba(255,255,255,.84);
+    }
+    .evaluation-summary-kpi strong {
+        display: block;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+    .evaluation-summary-kpi span {
+        font-size: .73rem;
+        color: var(--text-muted);
+    }
+    .evaluation-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: .76rem;
+        font-weight: 600;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+    }
+    .evaluation-summary-empty {
+        color: var(--text-muted);
+        font-size: .82rem;
+        line-height: 1.5;
+    }
+    .evaluation-feedback-box {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        padding: 14px 16px;
+        background: rgba(255,255,255,.78);
+        color: var(--text-secondary);
+        font-size: .82rem;
+        line-height: 1.55;
+    }
+    @@media (max-width: 991.98px) {
+        .evaluation-summary-card {
+            position: static;
+        }
+        .evaluation-summary-kpis {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .evaluation-summary-kpis,
+        .evaluation-classification-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+</style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-award me-2"></i>Tạo đánh giá hiệu suất</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Thiết lập đánh giá mới từ danh sách nhân sự và kỳ đánh giá sẵn có, đồng thời nhập điểm, xếp loại và nhận xét tổng quan.</p>
     </div>
+    <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Quay lại danh sách</a>
 </div>
+
+<form method="post" asp-action="Create" id="evaluationCreateForm">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="content-card evaluation-create-hero mb-4">
+                <div class="card-body-custom">
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Đánh giá mới sẽ khởi tạo ở trạng thái Draft để tiếp tục rà soát trước khi gửi duyệt</span>
+                            <p>Chọn đúng nhân sự và kỳ đánh giá, sau đó nhập điểm tổng cùng xếp loại để hệ thống lưu lại kết quả đánh giá sơ bộ theo chu kỳ hiện tại.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="evaluation-mini-metric">
+                                    <i class="fa-solid fa-users"></i>
+                                    <div>
+                                        <strong>@Model.Users.Count</strong>
+                                        <span>Nhân sự khả dụng</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="evaluation-mini-metric">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                    <div>
+                                        <strong>@Model.Periods.Count</strong>
+                                        <span>Kỳ đánh giá</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="evaluation-mini-metric">
+                                    <i class="fa-solid fa-star"></i>
+                                    <div>
+                                        <strong>0-100</strong>
+                                        <span>Thang điểm gợi ý</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-user-check"></i> Đối tượng đánh giá</h5>
+                        <div class="evaluation-section-note">Chọn nhân sự và kỳ đánh giá từ dữ liệu đang có trong hệ thống.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="evaluation-selection-panel">
+                                <div class="evaluation-selection-head">
+                                    <h6><i class="fa-solid fa-id-badge" style="color:var(--apple-blue)"></i> Nhân viên</h6>
+                                    <p>Chọn người được đánh giá cho kỳ hiện tại. Danh sách lấy từ nhân sự đang hoạt động.</p>
+                                </div>
+                                <div class="evaluation-selection-body">
+                                    <label asp-for="UserId" class="form-label">Nhân viên <span class="text-danger">*</span></label>
+                                    <select asp-for="UserId" class="form-select" id="userSelect">
+                                        <option value="">-- Chọn nhân viên --</option>
+                                        @foreach (var user in Model.Users)
+                                        {
+                                            <option value="@user.Value">@user.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="UserId" class="text-danger" style="font-size:.78rem"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="evaluation-selection-panel">
+                                <div class="evaluation-selection-head">
+                                    <h6><i class="fa-solid fa-calendar-days" style="color:var(--success)"></i> Kỳ đánh giá</h6>
+                                    <p>Gắn kết quả đánh giá với một chu kỳ cụ thể để tiện thống kê và đối chiếu hiệu suất.</p>
+                                </div>
+                                <div class="evaluation-selection-body">
+                                    <label asp-for="EvaluationPeriodId" class="form-label">Kỳ đánh giá <span class="text-danger">*</span></label>
+                                    <select asp-for="EvaluationPeriodId" class="form-select" id="periodSelect">
+                                        <option value="">-- Chọn kỳ đánh giá --</option>
+                                        @foreach (var period in Model.Periods)
+                                        {
+                                            <option value="@period.Value">@period.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="EvaluationPeriodId" class="text-danger" style="font-size:.78rem"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="evaluation-helper-card mt-4">
+                        <strong><i class="fa-solid fa-circle-info me-2" style="color:var(--warning)"></i>Lưu ý khi tạo đánh giá</strong>
+                        <span>Điểm tổng nên phản ánh kết quả cuối kỳ ở mức tổng quan. Nếu đơn vị của bạn có rubric riêng, hãy ghi rõ trong phần nhận xét để dễ rà soát sau này.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-gauge-high"></i> Điểm số và xếp loại</h5>
+                        <div class="evaluation-section-note">Nhập điểm tổng trên thang 100 và chọn phân loại phù hợp với mức thể hiện.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="evaluation-score-shell">
+                        <div class="evaluation-score-display">
+                            <div class="evaluation-score-number">
+                                <strong id="scoreDisplay">0</strong>
+                                <span>Điểm hiện tại trên thang 100</span>
+                            </div>
+                            <div class="evaluation-score-badge" id="scoreBandBadge">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>Chưa có điểm</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label asp-for="TotalScore" class="form-label">Điểm tổng</label>
+                                <input asp-for="TotalScore" type="number" step="0.1" min="0" max="100" class="form-control" id="totalScoreInput" placeholder="0 - 100" />
+                                <span asp-validation-for="TotalScore" class="text-danger" style="font-size:.78rem"></span>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Thanh điều chỉnh nhanh</label>
+                                <input type="range" min="0" max="100" step="0.5" value="@(Model.TotalScore ?? 0)" class="evaluation-score-slider" id="totalScoreSlider" />
+                                <div class="evaluation-score-scale">
+                                    <span>0</span>
+                                    <span>25</span>
+                                    <span>50</span>
+                                    <span>75</span>
+                                    <span>100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label asp-for="Classification" class="form-label">Xếp loại</label>
+                            <input asp-for="Classification" class="form-control" id="classificationInput" placeholder="Ví dụ: Xuất sắc, Tốt, Đạt, Cần cải thiện" />
+                            <span asp-validation-for="Classification" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+
+                        <div class="evaluation-classification-grid">
+                            <button type="button" class="evaluation-classification-chip" data-classification="Xuất sắc">Xuất sắc</button>
+                            <button type="button" class="evaluation-classification-chip" data-classification="Tốt">Tốt</button>
+                            <button type="button" class="evaluation-classification-chip" data-classification="Đạt">Đạt</button>
+                            <button type="button" class="evaluation-classification-chip" data-classification="Cần cải thiện">Cần cải thiện</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card mb-4">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-comment-dots"></i> Nhận xét tổng quan</h5>
+                        <div class="evaluation-section-note">Ghi lại ngắn gọn điểm mạnh, điểm cần cải thiện hoặc bối cảnh cho kết quả đánh giá.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <label asp-for="Comment" class="form-label">Nhận xét</label>
+                    <textarea asp-for="Comment" class="form-control" id="commentInput" rows="5" placeholder="Ví dụ: Hoàn thành tốt các KPI chính, phối hợp liên phòng ban tích cực, cần cải thiện thêm tốc độ phản hồi nội bộ."></textarea>
+                    <span asp-validation-for="Comment" class="text-danger" style="font-size:.78rem"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="evaluation-summary-card">
+                <div class="content-card mb-4">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-eye"></i> Tóm tắt đang cấu hình</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="evaluation-summary-block pt-0">
+                            <span class="evaluation-summary-label">Đối tượng</span>
+                            <div class="evaluation-summary-value" id="summaryEmployee">Chưa chọn nhân viên</div>
+                        </div>
+
+                        <div class="evaluation-summary-block">
+                            <span class="evaluation-summary-label">Kỳ đánh giá</span>
+                            <div class="evaluation-summary-value" id="summaryPeriod">Chưa chọn kỳ đánh giá</div>
+                        </div>
+
+                        <div class="evaluation-summary-block">
+                            <span class="evaluation-summary-label">Chỉ số nhanh</span>
+                            <div class="evaluation-summary-kpis">
+                                <div class="evaluation-summary-kpi">
+                                    <strong id="summaryScore">0</strong>
+                                    <span>Điểm tổng</span>
+                                </div>
+                                <div class="evaluation-summary-kpi">
+                                    <strong id="summaryBand">Mới</strong>
+                                    <span>Mức đánh giá</span>
+                                </div>
+                                <div class="evaluation-summary-kpi">
+                                    <strong id="summaryClassificationCount">0</strong>
+                                    <span>Xếp loại</span>
+                                </div>
+                                <div class="evaluation-summary-kpi">
+                                    <strong id="summaryCommentLength">0</strong>
+                                    <span>Ký tự nhận xét</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="evaluation-summary-block">
+                            <span class="evaluation-summary-label">Xếp loại hiện tại</span>
+                            <div id="summaryClassification" class="evaluation-summary-empty">Chưa nhập xếp loại.</div>
+                        </div>
+
+                        <div class="evaluation-summary-block">
+                            <span class="evaluation-summary-label">Nhận xét nổi bật</span>
+                            <div class="evaluation-feedback-box" id="summaryComment">Chưa có nhận xét nào được nhập.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <h5><i class="fa-solid fa-rocket"></i> Hoàn tất tạo đánh giá</h5>
+                    </div>
+                    <div class="card-body-custom">
+                        <p style="font-size:.84rem;color:var(--text-secondary);margin-top:0">
+                            Sau khi tạo, kết quả đánh giá sẽ ở trạng thái bản nháp để bạn tiếp tục rà soát hoặc hoàn thiện quy trình duyệt.
+                        </p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-check me-1"></i>Tạo đánh giá
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">Hủy và quay lại</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function shortenText(value, maxLength = 180) {
+            if (!value) return '';
+            return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+        }
+
+        function getSelectedText(selectId, fallback = '') {
+            const select = document.getElementById(selectId);
+            return select?.selectedOptions?.[0]?.text?.trim() || fallback;
+        }
+
+        function getScoreBand(score) {
+            if (!Number.isFinite(score) || score <= 0) return { label: 'Chưa có điểm', tone: 'var(--text-muted)', bg: 'rgba(142,142,147,.12)' };
+            if (score >= 90) return { label: 'Xuất sắc', tone: '#127a3d', bg: 'rgba(48,209,88,.14)' };
+            if (score >= 75) return { label: 'Tốt', tone: 'var(--apple-blue)', bg: 'rgba(0,113,227,.1)' };
+            if (score >= 60) return { label: 'Đạt', tone: '#a66300', bg: 'rgba(255,159,10,.14)' };
+            return { label: 'Cần cải thiện', tone: '#c03a2b', bg: 'rgba(255,69,58,.12)' };
+        }
+
+        function updateClassificationChips() {
+            const current = (document.getElementById('classificationInput')?.value || '').trim().toLowerCase();
+            document.querySelectorAll('[data-classification]').forEach(chip => {
+                chip.classList.toggle('is-active', chip.dataset.classification.toLowerCase() === current);
+            });
+        }
+
+        function updateSummary() {
+            const employeeText = getSelectedText('userSelect', '');
+            const periodText = getSelectedText('periodSelect', '');
+            const scoreValue = Number(document.getElementById('totalScoreInput')?.value || 0);
+            const classification = (document.getElementById('classificationInput')?.value || '').trim();
+            const comment = (document.getElementById('commentInput')?.value || '').trim();
+            const band = getScoreBand(scoreValue);
+
+            document.getElementById('summaryEmployee').textContent = employeeText && !employeeText.startsWith('--') ? employeeText : 'Chưa chọn nhân viên';
+            document.getElementById('summaryPeriod').textContent = periodText && !periodText.startsWith('--') ? periodText : 'Chưa chọn kỳ đánh giá';
+            document.getElementById('summaryScore').textContent = Number.isFinite(scoreValue) && scoreValue > 0 ? scoreValue.toFixed(1) : '0';
+            document.getElementById('summaryBand').textContent = band.label;
+            document.getElementById('summaryClassificationCount').textContent = classification ? '1' : '0';
+            document.getElementById('summaryCommentLength').textContent = comment.length.toString();
+
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const badge = document.getElementById('scoreBandBadge');
+            scoreDisplay.textContent = Number.isFinite(scoreValue) && scoreValue > 0 ? scoreValue.toFixed(1) : '0';
+            badge.style.color = band.tone;
+            badge.style.background = band.bg;
+            badge.innerHTML = `<i class="fa-solid fa-chart-line"></i><span>${band.label}</span>`;
+
+            document.getElementById('summaryClassification').innerHTML = classification
+                ? `<span class="evaluation-chip"><i class="fa-solid fa-tag"></i>${classification}</span>`
+                : '<div class="evaluation-summary-empty">Chưa nhập xếp loại.</div>';
+
+            document.getElementById('summaryComment').textContent = comment ? shortenText(comment, 220) : 'Chưa có nhận xét nào được nhập.';
+
+            updateClassificationChips();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const scoreInput = document.getElementById('totalScoreInput');
+            const scoreSlider = document.getElementById('totalScoreSlider');
+            const classificationInput = document.getElementById('classificationInput');
+
+            document.querySelectorAll('#userSelect, #periodSelect, #totalScoreInput, #classificationInput, #commentInput').forEach(input => {
+                input.addEventListener('input', updateSummary);
+                input.addEventListener('change', updateSummary);
+            });
+
+            if (scoreInput && scoreSlider) {
+                scoreInput.addEventListener('input', () => {
+                    const value = scoreInput.value || '0';
+                    scoreSlider.value = value;
+                    updateSummary();
+                });
+
+                scoreSlider.addEventListener('input', () => {
+                    scoreInput.value = scoreSlider.value;
+                    updateSummary();
+                });
+            }
+
+            document.querySelectorAll('[data-classification]').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    if (!classificationInput) return;
+                    classificationInput.value = chip.dataset.classification || '';
+                    updateSummary();
+                });
+            });
+
+            updateSummary();
+        });
+    </script>
+}

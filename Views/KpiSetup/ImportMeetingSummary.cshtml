@@ -1,0 +1,527 @@
+@model OmniBizAI.ViewModels.MeetingSummaryImportViewModel
+@{
+    ViewData["Title"] = "Import OKR/KPI từ cuộc họp";
+    ViewData["Breadcrumb"] = "<a href='/KpiSetup' style='color:var(--apple-blue);text-decoration:none'>KPI</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Import từ cuộc họp</span>";
+    var preview = Model.Preview;
+}
+
+@section Styles {
+<style>
+    .meeting-import-hero {
+        background:
+            radial-gradient(circle at top right, rgba(0,113,227,.14), transparent 32%),
+            linear-gradient(140deg, rgba(255,255,255,.98), rgba(245,245,247,.96));
+    }
+    .meeting-import-hero p,
+    .meeting-import-note,
+    .meeting-import-card p {
+        color: var(--text-secondary);
+    }
+    .meeting-import-card {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: rgba(255,255,255,.92);
+        box-shadow: var(--shadow-card);
+    }
+    .meeting-import-card .head {
+        padding: 18px 20px 12px;
+        border-bottom: 1px solid var(--divider);
+    }
+    .meeting-import-card .body {
+        padding: 18px 20px 20px;
+    }
+    .meeting-import-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .meeting-mini-stat {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        padding: 14px;
+        background: rgba(255,255,255,.86);
+    }
+    .meeting-mini-stat strong {
+        display: block;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+    .meeting-mini-stat span {
+        font-size: .76rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .05em;
+    }
+    .meeting-summary-textarea {
+        min-height: 400px;
+        font-size: .92rem;
+        line-height: 1.65;
+        resize: vertical;
+    }
+    .meeting-tag-list,
+    .meeting-warning-list,
+    .meeting-kpi-list,
+    .meeting-kr-list {
+        display: grid;
+        gap: 12px;
+    }
+    .meeting-tag-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .meeting-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(0,113,227,.08);
+        color: var(--apple-blue);
+        border: 1px solid rgba(0,113,227,.08);
+        font-size: .78rem;
+        font-weight: 600;
+    }
+    .meeting-warning {
+        border: 1px solid rgba(255,159,10,.2);
+        background: rgba(255,159,10,.08);
+        color: #9a5a00;
+        border-radius: var(--r-md);
+        padding: 12px 14px;
+        font-size: .84rem;
+    }
+    .meeting-kr-item,
+    .meeting-kpi-item {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-lg);
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,248,250,.95));
+        padding: 16px;
+    }
+    .meeting-kr-item h6,
+    .meeting-kpi-item h6 {
+        margin: 0 0 8px;
+        font-size: .94rem;
+        color: var(--text-primary);
+    }
+    .meeting-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .meeting-meta-chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--parchment);
+        color: var(--text-secondary);
+        font-size: .76rem;
+        font-weight: 600;
+    }
+    .meeting-preview-stack {
+        display: grid;
+        gap: 16px;
+    }
+    .meeting-preview-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+    .meeting-preview-hero p {
+        margin: 6px 0 0;
+        max-width: 820px;
+    }
+    .meeting-checkbox {
+        border: 1px solid var(--divider);
+        border-radius: var(--r-md);
+        padding: 12px 14px;
+        background: rgba(255,255,255,.82);
+    }
+    .meeting-demo-box {
+        border: 1px dashed rgba(0,113,227,.18);
+        border-radius: var(--r-lg);
+        padding: 14px 16px;
+        background: rgba(0,113,227,.04);
+    }
+    .meeting-demo-box code {
+        white-space: pre-wrap;
+        display: block;
+        font-size: .78rem;
+        color: var(--text-secondary);
+    }
+    @@media (max-width: 991.98px) {
+        .meeting-import-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+    @@media (max-width: 767.98px) {
+        .meeting-import-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .meeting-preview-hero {
+            align-items: flex-start;
+        }
+    }
+</style>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-file-waveform me-2"></i>Import OKR/KPI từ summarize cuộc họp</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Dán biên bản họp liên phòng ban, để hệ thống tự dựng objective, key result và KPI trước khi tạo thật lên phần mềm.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-controller="Okr" asp-action="Index" class="btn btn-light"><i class="fa-solid fa-bullseye me-1"></i>Danh sách OKR</a>
+        <a asp-action="Index" class="btn btn-light"><i class="fa-solid fa-chart-column me-1"></i>Danh sách KPI</a>
+    </div>
+</div>
+
+<form asp-action="ImportMeetingSummary" method="post" id="meetingImportForm">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="content-card meeting-import-hero mb-4">
+                <div class="card-body-custom">
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Tính năng phù hợp cho bước chốt OKR/KPI sau các buổi họp quý hoặc monthly business review</span>
+                            <p>Hệ thống sẽ cố gắng nhận diện mục tiêu chung, các KR định lượng, KPI vận hành theo phòng ban và chu kỳ đánh giá gần nhất trong hệ thống.</p>
+                        </div>
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-0" style="border-radius:var(--r-md)"></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header-custom">
+                    <div>
+                        <h5><i class="fa-solid fa-clipboard-list"></i> Bản tóm tắt cuộc họp</h5>
+                        <div class="meeting-import-note">Bạn có thể dán summary dạng tự do. Nếu summary có các dòng `Objective`, `KR1`, `KPI1` thì kết quả preview sẽ ổn định hơn khi demo offline.</div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="MeetingTitle" class="form-label">Tên cuộc họp</label>
+                            <input asp-for="MeetingTitle" class="form-control" placeholder="Ví dụ: Họp liên phòng ban chốt OKR/KPI Q3-2026" />
+                            <span asp-validation-for="MeetingTitle" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                <label asp-for="SummaryContent" class="form-label mb-0">Nội dung summarize</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-light btn-sm" id="loadDemoSummaryBtn">
+                                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Nạp mẫu demo Q3/2026
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm" id="clearSummaryBtn">
+                                        <i class="fa-solid fa-eraser me-1"></i>Xóa nhanh
+                                    </button>
+                                </div>
+                            </div>
+                            <textarea asp-for="SummaryContent" class="form-control meeting-summary-textarea" id="summaryContentInput" placeholder="Dán biên bản tóm tắt ở đây..."></textarea>
+                            <span asp-validation-for="SummaryContent" class="text-danger" style="font-size:.78rem"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="meeting-checkbox">
+                                <div class="form-check form-switch">
+                                    <input asp-for="AutoActivateOkr" class="form-check-input" />
+                                    <label asp-for="AutoActivateOkr" class="form-check-label">Kích hoạt OKR ngay sau khi import</label>
+                                </div>
+                                <div class="small text-muted mt-2">Nếu bỏ chọn, objective sẽ vào trạng thái Draft để rà soát thủ công.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="meeting-checkbox">
+                                <div class="form-check form-switch">
+                                    <input asp-for="AutoActivateKpis" class="form-check-input" />
+                                    <label asp-for="AutoActivateKpis" class="form-check-label">Kích hoạt KPI ngay sau khi import</label>
+                                </div>
+                                <div class="small text-muted mt-2">Phù hợp cho các kịch bản demo cần check-in KPI ngay ở bước tiếp theo.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+                        <div class="small text-muted">
+                            Hệ thống sẽ ưu tiên match với danh mục phòng ban, Mission/Vision, nhân sự và kỳ đánh giá đã có.
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-brain me-1"></i>Phân tích summary và dựng preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="meeting-import-card mb-4">
+                <div class="head">
+                    <h5 class="mb-1"><i class="fa-solid fa-database me-2"></i>Dữ liệu đối chiếu trong hệ thống</h5>
+                    <p class="mb-0" style="font-size:.82rem">Preview import sẽ cố gắng bám sát master data đang có thay vì tạo mapping mơ hồ.</p>
+                </div>
+                <div class="body">
+                    <div class="meeting-import-grid">
+                        <div class="meeting-mini-stat">
+                            <strong>@Model.Departments.Count</strong>
+                            <span>Phòng ban</span>
+                        </div>
+                        <div class="meeting-mini-stat">
+                            <strong>@Model.Missions.Count</strong>
+                            <span>Mission/Vision</span>
+                        </div>
+                        <div class="meeting-mini-stat">
+                            <strong>@Model.Employees.Count</strong>
+                            <span>Nhân sự active</span>
+                        </div>
+                        <div class="meeting-mini-stat">
+                            <strong>@Model.Periods.Count</strong>
+                            <span>Kỳ đánh giá</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meeting-import-card mb-4">
+                <div class="head">
+                    <h5 class="mb-1"><i class="fa-solid fa-clapperboard me-2"></i>Gợi ý demo nhanh</h5>
+                    <p class="mb-0" style="font-size:.82rem">Buổi demo có thể đi theo nhịp “họp chốt mục tiêu → import OKR/KPI → activate → check-in → dashboard”.</p>
+                </div>
+                <div class="body">
+                    <div class="meeting-demo-box">
+                        <strong class="d-block mb-2" style="color:var(--text-primary)">Mẫu demo đã chuẩn bị sẵn</strong>
+                        <code>@Model.DemoSummary[..Math.Min(Model.DemoSummary.Length, 320)]...</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meeting-import-card">
+                <div class="head">
+                    <h5 class="mb-1"><i class="fa-solid fa-route me-2"></i>Luồng sau khi import</h5>
+                    <p class="mb-0" style="font-size:.82rem">Các record được tạo xong có thể dùng tiếp cho luồng CRM, vận hành, đánh giá và dashboard.</p>
+                </div>
+                <div class="body">
+                    <div class="meeting-tag-list">
+                        <div class="meeting-tag-wrap">
+                            <span class="meeting-tag"><i class="fa-solid fa-bullseye"></i>OKR chi tiết</span>
+                            <span class="meeting-tag"><i class="fa-solid fa-chart-column"></i>KPI Setup</span>
+                            <span class="meeting-tag"><i class="fa-solid fa-square-check"></i>KPI Check-in</span>
+                            <span class="meeting-tag"><i class="fa-solid fa-chart-pie"></i>Dashboard</span>
+                        </div>
+                        <p class="small mb-0">Nếu bật auto activate, đội demo có thể chuyển ngay sang bước check-in KPI hoặc xem dashboard để chứng minh dữ liệu đã đi xuyên suốt hệ thống.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@if (preview is not null)
+{
+    <div class="content-card mt-4">
+        <div class="card-body-custom">
+            <div class="meeting-preview-hero">
+                <div>
+                    <span class="status-badge-soft badge-on-track"><span class="status-dot"></span>Preview được dựng bằng @preview.ParseMode</span>
+                    <h4 class="mt-3 mb-1">Bản preview OKR/KPI từ cuộc họp</h4>
+                    <p>@preview.Narrative</p>
+                </div>
+                <form asp-action="CommitImportedMeetingSummary" method="post" class="d-flex gap-2 flex-wrap">
+                    @Html.AntiForgeryToken()
+                    <textarea name="PreviewPayloadJson" class="d-none">@Model.PreviewPayloadJson</textarea>
+                    <input type="hidden" name="AutoActivateOkr" value="@Model.AutoActivateOkr.ToString().ToLower()" />
+                    <input type="hidden" name="AutoActivateKpis" value="@Model.AutoActivateKpis.ToString().ToLower()" />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-file-import me-1"></i>Tạo 1 OKR + @preview.KpiCount KPI
+                    </button>
+                </form>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="meeting-preview-stack">
+                        <div class="meeting-import-card">
+                            <div class="head">
+                                <h5 class="mb-1"><i class="fa-solid fa-flag-checkered me-2"></i>Objective sẽ được tạo</h5>
+                                <p class="mb-0" style="font-size:.82rem">Đây là objective tổng hợp mà hệ thống suy ra từ biên bản cuộc họp.</p>
+                            </div>
+                            <div class="body">
+                                <h5 class="mb-3" style="color:var(--text-primary)">@preview.Okr.ObjectiveName</h5>
+                                <div class="meeting-meta-row mb-3">
+                                    <span class="meeting-meta-chip"><i class="fa-solid fa-layer-group me-1"></i>@(EnumHelper.Label<OkrLevel>(preview.Okr.Level.ToString()))</span>
+                                    <span class="meeting-meta-chip"><i class="fa-solid fa-calendar-days me-1"></i>@preview.Okr.Cycle</span>
+                                    <span class="meeting-meta-chip"><i class="fa-solid fa-key me-1"></i>@preview.KeyResultCount KR</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="small text-muted mb-2">Phòng ban match được</div>
+                                    <div class="meeting-tag-wrap">
+                                        @if (preview.Okr.DepartmentNames.Any())
+                                        {
+                                            @foreach (var department in preview.Okr.DepartmentNames)
+                                            {
+                                                <span class="meeting-tag"><i class="fa-solid fa-building"></i>@department</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Chưa match được phòng ban nào.</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="small text-muted mb-2">Định hướng chiến lược</div>
+                                    <div class="meeting-tag-wrap">
+                                        @if (preview.Okr.MissionNames.Any())
+                                        {
+                                            @foreach (var mission in preview.Okr.MissionNames)
+                                            {
+                                                <span class="meeting-tag"><i class="fa-solid fa-star"></i>@mission</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Chưa match được mission/vision.</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="small text-muted mb-2">Nhân sự tham chiếu</div>
+                                    <div class="meeting-tag-wrap">
+                                        @if (preview.Okr.EmployeeNames.Any())
+                                        {
+                                            @foreach (var employee in preview.Okr.EmployeeNames)
+                                            {
+                                                <span class="meeting-tag"><i class="fa-solid fa-user"></i>@employee</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Chưa match được nhân sự cụ thể.</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (preview.Warnings.Any())
+                        {
+                            <div class="meeting-import-card">
+                                <div class="head">
+                                    <h5 class="mb-1"><i class="fa-solid fa-triangle-exclamation me-2"></i>Lưu ý trước khi import</h5>
+                                    <p class="mb-0" style="font-size:.82rem">Các cảnh báo này không chặn import nhưng rất hữu ích trong buổi demo hoặc lúc rà soát dữ liệu.</p>
+                                </div>
+                                <div class="body">
+                                    <div class="meeting-warning-list">
+                                        @foreach (var warning in preview.Warnings)
+                                        {
+                                            <div class="meeting-warning">@warning</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="meeting-preview-stack">
+                        <div class="meeting-import-card">
+                            <div class="head">
+                                <h5 class="mb-1"><i class="fa-solid fa-key me-2"></i>Key Result sẽ tạo</h5>
+                                <p class="mb-0" style="font-size:.82rem">Các KR này sẽ nằm trong objective ở trạng thái draft hoặc active tùy cấu hình import.</p>
+                            </div>
+                            <div class="body">
+                                <div class="meeting-kr-list">
+                                    @foreach (var kr in preview.Okr.KeyResults)
+                                    {
+                                        <div class="meeting-kr-item">
+                                            <h6>KR@kr.Index. @kr.KeyResultName</h6>
+                                            <div class="meeting-meta-row">
+                                                <span class="meeting-meta-chip"><i class="fa-solid fa-bullseye me-1"></i>@kr.TargetValue.ToString("N2") @kr.Unit</span>
+                                                <span class="meeting-meta-chip"><i class="fa-solid fa-arrow-trend-@(kr.IsInverse ? "down" : "up") me-1"></i>@(kr.IsInverse ? "Chỉ số giảm càng tốt" : "Chỉ số tăng trưởng")</span>
+                                                @if (!string.IsNullOrWhiteSpace(kr.DepartmentName))
+                                                {
+                                                    <span class="meeting-meta-chip"><i class="fa-solid fa-building me-1"></i>@kr.DepartmentName</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="meeting-import-card">
+                            <div class="head">
+                                <h5 class="mb-1"><i class="fa-solid fa-chart-line me-2"></i>KPI sẽ tạo</h5>
+                                <p class="mb-0" style="font-size:.82rem">Các KPI được gắn trực tiếp vào objective và key result tương ứng để có thể check-in ngay ở bước tiếp theo.</p>
+                            </div>
+                            <div class="body">
+                                <div class="meeting-kpi-list">
+                                    @foreach (var kpi in preview.Kpis)
+                                    {
+                                        <div class="meeting-kpi-item">
+                                            <h6>@kpi.Name</h6>
+                                            @if (!string.IsNullOrWhiteSpace(kpi.Description))
+                                            {
+                                                <p class="mb-2 small">@kpi.Description</p>
+                                            }
+                                            <div class="meeting-meta-row">
+                                                <span class="meeting-meta-chip"><i class="fa-solid fa-gauge-high me-1"></i>@kpi.TargetValue.ToString("N2") @kpi.Unit</span>
+                                                <span class="meeting-meta-chip"><i class="fa-solid fa-repeat me-1"></i>@(EnumHelper.Label<KpiPeriodType>(kpi.PeriodType.ToString()))</span>
+                                                <span class="meeting-meta-chip"><i class="fa-solid fa-ruler me-1"></i>@(EnumHelper.Label<KpiMeasureType>(kpi.MeasureType.ToString()))</span>
+                                                <span class="meeting-meta-chip"><i class="fa-solid fa-arrows-up-down-left-right me-1"></i>@(EnumHelper.Label<KpiPropertyType>(kpi.PropertyType.ToString()))</span>
+                                                @if (!string.IsNullOrWhiteSpace(kpi.OrganizationUnitName))
+                                                {
+                                                    <span class="meeting-meta-chip"><i class="fa-solid fa-building me-1"></i>@kpi.OrganizationUnitName</span>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(kpi.EvaluationPeriodName))
+                                                {
+                                                    <span class="meeting-meta-chip"><i class="fa-solid fa-calendar-check me-1"></i>@kpi.EvaluationPeriodName</span>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(kpi.LinkedKeyResultName))
+                                                {
+                                                    <span class="meeting-meta-chip"><i class="fa-solid fa-link me-1"></i>@kpi.LinkedKeyResultName</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const demoSummary = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DemoSummary));
+            const summaryInput = document.getElementById('summaryContentInput');
+            const loadDemoButton = document.getElementById('loadDemoSummaryBtn');
+            const clearSummaryButton = document.getElementById('clearSummaryBtn');
+
+            loadDemoButton?.addEventListener('click', () => {
+                if (!summaryInput) return;
+                summaryInput.value = demoSummary;
+                summaryInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            clearSummaryButton?.addEventListener('click', () => {
+                if (!summaryInput) return;
+                summaryInput.value = '';
+                summaryInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        });
+    </script>
+}

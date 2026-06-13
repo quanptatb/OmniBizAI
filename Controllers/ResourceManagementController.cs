@@ -13,12 +13,18 @@ namespace OmniBizAI.Controllers;
 public class ResourceManagementController : Controller
 {
     private readonly ResourceManagementService _service;
+    private readonly ResourceAvailabilityService _availability;
     private readonly ApplicationDbContext _db;
     private readonly ITenantContext _tenant;
 
-    public ResourceManagementController(ResourceManagementService service, ApplicationDbContext db, ITenantContext tenant)
+    public ResourceManagementController(
+        ResourceManagementService service,
+        ResourceAvailabilityService availability,
+        ApplicationDbContext db,
+        ITenantContext tenant)
     {
         _service = service;
+        _availability = availability;
         _db = db;
         _tenant = tenant;
     }
@@ -91,6 +97,32 @@ public class ResourceManagementController : Controller
     [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> CreateEquipment(EquipmentCreateViewModel vm)
     {
+        // Intercept model binding errors for digits-only fields
+        if (ModelState.Keys.Contains(nameof(vm.PurchasePrice)) && ModelState[nameof(vm.PurchasePrice)]?.Errors.Any() == true)
+        {
+            ModelState[nameof(vm.PurchasePrice)]?.Errors.Clear();
+            ModelState.AddModelError(nameof(vm.PurchasePrice), "Giá mua không phù hợp.");
+        }
+        else if (vm.PurchasePrice.HasValue && vm.PurchasePrice.Value < 0)
+        {
+            ModelState.AddModelError(nameof(vm.PurchasePrice), "Giá mua không phù hợp.");
+        }
+
+        if (ModelState.Keys.Contains(nameof(vm.LifespanYears)) && ModelState[nameof(vm.LifespanYears)]?.Errors.Any() == true)
+        {
+            ModelState[nameof(vm.LifespanYears)]?.Errors.Clear();
+            ModelState.AddModelError(nameof(vm.LifespanYears), "Tuổi thọ không phù hợp.");
+        }
+        else if (vm.LifespanYears.HasValue && vm.LifespanYears.Value < 0)
+        {
+            ModelState.AddModelError(nameof(vm.LifespanYears), "Tuổi thọ không phù hợp.");
+        }
+
+        if (vm.NextMaintenanceDate.HasValue && vm.PurchaseDate.HasValue && vm.NextMaintenanceDate.Value <= vm.PurchaseDate.Value)
+        {
+            ModelState.AddModelError(nameof(vm.NextMaintenanceDate), "Lịch bảo trì tiếp theo không phù hợp.");
+        }
+
         if (!ModelState.IsValid) return View(vm);
         var id = await _service.CreateEquipmentAsync(vm);
         TempData["SuccessMessage"] = "Thêm thiết bị thành công.";
@@ -161,6 +193,16 @@ public class ResourceManagementController : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Availability(string? date, int duration = 1)
+    {
+        var targetDate = DateOnly.FromDateTime(DateTime.Today);
+        if (!string.IsNullOrWhiteSpace(date) && DateOnly.TryParse(date, out var parsed))
+            targetDate = parsed;
+
+        var vm = await _availability.GetWorkerAvailabilityMatrixAsync(targetDate, duration);
+        return View(vm);
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     [Authorize(Roles = "DEPARTMENT_MANAGER,EXECUTIVE,TENANT_ADMIN,SYSTEM_ADMIN")]
     public async Task<IActionResult> AssignShift(AssignShiftViewModel vm)
@@ -217,7 +259,7 @@ public class ResourceManagementController : Controller
         var tid = HttpContext.RequestServices.GetRequiredService<ITenantContext>().TenantId;
         var db = HttpContext.RequestServices.GetRequiredService<OmniBizAI.Data.ApplicationDbContext>();
         var parents = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-            db.Workspaces.Where(w => w.TenantId == tid && !w.IsDeleted && w.Status == "Active")
+            db.Workspaces.Where(w => w.TenantId == tid && !w.IsDeleted && w.Status == WorkspaceStatus.Active)
                 .OrderBy(w => w.Name)
                 .Select(w => new SelectOption { Value = w.Id.ToString(), Text = w.Name })
         );

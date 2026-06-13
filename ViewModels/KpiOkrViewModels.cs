@@ -92,6 +92,7 @@ public class OkrKeyResultCreateItem
     public bool IsInverse { get; set; }
 }
 
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // KPI ViewModels (full — from KPI project)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -142,9 +143,20 @@ public class KpiDetailViewModel
     public string? PeriodName { get; set; }
     public string? AssignerName { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+    public Guid? OkrObjectiveId { get; set; }
+    public Guid? OkrKeyResultId { get; set; }
+    public Guid? EvaluationPeriodId { get; set; }
+    public Guid? AssignerUserId { get; set; }
     public List<KpiTargetItem> Targets { get; set; } = new();
-    public List<string> DepartmentAssignments { get; set; } = new();
+    public List<KpiDepartmentAssignmentItem> DepartmentAssignments { get; set; } = new();
     public List<KpiEmployeeAssignmentItem> EmployeeAssignments { get; set; } = new();
+}
+
+public class KpiDepartmentAssignmentItem
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
 }
 
 public class KpiTargetItem
@@ -157,12 +169,22 @@ public class KpiTargetItem
     public DateOnly PeriodEnd { get; set; }
     public int? CheckInFrequencyDays { get; set; }
     public bool ReminderEnabled { get; set; }
+    public Guid? OwnerUserId { get; set; }
+    public string? OwnerUserName { get; set; }
+    public string? OwnerAvatarUrl { get; set; }
+    public string? OwnerJobTitle { get; set; }
+    public Guid? OrganizationUnitId { get; set; }
+    public string? DepartmentName { get; set; }
+    public string? DeadlineTimeDisplay { get; set; }
 }
 
 public class KpiEmployeeAssignmentItem
 {
+    public Guid UserId { get; set; }
     public string UserName { get; set; } = "";
     public decimal Weight { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? JobTitle { get; set; }
 }
 
 public class KpiCreateViewModel
@@ -203,6 +225,133 @@ public class KpiCreateViewModel
     public List<SelectOption> OkrObjectives { get; set; } = new();
     public List<SelectOption> OkrKeyResults { get; set; } = new();
     public List<SelectOption> Periods { get; set; } = new();
+
+    // Employee Selection
+    public List<Guid> SelectedEmployeeIds { get; set; } = new();
+    public List<EmployeeSelectOption> Employees { get; set; } = new();
+}
+
+public class EmployeeSelectOption
+{
+    public string Value { get; set; } = "";
+    public string Text { get; set; } = "";
+    public string DepartmentId { get; set; } = "";
+}
+
+public class MeetingSummaryImportViewModel
+{
+    [Required(ErrorMessage = "Tên cuộc họp không được để trống")]
+    [StringLength(200)]
+    public string MeetingTitle { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng nhập bản tóm tắt cuộc họp")]
+    [StringLength(16000, MinimumLength = 50, ErrorMessage = "Bản tóm tắt cần ít nhất 50 ký tự để hệ thống phân tích")]
+    public string SummaryContent { get; set; } = string.Empty;
+
+    public bool AutoActivateOkr { get; set; }
+    public bool AutoActivateKpis { get; set; } = true;
+
+    public string DemoSummary { get; set; } = string.Empty;
+    public string? PreviewPayloadJson { get; set; }
+    public MeetingSummaryImportPreviewViewModel? Preview { get; set; }
+
+    public List<SelectOption> Departments { get; set; } = new();
+    public List<SelectOption> Missions { get; set; } = new();
+    public List<SelectOption> Employees { get; set; } = new();
+    public List<SelectOption> Periods { get; set; } = new();
+}
+
+public class MeetingSummaryImportPreviewViewModel
+{
+    public string MeetingTitle { get; set; } = string.Empty;
+    public string SourceSummary { get; set; } = string.Empty;
+    public string ParseMode { get; set; } = "RuleBased";
+    public string Narrative { get; set; } = string.Empty;
+    public string Cycle { get; set; } = string.Empty;
+    public ImportedOkrDraftViewModel Okr { get; set; } = new();
+    public List<ImportedKpiDraftViewModel> Kpis { get; set; } = new();
+    public List<string> Warnings { get; set; } = new();
+
+    public int KeyResultCount => Okr.KeyResults.Count;
+    public int KpiCount => Kpis.Count;
+    public int DepartmentCount => Okr.DepartmentNames.Count;
+    public int EmployeeCount => Okr.EmployeeNames.Count;
+}
+
+public class ImportedOkrDraftViewModel
+{
+    public string ObjectiveName { get; set; } = string.Empty;
+    public OkrLevel Level { get; set; } = OkrLevel.Department;
+    public string Cycle { get; set; } = string.Empty;
+
+    public List<Guid> SelectedDepartmentIds { get; set; } = new();
+    public List<string> DepartmentNames { get; set; } = new();
+
+    public List<Guid> SelectedMissionIds { get; set; } = new();
+    public List<string> MissionNames { get; set; } = new();
+
+    public List<Guid> SelectedEmployeeIds { get; set; } = new();
+    public List<string> EmployeeNames { get; set; } = new();
+
+    public List<ImportedOkrKeyResultDraftViewModel> KeyResults { get; set; } = new();
+}
+
+public class ImportedOkrKeyResultDraftViewModel
+{
+    public int Index { get; set; }
+    public string KeyResultName { get; set; } = string.Empty;
+    public string? Unit { get; set; }
+    public decimal TargetValue { get; set; }
+    public bool IsInverse { get; set; }
+    public string? DepartmentName { get; set; }
+}
+
+public class ImportedKpiDraftViewModel
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string Unit { get; set; } = string.Empty;
+    public KpiOwnerType OwnerType { get; set; } = KpiOwnerType.Department;
+    public KpiPeriodType PeriodType { get; set; } = KpiPeriodType.Monthly;
+    public KpiMeasureType MeasureType { get; set; } = KpiMeasureType.Quantitative;
+    public KpiPropertyType PropertyType { get; set; } = KpiPropertyType.Growth;
+
+    public Guid? OrganizationUnitId { get; set; }
+    public string? OrganizationUnitName { get; set; }
+
+    public Guid? EvaluationPeriodId { get; set; }
+    public string? EvaluationPeriodName { get; set; }
+
+    public decimal TargetValue { get; set; }
+    public decimal? PassThreshold { get; set; }
+    public decimal? FailThreshold { get; set; }
+    public DateOnly? PeriodStart { get; set; }
+    public DateOnly? PeriodEnd { get; set; }
+    public int? CheckInFrequencyDays { get; set; }
+    public TimeOnly? DeadlineTime { get; set; }
+    public bool ReminderEnabled { get; set; } = true;
+
+    public string? LinkedKeyResultName { get; set; }
+    public int? LinkedKeyResultIndex { get; set; }
+    public string? OwnerName { get; set; }
+}
+
+public class MeetingSummaryImportCommitViewModel
+{
+    [Required]
+    public string PreviewPayloadJson { get; set; } = string.Empty;
+
+    public bool AutoActivateOkr { get; set; }
+    public bool AutoActivateKpis { get; set; }
+}
+
+public class MeetingSummaryImportCommitResult
+{
+    public Guid OkrId { get; set; }
+    public string OkrName { get; set; } = string.Empty;
+    public List<Guid> KpiIds { get; set; } = new();
+    public Guid ImportJobId { get; set; }
+    public string ParseMode { get; set; } = "RuleBased";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

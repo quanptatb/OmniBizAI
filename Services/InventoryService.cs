@@ -68,7 +68,9 @@ public class InventoryService(ApplicationDbContext db, ITenantContext tenant)
             Lines = gi.Lines.Select(l => new GoodsIssueLineDisplay
             {
                 Id = l.Id, ItemName = l.ItemName, RequestedQuantity = l.RequestedQuantity,
-                IssuedQuantity = l.IssuedQuantity, UnitOfMeasure = l.UnitOfMeasure, Note = l.Note,
+                IssuedQuantity = l.IssuedQuantity, UnitCost = l.UnitCost,
+                LineAmount = l.LineAmount ?? l.IssuedQuantity * (l.UnitCost ?? l.ProductService?.StandardPrice ?? 0m),
+                UnitOfMeasure = l.UnitOfMeasure, Note = l.Note,
                 ProductName = l.ProductService?.Name, ProductCode = l.ProductService?.Code
             }).ToList(),
             ActivityLog = activityLog,
@@ -109,12 +111,26 @@ public class InventoryService(ApplicationDbContext db, ITenantContext tenant)
             Destination = vm.Destination, Note = vm.Note, Status = GoodsIssueStatus.Draft,
             CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
         };
+        var productIds = vm.Lines.Where(l => l.ProductServiceId.HasValue).Select(l => l.ProductServiceId!.Value).Distinct().ToList();
+        var standardPrices = productIds.Any()
+            ? await db.ProductServices
+                .Where(p => p.TenantId == tid && productIds.Contains(p.Id) && !p.IsDeleted)
+                .Select(p => new { p.Id, p.StandardPrice })
+                .ToDictionaryAsync(p => p.Id, p => p.StandardPrice)
+            : new Dictionary<Guid, decimal?>();
+
         foreach (var line in vm.Lines.Where(l => l.IssuedQuantity > 0))
         {
+            var unitCost = line.UnitCost
+                ?? (line.ProductServiceId.HasValue && standardPrices.TryGetValue(line.ProductServiceId.Value, out var standardPrice)
+                    ? standardPrice
+                    : null);
             entity.Lines.Add(new GoodsIssueLine
             {
                 TenantId = tid, ProductServiceId = line.ProductServiceId, ItemName = line.ItemName,
                 RequestedQuantity = line.RequestedQuantity, IssuedQuantity = line.IssuedQuantity,
+                UnitCost = unitCost,
+                LineAmount = unitCost.HasValue ? line.IssuedQuantity * unitCost.Value : null,
                 UnitOfMeasure = line.UnitOfMeasure, Note = line.Note,
                 CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
             });

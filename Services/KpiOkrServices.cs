@@ -220,6 +220,27 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
         var o = await db.OkrObjectives.FindAsync(id);
         if (o is null || o.TenantId != tenant.TenantId) return false;
         o.Status = OkrStatus.Active; o.IsActive = true; o.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Tự động sinh Kế hoạch vận hành (Operation Plan) khi OKR được duyệt
+        var count = await db.OperationPlans.CountAsync(p => p.TenantId == tenant.TenantId);
+        var plan = new OperationPlan
+        {
+            TenantId = tenant.TenantId, Code = $"OP-OKR-{DateTime.Today.Year}-{count + 1:D3}", Title = o.ObjectiveName, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = OperationPlanStatus.Draft, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, OkrObjective = o
+        };
+        db.OperationPlans.Add(plan);
+
+        // Đóng Yêu cầu vận hành nếu có
+        if (o.OperationRequestId.HasValue)
+        {
+            var req = await db.OperationRequests.FindAsync(o.OperationRequestId.Value);
+            if (req != null)
+            {
+                req.Status = OperationStatus.Completed;
+                req.UpdatedAt = DateTimeOffset.UtcNow;
+                req.UpdatedByUserId = tenant.UserId;
+            }
+        }
+
         await db.SaveChangesAsync(); return true;
     }
 
@@ -247,7 +268,90 @@ public class OkrService(ApplicationDbContext db, ITenantContext tenant)
         db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "OkrObjective", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync(); return true;
     }
+
+    public async Task<bool> AddKeyResultAsync(Guid okrId, string name, string? unit, decimal targetValue, bool isInverse)
+    {
+        var okr = await db.OkrObjectives.FindAsync(okrId);
+        if (okr is null || okr.TenantId != tenant.TenantId || okr.IsDeleted) return false;
+
+        var kr = new OkrKeyResult
+        {
+            TenantId = tenant.TenantId,
+            OkrObjectiveId = okrId,
+            KeyResultName = name.Trim(),
+            Unit = unit,
+            TargetValue = targetValue,
+            CurrentValue = 0,
+            IsInverse = isInverse,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.OkrKeyResults.Add(kr);
+
+        db.AuditLogs.Add(new AuditLog
+        {
+            TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName,
+            Action = "AddKeyResult", EntityName = "OkrKeyResult", EntityId = kr.Id,
+            NewValuesJson = $"{{\"KeyResultName\":\"{kr.KeyResultName}\",\"TargetValue\":{kr.TargetValue}}}",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        await db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateAllocationsAsync(Guid okrId, List<Guid> departmentIds, List<Guid> employeeIds)
+    {
+        var okr = await db.OkrObjectives
+            .Include(o => o.DepartmentAllocations)
+            .Include(o => o.EmployeeAllocations)
+            .FirstOrDefaultAsync(o => o.Id == okrId && o.TenantId == tenant.TenantId && !o.IsDeleted);
+
+        if (okr is null) return false;
+
+        var tid = tenant.TenantId;
+        var now = DateTimeOffset.UtcNow;
+
+        // Update departments
+        db.RemoveRange(okr.DepartmentAllocations);
+        if (departmentIds != null)
+        {
+            foreach (var depId in departmentIds.Distinct())
+            {
+                okr.DepartmentAllocations.Add(new OkrDepartmentAllocation
+                {
+                    TenantId = tid,
+                    OrganizationUnitId = depId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = now
+                });
+            }
+        }
+
+        // Update employees
+        db.RemoveRange(okr.EmployeeAllocations);
+        if (employeeIds != null)
+        {
+            foreach (var empId in employeeIds.Distinct())
+            {
+                okr.EmployeeAllocations.Add(new OkrEmployeeAllocation
+                {
+                    TenantId = tid,
+                    UserId = empId,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = now
+                });
+            }
+        }
+
+        okr.UpdatedAt = now;
+        okr.UpdatedByUserId = tenant.UserId;
+
+        await db.SaveChangesAsync();
+        return true;
+    }
 }
+
 
 // ── KPI Management Service ───────────────────────────────────────────────────
 public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant)
@@ -312,9 +416,10 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             .Include(x => x.OkrKeyResult)
             .Include(x => x.EvaluationPeriod)
             .Include(x => x.AssignerUser)
-            .Include(x => x.Targets.Where(t => !t.IsDeleted))
+            .Include(x => x.Targets.Where(t => !t.IsDeleted)).ThenInclude(t => t.OwnerUser).ThenInclude(u => u!.Profile)
+            .Include(x => x.Targets.Where(t => !t.IsDeleted)).ThenInclude(t => t.OrganizationUnit)
             .Include(x => x.DepartmentAssignments.Where(d => !d.IsDeleted)).ThenInclude(d => d.OrganizationUnit)
-            .Include(x => x.EmployeeAssignments.Where(e => !e.IsDeleted)).ThenInclude(e => e.User)
+            .Include(x => x.EmployeeAssignments.Where(e => !e.IsDeleted)).ThenInclude(e => e.User).ThenInclude(u => u!.Profile)
             .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenant.TenantId && !x.IsDeleted);
 
         if (k is null) return null;
@@ -337,6 +442,11 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             PeriodName = k.EvaluationPeriod?.PeriodName,
             AssignerName = k.AssignerUser?.FullName,
             CreatedAt = k.CreatedAt,
+            OrganizationUnitId = k.OrganizationUnitId,
+            OkrObjectiveId = k.OkrObjectiveId,
+            OkrKeyResultId = k.OkrKeyResultId,
+            EvaluationPeriodId = k.EvaluationPeriodId,
+            AssignerUserId = k.AssignerUserId,
             Targets = k.Targets.Select(t => new KpiTargetItem
             {
                 Id = t.Id,
@@ -346,15 +456,29 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
                 PeriodStart = t.PeriodStart,
                 PeriodEnd = t.PeriodEnd,
                 CheckInFrequencyDays = t.CheckInFrequencyDays,
-                ReminderEnabled = t.ReminderEnabled
+                ReminderEnabled = t.ReminderEnabled,
+                OwnerUserId = t.OwnerUserId,
+                OwnerUserName = t.OwnerUser?.FullName,
+                OwnerAvatarUrl = t.OwnerUser?.Profile?.AvatarUrl,
+                OwnerJobTitle = t.OwnerUser?.JobTitle,
+                OrganizationUnitId = t.OrganizationUnitId,
+                DepartmentName = t.OrganizationUnit?.Name,
+                DeadlineTimeDisplay = t.DeadlineTime.HasValue ? t.DeadlineTime.Value.ToString("HH:mm") : null
             }).ToList(),
             DepartmentAssignments = k.DepartmentAssignments
-                .Select(d => d.OrganizationUnit?.Name ?? "").ToList(),
+                .Select(d => new KpiDepartmentAssignmentItem
+                {
+                    Id = d.OrganizationUnitId,
+                    Name = d.OrganizationUnit?.Name ?? ""
+                }).ToList(),
             EmployeeAssignments = k.EmployeeAssignments
                 .Select(e => new KpiEmployeeAssignmentItem
                 {
+                    UserId = e.UserId,
                     UserName = e.User?.FullName ?? "",
-                    Weight = e.Weight
+                    Weight = e.Weight,
+                    AvatarUrl = e.User?.Profile?.AvatarUrl,
+                    JobTitle = e.User?.JobTitle
                 }).ToList()
         };
     }
@@ -384,7 +508,7 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             PeriodType = vm.PeriodType,
             MeasureType = vm.MeasureType,
             PropertyType = vm.PropertyType,
-            OrganizationUnitId = vm.OrganizationUnitId,
+            OrganizationUnitId = vm.OwnerType == KpiOwnerType.Company ? null : vm.OrganizationUnitId,
             OkrObjectiveId = vm.OkrObjectiveId,
             OkrKeyResultId = vm.OkrKeyResultId,
             EvaluationPeriodId = vm.EvaluationPeriodId,
@@ -395,23 +519,74 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        // Add target
-        if (vm.TargetValue > 0)
+        if (vm.OwnerType == KpiOwnerType.Department && vm.OrganizationUnitId.HasValue)
         {
-            entity.Targets.Add(new KpiTarget
+            entity.DepartmentAssignments.Add(new KpiDepartmentAssignment
             {
                 TenantId = tid,
-                TargetValue = vm.TargetValue,
-                PassThreshold = vm.PassThreshold,
-                FailThreshold = vm.FailThreshold,
-                PeriodStart = vm.PeriodStart ?? DateOnly.FromDateTime(DateTime.Today),
-                PeriodEnd = vm.PeriodEnd ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
-                CheckInFrequencyDays = vm.CheckInFrequencyDays,
-                DeadlineTime = vm.DeadlineTime,
-                ReminderEnabled = vm.ReminderEnabled,
+                OrganizationUnitId = vm.OrganizationUnitId.Value,
                 CreatedByUserId = tenant.UserId,
                 CreatedAt = DateTimeOffset.UtcNow
             });
+        }
+        else if (vm.OwnerType == KpiOwnerType.User && vm.SelectedEmployeeIds.Any())
+        {
+            foreach (var empId in vm.SelectedEmployeeIds.Distinct())
+            {
+                entity.EmployeeAssignments.Add(new KpiEmployeeAssignment
+                {
+                    TenantId = tid,
+                    UserId = empId,
+                    Weight = 100,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+        }
+
+        // Add target
+        if (vm.TargetValue > 0)
+        {
+            if (vm.OwnerType == KpiOwnerType.User && vm.SelectedEmployeeIds.Any())
+            {
+                foreach (var empId in vm.SelectedEmployeeIds.Distinct())
+                {
+                    entity.Targets.Add(new KpiTarget
+                    {
+                        TenantId = tid,
+                        OwnerUserId = empId,
+                        OrganizationUnitId = vm.OrganizationUnitId,
+                        TargetValue = vm.TargetValue,
+                        PassThreshold = vm.PassThreshold,
+                        FailThreshold = vm.FailThreshold,
+                        PeriodStart = vm.PeriodStart ?? DateOnly.FromDateTime(DateTime.Today),
+                        PeriodEnd = vm.PeriodEnd ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
+                        CheckInFrequencyDays = vm.CheckInFrequencyDays,
+                        DeadlineTime = vm.DeadlineTime,
+                        ReminderEnabled = vm.ReminderEnabled,
+                        CreatedByUserId = tenant.UserId,
+                        CreatedAt = DateTimeOffset.UtcNow
+                    });
+                }
+            }
+            else
+            {
+                entity.Targets.Add(new KpiTarget
+                {
+                    TenantId = tid,
+                    OrganizationUnitId = vm.OwnerType == KpiOwnerType.Department ? vm.OrganizationUnitId : null,
+                    TargetValue = vm.TargetValue,
+                    PassThreshold = vm.PassThreshold,
+                    FailThreshold = vm.FailThreshold,
+                    PeriodStart = vm.PeriodStart ?? DateOnly.FromDateTime(DateTime.Today),
+                    PeriodEnd = vm.PeriodEnd ?? DateOnly.FromDateTime(DateTime.Today.AddMonths(3)),
+                    CheckInFrequencyDays = vm.CheckInFrequencyDays,
+                    DeadlineTime = vm.DeadlineTime,
+                    ReminderEnabled = vm.ReminderEnabled,
+                    CreatedByUserId = tenant.UserId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
         }
 
         db.KpiDefinitions.Add(entity);
@@ -444,15 +619,44 @@ public class KpiManagementService(ApplicationDbContext db, ITenantContext tenant
                 .Select(kr => new SelectOption { Value = kr.Id.ToString(), Text = kr.KeyResultName }).ToListAsync(),
             Periods = await db.EvaluationPeriods
                 .Where(p => p.TenantId == tid && !p.IsDeleted && p.Status != EvaluationPeriodStatus.Closed)
-                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync()
+                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.PeriodName }).ToListAsync(),
+            Employees = await db.AppUsers
+                .Where(u => u.TenantId == tid && !u.IsDeleted && u.Status == UserStatus.Active)
+                .OrderBy(u => u.FullName)
+                .Select(u => new EmployeeSelectOption
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.FullName,
+                    DepartmentId = u.OrganizationUnitId.HasValue ? u.OrganizationUnitId.Value.ToString() : ""
+                }).ToListAsync()
         };
     }
-
     public async Task<bool> ActivateAsync(Guid id)
     {
         var k = await db.KpiDefinitions.FindAsync(id);
         if (k is null || k.TenantId != tenant.TenantId) return false;
-        k.Status = KpiStatus.Active; k.IsActive = true; k.UpdatedAt = DateTimeOffset.UtcNow;
+        k.Status = KpiStatus.Active; k.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Tự động sinh Kế hoạch vận hành (Operation Plan) khi KPI được duyệt
+        var count = await db.OperationPlans.CountAsync(p => p.TenantId == tenant.TenantId);
+        var plan = new OperationPlan
+        {
+            TenantId = tenant.TenantId, Code = $"OP-KPI-{DateTime.Today.Year}-{count + 1:D3}", Title = k.Name, PlanType = "Monthly", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1), Status = OperationPlanStatus.Draft, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow, KpiDefinition = k
+        };
+        db.OperationPlans.Add(plan);
+
+        // Đóng Yêu cầu vận hành nếu có
+        if (k.OperationRequestId.HasValue)
+        {
+            var req = await db.OperationRequests.FindAsync(k.OperationRequestId.Value);
+            if (req != null)
+            {
+                req.Status = OperationStatus.Completed;
+                req.UpdatedAt = DateTimeOffset.UtcNow;
+                req.UpdatedByUserId = tenant.UserId;
+            }
+        }
+
         await db.SaveChangesAsync(); return true;
     }
 
@@ -779,6 +983,7 @@ public class EvaluationService(ApplicationDbContext db, ITenantContext tenant)
             EvaluationPeriodId = vm.EvaluationPeriodId,
             TotalScore = vm.TotalScore,
             Classification = vm.Classification,
+            ReviewComment = vm.Comment?.Trim(),
             SubmissionStatus = EvaluationSubmissionStatus.Draft,
             CreatedByUserId = tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow

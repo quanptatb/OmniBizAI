@@ -6,7 +6,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h4 mb-0 text-gray-800"><i class="fas fa-certificate text-warning me-2"></i>Chứng Chỉ & Năng Lực Nhân Viên</h2>
-    <a asp-action="AddCertificate" class="btn btn-warning btn-sm"><i class="fas fa-plus me-1"></i>Thêm Chứng Chỉ</a>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-2">← Quay lại</a>
+        <a asp-action="AddCertificate" class="btn btn-warning btn-sm"><i class="fas fa-plus me-1"></i>Thêm Chứng Chỉ</a>
+    </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)

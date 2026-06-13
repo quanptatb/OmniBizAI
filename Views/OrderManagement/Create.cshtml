@@ -65,14 +65,14 @@
                 <!-- Order Date -->
                 <div class="col-12 col-md-6">
                     <label asp-for="OrderDate" class="form-label fw-bold small text-muted">Ngày đặt hàng</label>
-                    <input asp-for="OrderDate" type="date" class="form-control" value="@Model.OrderDate.ToString("yyyy-MM-dd")" style="border-radius: 10px; padding: 10px;" required>
+                    <input asp-for="OrderDate" type="text" class="form-control datepicker" value="@Model.OrderDate.ToString("dd/MM/yyyy")" placeholder="dd/mm/yyyy" style="border-radius: 10px; padding: 10px;" required>
                     <span asp-validation-for="OrderDate" class="text-danger small"></span>
                 </div>
 
                 <!-- Delivery Date -->
                 <div class="col-12 col-md-6">
                     <label asp-for="DeliveryDate" class="form-label fw-bold small text-muted">Ngày giao hàng dự kiến</label>
-                    <input asp-for="DeliveryDate" type="date" class="form-control" value="@Model.DeliveryDate.ToString("yyyy-MM-dd")" style="border-radius: 10px; padding: 10px;" required>
+                    <input asp-for="DeliveryDate" type="text" class="form-control datepicker" value="@Model.DeliveryDate.ToString("dd/MM/yyyy")" placeholder="dd/mm/yyyy" style="border-radius: 10px; padding: 10px;" required>
                     <span asp-validation-for="DeliveryDate" class="text-danger small"></span>
                 </div>
             </div>
@@ -137,8 +137,20 @@
     </form>
 </div>
 
-<!-- Dynamic Row Script -->
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
 <script>
+    flatpickr(".datepicker", {
+        dateFormat: "d/m/Y",
+        locale: "vn",
+        allowInput: true
+    });
+
     document.addEventListener("DOMContentLoaded", function () {
         let rowCount = 1;
         const container = document.getElementById("linesContainer");
@@ -195,3 +207,4 @@
         });
     });
 </script>
+}

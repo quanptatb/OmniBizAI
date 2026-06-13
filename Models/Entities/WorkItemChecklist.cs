@@ -13,6 +13,11 @@ public class WorkItemChecklist : TenantEntity
 
     public int SortOrder { get; set; }
 
+    public Guid? AssignedToUserId { get; set; }
+    public AppUser? AssignedToUser { get; set; }
+
+    public DateOnly? DueDate { get; set; }
+
     public bool IsCompleted { get; set; }
 
     public Guid? CompletedByUserId { get; set; }

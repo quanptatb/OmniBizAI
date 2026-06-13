@@ -51,12 +51,21 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     // Operations & Work
     public DbSet<OperationRequest> OperationRequests => Set<OperationRequest>();
     public DbSet<OperationRequestLine> OperationRequestLines => Set<OperationRequestLine>();
+    public DbSet<OperationRequestTemplate> OperationRequestTemplates => Set<OperationRequestTemplate>();
+    public DbSet<OperationRequestAssignment> OperationRequestAssignments => Set<OperationRequestAssignment>();
+    public DbSet<OperationProgressLog> OperationProgressLogs => Set<OperationProgressLog>();
     public DbSet<OperationComment> OperationComments => Set<OperationComment>();
+    public DbSet<OperationSlaPolicy> OperationSlaPolicies => Set<OperationSlaPolicy>();
+    public DbSet<OperationSlaBreach> OperationSlaBreaches => Set<OperationSlaBreach>();
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
     public DbSet<WorkItemAssignment> WorkItemAssignments => Set<WorkItemAssignment>();
+    public DbSet<WorkItemActivity> WorkItemActivities => Set<WorkItemActivity>();
     public DbSet<WorkItemChecklist> WorkItemChecklists => Set<WorkItemChecklist>();
     public DbSet<WorkItemComment> WorkItemComments => Set<WorkItemComment>();
+    public DbSet<WorkItemDependency> WorkItemDependencies => Set<WorkItemDependency>();
     public DbSet<KanbanColumn> KanbanColumns => Set<KanbanColumn>();
+    public DbSet<KanbanSavedView> KanbanSavedViews => Set<KanbanSavedView>();
+    public DbSet<Sprint> Sprints => Set<Sprint>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<EntityTag> EntityTags => Set<EntityTag>();
@@ -132,8 +141,13 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
 
     // Planning & Scheduling
     public DbSet<Equipment> Equipments => Set<Equipment>();
+    public DbSet<EquipmentStatusHistory> EquipmentStatusHistories => Set<EquipmentStatusHistory>();
+    public DbSet<EquipmentCostLedger> EquipmentCostLedgers => Set<EquipmentCostLedger>();
     public DbSet<OperationPlan> OperationPlans => Set<OperationPlan>();
     public DbSet<PlanTask> PlanTasks => Set<PlanTask>();
+    public DbSet<PlanTaskBaseline> PlanTaskBaselines => Set<PlanTaskBaseline>();
+    public DbSet<PlanChangeOrder> PlanChangeOrders => Set<PlanChangeOrder>();
+    public DbSet<PlanTaskDependency> PlanTaskDependencies => Set<PlanTaskDependency>();
 
     // Resource Management
     public DbSet<WorkShift> WorkShifts => Set<WorkShift>();
@@ -148,6 +162,16 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser<Guid>, Identi
     public DbSet<PmSchedule> PmSchedules => Set<PmSchedule>();
     public DbSet<MaintenanceIncident> MaintenanceIncidents => Set<MaintenanceIncident>();
     public DbSet<EquipmentSensorReading> EquipmentSensorReadings => Set<EquipmentSensorReading>();
+
+    // Work Order & Spare Part Requisition (F5.1-F5.3)
+    public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
+    public DbSet<WorkOrderChecklistItem> WorkOrderChecklistItems => Set<WorkOrderChecklistItem>();
+    public DbSet<WorkOrderSparePartUsage> WorkOrderSparePartUsages => Set<WorkOrderSparePartUsage>();
+    public DbSet<SparePartRequisition> SparePartRequisitions => Set<SparePartRequisition>();
+    public DbSet<SparePartRequisitionLine> SparePartRequisitionLines => Set<SparePartRequisitionLine>();
+
+    // Failure Mode (F5.6)
+    public DbSet<FailureMode> FailureModes => Set<FailureMode>();
 
     // Order & Process Management
     public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();

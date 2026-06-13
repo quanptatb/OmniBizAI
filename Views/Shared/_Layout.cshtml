@@ -1,6 +1,11 @@
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser<Guid>> SignInManager
 @inject UserManager<IdentityUser<Guid>> UserManager
+@{
+    var hideAppShell = ViewData["HideAppShell"] as bool? == true;
+    var _currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var inSettings = _currentController == "Settings" || _currentController == "Backup" || _currentController == "Audit";
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -19,16 +24,32 @@
     @if (SignInManager.IsSignedIn(User)) { <link rel="stylesheet" href="@Url.Action("ThemeCss", "Settings")" /> }
     @await RenderSectionAsync("Styles", required: false)
     <script>
-        (function(){
-            var mode = localStorage.getItem('omnibiz-nav-mode') || 'classic';
+        (function () {
+            var navModeKey = 'omnibiz-nav-mode';
+            var legacySidebarKey = 'omnibiz-sidebar';
+            var mode = 'classic';
+            var sidebarState = null;
+
+            try {
+                mode = localStorage.getItem(navModeKey) || 'classic';
+                sidebarState = localStorage.getItem(legacySidebarKey + ':' + mode) || localStorage.getItem(legacySidebarKey);
+            } catch (e) {
+                mode = 'classic';
+            }
+
             document.documentElement.setAttribute('data-nav-mode', mode);
-            var s=localStorage.getItem('omnibiz-sidebar');
-            if(s==='collapsed' && mode==='classic') document.documentElement.classList.add('sidebar-collapsed');
+
+            var canCollapse = mode !== 'launcher' && window.innerWidth >= 992;
+            document.documentElement.classList.toggle('sidebar-collapsed', canCollapse && sidebarState === 'collapsed');
         })();
     </script>
 </head>
-<body class="app-body">
-    @if (SignInManager.IsSignedIn(User))
+<body class="app-body @(hideAppShell ? "landing-body" : "")">
+    @if (hideAppShell)
+    {
+        @RenderBody()
+    }
+    else if (SignInManager.IsSignedIn(User))
     {
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
@@ -49,7 +70,16 @@
                     <span>Dashboard</span>
                 </a>
 
-                <div class="nav-section-label">VẬN HÀNH & QUY TRÌNH</div>
+                @if (User.IsInRole("EXECUTIVE") || User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("DEPARTMENT_MANAGER"))
+                {
+                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "CommandCenter" ? "active" : "")"
+                       asp-controller="CommandCenter" asp-action="Index">
+                        <i class="fa-solid fa-tower-broadcast"></i>
+                        <span>Trung tâm điều hành</span>
+                    </a>
+                }
+
+                <div class="nav-section-label">VẬN HÀNH &amp; QUY TRÌNH</div>
                 <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OperationPlans" ? "active" : "")"
                    asp-controller="OperationPlans" asp-action="Index">
                     <i class="fa-solid fa-calendar-alt"></i>
@@ -230,50 +260,6 @@
                         </a>
                     </div>
                 }
-
-                @if (User.IsInRole("AUDITOR") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("TENANT_ADMIN"))
-                {
-                    <div class="nav-section-label">HỆ THỐNG</div>
-                    @if (User.IsInRole("TENANT_ADMIN") || User.IsInRole("SYSTEM_ADMIN"))
-                    {
-                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Company" ? "active" : "")"
-                           asp-controller="Settings" asp-action="Company">
-                            <i class="fa-solid fa-building-columns"></i>
-                            <span>Cài đặt công ty</span>
-                        </a>
-                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Modules" ? "active" : "")"
-                           asp-controller="Settings" asp-action="Modules">
-                            <i class="fa-solid fa-puzzle-piece"></i>
-                            <span>Quản lý modules</span>
-                        </a>
-                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Parameters" ? "active" : "")"
-                           asp-controller="Settings" asp-action="Parameters">
-                            <i class="fa-solid fa-sliders"></i>
-                            <span>Tham số hệ thống</span>
-                        </a>
-                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "EnumLabels" ? "active" : "")"
-                           asp-controller="Settings" asp-action="EnumLabels">
-                            <i class="fa-solid fa-tags"></i>
-                            <span>Nhãn hệ thống</span>
-                        </a>
-                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" && ViewContext.RouteData.Values["action"]?.ToString() == "Appearance" ? "active" : "")"
-                           asp-controller="Settings" asp-action="Appearance">
-                            <i class="fa-solid fa-palette"></i>
-                            <span>Giao diện</span>
-                        </a>
-                        <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Backup" ? "active" : "")"
-                           asp-controller="Backup" asp-action="Index">
-                            <i class="fa-solid fa-database"></i>
-                            <span>Sao lưu dữ liệu</span>
-                        </a>
-                    }
-                    <a class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Audit" ? "active" : "")"
-                       asp-controller="Audit" asp-action="Index">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Nhật ký hệ thống</span>
-                    </a>
-                }
-
             </nav>
 
             <div class="sidebar-footer">
@@ -286,12 +272,20 @@
                         <span class="user-role">@(User.IsInRole("SYSTEM_ADMIN") ? "Sys Admin" : User.IsInRole("TENANT_ADMIN") ? "Admin" : User.IsInRole("EXECUTIVE") ? "Executive" : User.IsInRole("DEPARTMENT_MANAGER") ? "Manager" : User.IsInRole("ACCOUNTANT") ? "Accountant" : "Staff")</span>
                     </div>
                 </div>
-                <form method="post" asp-controller="Account" asp-action="Logout" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn-logout" title="Đăng xuất">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </form>
+                <div class="sidebar-footer-actions">
+                    @if (User.IsInRole("AUDITOR") || User.IsInRole("SYSTEM_ADMIN") || User.IsInRole("TENANT_ADMIN"))
+                    {
+                        <a href="@Url.Action("Index", "Settings")" class="btn-settings @(inSettings ? "active" : "")" title="Cài đặt hệ thống">
+                            <i class="fa-solid fa-gear"></i>
+                        </a>
+                    }
+                    <form method="post" asp-controller="Account" asp-action="Logout" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-logout" title="Đăng xuất">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
         </aside>
 
@@ -301,6 +295,9 @@
             <header class="topbar">
                 <div class="d-flex align-items-center gap-3">
                     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <button class="topbar-btn sidebar-collapse-toggle" id="sidebarCollapseToggle" aria-label="Thu gọn sidebar" title="Thu gọn sidebar">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <button class="app-launcher-toggle" id="appLauncherBtn" aria-label="App Launcher" style="display:none;" onclick="toggleAppLauncher()">

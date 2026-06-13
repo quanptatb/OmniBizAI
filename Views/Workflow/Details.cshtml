@@ -1,4 +1,5 @@
 @model OmniBizAI.ViewModels.WorkItemDetailViewModel
+@using OmniBizAI.Models.Entities.Enums
 @{
     ViewData["Title"] = Model.Title;
     ViewData["Breadcrumb"] = "<a href='/Workflow/Kanban' style='color:var(--apple-blue);text-decoration:none'>Kanban</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Chi tiết</span>";
@@ -46,6 +47,19 @@
                 <div class="col-6">
                     <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Yêu cầu VH</label>
                     <div style="margin-top:2px"><a asp-controller="Operations" asp-action="Details" asp-route-id="@Model.OperationRequestId" style="color:var(--apple-blue);text-decoration:none;font-weight:600;font-size:.85rem">@Model.RequestNo</a></div>
+                </div>
+                <div class="col-6">
+                    <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Sprint</label>
+                    <div style="margin-top:2px;font-size:.85rem">
+                        @if (Model.SprintId.HasValue)
+                        {
+                            <a asp-action="Kanban" asp-route-sprint="@Model.SprintId" style="color:var(--apple-blue);text-decoration:none;font-weight:600">@Model.SprintName</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Backlog</span>
+                        }
+                    </div>
                 </div>
                 <div class="col-6">
                     <label style="font-size:.68rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Phòng ban</label>
@@ -160,7 +174,7 @@
 
                     @foreach (var cl in Model.Checklists)
                     {
-                        <div class="d-flex align-items-center gap-3 py-2" style="border-bottom:1px solid var(--divider)">
+                        <div class="d-flex align-items-center gap-2 py-2 flex-wrap" style="border-bottom:1px solid var(--divider)">
                             <form asp-action="ToggleChecklist" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="checklistId" value="@cl.Id" />
@@ -169,13 +183,44 @@
                                     <i class="fa-solid @(cl.IsCompleted ? "fa-circle-check" : "fa-circle")"></i>
                                 </button>
                             </form>
-                            <div class="flex-grow-1" style="text-decoration:@(cl.IsCompleted ? "line-through" : "none");color:@(cl.IsCompleted ? "var(--text-muted)" : "var(--text-primary)");font-size:.88rem">
-                                @cl.Title
-                                @if (cl.IsCompleted && cl.CompletedByName != null)
-                                {
-                                    <span style="font-size:.7rem;color:var(--text-muted);margin-left:8px">— @cl.CompletedByName</span>
-                                }
-                            </div>
+                            <form asp-action="UpdateChecklist" method="post" class="flex-grow-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="checklistId" value="@cl.Id" />
+                                <input type="hidden" name="workItemId" value="@Model.Id" />
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-lg-5">
+                                        <input type="text" name="title" value="@cl.Title" class="form-control form-control-sm" maxlength="250" required style="border-radius:8px;text-decoration:@(cl.IsCompleted ? "line-through" : "none")" />
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <select name="assignedToUserId" class="form-select form-select-sm" style="border-radius:8px">
+                                            <option value="">Chưa giao</option>
+                                            @foreach (var user in Model.ChecklistAssignees)
+                                            {
+                                                <option value="@user.Value" selected="@(user.Value == cl.AssignedToUserId?.ToString())">@user.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <input type="date" name="dueDate" value="@(cl.DueDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" style="border-radius:8px;color:@(cl.IsOverdue ? "var(--danger)" : "inherit")" />
+                                    </div>
+                                    <div class="col-lg-1">
+                                        <input type="number" name="sortOrder" value="@cl.SortOrder" min="1" class="form-control form-control-sm" style="border-radius:8px" />
+                                    </div>
+                                    <div class="col-lg-1 d-grid">
+                                        <button type="submit" class="btn btn-sm btn-light border" style="border-radius:8px" title="Lưu checklist"><i class="fa-solid fa-floppy-disk"></i></button>
+                                    </div>
+                                </div>
+                                <div class="mt-1" style="font-size:.7rem;color:@(cl.IsOverdue ? "var(--danger)" : "var(--text-muted)")">
+                                    <i class="fa-solid fa-user-check me-1"></i>@(cl.AssignedToName ?? "Chưa giao")
+                                    <span class="mx-1">·</span>
+                                    <i class="fa-regular fa-calendar me-1"></i>@(cl.DueDate?.ToString("dd/MM/yyyy") ?? "Không hạn")
+                                    @if (cl.IsCompleted && cl.CompletedByName != null)
+                                    {
+                                        <span class="mx-1">·</span>
+                                        <i class="fa-solid fa-check me-1"></i><span>@cl.CompletedByName</span>
+                                    }
+                                </div>
+                            </form>
                             <form asp-action="DeleteChecklist" method="post" class="d-inline" onsubmit="return confirm('Xóa mục này?')">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="checklistId" value="@cl.Id" />
@@ -187,11 +232,117 @@
                 }
 
                 <!-- Add checklist item -->
-                <form asp-action="AddChecklist" method="post" class="d-flex gap-2 mt-3">
+                <form asp-action="AddChecklist" method="post" class="row g-2 mt-3 align-items-end">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="workItemId" value="@Model.Id" />
-                    <input type="text" name="title" class="form-control form-control-sm" placeholder="Thêm mục checklist..." required maxlength="250" style="border-radius:8px" />
-                    <button type="submit" class="btn btn-sm btn-primary" style="border-radius:8px;white-space:nowrap"><i class="fa-solid fa-plus me-1"></i>Thêm</button>
+                    <div class="col-lg-5">
+                        <label class="form-label small fw-bold text-muted">Checklist</label>
+                        <input type="text" name="title" class="form-control form-control-sm" placeholder="Thêm mục checklist..." required maxlength="250" style="border-radius:8px" />
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label small fw-bold text-muted">Người phụ trách</label>
+                        <select name="assignedToUserId" class="form-select form-select-sm" style="border-radius:8px">
+                            <option value="">Chưa giao</option>
+                            @foreach (var user in Model.ChecklistAssignees)
+                            {
+                                <option value="@user.Value">@user.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <label class="form-label small fw-bold text-muted">Hạn</label>
+                        <input type="date" name="dueDate" class="form-control form-control-sm" style="border-radius:8px" />
+                    </div>
+                    <div class="col-lg-2 d-grid">
+                        <button type="submit" class="btn btn-sm btn-primary" style="border-radius:8px"><i class="fa-solid fa-plus me-1"></i>Thêm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dependencies -->
+        <div class="content-card mb-4 animate-fade-in">
+            <div class="card-header-custom">
+                <h5><i class="fa-solid fa-link"></i> Dependency</h5>
+            </div>
+            <div class="card-body-custom">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="fw-bold mb-2" style="font-size:.82rem">Bị chặn bởi</div>
+                        @if (Model.BlockingDependencies.Any())
+                        {
+                            @foreach (var dep in Model.BlockingDependencies)
+                            {
+                                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--divider)">
+                                    <div>
+                                        <a asp-action="Details" asp-route-id="@dep.WorkItemId" style="font-weight:600;color:var(--apple-blue);text-decoration:none;font-size:.84rem">@dep.Title</a>
+                                        <div class="text-muted" style="font-size:.72rem">@dep.Type · @dep.StatusLabel</div>
+                                    </div>
+                                    <form asp-action="DeleteDependency" method="post" onsubmit="return confirm('Xóa dependency này?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="dependencyId" value="@dep.Id" />
+                                        <input type="hidden" name="workItemId" value="@Model.Id" />
+                                        <button type="submit" class="btn btn-sm text-muted p-0" style="border:none;background:none"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-muted" style="font-size:.82rem">Không có blocker.</div>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <div class="fw-bold mb-2" style="font-size:.82rem">Đang chặn / liên quan</div>
+                        @if (Model.BlockedItems.Any())
+                        {
+                            @foreach (var dep in Model.BlockedItems)
+                            {
+                                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--divider)">
+                                    <div>
+                                        <a asp-action="Details" asp-route-id="@dep.WorkItemId" style="font-weight:600;color:var(--apple-blue);text-decoration:none;font-size:.84rem">@dep.Title</a>
+                                        <div class="text-muted" style="font-size:.72rem">@dep.Type · @dep.StatusLabel</div>
+                                    </div>
+                                    <form asp-action="DeleteDependency" method="post" onsubmit="return confirm('Xóa dependency này?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="dependencyId" value="@dep.Id" />
+                                        <input type="hidden" name="workItemId" value="@Model.Id" />
+                                        <button type="submit" class="btn btn-sm text-muted p-0" style="border:none;background:none"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-muted" style="font-size:.82rem">Chưa chặn thẻ nào.</div>
+                        }
+                    </div>
+                </div>
+
+                <form asp-action="AddDependency" method="post" class="row g-2 mt-3 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="workItemId" value="@Model.Id" />
+                    <div class="col-md-7">
+                        <label class="form-label small fw-bold text-muted">Thẻ blocker / liên quan</label>
+                        <select name="blockerId" class="form-select form-select-sm" style="border-radius:8px" required>
+                            <option value="">Chọn thẻ</option>
+                            @foreach (var option in Model.DependencyOptions)
+                            {
+                                <option value="@option.Value">@option.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-muted">Loại</label>
+                        <select name="type" class="form-select form-select-sm" style="border-radius:8px">
+                            <option value="@WorkItemDependencyType.BlockedBy">BlockedBy</option>
+                            <option value="@WorkItemDependencyType.RelatesTo">RelatesTo</option>
+                            <option value="@WorkItemDependencyType.Duplicates">Duplicates</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" class="btn btn-sm btn-primary" style="border-radius:8px"><i class="fa-solid fa-plus"></i></button>
+                    </div>
                 </form>
             </div>
         </div>

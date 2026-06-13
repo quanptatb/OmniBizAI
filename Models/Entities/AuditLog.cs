@@ -36,6 +36,14 @@ public class AuditLog : TenantEntity
     [NotMapped]
     public string? NewValues { get => NewValuesJson; set => NewValuesJson = value; }
 
+    public string? ExtraJson { get; set; }
+
     [StringLength(100)]
     public string? IpAddress { get; set; }
+
+    [StringLength(500)]
+    public string? UserAgent { get; set; }
+
+    [StringLength(100)]
+    public string? CorrelationId { get; set; }
 }

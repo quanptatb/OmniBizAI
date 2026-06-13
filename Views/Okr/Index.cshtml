@@ -1,6 +1,21 @@
 @model OmniBizAI.ViewModels.OkrListViewModel
 @{ ViewData["Title"] = "Quản lý OKR"; }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-radius:12px;background:rgba(25,135,84,0.1);color:#198754">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-radius:12px;background:rgba(220,53,69,0.1);color:#dc3545">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="page-header d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h3 mb-1" style="font-weight:800; letter-spacing:-0.02em;">
@@ -10,9 +25,14 @@
             <span class="text-muted small">Objectives & Key Results — Mục tiêu chiến lược</span>
         </div>
     </div>
-    <a asp-action="Create" class="btn-primary-custom">
-        <i class="bi bi-plus-lg"></i> Tạo OKR mới
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-controller="KpiSetup" asp-action="ImportMeetingSummary" class="btn btn-light">
+            <i class="bi bi-magic"></i> Import từ cuộc họp
+        </a>
+        <a asp-action="Create" class="btn-primary-custom">
+            <i class="bi bi-plus-lg"></i> Tạo OKR mới
+        </a>
+    </div>
 </div>
 
 <!-- Toolbar Filter -->
@@ -90,7 +110,10 @@
                     <i class="bi bi-inbox" style="font-size:3rem; color:var(--kpi-primary); opacity:0.4;"></i>
                     <h5 class="mt-3 fw-bold">Chưa có OKR nào</h5>
                     <p class="text-muted mb-3">Bấm "Tạo OKR mới" để bắt đầu thiết lập mục tiêu chiến lược.</p>
-                    <a asp-action="Create" class="btn-primary-custom"><i class="bi bi-plus-lg me-1"></i>Tạo OKR đầu tiên</a>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a asp-controller="KpiSetup" asp-action="ImportMeetingSummary" class="btn btn-light"><i class="bi bi-magic me-1"></i>Import từ cuộc họp</a>
+                        <a asp-action="Create" class="btn-primary-custom"><i class="bi bi-plus-lg me-1"></i>Tạo OKR đầu tiên</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,13 +123,51 @@
         <div class="col-md-6 col-lg-4 animate-fade-in">
             <div class="okr-card h-100">
                 <div class="card-body-custom">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="status-badge-soft @GetLevelBadge(item.Level)">
-                            <span class="status-dot"></span> @GetLevelName(item.Level)
-                        </span>
-                        <span class="status-badge-soft @GetStatusBadge(item.Status)">
-                            <span class="status-dot"></span> @GetStatusName(item.Status)
-                        </span>
+                    <div class="d-flex justify-content-between align-items-center mb-3 w-100">
+                        <div class="d-flex gap-2">
+                            <span class="status-badge-soft @GetLevelBadge(item.Level)">
+                                <span class="status-dot"></span> @GetLevelName(item.Level)
+                            </span>
+                            <span class="status-badge-soft @GetStatusBadge(item.Status)">
+                                <span class="status-dot"></span> @GetStatusName(item.Status)
+                            </span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-muted p-0 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.05);">
+                                <i class="bi bi-three-dots-vertical" style="font-size: 0.9rem;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 10px; font-size: 0.88rem; min-width: 210px;">
+                                <li>
+                                    <a class="dropdown-item py-2" asp-action="Edit" asp-route-id="@item.Id">
+                                        <i class="bi bi-pencil-square text-primary me-2"></i> Chỉnh sửa OKR
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 btn-add-kr" href="#" data-id="@item.Id" data-name="@item.ObjectiveName" data-bs-toggle="modal" data-bs-target="#addKrModal">
+                                        <i class="bi bi-plus-circle text-warning me-2 fw-bold" style="color:#ffc107!important"></i> Thêm KR
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 btn-suggest-kr" href="#" data-id="@item.Id" data-name="@item.ObjectiveName" data-bs-toggle="modal" data-bs-target="#suggestKrModal">
+                                        <i class="bi bi-magic text-info me-2" style="color:#0dcaf0!important"></i> AI Gợi ý KR
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 btn-allocations" href="#" data-id="@item.Id" data-name="@item.ObjectiveName" data-bs-toggle="modal" data-bs-target="#allocationsModal">
+                                        <i class="bi bi-person-plus text-primary me-2"></i> Phân bổ nhân sự/phòng ban
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa OKR này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item py-2 text-danger">
+                                            <i class="bi bi-trash text-danger me-2"></i> Xóa OKR
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                     <h5 class="mb-2" style="font-weight:700; line-height:1.4;">
                         <a asp-action="Details" asp-route-id="@item.Id" class="text-decoration-none" style="color:var(--kpi-text-primary);">
@@ -169,4 +230,298 @@
         >= 40 => "var(--kpi-warning)",
         _ => "var(--kpi-danger)"
     };
+}
+
+<!-- MODALS -->
+
+<!-- Modal 1: Add KR -->
+<div class="modal fade" id="addKrModal" tabindex="-1" aria-labelledby="addKrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="addKrModalLabel"><i class="bi bi-plus-circle-fill text-warning me-2"></i>Thêm Key Result mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddKeyResult" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="okrId" id="addKrOkrId" />
+                <div class="modal-body py-3">
+                    <p class="text-muted small mb-3">Mục tiêu: <strong id="addKrOkrName"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tên Key Result *</label>
+                        <input type="text" name="keyResultName" class="form-control" placeholder="Nhập kết quả then chốt..." required style="border-radius: 8px;" />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Đơn vị đo</label>
+                            <input type="text" name="unit" class="form-control" placeholder="vd: %, VNĐ, khách..." style="border-radius: 8px;" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Mục tiêu số *</label>
+                            <input type="number" name="targetValue" class="form-control" required min="0.01" step="any" value="100" style="border-radius: 8px;" />
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="isInverse" id="addKrIsInverse" value="true">
+                        <label class="form-check-label small fw-bold" for="addKrIsInverse">Đo lường nghịch (vd: giảm chi phí, giảm lỗi)</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Đóng</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold" style="border-radius: 8px;">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: AI Suggest KR -->
+<div class="modal fade" id="suggestKrModal" tabindex="-1" aria-labelledby="suggestKrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="suggestKrModalLabel"><i class="bi bi-magic text-info me-2"></i>AI Gợi ý Key Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="SaveSuggestedKeyResults" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="okrId" id="suggestKrOkrId" />
+                <div class="modal-body py-3">
+                    <p class="text-muted small mb-3">Mục tiêu của bạn: <strong id="suggestKrOkrName"></strong></p>
+                    
+                    <div id="aiLoading" class="text-center py-5">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted small">Gemini AI đang phân tích mục tiêu và gợi ý kết quả then chốt...</p>
+                    </div>
+
+                    <div id="aiError" class="alert alert-danger d-none" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i><span id="aiErrorMessage">Lỗi khi gọi AI gợi ý.</span>
+                    </div>
+
+                    <div id="aiSuggestionsContainer" class="d-none">
+                        <p class="small fw-bold mb-2">Chọn các kết quả then chốt muốn thêm:</p>
+                        <div id="aiSuggestionsList" class="d-flex flex-column gap-3">
+                            <!-- suggestions populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Đóng</button>
+                    <button type="submit" id="btnSaveSuggestions" class="btn btn-info text-white fw-bold d-none" style="border-radius: 8px;">Thêm các KR đã chọn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3: Allocations -->
+<div class="modal fade" id="allocationsModal" tabindex="-1" aria-labelledby="allocationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="allocationsModalLabel"><i class="bi bi-person-plus-fill text-primary me-2"></i>Phân bổ Nhân sự & Phòng ban</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateAllocations" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="okrId" id="allocationsOkrId" />
+                <div class="modal-body py-3">
+                    <p class="text-muted small mb-3">Mục tiêu: <strong id="allocationsOkrName"></strong></p>
+
+                    <div id="allocationsLoading" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <div id="allocationsContent" class="d-none">
+                        <ul class="nav nav-tabs mb-3" id="allocationsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="departments-tab" data-bs-toggle="tab" data-bs-target="#departments-panel" type="button" role="tab" aria-selected="true">Phòng ban</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="employees-tab" data-bs-toggle="tab" data-bs-target="#employees-panel" type="button" role="tab" aria-selected="false">Nhân viên</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="allocationsTabContent">
+                            <div class="tab-pane fade show active" id="departments-panel" role="tabpanel" aria-labelledby="departments-tab">
+                                <div class="row g-2" id="departmentsCheckboxContainer" style="max-height: 250px; overflow-y: auto; padding: 5px;">
+                                    <!-- departments checkboxes -->
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="employees-panel" role="tabpanel" aria-labelledby="employees-tab">
+                                <div class="row g-2" id="employeesCheckboxContainer" style="max-height: 250px; overflow-y: auto; padding: 5px;">
+                                    <!-- employees checkboxes -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Đóng</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;">Lưu phân bổ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Modal Add KR
+        var addKrModal = document.getElementById('addKrModal');
+        if (addKrModal) {
+            addKrModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var name = button.getAttribute('data-name');
+                
+                document.getElementById('addKrOkrId').value = id;
+                document.getElementById('addKrOkrName').innerText = name;
+            });
+        }
+
+        // Modal AI Suggest
+        var suggestKrModal = document.getElementById('suggestKrModal');
+        if (suggestKrModal) {
+            suggestKrModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var name = button.getAttribute('data-name');
+                
+                document.getElementById('suggestKrOkrId').value = id;
+                document.getElementById('suggestKrOkrName').innerText = name;
+
+                // Reset modal state
+                document.getElementById('aiLoading').classList.remove('d-none');
+                document.getElementById('aiError').classList.add('d-none');
+                document.getElementById('aiSuggestionsContainer').classList.add('d-none');
+                document.getElementById('btnSaveSuggestions').classList.add('d-none');
+                document.getElementById('aiSuggestionsList').innerHTML = '';
+
+                // Call suggest action
+                fetch('/Okr/SuggestKeyResults/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('aiLoading').classList.add('d-none');
+                    if (data.success && data.keyResults && data.keyResults.length > 0) {
+                        var list = document.getElementById('aiSuggestionsList');
+                        data.keyResults.forEach((kr, index) => {
+                            var checked = index < 3 ? 'checked' : ''; // Default select top 3
+                            var html = `
+                                <div class="p-3 border rounded mb-2" style="background: var(--kpi-bg-secondary); border-color: var(--kpi-border)!important;">
+                                    <div class="form-check">
+                                        <input class="form-check-input ai-kr-checkbox" type="checkbox" value="${index}" id="aiKr_${index}" ${checked}>
+                                        <label class="form-check-label fw-bold d-block" for="aiKr_${index}" style="cursor: pointer;">
+                                            ${kr.name}
+                                        </label>
+                                        <div class="mt-2 d-flex gap-3 text-muted small">
+                                            <span><strong>Đơn vị:</strong> ${kr.unit || 'N/A'}</span>
+                                            <span><strong>Mục tiêu:</strong> ${kr.targetValue}</span>
+                                            <span><strong>Đo ngược:</strong> ${kr.isInverse ? 'Có' : 'Không'}</span>
+                                        </div>
+                                        <input type="hidden" name="keyResults[${index}].Name" value="${kr.name}" class="ai-input-${index}" ${checked ? '' : 'disabled'} />
+                                        <input type="hidden" name="keyResults[${index}].Unit" value="${kr.unit || ''}" class="ai-input-${index}" ${checked ? '' : 'disabled'} />
+                                        <input type="hidden" name="keyResults[${index}].TargetValue" value="${kr.targetValue}" class="ai-input-${index}" ${checked ? '' : 'disabled'} />
+                                        <input type="hidden" name="keyResults[${index}].IsInverse" value="${kr.isInverse ? 'true' : 'false'}" class="ai-input-${index}" ${checked ? '' : 'disabled'} />
+                                    </div>
+                                </div>
+                            `;
+                            list.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        // Event listener for suggestion checkboxes to enable/disable hidden inputs
+                        document.querySelectorAll('.ai-kr-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                var idx = this.value;
+                                var inputs = document.querySelectorAll('.ai-input-' + idx);
+                                inputs.forEach(input => {
+                                    input.disabled = !this.checked;
+                                });
+                            });
+                        });
+
+                        document.getElementById('aiSuggestionsContainer').classList.remove('d-none');
+                        document.getElementById('btnSaveSuggestions').classList.remove('d-none');
+                    } else {
+                        document.getElementById('aiError').classList.remove('d-none');
+                        document.getElementById('aiErrorMessage').innerText = data.message || "Không có gợi ý nào từ AI.";
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('aiLoading').classList.add('d-none');
+                    document.getElementById('aiError').classList.remove('d-none');
+                    document.getElementById('aiErrorMessage').innerText = "Đã xảy ra lỗi hệ thống: " + err;
+                });
+            });
+        }
+
+        // Modal Allocations
+        var allocationsModal = document.getElementById('allocationsModal');
+        if (allocationsModal) {
+            allocationsModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var name = button.getAttribute('data-name');
+                
+                document.getElementById('allocationsOkrId').value = id;
+                document.getElementById('allocationsOkrName').innerText = name;
+
+                document.getElementById('allocationsLoading').classList.remove('d-none');
+                document.getElementById('allocationsContent').classList.add('d-none');
+                document.getElementById('departmentsCheckboxContainer').innerHTML = '';
+                document.getElementById('employeesCheckboxContainer').innerHTML = '';
+
+                fetch('/Okr/GetAllocations/' + id)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('allocationsLoading').classList.add('d-none');
+                    if (data.success) {
+                        var depContainer = document.getElementById('departmentsCheckboxContainer');
+                        data.departments.forEach(dep => {
+                            var checked = data.selectedDepartmentIds.includes(dep.id) ? 'checked' : '';
+                            var html = `
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check p-2 border rounded h-100" style="background: var(--kpi-bg-secondary); border-color: var(--kpi-border)!important;">
+                                        <input class="form-check-input ms-1" type="checkbox" name="departmentIds" value="${dep.id}" id="dep_${dep.id}" ${checked}>
+                                        <label class="form-check-label small fw-semibold ms-2" for="dep_${dep.id}" style="cursor: pointer;">
+                                            ${dep.name}
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                            depContainer.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        var empContainer = document.getElementById('employeesCheckboxContainer');
+                        data.employees.forEach(emp => {
+                            var checked = data.selectedEmployeeIds.includes(emp.id) ? 'checked' : '';
+                            var html = `
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check p-2 border rounded h-100" style="background: var(--kpi-bg-secondary); border-color: var(--kpi-border)!important;">
+                                        <input class="form-check-input ms-1" type="checkbox" name="employeeIds" value="${emp.id}" id="emp_${emp.id}" ${checked}>
+                                        <label class="form-check-label small fw-semibold ms-2" for="emp_${emp.id}" style="cursor: pointer;">
+                                            ${emp.name}
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                            empContainer.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        document.getElementById('allocationsContent').classList.remove('d-none');
+                    }
+                });
+            });
+        }
+    });
+</script>
 }

@@ -1582,7 +1582,7 @@ public class AiInsightsController : Controller
             var result = await _service.AnalyzeAsync(vm);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { error = "Hệ thống AI tạm thời gặp sự cố. Vui lòng thử lại sau." });
         }

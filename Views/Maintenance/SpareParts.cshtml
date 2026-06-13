@@ -7,13 +7,17 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="h4 mb-1 text-gray-800"><i class="fas fa-warehouse text-secondary me-2"></i>Kho Phụ Tùng Thay Thế</h2>
+        <h4 class="page-title mb-1"><i class="fas fa-warehouse text-secondary me-2"></i>Kho Phụ Tùng Thay Thế</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Quản lý danh sách linh kiện, phụ tùng dự trữ cho bảo trì thiết bị.</p>
         @if (lowStockCount > 0)
         {
-            <span class="badge bg-warning text-dark">⚠️ @lowStockCount phụ tùng tồn kho thấp</span>
+            <span class="badge bg-warning text-dark mt-2">⚠️ @lowStockCount phụ tùng tồn kho thấp</span>
         }
     </div>
-    <a asp-action="CreateSparePart" class="btn btn-secondary btn-sm"><i class="fas fa-plus me-1"></i>Thêm Phụ Tùng</a>
+    <div>
+        <a asp-action="Index" class="btn btn-light me-2"><i class="fas fa-chart-line me-1"></i>Dashboard</a>
+        <a asp-action="CreateSparePart" class="btn btn-secondary"><i class="fas fa-plus me-1"></i>Thêm Phụ Tùng</a>
+    </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -22,8 +26,8 @@
 }
 
 <!-- Filters -->
-<div class="card shadow mb-4">
-    <div class="card-body py-2">
+<div class="content-card mb-4">
+    <div class="card-body-custom py-3">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-5"><input type="text" name="search" class="form-control form-control-sm" placeholder="Tìm theo tên, mã, mã linh kiện..." value="@ViewBag.Search" /></div>
             <div class="col-md-4">
@@ -39,13 +43,13 @@
                     <option value="Other">Khác</option>
                 </select>
             </div>
-            <div class="col-md-3"><button type="submit" class="btn btn-outline-secondary btn-sm w-100">Lọc</button></div>
+            <div class="col-md-3"><button type="submit" class="btn btn-secondary w-100"><i class="fas fa-filter me-1"></i>Lọc</button></div>
         </form>
     </div>
 </div>
 
-<div class="card shadow">
-    <div class="card-body p-0">
+<div class="content-card">
+    <div class="card-body-custom p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">

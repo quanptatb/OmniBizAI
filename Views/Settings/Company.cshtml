@@ -1,14 +1,234 @@
 @model OmniBizAI.ViewModels.CompanySettingsViewModel
-@{ ViewData["Title"] = "Cài đặt công ty"; ViewData["Breadcrumb"] = "<span>Hệ thống</span> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Cài đặt công ty</span>"; }
-<div class="content-card" style="max-width:680px"><div class="card-header-custom"><h5><i class="fa-solid fa-building-columns"></i> Thông tin công ty</h5></div><div class="card-body-custom">
-    <form method="post" asp-action="Company">@Html.AntiForgeryToken()
-        <div class="row g-3">
-            <div class="col-md-8"><label class="form-label">Tên công ty <span class="text-danger">*</span></label><input asp-for="CompanyName" class="form-input" /><span asp-validation-for="CompanyName" class="text-danger" style="font-size:.78rem"></span></div>
-            <div class="col-md-4"><label class="form-label">Mã Tenant</label><input asp-for="TenantCode" class="form-input" readonly style="background:var(--bg-tertiary)" /></div>
-            <div class="col-md-6"><label class="form-label">Loại hình DN</label><input asp-for="BusinessType" class="form-input" placeholder="VD: Công ty TNHH..." /></div>
-            <div class="col-md-6"><label class="form-label">Ngành nghề</label><input asp-for="Industry" class="form-input" placeholder="VD: Công nghệ thông tin..." /></div>
-            <div class="col-md-6"><label class="form-label">Mã hồ sơ DN</label><input asp-for="ProfileCode" class="form-input" /></div>
+@{
+    Layout = "~/Views/Shared/_SettingsLayout.cshtml";
+    ViewData["Title"] = "Cài đặt công ty";
+    ViewData["Breadcrumb"] = "<a href='/Settings' style='color:var(--text-muted);text-decoration:none;transition:color 0.2s;' onmouseover='this.style.color=\"var(--apple-blue)\"' onmouseout='this.style.color=\"var(--text-muted)\"'>Thiết lập</a> <i class='fa-solid fa-chevron-right' style='font-size:.6rem;margin:0 6px;color:var(--text-muted)'></i> <span>Cài đặt công ty</span>";
+}
+
+<style>
+    .company-settings-card {
+        max-width: 760px;
+        background: var(--canvas);
+        border: 1px solid var(--divider);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .company-card-header {
+        background: linear-gradient(135deg, rgba(0, 114, 227, 0.05), rgba(0, 114, 227, 0.01));
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--divider);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .company-card-header-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: rgba(0, 114, 227, 0.1);
+        color: var(--apple-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .company-card-body {
+        padding: 28px;
+    }
+
+    .form-group-title {
+        font-size: 0.88rem;
+        font-weight: 650;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .form-group-title span.indicator {
+        width: 3.5px;
+        height: 14px;
+        border-radius: 2px;
+        background: var(--apple-blue);
+        display: inline-block;
+    }
+
+    .premium-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .premium-input-icon {
+        position: absolute;
+        left: 14px;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        pointer-events: none;
+        transition: color 0.2s ease;
+    }
+
+    .premium-form-input {
+        width: 100%;
+        padding: 10px 14px 10px 42px !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--hairline) !important;
+        background: var(--canvas) !important;
+        color: var(--text-primary) !important;
+        font-size: 0.84rem !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .premium-form-input:focus {
+        border-color: var(--apple-blue) !important;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12) !important;
+        outline: none;
+    }
+
+    .premium-form-input:focus + .premium-input-icon {
+        color: var(--apple-blue);
+    }
+
+    .readonly-input-wrapper {
+        background: var(--parchment);
+        border-radius: 10px;
+        border: 1px solid var(--divider);
+        display: flex;
+        align-items: center;
+        padding: 10px 14px 10px 42px;
+        position: relative;
+    }
+
+    .readonly-form-input {
+        width: 100%;
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-secondary) !important;
+        font-family: monospace;
+        font-size: 0.82rem !important;
+        font-weight: 600;
+        padding: 0 !important;
+    }
+
+    .readonly-form-input:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .btn-save-settings {
+        background: var(--apple-blue);
+        border: 1px solid var(--apple-blue);
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-save-settings:hover {
+        background: var(--apple-blue-focus);
+        border-color: var(--apple-blue-focus);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="company-settings-card shadow-sm fade-in">
+    <div class="company-card-header">
+        <div class="company-card-header-icon">
+            <i class="fa-solid fa-building-columns"></i>
         </div>
-        <div class="d-flex gap-2 mt-4"><button type="submit" class="btn-primary-custom"><i class="fa-solid fa-save me-1"></i>Lưu thay đổi</button></div>
-    </form>
-</div></div>
+        <div>
+            <h5 class="mb-0 fw-bold" style="font-size: 1.05rem; color: var(--text-primary);">Thông tin doanh nghiệp</h5>
+            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 550; text-transform: uppercase; letter-spacing: 0.02em;">Thiết lập tổ chức cơ bản</span>
+        </div>
+    </div>
+    
+    <div class="company-card-body">
+        <form method="post" asp-action="Company">
+            @Html.AntiForgeryToken()
+            
+            <!-- Section 1: Basic Info -->
+            <div class="form-group-title">
+                <span class="indicator"></span>
+                <span>Thông tin cơ bản</span>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem;">Tên doanh nghiệp <span class="text-danger">*</span></label>
+                    <div class="premium-input-wrapper">
+                        <input asp-for="CompanyName" class="premium-form-input" placeholder="VD: Công ty Cổ phần OmniBiz" />
+                        <i class="fa-solid fa-signature premium-input-icon"></i>
+                    </div>
+                    <span asp-validation-for="CompanyName" class="text-danger" style="font-size: 0.72rem; display: block; margin-top: 4px;"></span>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem;">Loại hình doanh nghiệp</label>
+                    <div class="premium-input-wrapper">
+                        <input asp-for="BusinessType" class="premium-form-input" placeholder="VD: Công ty TNHH, Công ty Cổ phần..." />
+                        <i class="fa-solid fa-bezier-curve premium-input-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem;">Ngành nghề kinh doanh</label>
+                    <div class="premium-input-wrapper">
+                        <input asp-for="Industry" class="premium-form-input" placeholder="VD: Công nghệ thông tin, Thương mại..." />
+                        <i class="fa-solid fa-tags premium-input-icon"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <hr style="border-color: var(--divider); margin: 28px 0;" />
+            
+            <!-- Section 2: Technical Info -->
+            <div class="form-group-title">
+                <span class="indicator" style="background: var(--text-muted);"></span>
+                <span class="text-secondary">Cấu hình kỹ thuật &amp; Tenant</span>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-md-7">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem; color: var(--text-secondary);">Mã Tenant (Tenant ID)</label>
+                    <div class="readonly-input-wrapper">
+                        <input asp-for="TenantCode" class="readonly-form-input" readonly />
+                        <i class="fa-solid fa-lock premium-input-icon text-muted"></i>
+                        <i class="fa-solid fa-circle-info position-absolute end-0 me-3 text-muted" style="font-size: 0.75rem;" title="Mã Tenant không thể thay đổi"></i>
+                    </div>
+                    <small class="text-muted mt-1 d-block" style="font-size: 0.7rem;">Mã định danh duy nhất cho cơ sở dữ liệu của phân hệ tenant này.</small>
+                </div>
+                
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold" style="font-size: 0.8rem;">Mã hồ sơ DN (Profile Code)</label>
+                    <div class="premium-input-wrapper">
+                        <input asp-for="ProfileCode" class="premium-form-input" placeholder="VD: PROFILE_OMNIBIZ" />
+                        <i class="fa-solid fa-id-card premium-input-icon"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2 mt-4 pt-2">
+                <button type="submit" class="btn-save-settings">
+                    <i class="fa-solid fa-save"></i> Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

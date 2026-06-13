@@ -347,7 +347,16 @@ public class ProcurementService(ApplicationDbContext db, ITenantContext tenant)
                 .Select(v => new SelectOption { Value = v.Id.ToString(), Text = v.Name }).ToListAsync(),
             PurchaseOrders = await db.PurchaseOrders.Where(po => po.TenantId == tid && !po.IsDeleted && po.Status != PurchaseOrderStatus.Cancelled)
                 .OrderByDescending(po => po.CreatedAt)
-                .Select(po => new SelectOption { Value = po.Id.ToString(), Text = po.OrderNo }).ToListAsync()
+                .Select(po => new SelectOption { Value = po.Id.ToString(), Text = po.OrderNo }).ToListAsync(),
+            OperationRequests = await db.OperationRequests
+                .Where(r => r.TenantId == tid
+                    && !r.IsDeleted
+                    && r.Status != OperationStatus.Draft
+                    && r.Status != OperationStatus.Rejected
+                    && r.Status != OperationStatus.Cancelled)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new SelectOption { Value = r.Id.ToString(), Text = r.RequestNo + " - " + r.Title })
+                .ToListAsync()
         };
     }
 
@@ -359,6 +368,7 @@ public class ProcurementService(ApplicationDbContext db, ITenantContext tenant)
         {
             TenantId = tid, RequestNo = $"PAY-{DateTime.Today.Year}-{count + 1:D3}",
             VendorId = vm.VendorId, PurchaseOrderId = vm.PurchaseOrderId,
+            OperationRequestId = vm.OperationRequestId,
             TotalAmount = vm.TotalAmount, DueDate = vm.DueDate,
             RequestedByUserId = tenant.UserId, Status = PaymentStatus.Draft,
             CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
@@ -395,6 +405,7 @@ public class ProcurementService(ApplicationDbContext db, ITenantContext tenant)
         var p = await db.PaymentRequests
             .Include(p => p.Vendor)
             .Include(p => p.PurchaseOrder)
+            .Include(p => p.OperationRequest)
             .Include(p => p.RequestedByUser)
             .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenant.TenantId && !p.IsDeleted);
         if (p is null) return null;
@@ -410,6 +421,7 @@ public class ProcurementService(ApplicationDbContext db, ITenantContext tenant)
             Id = p.Id, RequestNo = p.RequestNo, Title = p.RequestNo,
             TotalAmount = p.TotalAmount, Status = p.Status.ToString(),
             VendorName = p.Vendor?.Name, PurchaseOrderNo = p.PurchaseOrder?.OrderNo,
+            OperationRequestNo = p.OperationRequest?.RequestNo, OperationRequestId = p.OperationRequestId,
             RequestedBy = p.RequestedByUser?.FullName ?? "", DueDate = p.DueDate,
             CreatedAt = p.CreatedAt, ActivityLog = activityLog
         };

@@ -1,6 +1,10 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OmniBizAI.Data;
+using OmniBizAI.Domain.StateMachines;
 using OmniBizAI.Models.Entities;
 using OmniBizAI.Models.Entities.Enums;
 using OmniBizAI.ViewModels;
@@ -51,6 +55,7 @@ public class DashboardService(ApplicationDbContext db, ITenantContext tenant)
     {
         var tid = tenant.TenantId;
         var requests = await db.OperationRequests.Where(r => r.TenantId == tid && !r.IsDeleted).ToListAsync();
+        var now = DateTimeOffset.UtcNow;
         var today = DateOnly.FromDateTime(DateTime.Today);
 
         var vm = new DashboardViewModel
@@ -59,7 +64,7 @@ public class DashboardService(ApplicationDbContext db, ITenantContext tenant)
             UserRole = tenant.Roles.FirstOrDefault() ?? "",
             TenantName = tenant.TenantName,
             TotalOperationRequests = requests.Count,
-            OverdueTasks = requests.Count(r => r.DueDate < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled),
+            OverdueTasks = requests.Count(r => IsRequestOverdue(r, now, today)),
             PendingApprovals = await db.ApprovalTasks.CountAsync(t => t.TenantId == tid && t.Status == ApprovalStatus.Pending && !t.IsDeleted),
             ActiveUsers = await db.AppUsers.CountAsync(u => u.TenantId == tid && u.Status == UserStatus.Active && !u.IsDeleted),
             RequestsByStatus = requests.GroupBy(r => r.Status.ToString()).Select(g => new StatusCountItem { Status = g.Key, Count = g.Count() }).ToList(),
@@ -95,11 +100,144 @@ public class DashboardService(ApplicationDbContext db, ITenantContext tenant)
 
         return vm;
     }
+
+    private static bool IsRequestOverdue(OperationRequest request, DateTimeOffset now, DateOnly today)
+    {
+        var slaDueAt = OperationSlaService.GetActiveDueAt(request.Status, request.ApprovalDueAt, request.ResolutionDueAt);
+        if (slaDueAt.HasValue) return slaDueAt.Value < now;
+
+        return request.DueDate.HasValue
+            && request.DueDate.Value < today
+            && request.Status != OperationStatus.Completed
+            && request.Status != OperationStatus.Cancelled;
+    }
 }
 
 // ─── OperationRequest ────────────────────────────────────────────────────────
-public class OperationRequestService(ApplicationDbContext db, ITenantContext tenant, IReportCacheService cache)
+public class OperationRequestService(
+    ApplicationDbContext db,
+    ITenantContext tenant,
+    INumberingService numbering,
+    IAuditService audit,
+    IOperationSlaService operationSla,
+    IOperationSlaWatcherQueue slaWatcherQueue,
+    OperationApprovalService operationApprovals,
+    IReportCacheService cache)
 {
+    private const string CriticalOverdueFilter = "CriticalOverdue";
+    private const string OverBudgetFilter = "OverBudget";
+    private const decimal CostOverrunThresholdPercent = 20m;
+    private static readonly Regex MentionRegex = new(@"@([A-Za-z0-9._-]{2,80})", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly JsonSerializerOptions TemplateJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter() },
+        WriteIndented = true
+    };
+
+    private sealed record OperationAssignmentAccess(bool HasAssignments, bool HasPrimary, bool HasSupport, bool HasWatcher);
+
+    private bool IsOperationAdmin() =>
+        tenant.HasRole(OperationRoles.SystemAdmin) || tenant.HasRole(OperationRoles.TenantAdmin);
+
+    private bool HasLegacyOperationManagerRole() =>
+        IsOperationAdmin() || tenant.HasRole(OperationRoles.DepartmentManager);
+
+    private bool HasLegacyOperationContributorRole() =>
+        HasLegacyOperationManagerRole() || tenant.HasRole(OperationRoles.Staff);
+
+    private bool CanManageOperationAssignments() =>
+        IsOperationAdmin() || tenant.HasRole(OperationRoles.DepartmentManager);
+
+    private async Task<List<Guid>> GetCurrentUserDepartmentIdsAsync()
+    {
+        var tid = tenant.TenantId;
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var departmentIds = await db.EmployeeDepartmentAssignments
+            .Where(a => a.TenantId == tid
+                && !a.IsDeleted
+                && a.EmployeeProfile != null
+                && a.EmployeeProfile.UserId == tenant.UserId
+                && a.EffectiveFrom <= today
+                && (!a.EffectiveTo.HasValue || a.EffectiveTo.Value >= today))
+            .Select(a => a.OrganizationUnitId)
+            .ToListAsync();
+
+        var primaryDepartmentId = await db.AppUsers
+            .AsNoTracking()
+            .Where(u => u.Id == tenant.UserId && u.TenantId == tid && !u.IsDeleted)
+            .Select(u => u.OrganizationUnitId)
+            .FirstOrDefaultAsync();
+
+        if (primaryDepartmentId.HasValue) departmentIds.Add(primaryDepartmentId.Value);
+        return departmentIds.Distinct().ToList();
+    }
+
+    private async Task<OperationAssignmentAccess> GetAssignmentAccessAsync(Guid requestId)
+    {
+        var activeAssignments = await db.OperationRequestAssignments
+            .AsNoTracking()
+            .Where(a => a.TenantId == tenant.TenantId
+                && a.OperationRequestId == requestId
+                && a.IsActive
+                && !a.IsDeleted)
+            .Select(a => new { a.Role, a.AssignedUserId, a.OrganizationUnitId })
+            .ToListAsync();
+
+        if (!activeAssignments.Any()) return new(false, false, false, false);
+
+        var departmentIds = await GetCurrentUserDepartmentIdsAsync();
+        var matchedRoles = activeAssignments
+            .Where(a => a.AssignedUserId == tenant.UserId
+                || (a.OrganizationUnitId.HasValue && departmentIds.Contains(a.OrganizationUnitId.Value)))
+            .Select(a => a.Role)
+            .Distinct()
+            .ToList();
+
+        return new(
+            true,
+            matchedRoles.Contains(OperationAssignmentRole.Primary),
+            matchedRoles.Contains(OperationAssignmentRole.Support),
+            matchedRoles.Contains(OperationAssignmentRole.Watcher));
+    }
+
+    private async Task<bool> CanManageRequestWorkAsync(Guid requestId)
+    {
+        if (IsOperationAdmin()) return true;
+        var access = await GetAssignmentAccessAsync(requestId);
+        return access.HasAssignments ? access.HasPrimary : HasLegacyOperationManagerRole();
+    }
+
+    private async Task<bool> CanSupportRequestAsync(Guid requestId)
+    {
+        if (IsOperationAdmin()) return true;
+        var access = await GetAssignmentAccessAsync(requestId);
+        return access.HasAssignments
+            ? access.HasPrimary || access.HasSupport
+            : HasLegacyOperationContributorRole();
+    }
+
+    public Task<bool> CanSupportOperationRequestAsync(Guid requestId) =>
+        CanSupportRequestAsync(requestId);
+
+    private async Task<bool> CanSubmitRequestAsync(OperationRequest request)
+    {
+        if (IsOperationAdmin() || request.RequestedByUserId == tenant.UserId) return true;
+        var access = await GetAssignmentAccessAsync(request.Id);
+        return access.HasAssignments
+            ? access.HasPrimary || access.HasSupport
+            : HasLegacyOperationContributorRole();
+    }
+
+    private async Task<bool> CanCancelRequestAsync(OperationRequest request)
+    {
+        if (IsOperationAdmin() || request.RequestedByUserId == tenant.UserId) return true;
+        var access = await GetAssignmentAccessAsync(request.Id);
+        return access.HasAssignments
+            ? access.HasPrimary
+            : HasLegacyOperationManagerRole();
+    }
+
     public async Task<OperationRequestListViewModel> GetListAsync(string? search, string? status, string? priority, Guid? deptId, int page = 1)
     {
         var tid = tenant.TenantId;
@@ -109,15 +247,42 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         var submittedCount = await baseQ.CountAsync(r => r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview);
         var inProgressCount = await baseQ.CountAsync(r => r.Status == OperationStatus.InProgress);
         var completedCount = await baseQ.CountAsync(r => r.Status == OperationStatus.Completed);
-        var overdueCount = await baseQ.CountAsync(r => r.DueDate.HasValue && r.DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled);
+        var now = DateTimeOffset.UtcNow;
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var overdueCount = await baseQ.CountAsync(r =>
+            ((r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview) && r.ApprovalDueAt.HasValue && r.ApprovalDueAt < now)
+            || ((r.Status == OperationStatus.Approved || r.Status == OperationStatus.InProgress || r.Status == OperationStatus.OnHold) && r.ResolutionDueAt.HasValue && r.ResolutionDueAt < now)
+            || (!r.ApprovalDueAt.HasValue && !r.ResolutionDueAt.HasValue && r.DueDate.HasValue && r.DueDate.Value < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled));
+        var criticalCount = await baseQ.CountAsync(r => r.Priority == PriorityLevel.Critical);
+        var criticalOverdueCount = await baseQ.CountAsync(r =>
+            r.Priority == PriorityLevel.Critical
+            && (((r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview) && r.ApprovalDueAt.HasValue && r.ApprovalDueAt < now)
+                || ((r.Status == OperationStatus.Approved || r.Status == OperationStatus.InProgress || r.Status == OperationStatus.OnHold) && r.ResolutionDueAt.HasValue && r.ResolutionDueAt < now)
+                || (!r.ApprovalDueAt.HasValue && !r.ResolutionDueAt.HasValue && r.DueDate.HasValue && r.DueDate.Value < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled)));
+        var overBudgetCount = await baseQ.CountAsync(r => r.CostVariancePercent.HasValue && r.CostVariancePercent > CostOverrunThresholdPercent);
 
         var q = baseQ;
         if (!string.IsNullOrWhiteSpace(search)) q = q.Where(r => r.Title.Contains(search) || r.RequestNo.Contains(search));
         if (!string.IsNullOrWhiteSpace(status))
         {
-            if (status.Equals("Overdue", StringComparison.OrdinalIgnoreCase))
+            if (status.Equals(CriticalOverdueFilter, StringComparison.OrdinalIgnoreCase))
             {
-                q = q.Where(r => r.DueDate.HasValue && r.DueDate.Value < DateOnly.FromDateTime(DateTime.Today) && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled);
+                q = q.Where(r =>
+                    r.Priority == PriorityLevel.Critical
+                    && (((r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview) && r.ApprovalDueAt.HasValue && r.ApprovalDueAt < now)
+                        || ((r.Status == OperationStatus.Approved || r.Status == OperationStatus.InProgress || r.Status == OperationStatus.OnHold) && r.ResolutionDueAt.HasValue && r.ResolutionDueAt < now)
+                        || (!r.ApprovalDueAt.HasValue && !r.ResolutionDueAt.HasValue && r.DueDate.HasValue && r.DueDate.Value < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled)));
+            }
+            else if (status.Equals("Overdue", StringComparison.OrdinalIgnoreCase))
+            {
+                q = q.Where(r =>
+                    ((r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview) && r.ApprovalDueAt.HasValue && r.ApprovalDueAt < now)
+                    || ((r.Status == OperationStatus.Approved || r.Status == OperationStatus.InProgress || r.Status == OperationStatus.OnHold) && r.ResolutionDueAt.HasValue && r.ResolutionDueAt < now)
+                    || (!r.ApprovalDueAt.HasValue && !r.ResolutionDueAt.HasValue && r.DueDate.HasValue && r.DueDate.Value < today && r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled));
+            }
+            else if (status.Equals(OverBudgetFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                q = q.Where(r => r.CostVariancePercent.HasValue && r.CostVariancePercent > CostOverrunThresholdPercent);
             }
             else if (Enum.TryParse<OperationStatus>(status, out var st))
             {
@@ -128,10 +293,31 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         if (deptId.HasValue) q = q.Where(r => r.OrganizationUnitId == deptId.Value);
 
         var total = await q.CountAsync();
-        var items = await q.OrderByDescending(r => r.CreatedAt).Skip((page - 1) * 20).Take(20)
+        var maxSlaDueAt = DateTimeOffset.MaxValue;
+        var maxDueDate = DateOnly.MaxValue;
+        var items = await q
+            .OrderByDescending(r => r.Priority == PriorityLevel.Critical ? 4 : r.Priority == PriorityLevel.High ? 3 : r.Priority == PriorityLevel.Normal ? 2 : 1)
+            .ThenBy(r => (r.Status == OperationStatus.Submitted || r.Status == OperationStatus.InReview)
+                ? (r.ApprovalDueAt ?? maxSlaDueAt)
+                : (r.Status == OperationStatus.Approved || r.Status == OperationStatus.InProgress || r.Status == OperationStatus.OnHold)
+                    ? (r.ResolutionDueAt ?? maxSlaDueAt)
+                    : maxSlaDueAt)
+            .ThenBy(r => r.DueDate ?? maxDueDate)
+            .ThenByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * 20).Take(20)
             .Join(db.AppUsers, r => r.RequestedByUserId, u => u.Id, (r, u) => new { r, u })
             .Join(db.OrganizationUnits, x => x.r.OrganizationUnitId, o => o.Id, (x, o) => new OperationRequestListItem
-            { Id = x.r.Id, RequestNo = x.r.RequestNo, Title = x.r.Title, Type = x.r.Type, Status = x.r.Status.ToString(), Priority = x.r.Priority.ToString(), Department = o.Name, CreatedBy = x.u.FullName, CreatedAt = x.r.CreatedAt, DueDate = x.r.DueDate, TotalAmount = x.r.TotalAmount })
+            {
+                Id = x.r.Id, RequestNo = x.r.RequestNo, Title = x.r.Title, Type = x.r.Type, Status = x.r.Status.ToString(),
+                Priority = x.r.Priority.ToString(), Department = o.Name, CreatedBy = x.u.FullName, CreatedAt = x.r.CreatedAt,
+                DueDate = x.r.DueDate, TotalAmount = x.r.TotalAmount,
+                EstimatedCost = x.r.EstimatedCost, ActualCost = x.r.ActualCost,
+                CostVariance = x.r.CostVariance, CostVariancePercent = x.r.CostVariancePercent,
+                PriorityWeight = x.r.Priority == PriorityLevel.Critical ? 4 : x.r.Priority == PriorityLevel.High ? 3 : x.r.Priority == PriorityLevel.Normal ? 2 : 1,
+                ApprovalDueAt = x.r.ApprovalDueAt, ResolutionDueAt = x.r.ResolutionDueAt,
+                SlaDueAt = OperationSlaService.GetActiveDueAt(x.r.Status, x.r.ApprovalDueAt, x.r.ResolutionDueAt),
+                SlaStage = OperationSlaService.GetActiveStage(x.r.Status)
+            })
             .ToListAsync();
 
         return new OperationRequestListViewModel
@@ -139,6 +325,8 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             Items = items, TotalCount = total, Page = page,
             DraftCount = draftCount, SubmittedCount = submittedCount, InProgressCount = inProgressCount,
             CompletedCount = completedCount, OverdueCount = overdueCount,
+            CriticalCount = criticalCount, CriticalOverdueCount = criticalOverdueCount,
+            OverBudgetCount = overBudgetCount,
             SearchTerm = search, StatusFilter = status, PriorityFilter = priority, DeptFilter = deptId,
             Departments = await db.OrganizationUnits.Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted)
                 .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name }).ToListAsync()
@@ -172,57 +360,502 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             .OrderByDescending(a => a.CreatedAt).Take(20)
             .Select(a => new ActivityLogItem { UserName = a.UserName, Action = a.Action, Details = a.NewValuesJson, OccurredAt = a.CreatedAt }).ToListAsync();
 
-        var comments = await db.Set<OperationComment>()
+        var commentRows = await db.Set<OperationComment>()
+            .AsNoTracking()
             .Where(c => c.OperationRequestId == id && c.TenantId == tenant.TenantId && !c.IsDeleted)
             .OrderBy(c => c.CreatedAt)
-            .Join(db.AppUsers, c => c.AuthorUserId, u => u.Id, (c, u) => new OperationCommentViewModel
+            .Join(db.AppUsers.AsNoTracking(), c => c.AuthorUserId, u => u.Id, (c, u) => new OperationCommentViewModel
             {
                 Id = c.Id,
                 Content = c.Content,
                 AuthorUserId = c.AuthorUserId,
                 AuthorName = u.FullName,
+                Type = c.Type,
+                ParentCommentId = c.ParentCommentId,
                 CreatedAt = c.CreatedAt
             })
             .ToListAsync();
+        var commentMap = commentRows.ToDictionary(c => c.Id);
+        foreach (var comment in commentRows.Where(c => c.ParentCommentId.HasValue))
+        {
+            if (commentMap.TryGetValue(comment.ParentCommentId!.Value, out var parent))
+            {
+                parent.Replies.Add(comment);
+            }
+        }
+
+        var comments = commentRows
+            .Where(c => !c.ParentCommentId.HasValue || !commentMap.ContainsKey(c.ParentCommentId.Value))
+            .OrderByDescending(c => c.CreatedAt)
+            .ToList();
+
+        var progressLogs = await db.OperationProgressLogs
+            .Where(p => p.OperationRequestId == id && p.TenantId == tenant.TenantId && !p.IsDeleted)
+            .OrderByDescending(p => p.CreatedAt)
+            .Join(db.AppUsers, p => p.CreatedByUserId!.Value, u => u.Id, (p, u) => new OperationProgressLogItem
+            {
+                Id = p.Id,
+                ProgressPercent = p.ProgressPercent,
+                Note = p.Note,
+                CreatedByName = u.FullName,
+                CreatedAt = p.CreatedAt
+            })
+            .ToListAsync();
+
+        var attachments = await db.Attachments
+            .AsNoTracking()
+            .Where(a => a.TenantId == tenant.TenantId
+                && a.EntityName == OperationAttachmentService.OperationRequestEntityName
+                && a.EntityId == id
+                && !a.IsDeleted)
+            .OrderByDescending(a => a.CreatedAt)
+            .Join(db.AppUsers, a => a.UploadedByUserId, u => u.Id, (a, u) => new OperationAttachmentItem
+            {
+                Id = a.Id,
+                FileName = a.FileName,
+                ContentType = a.ContentType,
+                FileSize = a.FileSize,
+                UploadedByName = u.FullName,
+                UploadedAt = a.CreatedAt
+            })
+            .ToListAsync();
+
+        var assignmentEntities = await db.OperationRequestAssignments
+            .AsNoTracking()
+            .Include(a => a.AssignedUser)
+            .Include(a => a.OrganizationUnit)
+            .Where(a => a.OperationRequestId == id && a.TenantId == tenant.TenantId && a.IsActive && !a.IsDeleted)
+            .OrderBy(a => a.Role)
+            .ThenBy(a => a.AssignedAt)
+            .ToListAsync();
+
+        var assignments = assignmentEntities.Select(a => new OperationAssignmentItem
+        {
+            Id = a.Id,
+            Role = a.Role,
+            AssignedUserId = a.AssignedUserId,
+            AssignedUserName = a.AssignedUser?.FullName,
+            OrganizationUnitId = a.OrganizationUnitId,
+            OrganizationUnitName = a.OrganizationUnit?.Name,
+            AssignedAt = a.AssignedAt,
+            Note = a.Note
+        }).ToList();
+
+        var assignmentAccess = await GetAssignmentAccessAsync(id);
+        var canManageAssignments = CanManageOperationAssignments();
+        var canManageWork = IsOperationAdmin()
+            || (assignmentAccess.HasAssignments ? assignmentAccess.HasPrimary : HasLegacyOperationManagerRole());
+        var canSupportWork = IsOperationAdmin()
+            || (assignmentAccess.HasAssignments ? assignmentAccess.HasPrimary || assignmentAccess.HasSupport : HasLegacyOperationContributorRole());
+        var canEditDraft = r.Status is OperationStatus.Draft or OperationStatus.Rejected
+            && (r.RequestedByUserId == tenant.UserId || canSupportWork);
+        var nextStates = OperationRequestStateMachine.NextStates(r.Status);
+        var slaDueAt = OperationSlaService.GetActiveDueAt(r.Status, r.ApprovalDueAt, r.ResolutionDueAt);
+        var currentProgress = progressLogs.FirstOrDefault()?.ProgressPercent
+            ?? (r.Status == OperationStatus.Completed ? 100m : r.Status == OperationStatus.InProgress ? 5m : 0m);
+        var progressStart = r.UpdatedAt ?? r.ApprovedAt ?? r.CreatedAt;
+        var isProgressStale = r.Status == OperationStatus.InProgress
+            && !progressLogs.Any()
+            && DateTimeOffset.UtcNow - progressStart > TimeSpan.FromHours(48);
 
         return new OperationRequestDetailViewModel
         {
             Id = r.Id, RequestNo = r.RequestNo, Title = r.Title, Type = r.Type, Status = r.Status.ToString(), Priority = r.Priority.ToString(),
             Department = dept?.Name ?? "", DepartmentId = r.OrganizationUnitId, Customer = customer?.Name, CreatedBy = creator?.FullName ?? "",
             CreatedAt = r.CreatedAt, DueDate = r.DueDate, TotalAmount = r.TotalAmount, Description = r.Description,
+            EstimatedCost = r.EstimatedCost, ActualCost = r.ActualCost,
+            CostVariance = r.CostVariance, CostVariancePercent = r.CostVariancePercent,
+            CostVarianceCalculatedAt = r.CostVarianceCalculatedAt,
             CustomerSiteName = customerSite?.Name,
+            SubmittedAt = r.SubmittedAt, ApprovedAt = r.ApprovedAt,
+            ApprovalDueAt = r.ApprovalDueAt, ResolutionDueAt = r.ResolutionDueAt,
+            SlaDueAt = slaDueAt, SlaStage = OperationSlaService.GetActiveStage(r.Status),
             Lines = lines, ApprovalTasks = approvals, WorkItems = workItems, AiInsights = aiInsights, ActivityLog = activityLog,
-            Comments = comments,
-            CanEdit = r.Status is OperationStatus.Draft or OperationStatus.Rejected,
-            CanSubmit = r.Status == OperationStatus.Draft,
-            CanCancel = r.Status is OperationStatus.Draft or OperationStatus.Submitted,
-            CanStartWork = r.Status == OperationStatus.Approved,
-            CanComplete = r.Status == OperationStatus.InProgress
+            Comments = comments, ProgressLogs = progressLogs, Attachments = attachments, Assignments = assignments,
+            CanEdit = canEditDraft,
+            CanSubmit = nextStates.Contains(OperationStatus.Submitted) && await CanSubmitRequestAsync(r),
+            CanCancel = nextStates.Contains(OperationStatus.Cancelled) && await CanCancelRequestAsync(r),
+            CanStartWork = nextStates.Contains(OperationStatus.InProgress) && r.Status == OperationStatus.Approved && canManageWork,
+            CanComplete = nextStates.Contains(OperationStatus.Completed) && canManageWork,
+            CanManageWork = canManageWork,
+            CanAddLine = ((r.Status is OperationStatus.Draft or OperationStatus.Rejected) && r.RequestedByUserId == tenant.UserId)
+                || (canSupportWork && r.Status is not (OperationStatus.Completed or OperationStatus.Cancelled)),
+            CanAddComment = canSupportWork && r.Status != OperationStatus.Cancelled,
+            CanAddProgress = r.Status == OperationStatus.InProgress && canSupportWork,
+            CanUploadAttachment = canSupportWork && r.Status != OperationStatus.Cancelled,
+            CanManageAssignments = canManageAssignments,
+            CurrentProgressPercent = currentProgress,
+            LastProgressAt = progressLogs.FirstOrDefault()?.CreatedAt,
+            IsProgressStale = isProgressStale,
+            NextStatuses = nextStates.Select(s => s.ToString()).ToList(),
+            AssignableUsers = await db.AppUsers
+                .AsNoTracking()
+                .Where(u => u.TenantId == tenant.TenantId && u.Status == UserStatus.Active && !u.IsDeleted)
+                .OrderBy(u => u.FullName)
+                .Select(u => new SelectOption { Value = u.Id.ToString(), Text = string.IsNullOrWhiteSpace(u.JobTitle) ? u.FullName : u.FullName + " - " + u.JobTitle })
+                .ToListAsync(),
+            AssignableDepartments = await db.OrganizationUnits
+                .AsNoTracking()
+                .Where(o => o.TenantId == tenant.TenantId && o.IsActive && !o.IsDeleted)
+                .OrderBy(o => o.Name)
+                .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
+                .ToListAsync()
         };
     }
 
     public async Task<Guid> CreateAsync(OperationRequestCreateViewModel vm)
     {
         var tid = tenant.TenantId;
-        var count = await db.OperationRequests.CountAsync(r => r.TenantId == tid);
+        var now = DateTimeOffset.UtcNow;
+        var requestYear = DateTime.Today.Year;
+        var requestNo = await numbering.NextAsync(
+            NumberingSequenceKeys.OperationRequest,
+            $"OPR-{requestYear}-",
+            3,
+            requestYear);
+        var validLines = NormalizeLineInputs(vm.Lines).ToList();
+        var lineTotal = validLines.Sum(l => l.LineAmount);
         var entity = new OperationRequest
         {
-            TenantId = tid, RequestNo = $"OPR-{DateTime.Today.Year}-{count + 1:D3}", Title = vm.Title, Type = vm.Type,
+            TenantId = tid, RequestNo = requestNo, Title = vm.Title, Type = vm.Type,
             OrganizationUnitId = vm.OrganizationUnitId, CustomerId = vm.CustomerId, Priority = vm.Priority,
-            Status = OperationStatus.Draft, DueDate = vm.DueDate, Description = vm.Description, TotalAmount = vm.TotalAmount,
-            RequestedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+            Status = OperationStatus.Draft, DueDate = vm.DueDate, Description = vm.Description,
+            TotalAmount = vm.TotalAmount ?? (validLines.Any() ? lineTotal : null),
+            RequestedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = now
         };
         db.OperationRequests.Add(entity);
-        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "OperationRequest", EntityId = entity.Id, NewValuesJson = $"{{\"RequestNo\":\"{entity.RequestNo}\",\"Title\":\"{entity.Title}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        foreach (var line in validLines)
+        {
+            db.OperationRequestLines.Add(new OperationRequestLine
+            {
+                TenantId = tid,
+                OperationRequestId = entity.Id,
+                ProductServiceId = line.ProductServiceId,
+                Quantity = line.Quantity,
+                UnitPrice = line.UnitPrice,
+                LineAmount = line.LineAmount,
+                Note = line.Note,
+                CreatedByUserId = tenant.UserId,
+                CreatedAt = now
+            });
+        }
+
+        db.OperationRequestAssignments.Add(new OperationRequestAssignment
+        {
+            TenantId = tid,
+            OperationRequestId = entity.Id,
+            OrganizationUnitId = vm.OrganizationUnitId,
+            Role = OperationAssignmentRole.Primary,
+            IsActive = true,
+            AssignedAt = now,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = now
+        });
+
+        if (vm.TemplateId.HasValue)
+        {
+            var template = await db.OperationRequestTemplates
+                .FirstOrDefaultAsync(t => t.Id == vm.TemplateId.Value && t.TenantId == tid && !t.IsDeleted);
+            if (template != null)
+            {
+                template.UsageCount += 1;
+                template.LastUsedAt = now;
+                template.UpdatedAt = now;
+                template.UpdatedByUserId = tenant.UserId;
+            }
+        }
+
+        // Tự động sinh KPI hoặc OKR Nháp nếu Type tương ứng
+        if (vm.Type == "KPI_PROPOSAL")
+        {
+            var kpi = new KpiDefinition
+            {
+                TenantId = tid, Code = $"KPI-{DateTime.Today:yyMMdd}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}",
+                Name = vm.Title, Description = vm.Description, Status = KpiStatus.Draft,
+                AssignerUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow,
+                OperationRequest = entity
+            };
+            db.KpiDefinitions.Add(kpi);
+        }
+        else if (vm.Type == "OKR_PROPOSAL")
+        {
+            var okr = new OkrObjective
+            {
+                TenantId = tid, ObjectiveName = vm.Title, Level = OkrLevel.Company, Status = OkrStatus.Draft,
+                CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow,
+                OperationRequest = entity
+            };
+            db.OkrObjectives.Add(okr);
+        }
+
+        await audit.LogAsync("OperationRequest", entity.Id, "Create", newValueObj: new { entity.RequestNo, entity.Title });
         await db.SaveChangesAsync();
         await cache.InvalidateTenantCacheAsync();
         return entity.Id;
+    }
+
+    public async Task<(bool Success, string Message, Guid? PlanId)> ConvertToPlanAsync(Guid id)
+    {
+        var tid = tenant.TenantId;
+        var request = await db.OperationRequests
+            .Include(r => r.Lines.Where(l => !l.IsDeleted))
+                .ThenInclude(l => l.ProductService)
+            .Include(r => r.Assignments.Where(a => a.IsActive && !a.IsDeleted))
+            .FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tid && !r.IsDeleted);
+
+        if (request == null)
+            return (false, "Yêu cầu vận hành không tồn tại hoặc bạn không có quyền truy cập.", null);
+
+        if (!string.Equals(request.Type, "Project", StringComparison.OrdinalIgnoreCase))
+            return (false, "Chỉ OperationRequest loại Project mới được chuyển thành kế hoạch vận hành.", null);
+
+        if (request.Status != OperationStatus.Approved)
+            return (false, "Chỉ yêu cầu Project đã được duyệt mới được chuyển thành kế hoạch vận hành.", null);
+
+        if (!await CanManageRequestWorkAsync(id))
+            return (false, "Bạn không có quyền chuyển yêu cầu này thành kế hoạch vận hành.", null);
+
+        var existingPlan = await db.OperationPlans
+            .Where(p => p.TenantId == tid && !p.IsDeleted && p.SourceOperationRequestId == id)
+            .Select(p => new { p.Id, p.Code })
+            .FirstOrDefaultAsync();
+        if (existingPlan != null)
+            return (true, $"Yêu cầu này đã có kế hoạch vận hành {existingPlan.Code}.", existingPlan.Id);
+
+        var now = DateTimeOffset.UtcNow;
+        var startDate = DateTime.Today;
+        var endDate = request.DueDate.HasValue
+            ? request.DueDate.Value.ToDateTime(new TimeOnly(17, 0))
+            : startDate.AddDays(1);
+        if (endDate <= startDate) endDate = startDate.AddDays(1);
+
+        var planCode = await numbering.NextAsync(NumberingSequenceKeys.OperationPlan, "OPP-", 4);
+        var primaryAssigneeId = request.Assignments
+            .Where(a => a.Role == OperationAssignmentRole.Primary && a.AssignedUserId.HasValue)
+            .OrderBy(a => a.AssignedAt)
+            .Select(a => a.AssignedUserId)
+            .FirstOrDefault();
+
+        var plan = new OperationPlan
+        {
+            TenantId = tid,
+            Code = planCode,
+            Title = TruncateForPlan(request.Title, 200),
+            PlanType = "Project",
+            StartDate = startDate,
+            EndDate = endDate,
+            SourceOperationRequestId = request.Id,
+            Status = OperationPlanStatus.Draft,
+            Notes = BuildPlanNotes(request),
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = now
+        };
+        db.OperationPlans.Add(plan);
+
+        db.PlanTasks.Add(new PlanTask
+        {
+            TenantId = tid,
+            PlanId = plan.Id,
+            Name = BuildDefaultPlanTaskName(request),
+            Description = BuildDefaultPlanTaskDescription(request),
+            StartTime = startDate,
+            EndTime = endDate,
+            AssignedUserId = primaryAssigneeId,
+            Status = PlanTaskStatus.Todo,
+            ProgressPercent = 0,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = now
+        });
+
+        await audit.LogAsync("OperationRequest", request.Id, "ConvertToPlan",
+            newValueObj: new { PlanId = plan.Id, plan.Code, plan.Title, plan.StartDate, plan.EndDate });
+        await audit.LogAsync("OperationPlan", plan.Id, "CreateFromOperationRequest",
+            newValueObj: new { plan.Code, plan.Title, plan.PlanType, plan.SourceOperationRequestId });
+
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        return saved
+            ? (true, $"Đã chuyển yêu cầu {request.RequestNo} thành kế hoạch {plan.Code}.", plan.Id)
+            : (false, ConcurrencySaveExtensions.StaleRecordMessage, null);
+    }
+
+    public async Task<List<Guid>> GetAssignmentNotificationUserIdsAsync(Guid requestId)
+    {
+        var tid = tenant.TenantId;
+        var assignments = await db.OperationRequestAssignments
+            .AsNoTracking()
+            .Where(a => a.TenantId == tid
+                && a.OperationRequestId == requestId
+                && a.IsActive
+                && !a.IsDeleted
+                && (a.Role == OperationAssignmentRole.Primary || a.Role == OperationAssignmentRole.Watcher))
+            .Select(a => new { a.AssignedUserId, a.OrganizationUnitId })
+            .ToListAsync();
+
+        if (!assignments.Any()) return new();
+
+        var directUserIds = assignments
+            .Where(a => a.AssignedUserId.HasValue)
+            .Select(a => a.AssignedUserId!.Value)
+            .Distinct()
+            .ToList();
+
+        var userIds = directUserIds.Any()
+            ? await db.AppUsers
+                .AsNoTracking()
+                .Where(u => u.TenantId == tid
+                    && directUserIds.Contains(u.Id)
+                    && u.Status == UserStatus.Active
+                    && !u.IsDeleted)
+                .Select(u => u.Id)
+                .ToListAsync()
+            : new List<Guid>();
+
+        var departmentIds = assignments
+            .Where(a => a.OrganizationUnitId.HasValue)
+            .Select(a => a.OrganizationUnitId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (departmentIds.Any())
+        {
+            var primaryDepartmentUsers = await db.AppUsers
+                .AsNoTracking()
+                .Where(u => u.TenantId == tid
+                    && u.OrganizationUnitId.HasValue
+                    && departmentIds.Contains(u.OrganizationUnitId.Value)
+                    && u.Status == UserStatus.Active
+                    && !u.IsDeleted)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var employeeDepartmentUsers = await db.EmployeeDepartmentAssignments
+                .AsNoTracking()
+                .Where(a => a.TenantId == tid
+                    && departmentIds.Contains(a.OrganizationUnitId)
+                    && !a.IsDeleted
+                    && a.EmployeeProfile != null
+                    && a.EmployeeProfile.User != null
+                    && a.EmployeeProfile.User.Status == UserStatus.Active
+                    && !a.EmployeeProfile.User.IsDeleted
+                    && a.EffectiveFrom <= today
+                    && (!a.EffectiveTo.HasValue || a.EffectiveTo.Value >= today))
+                .Select(a => a.EmployeeProfile!.UserId)
+                .ToListAsync();
+
+            userIds.AddRange(primaryDepartmentUsers);
+            userIds.AddRange(employeeDepartmentUsers);
+        }
+
+        return userIds.Distinct().ToList();
+    }
+
+    public async Task<List<Guid>> GetCancelNotificationUserIdsAsync(Guid requestId)
+    {
+        var request = await db.OperationRequests
+            .AsNoTracking()
+            .Where(r => r.Id == requestId && r.TenantId == tenant.TenantId && !r.IsDeleted)
+            .Select(r => new { r.RequestedByUserId })
+            .FirstOrDefaultAsync();
+        if (request is null) return [];
+
+        var recipientIds = await GetAssignmentNotificationUserIdsAsync(requestId);
+        recipientIds.Add(request.RequestedByUserId);
+        return recipientIds.Distinct().ToList();
+    }
+
+    public async Task<(bool Success, string Message)> AddAssignmentAsync(OperationAssignmentInputViewModel vm)
+    {
+        if (!CanManageOperationAssignments()) return (false, "Bạn không có quyền phân công yêu cầu này.");
+
+        var r = await db.OperationRequests
+            .FirstOrDefaultAsync(x => x.Id == vm.OperationRequestId && x.TenantId == tenant.TenantId && !x.IsDeleted);
+        if (r is null) return (false, "Không tìm thấy yêu cầu.");
+
+        if (!Enum.IsDefined(typeof(OperationAssignmentRole), vm.Role))
+            return (false, "Vai trò phân công không hợp lệ.");
+
+        var hasUser = vm.AssignedUserId.HasValue;
+        var hasDepartment = vm.OrganizationUnitId.HasValue;
+        if (hasUser == hasDepartment)
+            return (false, "Chọn một người phụ trách hoặc một phòng ban.");
+
+        if (vm.AssignedUserId is Guid assignedUserId)
+        {
+            var userExists = await db.AppUsers.AnyAsync(u => u.Id == assignedUserId
+                && u.TenantId == tenant.TenantId
+                && u.Status == UserStatus.Active
+                && !u.IsDeleted);
+            if (!userExists) return (false, "Người được phân công không hợp lệ.");
+        }
+
+        if (vm.OrganizationUnitId is Guid organizationUnitId)
+        {
+            var departmentExists = await db.OrganizationUnits.AnyAsync(o => o.Id == organizationUnitId
+                && o.TenantId == tenant.TenantId
+                && o.IsActive
+                && !o.IsDeleted);
+            if (!departmentExists) return (false, "Phòng ban được phân công không hợp lệ.");
+        }
+
+        var duplicate = await db.OperationRequestAssignments.AnyAsync(a =>
+            a.TenantId == tenant.TenantId
+            && a.OperationRequestId == r.Id
+            && a.Role == vm.Role
+            && a.AssignedUserId == vm.AssignedUserId
+            && a.OrganizationUnitId == vm.OrganizationUnitId
+            && a.IsActive
+            && !a.IsDeleted);
+        if (duplicate) return (false, "Phân công này đã tồn tại.");
+
+        var now = DateTimeOffset.UtcNow;
+        var note = string.IsNullOrWhiteSpace(vm.Note) ? null : vm.Note.Trim();
+        db.OperationRequestAssignments.Add(new OperationRequestAssignment
+        {
+            TenantId = tenant.TenantId,
+            OperationRequestId = r.Id,
+            Role = vm.Role,
+            AssignedUserId = vm.AssignedUserId,
+            OrganizationUnitId = vm.OrganizationUnitId,
+            IsActive = true,
+            AssignedAt = now,
+            Note = note,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = now
+        });
+
+        await audit.LogAsync("OperationRequest", r.Id, "AddAssignment",
+            newValueObj: new { vm.Role, vm.AssignedUserId, vm.OrganizationUnitId, Note = note });
+        return await db.SaveChangesWithConcurrencyAsync()
+            ? (true, "Đã thêm phân công.")
+            : (false, "Không thể thêm phân công do dữ liệu đã thay đổi.");
+    }
+
+    public async Task<(bool Success, string Message)> RemoveAssignmentAsync(Guid assignmentId)
+    {
+        if (!CanManageOperationAssignments()) return (false, "Bạn không có quyền xóa phân công.");
+
+        var assignment = await db.OperationRequestAssignments
+            .FirstOrDefaultAsync(a => a.Id == assignmentId && a.TenantId == tenant.TenantId && !a.IsDeleted);
+        if (assignment is null) return (false, "Không tìm thấy phân công.");
+
+        assignment.IsActive = false;
+        assignment.IsDeleted = true;
+        assignment.UpdatedAt = DateTimeOffset.UtcNow;
+        assignment.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("OperationRequest", assignment.OperationRequestId, "RemoveAssignment",
+            oldValueObj: new { assignment.Role, assignment.AssignedUserId, assignment.OrganizationUnitId });
+        return await db.SaveChangesWithConcurrencyAsync()
+            ? (true, "Đã xóa phân công.")
+            : (false, "Không thể xóa phân công do dữ liệu đã thay đổi.");
     }
 
     public async Task<OperationRequestEditViewModel?> GetEditFormAsync(Guid id)
     {
         var r = await db.OperationRequests.FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenant.TenantId && !r.IsDeleted);
         if (r is null || r.Status is not (OperationStatus.Draft or OperationStatus.Rejected)) return null;
+        if (r.RequestedByUserId != tenant.UserId && !await CanSupportRequestAsync(r.Id)) return null;
 
         var tid = tenant.TenantId;
         return new OperationRequestEditViewModel
@@ -239,6 +872,7 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     {
         var r = await db.OperationRequests.FindAsync(vm.Id);
         if (r is null || r.TenantId != tenant.TenantId || r.Status is not (OperationStatus.Draft or OperationStatus.Rejected)) return false;
+        if (r.RequestedByUserId != tenant.UserId && !await CanSupportRequestAsync(r.Id)) return false;
 
         var oldTitle = r.Title;
         r.Title = vm.Title; r.Type = vm.Type; r.OrganizationUnitId = vm.OrganizationUnitId;
@@ -247,35 +881,55 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         r.UpdatedAt = DateTimeOffset.UtcNow; r.UpdatedByUserId = tenant.UserId;
 
         // If rejected, allow resubmission by resetting to Draft
-        if (r.Status == OperationStatus.Rejected) r.Status = OperationStatus.Draft;
+        if (OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.Draft)) r.Status = OperationStatus.Draft;
 
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Update", EntityName = "OperationRequest", EntityId = r.Id, OldValuesJson = $"{{\"Title\":\"{oldTitle}\"}}", NewValuesJson = $"{{\"Title\":\"{r.Title}\",\"Priority\":\"{r.Priority}\"}}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", r.Id, "Update",
+            oldValueObj: new { Title = oldTitle },
+            newValueObj: new { r.Title, r.Priority });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 
     public async Task<bool> SubmitAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.Draft) return false;
-        r.Status = OperationStatus.Submitted; r.UpdatedAt = DateTimeOffset.UtcNow;
-        db.ApprovalTasks.Add(new ApprovalTask { TenantId = tenant.TenantId, TargetType = "OperationRequest", TargetId = id, StepCode = "DEPARTMENT_REVIEW", AssignedRole = "DEPARTMENT_MANAGER", Status = ApprovalStatus.Pending, CreatedAt = DateTimeOffset.UtcNow });
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Submit", EntityName = "OperationRequest", EntityId = id, OldValuesJson = "{\"Status\":\"Draft\"}", NewValuesJson = "{\"Status\":\"Submitted\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.Submitted)
+            || !await CanSubmitRequestAsync(r)) return false;
+        var oldStatus = r.Status;
+        var submittedAt = DateTimeOffset.UtcNow;
+        r.Status = OperationStatus.Submitted; r.UpdatedAt = submittedAt;
+        await operationSla.ApplySubmittedAsync(r, submittedAt);
+        operationApprovals.CreateDepartmentReviewTask(id, submittedAt);
+        await audit.LogAsync("OperationRequest", id, "Submit",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.Submitted, r.ApprovalDueAt });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved)
+        {
+            slaWatcherQueue.TryQueue("operation-request-submitted");
+            await cache.InvalidateTenantCacheAsync();
+        }
+        return saved;
     }
 
     public async Task<bool> CancelAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || r.Status is not (OperationStatus.Draft or OperationStatus.Submitted)) return false;
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.Cancelled)
+            || !await CanCancelRequestAsync(r)) return false;
+        var oldStatus = r.Status;
         r.Status = OperationStatus.Cancelled; r.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Cancel", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"Cancelled\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", id, "Cancel",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.Cancelled });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -283,48 +937,157 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         var r = await db.OperationRequests.FindAsync(id);
         if (r is null || r.TenantId != tenant.TenantId) return false;
         r.IsDeleted = true; r.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "OperationRequest", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", id, "Delete");
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 
-    public async Task<OperationRequestCreateViewModel> GetCreateFormAsync()
+    public async Task<OperationRequestCreateViewModel> GetCreateFormAsync(Guid? templateId = null)
     {
         var tid = tenant.TenantId;
-        return new OperationRequestCreateViewModel
+        var vm = new OperationRequestCreateViewModel
         {
+            TemplateId = templateId,
             Departments = await db.OrganizationUnits.Where(o => o.TenantId == tid && o.IsActive && !o.IsDeleted).Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name }).ToListAsync(),
             Customers = await db.Customers.Where(c => c.TenantId == tid && c.IsActive && !c.IsDeleted).Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Code + " — " + c.Name }).ToListAsync(),
             Products = await db.ProductServices.Where(p => p.TenantId == tid && p.IsActive && !p.IsDeleted).OrderBy(p => p.Name)
-                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.Code + " — " + p.Name + (p.StandardPrice.HasValue ? $" ({p.StandardPrice:N0}₫)" : "") }).ToListAsync()
+                .Select(p => new SelectOption { Value = p.Id.ToString(), Text = p.Code + " — " + p.Name + (p.StandardPrice.HasValue ? $" ({p.StandardPrice:N0}₫)" : "") }).ToListAsync(),
+            Templates = await db.OperationRequestTemplates
+                .Where(t => t.TenantId == tid && t.IsActive && !t.IsDeleted)
+                .OrderBy(t => t.Title)
+                .Select(t => new SelectOption { Value = t.Id.ToString(), Text = t.Title })
+                .ToListAsync()
         };
+
+        if (templateId.HasValue)
+        {
+            var template = await db.OperationRequestTemplates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == templateId.Value && t.TenantId == tid && t.IsActive && !t.IsDeleted);
+            if (template != null)
+            {
+                vm.Title = template.Title;
+                vm.Type = template.Type;
+                vm.Priority = template.Priority;
+                vm.OrganizationUnitId = template.DefaultDepartmentId;
+                vm.Description = template.Description;
+                vm.Lines = await BuildLineInputsFromTemplateAsync(template.DefaultLinesJson);
+                if (vm.Lines.Any()) vm.TotalAmount = vm.Lines.Sum(l => l.LineAmount);
+            }
+        }
+
+        return vm;
     }
 
     public async Task<bool> StartWorkAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.Approved) return false;
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.InProgress)
+            || !await CanManageRequestWorkAsync(id)) return false;
+        var oldStatus = r.Status;
         r.Status = OperationStatus.InProgress; r.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "StartWork", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"InProgress\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", id, "StartWork",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.InProgress });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 
     public async Task<bool> CompleteAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.InProgress) return false;
-        r.Status = OperationStatus.Completed; r.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Complete", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"Completed\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.Completed)
+            || !await CanManageRequestWorkAsync(id)) return false;
+        var oldStatus = r.Status;
+        var completedAt = DateTimeOffset.UtcNow;
+        r.Status = OperationStatus.Completed; r.UpdatedAt = completedAt;
+        await ApplyCostVarianceAsync(r, completedAt);
+        await audit.LogAsync("OperationRequest", id, "Complete",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.Completed, r.EstimatedCost, r.ActualCost, r.CostVariance, r.CostVariancePercent });
+        if (r.CostVariancePercent.HasValue && r.CostVariancePercent.Value > CostOverrunThresholdPercent)
+        {
+            await audit.LogAsync("OperationRequest", id, "CostOverrun",
+                newValueObj: new { r.EstimatedCost, r.ActualCost, r.CostVariance, r.CostVariancePercent });
+        }
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
+    }
+
+    private async Task ApplyCostVarianceAsync(OperationRequest request, DateTimeOffset calculatedAt)
+    {
+        var estimated = request.EstimatedCost ?? await CalculateEstimatedCostAsync(request.Id);
+        var goodsIssueCost = await CalculateConfirmedGoodsIssueCostAsync(request.Id);
+        var paymentCost = await db.PaymentRequests
+            .Where(p => p.TenantId == tenant.TenantId
+                && p.OperationRequestId == request.Id
+                && !p.IsDeleted
+                && (p.Status == PaymentStatus.Approved || p.Status == PaymentStatus.Paid))
+            .SumAsync(p => p.TotalAmount);
+
+        var actual = goodsIssueCost + paymentCost;
+        var variance = actual - estimated;
+        var variancePercent = estimated > 0
+            ? Math.Round(variance / estimated * 100m, 2)
+            : actual > 0 ? 100m : 0m;
+
+        request.EstimatedCost = estimated;
+        request.ActualCost = actual;
+        request.CostVariance = variance;
+        request.CostVariancePercent = variancePercent;
+        request.CostVarianceCalculatedAt = calculatedAt;
+    }
+
+    private async Task<decimal> CalculateEstimatedCostAsync(Guid requestId)
+    {
+        var lines = await db.OperationRequestLines
+            .Where(l => l.TenantId == tenant.TenantId && l.OperationRequestId == requestId && !l.IsDeleted)
+            .Select(l => new { l.Quantity, l.UnitPrice, l.LineAmount })
+            .ToListAsync();
+
+        return lines.Sum(l => l.LineAmount ?? l.Quantity * (l.UnitPrice ?? 0m));
+    }
+
+    private async Task<decimal> CalculateConfirmedGoodsIssueCostAsync(Guid requestId)
+    {
+        var lines = await db.GoodsIssueLines
+            .Where(l => l.TenantId == tenant.TenantId
+                && !l.IsDeleted
+                && l.GoodsIssue != null
+                && l.GoodsIssue.TenantId == tenant.TenantId
+                && !l.GoodsIssue.IsDeleted
+                && l.GoodsIssue.OperationRequestId == requestId
+                && l.GoodsIssue.Status == GoodsIssueStatus.Confirmed)
+            .Select(l => new
+            {
+                l.IssuedQuantity,
+                l.UnitCost,
+                l.LineAmount,
+                StandardPrice = l.ProductService != null ? l.ProductService.StandardPrice : null
+            })
+            .ToListAsync();
+
+        return lines.Sum(l => l.LineAmount ?? l.IssuedQuantity * (l.UnitCost ?? l.StandardPrice ?? 0m));
     }
 
     public async Task<Guid> AddLineAsync(Guid requestId, OrderLineInputViewModel input)
     {
+        var r = await db.OperationRequests.FindAsync(requestId);
+        var canAddLine = r is not null
+            && ((r.Status is OperationStatus.Draft or OperationStatus.Rejected && r.RequestedByUserId == tenant.UserId)
+                || await CanSupportRequestAsync(requestId));
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || r.Status is OperationStatus.Completed or OperationStatus.Cancelled
+            || !canAddLine) return Guid.Empty;
+
         var line = new OperationRequestLine
         {
             TenantId = tenant.TenantId, OperationRequestId = requestId,
@@ -333,15 +1096,13 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             Note = input.Note, CreatedAt = DateTimeOffset.UtcNow, CreatedByUserId = tenant.UserId
         };
         db.Set<OperationRequestLine>().Add(line);
-        // Recalculate total
-        var r = await db.OperationRequests.FindAsync(requestId);
-        if (r != null)
-        {
-            var existingTotal = await db.Set<OperationRequestLine>().Where(l => l.OperationRequestId == requestId && !l.IsDeleted).SumAsync(l => l.LineAmount ?? 0);
-            r.TotalAmount = existingTotal + (line.LineAmount ?? 0);
-        }
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
+        var existingTotal = await db.Set<OperationRequestLine>().Where(l => l.OperationRequestId == requestId && !l.IsDeleted).SumAsync(l => l.LineAmount ?? 0);
+        r.TotalAmount = existingTotal + (line.LineAmount ?? 0);
+        await audit.LogAsync("OperationRequest", requestId, "AddLine",
+            newValueObj: new { input.ProductServiceId, input.Quantity, input.UnitPrice, input.Note });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        if (!saved) return Guid.Empty;
         return line.Id;
     }
 
@@ -349,16 +1110,372 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
     {
         var line = await db.Set<OperationRequestLine>().FindAsync(lineId);
         if (line is null || line.TenantId != tenant.TenantId) return false;
+        var r = await db.OperationRequests.FindAsync(line.OperationRequestId);
+        if (r is null) return false;
+        var canEditDraftLine = r.Status is OperationStatus.Draft or OperationStatus.Rejected
+            && (r.RequestedByUserId == tenant.UserId || await CanSupportRequestAsync(r.Id));
+        if (!canEditDraftLine && !await CanManageRequestWorkAsync(r.Id)) return false;
         line.IsDeleted = true; line.UpdatedAt = DateTimeOffset.UtcNow;
         // Recalculate total
-        var r = await db.OperationRequests.FindAsync(line.OperationRequestId);
-        if (r != null)
+        r.TotalAmount = await db.Set<OperationRequestLine>().Where(l => l.OperationRequestId == line.OperationRequestId && !l.IsDeleted && l.Id != lineId).SumAsync(l => l.LineAmount ?? 0);
+        await audit.LogAsync("OperationRequest", r.Id, "RemoveLine",
+            oldValueObj: new { line.ProductServiceId, line.Quantity, line.UnitPrice, line.Note });
+        return await db.SaveChangesWithConcurrencyAsync();
+    }
+
+    public async Task<OperationRequestTemplateListViewModel> GetTemplatesAsync(string? search = null)
+    {
+        var tid = tenant.TenantId;
+        var query = db.OperationRequestTemplates
+            .AsNoTracking()
+            .Include(t => t.DefaultDepartment)
+            .Where(t => t.TenantId == tid && !t.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(t => t.Title.Contains(search) || t.Type.Contains(search));
+
+        var templates = await query
+            .OrderByDescending(t => t.IsActive)
+            .ThenByDescending(t => t.UsageCount)
+            .ThenBy(t => t.Title)
+            .ToListAsync();
+
+        return new OperationRequestTemplateListViewModel
         {
-            r.TotalAmount = await db.Set<OperationRequestLine>().Where(l => l.OperationRequestId == line.OperationRequestId && !l.IsDeleted && l.Id != lineId).SumAsync(l => l.LineAmount ?? 0);
-        }
+            SearchTerm = search,
+            Items = templates.Select(t => new OperationRequestTemplateItem
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Type = t.Type,
+                Priority = t.Priority.ToString(),
+                Department = t.DefaultDepartment?.Name ?? "",
+                DefaultLineCount = DeserializeTemplateLines(t.DefaultLinesJson).Count,
+                IsActive = t.IsActive,
+                UsageCount = t.UsageCount,
+                CreatedAt = t.CreatedAt,
+                LastUsedAt = t.LastUsedAt
+            }).ToList()
+        };
+    }
+
+    public async Task<OperationRequestTemplateEditViewModel?> GetTemplateFormAsync(Guid? id = null)
+    {
+        var tid = tenant.TenantId;
+        var departments = await GetDepartmentOptionsAsync(tid);
+
+        if (!id.HasValue)
+            return new OperationRequestTemplateEditViewModel { Departments = departments, IsActive = true };
+
+        var template = await db.OperationRequestTemplates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id.Value && t.TenantId == tid && !t.IsDeleted);
+        if (template is null) return null;
+
+        return new OperationRequestTemplateEditViewModel
+        {
+            Id = template.Id,
+            Title = template.Title,
+            Type = template.Type,
+            Priority = template.Priority,
+            DefaultDepartmentId = template.DefaultDepartmentId,
+            Description = template.Description,
+            DefaultLinesJson = template.DefaultLinesJson,
+            IsActive = template.IsActive,
+            Departments = departments
+        };
+    }
+
+    public async Task<(bool Success, string Message, Guid? Id)> CreateTemplateAsync(OperationRequestTemplateEditViewModel vm)
+    {
+        if (!TryNormalizeTemplateLinesJson(vm.DefaultLinesJson, out var normalizedLinesJson))
+            return (false, "DefaultLines JSON không hợp lệ.", null);
+
+        var now = DateTimeOffset.UtcNow;
+        var template = new OperationRequestTemplate
+        {
+            TenantId = tenant.TenantId,
+            Title = vm.Title.Trim(),
+            Type = vm.Type.Trim(),
+            Priority = vm.Priority,
+            DefaultDepartmentId = vm.DefaultDepartmentId,
+            Description = vm.Description,
+            DefaultLinesJson = normalizedLinesJson,
+            IsActive = vm.IsActive,
+            CreatedAt = now,
+            CreatedByUserId = tenant.UserId
+        };
+
+        db.OperationRequestTemplates.Add(template);
+        await audit.LogAsync("OperationRequestTemplate", template.Id, "Create", newValueObj: new { template.Title, template.Type, template.Priority });
         await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        return (true, "Đã tạo template.", template.Id);
+    }
+
+    public async Task<(bool Success, string Message)> UpdateTemplateAsync(OperationRequestTemplateEditViewModel vm)
+    {
+        if (!TryNormalizeTemplateLinesJson(vm.DefaultLinesJson, out var normalizedLinesJson))
+            return (false, "DefaultLines JSON không hợp lệ.");
+
+        var template = await db.OperationRequestTemplates
+            .FirstOrDefaultAsync(t => t.Id == vm.Id && t.TenantId == tenant.TenantId && !t.IsDeleted);
+        if (template is null) return (false, "Không tìm thấy template.");
+
+        var oldValue = new { template.Title, template.Type, template.Priority, template.IsActive };
+        template.Title = vm.Title.Trim();
+        template.Type = vm.Type.Trim();
+        template.Priority = vm.Priority;
+        template.DefaultDepartmentId = vm.DefaultDepartmentId;
+        template.Description = vm.Description;
+        template.DefaultLinesJson = normalizedLinesJson;
+        template.IsActive = vm.IsActive;
+        template.UpdatedAt = DateTimeOffset.UtcNow;
+        template.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("OperationRequestTemplate", template.Id, "Update",
+            oldValueObj: oldValue,
+            newValueObj: new { template.Title, template.Type, template.Priority, template.IsActive });
+        return await db.SaveChangesWithConcurrencyAsync()
+            ? (true, "Đã cập nhật template.")
+            : (false, "Không thể cập nhật template do dữ liệu đã thay đổi.");
+    }
+
+    public async Task<bool> DeleteTemplateAsync(Guid id)
+    {
+        var template = await db.OperationRequestTemplates
+            .FirstOrDefaultAsync(t => t.Id == id && t.TenantId == tenant.TenantId && !t.IsDeleted);
+        if (template is null) return false;
+
+        template.IsDeleted = true;
+        template.IsActive = false;
+        template.UpdatedAt = DateTimeOffset.UtcNow;
+        template.UpdatedByUserId = tenant.UserId;
+        await audit.LogAsync("OperationRequestTemplate", id, "Delete");
+        return await db.SaveChangesWithConcurrencyAsync();
+    }
+
+    public async Task<(bool Success, string Message, Guid? TemplateId)> CreateTemplateFromRequestAsync(Guid requestId)
+    {
+        var request = await db.OperationRequests
+            .AsNoTracking()
+            .Include(r => r.Lines.Where(l => !l.IsDeleted))
+            .FirstOrDefaultAsync(r => r.Id == requestId && r.TenantId == tenant.TenantId && !r.IsDeleted);
+        if (request is null) return (false, "Không tìm thấy yêu cầu.", null);
+        if (request.Status != OperationStatus.Completed) return (false, "Chỉ lưu template từ yêu cầu đã hoàn thành.", null);
+
+        var linesJson = SerializeTemplateLines(request.Lines.Select(l => new OrderLineInputViewModel
+        {
+            ProductServiceId = l.ProductServiceId,
+            Quantity = l.Quantity,
+            UnitPrice = l.UnitPrice,
+            Note = l.Note
+        }));
+
+        var now = DateTimeOffset.UtcNow;
+        var template = new OperationRequestTemplate
+        {
+            TenantId = tenant.TenantId,
+            Title = request.Title,
+            Type = request.Type,
+            Priority = request.Priority,
+            DefaultDepartmentId = request.OrganizationUnitId,
+            Description = request.Description,
+            DefaultLinesJson = linesJson,
+            IsActive = true,
+            CreatedAt = now,
+            CreatedByUserId = tenant.UserId
+        };
+
+        db.OperationRequestTemplates.Add(template);
+        await audit.LogAsync("OperationRequestTemplate", template.Id, "CreateFromRequest",
+            newValueObj: new { template.Title, OperationRequestId = requestId });
+        await db.SaveChangesAsync();
+        return (true, "Đã lưu yêu cầu thành template.", template.Id);
+    }
+
+    private async Task<List<SelectOption>> GetDepartmentOptionsAsync(Guid tenantId) =>
+        await db.OrganizationUnits
+            .Where(o => o.TenantId == tenantId && o.IsActive && !o.IsDeleted)
+            .OrderBy(o => o.Name)
+            .Select(o => new SelectOption { Value = o.Id.ToString(), Text = o.Name })
+            .ToListAsync();
+
+    private async Task<List<OrderLineInputViewModel>> BuildLineInputsFromTemplateAsync(string? defaultLinesJson)
+    {
+        var definitions = DeserializeTemplateLines(defaultLinesJson);
+        var productIds = definitions.Where(l => l.ProductServiceId.HasValue).Select(l => l.ProductServiceId!.Value).Distinct().ToList();
+        var productNames = productIds.Any()
+            ? await db.ProductServices
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Name)
+            : new Dictionary<Guid, string>();
+
+        return definitions.Select(l => new OrderLineInputViewModel
+        {
+            ProductServiceId = l.ProductServiceId,
+            ProductName = l.ProductServiceId.HasValue && productNames.TryGetValue(l.ProductServiceId.Value, out var productName)
+                ? productName
+                : l.ProductName,
+            Quantity = l.Quantity <= 0 ? 1 : l.Quantity,
+            UnitPrice = l.UnitPrice,
+            Note = l.Note
+        }).ToList();
+    }
+
+    private static IEnumerable<OrderLineInputViewModel> NormalizeLineInputs(IEnumerable<OrderLineInputViewModel>? lines)
+    {
+        return (lines ?? [])
+            .Where(l => l.Quantity > 0
+                && (l.ProductServiceId.HasValue
+                    || l.UnitPrice.HasValue
+                    || !string.IsNullOrWhiteSpace(l.ProductName)
+                    || !string.IsNullOrWhiteSpace(l.Note)))
+            .Select(l => new OrderLineInputViewModel
+            {
+                ProductServiceId = l.ProductServiceId,
+                ProductName = string.IsNullOrWhiteSpace(l.ProductName) ? null : l.ProductName.Trim(),
+                Quantity = l.Quantity,
+                UnitPrice = l.UnitPrice,
+                Note = string.IsNullOrWhiteSpace(l.Note)
+                    ? string.IsNullOrWhiteSpace(l.ProductName) ? null : l.ProductName.Trim()
+                    : l.Note.Trim()
+            });
+    }
+
+    private static string TruncateForPlan(string value, int maxLength)
+    {
+        var text = value.Trim();
+        return text.Length <= maxLength ? text : text[..maxLength];
+    }
+
+    private static string BuildDefaultPlanTaskName(OperationRequest request)
+    {
+        var firstLineName = request.Lines
+            .Where(l => !l.IsDeleted)
+            .Select(GetLineName)
+            .FirstOrDefault(name => !string.IsNullOrWhiteSpace(name));
+
+        var name = string.IsNullOrWhiteSpace(firstLineName)
+            ? $"Thực hiện {request.RequestNo}"
+            : $"Thực hiện {firstLineName}";
+        return TruncateForPlan(name, 200);
+    }
+
+    private static string BuildPlanNotes(OperationRequest request)
+    {
+        var notes = $"Sinh từ OperationRequest {request.RequestNo}.";
+        if (!string.IsNullOrWhiteSpace(request.Description))
+        {
+            notes += Environment.NewLine + request.Description.Trim();
+        }
+
+        return notes;
+    }
+
+    private static string BuildDefaultPlanTaskDescription(OperationRequest request)
+    {
+        var lines = request.Lines
+            .Where(l => !l.IsDeleted)
+            .OrderBy(l => l.CreatedAt)
+            .Select((line, index) => $"{index + 1}. {BuildLineSummary(line)}")
+            .ToList();
+
+        var description = $"Task mặc định sinh từ yêu cầu {request.RequestNo}.";
+        if (!string.IsNullOrWhiteSpace(request.Description))
+        {
+            description += Environment.NewLine + request.Description.Trim();
+        }
+
+        if (lines.Any())
+        {
+            description += Environment.NewLine + "Lines:" + Environment.NewLine + string.Join(Environment.NewLine, lines);
+        }
+
+        return description;
+    }
+
+    private static string BuildLineSummary(OperationRequestLine line)
+    {
+        var name = GetLineName(line);
+        var quantity = line.Quantity > 0 ? $"SL {line.Quantity:0.##}" : "SL N/A";
+        return string.IsNullOrWhiteSpace(line.Note)
+            ? $"{name} ({quantity})"
+            : $"{name} ({quantity}) - {line.Note.Trim()}";
+    }
+
+    private static string GetLineName(OperationRequestLine line)
+    {
+        if (!string.IsNullOrWhiteSpace(line.ProductService?.Name)) return line.ProductService.Name;
+        if (!string.IsNullOrWhiteSpace(line.ProductService?.Code)) return line.ProductService.Code;
+        if (!string.IsNullOrWhiteSpace(line.Note)) return line.Note.Trim();
+        return "Hạng mục yêu cầu";
+    }
+
+    private static string? SerializeTemplateLines(IEnumerable<OrderLineInputViewModel>? lines)
+    {
+        var definitions = NormalizeLineInputs(lines)
+            .Select(l => new OperationRequestTemplateLineDefinition
+            {
+                ProductServiceId = l.ProductServiceId,
+                ProductName = l.ProductName,
+                Quantity = l.Quantity,
+                UnitPrice = l.UnitPrice,
+                Note = l.Note
+            })
+            .ToList();
+
+        return definitions.Any() ? JsonSerializer.Serialize(definitions, TemplateJsonOptions) : null;
+    }
+
+    private static bool TryNormalizeTemplateLinesJson(string? json, out string? normalizedJson)
+    {
+        normalizedJson = null;
+        if (string.IsNullOrWhiteSpace(json)) return true;
+
+        try
+        {
+            var definitions = JsonSerializer.Deserialize<List<OperationRequestTemplateLineDefinition>>(json, TemplateJsonOptions) ?? [];
+            var validDefinitions = definitions
+                .Where(l => (l.Quantity <= 0 ? 1 : l.Quantity) > 0
+                    && (l.ProductServiceId.HasValue
+                        || l.UnitPrice.HasValue
+                        || !string.IsNullOrWhiteSpace(l.ProductName)
+                        || !string.IsNullOrWhiteSpace(l.Note)))
+                .Select(l => new OperationRequestTemplateLineDefinition
+                {
+                    ProductServiceId = l.ProductServiceId,
+                    ProductName = string.IsNullOrWhiteSpace(l.ProductName) ? null : l.ProductName.Trim(),
+                    Quantity = l.Quantity <= 0 ? 1 : l.Quantity,
+                    UnitPrice = l.UnitPrice,
+                    Note = string.IsNullOrWhiteSpace(l.Note) ? null : l.Note.Trim()
+                })
+                .ToList();
+
+            normalizedJson = validDefinitions.Any()
+                ? JsonSerializer.Serialize(validDefinitions, TemplateJsonOptions)
+                : null;
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static List<OperationRequestTemplateLineDefinition> DeserializeTemplateLines(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return [];
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<OperationRequestTemplateLineDefinition>>(json, TemplateJsonOptions)?
+                .Where(l => l.Quantity > 0)
+                .ToList() ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
     }
 
     public async Task<OperationStatisticsViewModel> GetStatisticsAsync()
@@ -383,17 +1500,36 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             });
         }
 
-        var requestsWithDue = await baseQ.Where(r => r.DueDate.HasValue && r.Status != OperationStatus.Cancelled).ToListAsync();
+        var now = DateTimeOffset.UtcNow;
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var requestsWithDue = await baseQ
+            .Where(r => r.Status != OperationStatus.Cancelled
+                && (r.ApprovalDueAt.HasValue || r.ResolutionDueAt.HasValue || r.DueDate.HasValue))
+            .ToListAsync();
         decimal slaComplianceRate = 100;
         if (requestsWithDue.Any())
         {
             int compliantCount = requestsWithDue.Count(r => {
+                var slaDueAt = r.Status == OperationStatus.Completed
+                    ? r.ResolutionDueAt ?? r.ApprovalDueAt
+                    : OperationSlaService.GetActiveDueAt(r.Status, r.ApprovalDueAt, r.ResolutionDueAt);
+
+                if (slaDueAt.HasValue)
+                {
+                    var checkpoint = r.Status == OperationStatus.Completed
+                        ? r.UpdatedAt ?? now
+                        : now;
+                    return checkpoint <= slaDueAt.Value;
+                }
+
+                if (!r.DueDate.HasValue) return true;
+
                 if (r.Status == OperationStatus.Completed)
                 {
                     var compDate = r.UpdatedAt.HasValue ? DateOnly.FromDateTime(r.UpdatedAt.Value.Date) : DateOnly.FromDateTime(DateTime.Today);
                     return compDate <= r.DueDate.Value;
                 }
-                return DateOnly.FromDateTime(DateTime.Today) <= r.DueDate.Value;
+                return today <= r.DueDate.Value;
             });
             slaComplianceRate = (decimal)compliantCount / requestsWithDue.Count * 100;
         }
@@ -427,10 +1563,10 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
             .ToListAsync();
 
         var weeklyTrend = new List<WeeklyTrendItem>();
-        var today = DateTime.Today;
+        var todayDate = DateTime.Today;
         for (int i = 6; i >= 0; i--)
         {
-            var date = today.AddDays(-i);
+            var date = todayDate.AddDays(-i);
             var dateOnly = DateOnly.FromDateTime(date);
             
             var createdCount = await baseQ.CountAsync(r => r.CreatedAt.Date == date);
@@ -455,75 +1591,291 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         };
     }
 
-    public async Task<bool> AddCommentAsync(Guid requestId, string content)
+    public async Task<(bool Success, string Message, IReadOnlyCollection<Guid> MentionedUserIds)> AddCommentAsync(
+        Guid requestId,
+        string? content,
+        OperationCommentType type = OperationCommentType.Note,
+        Guid? parentCommentId = null)
     {
-        if (string.IsNullOrWhiteSpace(content)) return false;
-        var r = await db.OperationRequests.FindAsync(requestId);
-        if (r is null || r.TenantId != tenant.TenantId) return false;
+        var trimmedContent = content?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(trimmedContent))
+            return (false, "Nội dung bình luận không được để trống.", Array.Empty<Guid>());
+        if (trimmedContent.Length > 2000)
+            return (false, "Nội dung bình luận không được vượt quá 2000 ký tự.", Array.Empty<Guid>());
+        if (!Enum.IsDefined(typeof(OperationCommentType), type))
+            return (false, "Loại bình luận không hợp lệ.", Array.Empty<Guid>());
 
+        var r = await db.OperationRequests.FindAsync(requestId);
+        if (r is null || r.TenantId != tenant.TenantId || r.IsDeleted)
+            return (false, "Không tìm thấy yêu cầu.", Array.Empty<Guid>());
+        if (!await CanSupportRequestAsync(requestId))
+            return (false, "Bạn không có quyền bình luận yêu cầu này.", Array.Empty<Guid>());
+
+        Guid? normalizedParentCommentId = null;
+        if (parentCommentId.HasValue)
+        {
+            var parentComment = await db.OperationComments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == parentCommentId.Value
+                    && c.OperationRequestId == requestId
+                    && c.TenantId == tenant.TenantId
+                    && !c.IsDeleted);
+            if (parentComment is null)
+                return (false, "Không tìm thấy bình luận để trả lời.", Array.Empty<Guid>());
+
+            normalizedParentCommentId = parentComment.ParentCommentId ?? parentComment.Id;
+        }
+
+        var mentionedUserIds = await ResolveMentionedUserIdsAsync(trimmedContent);
         var comment = new OperationComment
         {
             TenantId = tenant.TenantId,
             OperationRequestId = requestId,
             AuthorUserId = tenant.UserId,
-            Content = content.Trim(),
+            Type = type,
+            ParentCommentId = normalizedParentCommentId,
+            Content = trimmedContent,
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedByUserId = tenant.UserId
         };
         db.Set<OperationComment>().Add(comment);
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "AddComment", EntityName = "OperationRequest", EntityId = requestId, NewValuesJson = $"{{\"Comment\":\"{content.Trim()}\"}}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", requestId, "AddComment", newValueObj: new
+        {
+            Comment = trimmedContent,
+            Type = type,
+            ParentCommentId = normalizedParentCommentId,
+            MentionedUserIds = mentionedUserIds
+        });
+
+        if (!await db.SaveChangesWithConcurrencyAsync())
+            return (false, "Không thể thêm bình luận do dữ liệu đã thay đổi.", Array.Empty<Guid>());
+
+        return (true, "Đã thêm bình luận.", mentionedUserIds);
+    }
+
+    private async Task<List<Guid>> ResolveMentionedUserIdsAsync(string content)
+    {
+        var mentionTokens = ExtractMentionTokens(content);
+        if (mentionTokens.Count == 0) return [];
+
+        var appUsers = await db.AppUsers
+            .AsNoTracking()
+            .Where(u => u.TenantId == tenant.TenantId
+                && u.Status == UserStatus.Active
+                && !u.IsDeleted
+                && u.Id != tenant.UserId)
+            .Select(u => new { u.Id, u.FullName, u.Email })
+            .ToListAsync();
+        if (!appUsers.Any()) return [];
+
+        var appUserIds = appUsers.Select(u => u.Id).ToList();
+        var identityUserNames = await db.Users
+            .AsNoTracking()
+            .Where(u => appUserIds.Contains(u.Id))
+            .Select(u => new { u.Id, UserName = u.UserName ?? string.Empty })
+            .ToDictionaryAsync(u => u.Id, u => u.UserName);
+
+        return appUsers
+            .Where(u => IsMentionMatch(mentionTokens, u.FullName)
+                || IsMentionMatch(mentionTokens, u.Email)
+                || IsMentionMatch(mentionTokens, GetEmailLocalPart(u.Email))
+                || (identityUserNames.TryGetValue(u.Id, out var userName) && IsMentionMatch(mentionTokens, userName)))
+            .Select(u => u.Id)
+            .Distinct()
+            .ToList();
+    }
+
+    private static HashSet<string> ExtractMentionTokens(string content)
+    {
+        var tokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (Match match in MentionRegex.Matches(content))
+        {
+            var token = match.Groups[1].Value.Trim();
+            if (string.IsNullOrWhiteSpace(token)) continue;
+
+            tokens.Add(token.ToLowerInvariant());
+            var compactToken = ToMentionKey(token);
+            if (!string.IsNullOrWhiteSpace(compactToken)) tokens.Add(compactToken);
+        }
+
+        return tokens;
+    }
+
+    private static bool IsMentionMatch(HashSet<string> mentionTokens, string? candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate)) return false;
+
+        var normalized = candidate.Trim().TrimStart('@').ToLowerInvariant();
+        if (mentionTokens.Contains(normalized)) return true;
+
+        var compact = ToMentionKey(candidate);
+        return !string.IsNullOrWhiteSpace(compact) && mentionTokens.Contains(compact);
+    }
+
+    private static string GetEmailLocalPart(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return string.Empty;
+
+        var atIndex = email.IndexOf('@');
+        return atIndex > 0 ? email[..atIndex] : email;
+    }
+
+    private static string ToMentionKey(string value)
+    {
+        return new string(value
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToLowerInvariant)
+            .ToArray());
+    }
+
+    public async Task<(bool Success, string Message)> AddProgressAsync(OperationProgressInputViewModel vm)
+    {
+        var r = await db.OperationRequests.FindAsync(vm.OperationRequestId);
+        if (r is null || r.TenantId != tenant.TenantId || r.IsDeleted)
+            return (false, "Không tìm thấy yêu cầu.");
+        if (!await CanSupportRequestAsync(r.Id))
+            return (false, "Bạn không có quyền cập nhật tiến độ yêu cầu này.");
+        if (r.Status != OperationStatus.InProgress)
+            return (false, "Chỉ được cập nhật tiến độ khi yêu cầu đang xử lý.");
+        if (vm.ProgressPercent is < 0 or > 100)
+            return (false, "Tiến độ phải từ 0 đến 100%.");
+
+        var lastProgress = await db.OperationProgressLogs
+            .Where(p => p.OperationRequestId == r.Id && p.TenantId == tenant.TenantId && !p.IsDeleted)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => (decimal?)p.ProgressPercent)
+            .FirstOrDefaultAsync();
+
+        if (lastProgress.HasValue && vm.ProgressPercent < lastProgress.Value)
+            return (false, "Tiến độ mới không được nhỏ hơn lần cập nhật gần nhất.");
+
+        var now = DateTimeOffset.UtcNow;
+        var note = string.IsNullOrWhiteSpace(vm.Note) ? null : vm.Note.Trim();
+        db.OperationProgressLogs.Add(new OperationProgressLog
+        {
+            TenantId = tenant.TenantId,
+            OperationRequestId = r.Id,
+            ProgressPercent = vm.ProgressPercent,
+            Note = note,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = now
+        });
+
+        await audit.LogAsync("OperationRequest", r.Id, "ProgressCheckIn",
+            newValueObj: new { vm.ProgressPercent, Note = note });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved
+            ? (true, "Đã cập nhật tiến độ.")
+            : (false, "Không thể cập nhật tiến độ do dữ liệu đã thay đổi.");
     }
 
     public async Task<bool> HoldAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || r.Status != OperationStatus.InProgress) return false;
-        r.Status = (OperationStatus)9; // OnHold
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.OnHold)
+            || !await CanManageRequestWorkAsync(id)) return false;
+        var oldStatus = r.Status;
+        r.Status = OperationStatus.OnHold;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Hold", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"OnHold\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", id, "Hold",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.OnHold });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 
     public async Task<bool> ResumeAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || (int)r.Status != 9) return false; // 9 is OnHold
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.InProgress)
+            || !await CanManageRequestWorkAsync(id)) return false;
+        var oldStatus = r.Status;
         r.Status = OperationStatus.InProgress;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Resume", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"InProgress\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", id, "Resume",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.InProgress });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 
     public async Task<bool> ReopenAsync(Guid id)
     {
         var r = await db.OperationRequests.FindAsync(id);
-        if (r is null || r.TenantId != tenant.TenantId || (r.Status != OperationStatus.Completed && r.Status != OperationStatus.Cancelled)) return false;
+        if (r is null
+            || r.TenantId != tenant.TenantId
+            || !OperationRequestStateMachine.CanTransition(r.Status, OperationStatus.InProgress)
+            || !await CanManageRequestWorkAsync(id)) return false;
+        var oldStatus = r.Status;
         r.Status = OperationStatus.InProgress;
         r.UpdatedAt = DateTimeOffset.UtcNow;
         r.UpdatedByUserId = tenant.UserId;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Reopen", EntityName = "OperationRequest", EntityId = id, NewValuesJson = "{\"Status\":\"InProgress\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        await cache.InvalidateTenantCacheAsync();
-        return true;
+        await audit.LogAsync("OperationRequest", id, "Reopen",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { Status = OperationStatus.InProgress });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved) await cache.InvalidateTenantCacheAsync();
+        return saved;
     }
 }
 
 
 // ─── Work Kanban ─────────────────────────────────────────────────────────────
-public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
+public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant, IAuditService audit)
 {
-    public async Task<KanbanBoardViewModel> GetBoardAsync(string? search, Guid? departmentId)
+    private sealed record WipLimitDecision(
+        bool Allowed,
+        bool IsExceeded,
+        string? Message,
+        int ProjectedCount,
+        int? Limit,
+        bool Enforced);
+
+    public async Task<KanbanBoardViewModel> GetBoardAsync(
+        string? search,
+        Guid? departmentId,
+        Guid? sprintId = null,
+        Guid? assignedToUserId = null,
+        PriorityLevel? priority = null,
+        Guid? tagId = null,
+        DateOnly? dueFrom = null,
+        DateOnly? dueTo = null,
+        bool hasAttachment = false,
+        string? quick = null,
+        Guid? savedViewId = null)
     {
         var tid = tenant.TenantId;
+        if (savedViewId.HasValue)
+        {
+            var savedView = await db.KanbanSavedViews
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Id == savedViewId.Value
+                    && v.TenantId == tid
+                    && v.UserId == tenant.UserId
+                    && !v.IsDeleted);
+            if (savedView is not null)
+            {
+                search = savedView.SearchTerm;
+                departmentId = savedView.DepartmentId;
+                sprintId = savedView.SprintId;
+                assignedToUserId = savedView.AssignedToUserId;
+                priority = savedView.Priority;
+                tagId = savedView.TagId;
+                dueFrom = savedView.DueFrom;
+                dueTo = savedView.DueTo;
+                hasAttachment = savedView.HasAttachment;
+                quick = savedView.QuickFilter;
+            }
+        }
         
         // 1. Retrieve dynamic columns or seed defaults if empty
         var columns = await db.KanbanColumns
@@ -536,13 +1888,13 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             var defaultCols = new List<KanbanColumn>
             {
                 new() { TenantId = tid, Title = "Cần làm", AccentColor = "#8e8e93", SortOrder = 0, CreatedAt = DateTimeOffset.UtcNow },
-                new() { TenantId = tid, Title = "Đang xử lý", AccentColor = "#007aff", SortOrder = 1, CreatedAt = DateTimeOffset.UtcNow },
+                new() { TenantId = tid, Title = "Đang xử lý", AccentColor = "#007aff", SortOrder = 1, WipLimit = 8, CreatedAt = DateTimeOffset.UtcNow },
                 new() { TenantId = tid, Title = "Đang vướng", AccentColor = "#ff9500", SortOrder = 2, CreatedAt = DateTimeOffset.UtcNow },
                 new() { TenantId = tid, Title = "Hoàn thành", AccentColor = "#34c759", SortOrder = 3, IsDoneColumn = true, CreatedAt = DateTimeOffset.UtcNow },
                 new() { TenantId = tid, Title = "Đã hủy", AccentColor = "#ff3b30", SortOrder = 4, IsCancelledColumn = true, CreatedAt = DateTimeOffset.UtcNow }
             };
             db.KanbanColumns.AddRange(defaultCols);
-            await db.SaveChangesAsync();
+            await db.SaveChangesWithConcurrencyAsync();
             columns = defaultCols;
         }
 
@@ -550,6 +1902,7 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         var query = db.WorkItems
             .Include(w => w.OperationRequest)
             .Include(w => w.OrganizationUnit)
+            .Include(w => w.Sprint)
             .Include(w => w.Assignments)
                 .ThenInclude(a => a.AssignedToUser)
             .Include(w => w.Checklists)
@@ -557,6 +1910,62 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
 
         if (departmentId.HasValue)
             query = query.Where(w => w.OrganizationUnitId == departmentId.Value);
+
+        if (sprintId.HasValue)
+            query = query.Where(w => w.SprintId == sprintId.Value);
+
+        if (assignedToUserId.HasValue)
+            query = query.Where(w => w.Assignments
+                .Where(a => !a.IsDeleted)
+                .OrderByDescending(a => a.AssignedAt)
+                .Take(1)
+                .Any(a => a.AssignedToUserId == assignedToUserId.Value));
+
+        if (priority.HasValue)
+            query = query.Where(w => w.Priority == priority.Value);
+
+        if (dueFrom.HasValue)
+            query = query.Where(w => w.DueDate >= dueFrom.Value);
+
+        if (dueTo.HasValue)
+            query = query.Where(w => w.DueDate <= dueTo.Value);
+
+        if (hasAttachment)
+            query = query.Where(w => db.Attachments.Any(a =>
+                a.TenantId == tid
+                && !a.IsDeleted
+                && a.EntityName == "WorkItem"
+                && a.EntityId == w.Id));
+
+        if (tagId.HasValue)
+            query = query.Where(w => db.EntityTags.Any(t =>
+                t.TenantId == tid
+                && !t.IsDeleted
+                && t.EntityName == "WorkItem"
+                && t.EntityId == w.Id
+                && t.TagId == tagId.Value));
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var normalizedQuick = string.IsNullOrWhiteSpace(quick) ? null : quick.Trim().ToLowerInvariant();
+        if (normalizedQuick == "mine")
+        {
+            query = query.Where(w => w.Assignments
+                .Where(a => !a.IsDeleted)
+                .OrderByDescending(a => a.AssignedAt)
+                .Take(1)
+                .Any(a => a.AssignedToUserId == tenant.UserId));
+        }
+        else if (normalizedQuick == "overdue")
+        {
+            query = query.Where(w => w.DueDate.HasValue
+                && w.DueDate.Value < today
+                && w.Status != WorkItemStatus.Done
+                && w.Status != WorkItemStatus.Cancelled);
+        }
+        else if (normalizedQuick == "unassigned")
+        {
+            query = query.Where(w => !w.Assignments.Any(a => !a.IsDeleted));
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -572,6 +1981,35 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             .ThenByDescending(w => w.Priority)
             .ThenByDescending(w => w.CreatedAt)
             .ToListAsync();
+        var itemIds = items.Select(i => i.Id).ToList();
+        var attachmentCounts = itemIds.Any()
+            ? await db.Attachments
+                .Where(a => a.TenantId == tid && !a.IsDeleted && a.EntityName == "WorkItem" && itemIds.Contains(a.EntityId))
+                .GroupBy(a => a.EntityId)
+                .Select(g => new { WorkItemId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.WorkItemId, x => x.Count)
+            : new Dictionary<Guid, int>();
+        var tagRows = await db.EntityTags
+            .Include(t => t.Tag)
+            .Where(t => t.TenantId == tid && !t.IsDeleted && t.EntityName == "WorkItem" && itemIds.Contains(t.EntityId) && t.Tag != null)
+            .Select(t => new { WorkItemId = t.EntityId, t.Tag!.Name })
+            .ToListAsync();
+        var tagNames = tagRows
+            .GroupBy(t => t.WorkItemId)
+            .ToDictionary(g => g.Key, g => g.Select(t => t.Name).Distinct().ToList());
+        var blockingCounts = itemIds.Any()
+            ? await db.WorkItemDependencies
+                .Where(d => d.TenantId == tid
+                    && !d.IsDeleted
+                    && d.Type == WorkItemDependencyType.BlockedBy
+                    && itemIds.Contains(d.BlockedId)
+                    && d.Blocker != null
+                    && !d.Blocker.IsDeleted
+                    && d.Blocker.Status != WorkItemStatus.Done)
+                .GroupBy(d => d.BlockedId)
+                .Select(g => new { WorkItemId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.WorkItemId, x => x.Count)
+            : new Dictionary<Guid, int>();
 
         // 3. Auto-migrate legacy items that have KanbanColumnId == null
         var legacyItems = items.Where(w => w.KanbanColumnId == null).ToList();
@@ -593,7 +2031,7 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
                     db.Entry(item).State = EntityState.Modified;
                 }
             }
-            await db.SaveChangesAsync();
+            await db.SaveChangesWithConcurrencyAsync();
         }
 
         // 4. Group items into board view model columns
@@ -607,6 +2045,8 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             SortOrder = c.SortOrder,
             IsDoneColumn = c.IsDoneColumn,
             IsCancelledColumn = c.IsCancelledColumn,
+            WipLimit = c.WipLimit,
+            WipEnforced = c.WipEnforced,
             Items = new List<KanbanCardViewModel>()
         }).ToList();
 
@@ -615,6 +2055,12 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         {
             if (item.KanbanColumnId.HasValue && columnsMap.TryGetValue(item.KanbanColumnId.Value, out var colVm))
             {
+                var checklistTotal = item.Checklists.Count(c => !c.IsDeleted);
+                var checklistDone = item.Checklists.Count(c => c.IsCompleted && !c.IsDeleted);
+                var checklistPercent = checklistTotal > 0 ? (int)Math.Round((decimal)checklistDone / checklistTotal * 100) : GetStatusProgress(item.Status);
+                var progressPercent = checklistTotal > 0
+                    ? (int)Math.Round((checklistPercent + GetStatusProgress(item.Status)) / 2m)
+                    : GetStatusProgress(item.Status);
                 colVm.Items.Add(new KanbanCardViewModel
                 {
                     Id = item.Id,
@@ -628,6 +2074,8 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
                     IsDone = colVm.IsDoneColumn,
                     IsCancelled = colVm.IsCancelledColumn,
                     Department = item.OrganizationUnit?.Name ?? "",
+                    SprintId = item.SprintId,
+                    SprintName = item.Sprint?.Name,
                     Priority = item.Priority.ToString(),
                     PriorityClass = GetPriorityClass(item.Priority),
                     AssignedTo = item.Assignments
@@ -635,21 +2083,49 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
                         .Select(a => a.AssignedToUser?.FullName)
                         .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)),
                     DueDate = item.DueDate,
-                    ChecklistDone = item.Checklists.Count(c => c.IsCompleted && !c.IsDeleted),
-                    ChecklistTotal = item.Checklists.Count(c => !c.IsDeleted)
+                    ChecklistDone = checklistDone,
+                    ChecklistTotal = checklistTotal,
+                    ChecklistOverdueCount = item.Checklists.Count(c => !c.IsDeleted && !c.IsCompleted && c.DueDate.HasValue && c.DueDate.Value < today),
+                    ProgressPercent = progressPercent,
+                    AttachmentCount = attachmentCounts.GetValueOrDefault(item.Id),
+                    Tags = tagNames.GetValueOrDefault(item.Id) ?? [],
+                    BlockingDependencyCount = blockingCounts.GetValueOrDefault(item.Id)
                 });
             }
         }
+
+        var sprints = await GetSprintSummariesAsync(tid);
+        var activeSprint = sprintId.HasValue
+            ? sprints.FirstOrDefault(s => s.Id == sprintId.Value)
+            : sprints.FirstOrDefault(s => s.Status == SprintStatus.Active);
 
         return new KanbanBoardViewModel
         {
             SearchTerm = search,
             DepartmentFilter = departmentId,
+            SprintFilter = sprintId,
+            AssignedToFilter = assignedToUserId,
+            PriorityFilter = priority,
+            TagFilter = tagId,
+            DueFrom = dueFrom,
+            DueTo = dueTo,
+            HasAttachmentFilter = hasAttachment,
+            QuickFilter = normalizedQuick,
+            SavedViewId = savedViewId,
             Columns = boardColumns,
             Departments = await GetDepartmentOptionsAsync(tid),
             OperationRequests = await GetOperationRequestOptionsAsync(tid),
+            SprintOptions = sprints.Select(ToSprintOption).ToList(),
+            AssignableSprintOptions = sprints
+                .Where(s => s.Status != SprintStatus.Closed)
+                .Select(ToSprintOption)
+                .ToList(),
+            TagOptions = await GetTagOptionsAsync(tid),
+            SavedViews = await GetSavedViewsAsync(tid),
             Assignees = await GetAssigneeOptionsAsync(tid),
-            CreateForm = new WorkItemCreateViewModel { OrganizationUnitId = departmentId },
+            CreateForm = new WorkItemCreateViewModel { OrganizationUnitId = departmentId, SprintId = sprintId },
+            ActiveSprint = activeSprint,
+            Burndown = activeSprint?.Status == SprintStatus.Active ? await BuildSprintBurndownAsync(activeSprint.Id) : null,
             CanManageColumns = true
         };
     }
@@ -675,6 +2151,10 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         if (input.DueDate.HasValue && input.DueDate.Value < DateOnly.FromDateTime(DateTime.Today))
             return (false, "Hạn xử lý không được nhỏ hơn ngày hôm nay.");
 
+        var sprint = await GetAssignableSprintAsync(input.SprintId);
+        if (input.SprintId.HasValue && sprint is null)
+            return (false, "Sprint không hợp lệ hoặc đã đóng.");
+
         AppUser? assignee = null;
         if (input.AssignedToUserId.HasValue)
         {
@@ -689,6 +2169,13 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             .Where(c => c.TenantId == tid && !c.IsDeleted)
             .OrderBy(c => c.SortOrder)
             .FirstOrDefaultAsync();
+        WipLimitDecision? wipDecision = null;
+        if (firstColumn is not null)
+        {
+            wipDecision = await EvaluateWipLimitAsync(firstColumn);
+            if (!wipDecision.Allowed)
+                return (false, wipDecision.Message ?? "Cột Kanban đã vượt giới hạn WIP.");
+        }
 
         var workItem = new WorkItem
         {
@@ -700,6 +2187,7 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             Priority = input.Priority,
             Status = WorkItemStatus.Todo,
             KanbanColumnId = firstColumn?.Id,
+            SprintId = sprint?.Id,
             DueDate = input.DueDate,
             CreatedByUserId = tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow
@@ -720,27 +2208,25 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             });
         }
 
-        if (request.Status is OperationStatus.Approved or OperationStatus.Completed)
+        if (request.Status != OperationStatus.InProgress && OperationRequestStateMachine.CanTransition(request.Status, OperationStatus.InProgress))
         {
             request.Status = OperationStatus.InProgress;
             request.UpdatedAt = DateTimeOffset.UtcNow;
             request.UpdatedByUserId = tenant.UserId;
         }
 
-        db.AuditLogs.Add(new AuditLog
+        await audit.LogAsync("WorkItem", workItem.Id, "Create",
+            newValueObj: new { workItem.Title, workItem.Status, workItem.OperationRequestId, workItem.SprintId, AssignedToUserId = assignee?.Id, WipWarning = wipDecision?.Message });
+        if (wipDecision?.IsExceeded == true && firstColumn is not null)
         {
-            TenantId = tid,
-            UserId = tenant.UserId,
-            UserName = tenant.UserFullName,
-            Action = "Create",
-            EntityName = "WorkItem",
-            EntityId = workItem.Id,
-            NewValuesJson = $"{{\"{workItem.Title}\",\"Status\":\"{workItem.Status}\"}}",
-            CreatedAt = DateTimeOffset.UtcNow
-        });
+            await audit.LogAsync("KanbanColumn", firstColumn.Id, "WipLimitExceeded",
+                newValueObj: new { firstColumn.Title, wipDecision.ProjectedCount, wipDecision.Limit, wipDecision.Enforced, WorkItemId = workItem.Id });
+        }
 
-        await db.SaveChangesAsync();
-        return (true, "Đã tạo thẻ công việc trên Kanban.");
+        var saveResult = await db.SaveChangesWithConcurrencyMessageAsync("Đã tạo thẻ công việc trên Kanban.");
+        return saveResult.Success && wipDecision?.IsExceeded == true
+            ? (true, wipDecision.Message ?? "Đã tạo thẻ nhưng cột đã vượt giới hạn WIP.")
+            : saveResult;
     }
 
     public async Task<(bool Success, string Message)> MoveAsync(Guid workItemId, WorkItemStatus newStatus)
@@ -784,17 +2270,33 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         if (item.KanbanColumnId == targetColumnId)
             return (true, "Thẻ công việc đã ở trong cột này.");
 
+        var wipDecision = await EvaluateWipLimitAsync(col, item.Id);
+        if (!wipDecision.Allowed)
+            return (false, wipDecision.Message ?? "Cột mục tiêu đã vượt giới hạn WIP.");
+
+        var oldStatus = item.Status;
+        var newStatus = ResolveStatusForColumn(col);
+        if (newStatus != oldStatus && !WorkItemStateMachine.CanTransition(oldStatus, newStatus))
+            return (false, $"Không thể chuyển công việc từ {oldStatus} sang {newStatus}.");
+        var dependencyWarning = await GetDependencyWarningAsync(item.Id, newStatus);
+
         var oldColumnId = item.KanbanColumnId;
         item.KanbanColumnId = targetColumnId;
-
-        // Set status for backward compatibility
-        var oldStatus = item.Status;
-        if (col.IsDoneColumn) item.Status = WorkItemStatus.Done;
-        else if (col.IsCancelledColumn) item.Status = WorkItemStatus.Cancelled;
-        else item.Status = col.SortOrder == 0 ? WorkItemStatus.Todo : WorkItemStatus.InProgress;
+        item.Status = newStatus;
 
         item.UpdatedAt = DateTimeOffset.UtcNow;
         item.UpdatedByUserId = tenant.UserId;
+        db.WorkItemActivities.Add(new WorkItemActivity
+        {
+            TenantId = tid,
+            WorkItemId = item.Id,
+            FromColumnId = oldColumnId,
+            ToColumnId = targetColumnId,
+            MovedAt = item.UpdatedAt.Value,
+            MovedByUserId = tenant.UserId,
+            CreatedByUserId = tenant.UserId,
+            CreatedAt = item.UpdatedAt.Value
+        });
 
         foreach (var assignment in item.Assignments.Where(a => !a.IsDeleted))
         {
@@ -805,27 +2307,34 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
 
         await SyncOperationStatusAsync(item);
 
-        db.AuditLogs.Add(new AuditLog
+        await audit.LogAsync("WorkItem", item.Id, "MoveKanbanCard",
+            oldValueObj: new { KanbanColumnId = oldColumnId, Status = oldStatus },
+            newValueObj: new { KanbanColumnId = targetColumnId, item.Status, WipWarning = wipDecision.Message, DependencyWarning = dependencyWarning });
+        if (wipDecision.IsExceeded)
         {
-            TenantId = tid,
-            UserId = tenant.UserId,
-            UserName = tenant.UserFullName,
-            Action = "MoveKanbanCard",
-            EntityName = "WorkItem",
-            EntityId = item.Id,
-            OldValuesJson = $"{{\"{oldColumnId}\",\"Status\":\"{oldStatus}\"}}",
-            NewValuesJson = $"{{\"{targetColumnId}\",\"Status\":\"{item.Status}\"}}",
-            CreatedAt = DateTimeOffset.UtcNow
-        });
+            await audit.LogAsync("KanbanColumn", col.Id, "WipLimitExceeded",
+                newValueObj: new { col.Title, wipDecision.ProjectedCount, wipDecision.Limit, wipDecision.Enforced, WorkItemId = item.Id });
+        }
 
-        await db.SaveChangesAsync();
-        return (true, "Đã di chuyển trạng thái Kanban.");
+        var saveResult = await db.SaveChangesWithConcurrencyMessageAsync("Đã di chuyển trạng thái Kanban.");
+        if (!saveResult.Success)
+            return saveResult;
+
+        var finalMessage = wipDecision.IsExceeded
+            ? wipDecision.Message ?? "Đã di chuyển thẻ nhưng cột đã vượt giới hạn WIP."
+            : saveResult.Message;
+        if (!string.IsNullOrWhiteSpace(dependencyWarning))
+            finalMessage = $"{finalMessage} {dependencyWarning}";
+        return (true, finalMessage);
     }
 
     // ── Column Management ──────────────────────────────────────────────────────
-    public async Task<(bool Success, string Message)> CreateColumnAsync(string title, string? accentColor)
+    public async Task<(bool Success, string Message)> CreateColumnAsync(string title, string? accentColor, int? wipLimit = null, bool wipEnforced = false)
     {
         var tid = tenant.TenantId;
+        if (wipLimit.HasValue && wipLimit.Value <= 0)
+            return (false, "WIP limit phải lớn hơn 0.");
+
         var maxSort = await db.KanbanColumns
             .Where(c => c.TenantId == tid && !c.IsDeleted)
             .MaxAsync(c => (int?)c.SortOrder) ?? -1;
@@ -836,6 +2345,8 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             Title = title.Trim(),
             AccentColor = string.IsNullOrWhiteSpace(accentColor) ? "#8e8e93" : accentColor.Trim(),
             SortOrder = maxSort + 1,
+            WipLimit = wipLimit,
+            WipEnforced = wipLimit.HasValue && wipEnforced,
             CreatedByUserId = tenant.UserId,
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -843,6 +2354,28 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         db.KanbanColumns.Add(col);
         await db.SaveChangesAsync();
         return (true, "Đã tạo cột mới.");
+    }
+
+    public async Task<(bool Success, string Message)> UpdateColumnWipLimitAsync(Guid columnId, int? wipLimit, bool wipEnforced)
+    {
+        if (wipLimit.HasValue && wipLimit.Value <= 0)
+            return (false, "WIP limit phải lớn hơn 0.");
+
+        var col = await db.KanbanColumns
+            .FirstOrDefaultAsync(c => c.Id == columnId && c.TenantId == tenant.TenantId && !c.IsDeleted);
+        if (col is null) return (false, "Không tìm thấy cột.");
+
+        var oldValue = new { col.WipLimit, col.WipEnforced };
+        col.WipLimit = wipLimit;
+        col.WipEnforced = wipLimit.HasValue && wipEnforced;
+        col.UpdatedAt = DateTimeOffset.UtcNow;
+        col.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("KanbanColumn", col.Id, "UpdateWipLimit",
+            oldValueObj: oldValue,
+            newValueObj: new { col.WipLimit, col.WipEnforced });
+
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã cập nhật WIP limit.");
     }
 
     public async Task<(bool Success, string Message)> RenameColumnAsync(Guid columnId, string title)
@@ -885,9 +2418,9 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             card.KanbanColumnId = fallbackCol?.Id;
             if (fallbackCol != null)
             {
-                if (fallbackCol.IsDoneColumn) card.Status = WorkItemStatus.Done;
-                else if (fallbackCol.IsCancelledColumn) card.Status = WorkItemStatus.Cancelled;
-                else card.Status = fallbackCol.SortOrder == 0 ? WorkItemStatus.Todo : WorkItemStatus.InProgress;
+                var fallbackStatus = ResolveStatusForColumn(fallbackCol);
+                if (card.Status == fallbackStatus || WorkItemStateMachine.CanTransition(card.Status, fallbackStatus))
+                    card.Status = fallbackStatus;
             }
         }
 
@@ -901,8 +2434,7 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             db.Entry(remainingCols[i]).State = EntityState.Modified;
         }
 
-        await db.SaveChangesAsync();
-        return (true, $"Đã xóa cột \"{col.Title}\". Thẻ trong cột được chuyển sang \"{fallbackCol?.Title}\".");
+        return await db.SaveChangesWithConcurrencyMessageAsync($"Đã xóa cột \"{col.Title}\". Thẻ trong cột được chuyển sang \"{fallbackCol?.Title}\".");
     }
 
     public async Task<(bool Success, string Message)> MoveColumnAsync(Guid columnId, string direction)
@@ -949,11 +2481,74 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             && w.Status != WorkItemStatus.Done
             && w.Status != WorkItemStatus.Cancelled);
 
-        request.Status = item.Status == WorkItemStatus.Done && remainingActiveItems == 0
+        var nextRequestStatus = item.Status == WorkItemStatus.Done && remainingActiveItems == 0
             ? OperationStatus.Completed
             : OperationStatus.InProgress;
+
+        if (request.Status == nextRequestStatus)
+            return;
+
+        if (!OperationRequestStateMachine.CanTransition(request.Status, nextRequestStatus))
+            return;
+
+        request.Status = nextRequestStatus;
         request.UpdatedAt = DateTimeOffset.UtcNow;
         request.UpdatedByUserId = tenant.UserId;
+    }
+
+    private async Task<string?> GetDependencyWarningAsync(Guid workItemId, WorkItemStatus targetStatus)
+    {
+        if (targetStatus != WorkItemStatus.InProgress)
+            return null;
+
+        var blockerQuery = db.WorkItemDependencies
+            .Where(d => d.TenantId == tenant.TenantId
+                && !d.IsDeleted
+                && d.BlockedId == workItemId
+                && d.Type == WorkItemDependencyType.BlockedBy
+                && d.Blocker != null
+                && !d.Blocker.IsDeleted
+                && d.Blocker.Status != WorkItemStatus.Done);
+        var blockerCount = await blockerQuery.CountAsync();
+        var blockers = await blockerQuery
+            .OrderBy(d => d.Blocker!.DueDate ?? DateOnly.MaxValue)
+            .Select(d => d.Blocker!.Title)
+            .Take(3)
+            .ToListAsync();
+
+        if (blockerCount == 0)
+            return null;
+
+        return $"Cảnh báo dependency: còn {blockerCount} blocker chưa Done ({string.Join(", ", blockers)}).";
+    }
+
+    private async Task<WipLimitDecision> EvaluateWipLimitAsync(KanbanColumn column, Guid? movingWorkItemId = null)
+    {
+        if (!column.WipLimit.HasValue)
+            return new(true, false, null, 0, null, false);
+
+        var currentCount = await db.WorkItems.CountAsync(w =>
+            w.TenantId == tenant.TenantId
+            && w.KanbanColumnId == column.Id
+            && !w.IsDeleted
+            && (!movingWorkItemId.HasValue || w.Id != movingWorkItemId.Value));
+        var projectedCount = currentCount + 1;
+        if (projectedCount <= column.WipLimit.Value)
+            return new(true, false, null, projectedCount, column.WipLimit, column.WipEnforced);
+
+        var message = column.WipEnforced
+            ? $"Cột \"{column.Title}\" đã đạt WIP limit {currentCount}/{column.WipLimit}. Không thể thêm thẻ."
+            : $"Cảnh báo WIP: cột \"{column.Title}\" sẽ vượt {projectedCount}/{column.WipLimit} thẻ.";
+        return new(!column.WipEnforced, true, message, projectedCount, column.WipLimit, column.WipEnforced);
+    }
+
+    private static WorkItemStatus ResolveStatusForColumn(KanbanColumn col)
+    {
+        if (col.IsDoneColumn) return WorkItemStatus.Done;
+        if (col.IsCancelledColumn) return WorkItemStatus.Cancelled;
+        if (col.SortOrder == 0) return WorkItemStatus.Todo;
+        if (col.SortOrder == 2 || col.Title.Contains("vướng", StringComparison.OrdinalIgnoreCase)) return WorkItemStatus.Blocked;
+        return WorkItemStatus.InProgress;
     }
 
     private static string GetPriorityClass(PriorityLevel priority) => priority switch
@@ -963,6 +2558,16 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         PriorityLevel.High => "priority-high",
         PriorityLevel.Critical => "priority-critical",
         _ => "priority-normal"
+    };
+
+    private static int GetStatusProgress(WorkItemStatus status) => status switch
+    {
+        WorkItemStatus.Todo => 0,
+        WorkItemStatus.InProgress => 50,
+        WorkItemStatus.Blocked => 35,
+        WorkItemStatus.Done => 100,
+        WorkItemStatus.Cancelled => 0,
+        _ => 0
     };
 
     private Task<List<SelectOption>> GetDepartmentOptionsAsync(Guid tenantId) =>
@@ -986,6 +2591,508 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             .Select(r => new SelectOption { Value = r.Id.ToString(), Text = r.RequestNo + " - " + r.Title })
             .ToListAsync();
 
+    private Task<List<SelectOption>> GetTagOptionsAsync(Guid tenantId) =>
+        db.Tags
+            .Where(t => t.TenantId == tenantId && !t.IsDeleted)
+            .OrderBy(t => t.Name)
+            .Select(t => new SelectOption { Value = t.Id.ToString(), Text = t.Name })
+            .ToListAsync();
+
+    private Task<List<KanbanSavedViewItem>> GetSavedViewsAsync(Guid tenantId) =>
+        db.KanbanSavedViews
+            .Where(v => v.TenantId == tenantId && v.UserId == tenant.UserId && !v.IsDeleted)
+            .OrderBy(v => v.Name)
+            .Select(v => new KanbanSavedViewItem { Id = v.Id, Name = v.Name })
+            .ToListAsync();
+
+    public async Task<(bool Success, string Message)> SaveKanbanViewAsync(
+        string name,
+        string? search,
+        Guid? departmentId,
+        Guid? sprintId,
+        Guid? assignedToUserId,
+        PriorityLevel? priority,
+        Guid? tagId,
+        DateOnly? dueFrom,
+        DateOnly? dueTo,
+        bool hasAttachment,
+        string? quick)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return (false, "Tên saved view không được để trống.");
+
+        var normalizedName = name.Trim();
+        var existing = await db.KanbanSavedViews.FirstOrDefaultAsync(v =>
+            v.TenantId == tenant.TenantId
+            && v.UserId == tenant.UserId
+            && !v.IsDeleted
+            && v.Name == normalizedName);
+        if (existing is null)
+        {
+            existing = new KanbanSavedView
+            {
+                TenantId = tenant.TenantId,
+                UserId = tenant.UserId,
+                Name = normalizedName,
+                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedByUserId = tenant.UserId
+            };
+            db.KanbanSavedViews.Add(existing);
+        }
+
+        existing.SearchTerm = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
+        existing.DepartmentId = departmentId;
+        existing.SprintId = sprintId;
+        existing.AssignedToUserId = assignedToUserId;
+        existing.Priority = priority;
+        existing.TagId = tagId;
+        existing.DueFrom = dueFrom;
+        existing.DueTo = dueTo;
+        existing.HasAttachment = hasAttachment;
+        existing.QuickFilter = string.IsNullOrWhiteSpace(quick) ? null : quick.Trim().ToLowerInvariant();
+        existing.UpdatedAt = DateTimeOffset.UtcNow;
+        existing.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("KanbanSavedView", existing.Id, "Save",
+            newValueObj: new { existing.Name, existing.SearchTerm, existing.DepartmentId, existing.SprintId, existing.AssignedToUserId, existing.Priority, existing.TagId, existing.DueFrom, existing.DueTo, existing.HasAttachment, existing.QuickFilter });
+
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã lưu saved view Kanban.");
+    }
+
+    public async Task<(bool Success, string Message)> DeleteKanbanViewAsync(Guid id)
+    {
+        var view = await db.KanbanSavedViews
+            .FirstOrDefaultAsync(v => v.Id == id
+                && v.TenantId == tenant.TenantId
+                && v.UserId == tenant.UserId
+                && !v.IsDeleted);
+        if (view is null)
+            return (false, "Không tìm thấy saved view.");
+
+        view.IsDeleted = true;
+        view.UpdatedAt = DateTimeOffset.UtcNow;
+        view.UpdatedByUserId = tenant.UserId;
+        await audit.LogAsync("KanbanSavedView", view.Id, "Delete", oldValueObj: new { view.Name });
+
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã xóa saved view.");
+    }
+
+    private async Task<List<SprintSummaryViewModel>> GetSprintSummariesAsync(Guid tenantId) =>
+        await db.Sprints
+            .Where(s => s.TenantId == tenantId && !s.IsDeleted)
+            .OrderByDescending(s => s.Status == SprintStatus.Active)
+            .ThenByDescending(s => s.StartDate)
+            .Select(s => new SprintSummaryViewModel
+            {
+                Id = s.Id,
+                Name = s.Name,
+                StartDate = s.StartDate,
+                EndDate = s.EndDate,
+                Goal = s.Goal,
+                Status = s.Status,
+                TotalItems = s.WorkItems.Count(w => !w.IsDeleted),
+                DoneItems = s.WorkItems.Count(w => !w.IsDeleted && w.Status == WorkItemStatus.Done)
+            })
+            .ToListAsync();
+
+    private static SelectOption ToSprintOption(SprintSummaryViewModel sprint) => new()
+    {
+        Value = sprint.Id.ToString(),
+        Text = $"{sprint.Name} ({GetSprintStatusLabel(sprint.Status)})"
+    };
+
+    private Task<Sprint?> GetAssignableSprintAsync(Guid? sprintId)
+    {
+        if (!sprintId.HasValue)
+            return Task.FromResult<Sprint?>(null);
+
+        return db.Sprints.FirstOrDefaultAsync(s =>
+            s.Id == sprintId.Value
+            && s.TenantId == tenant.TenantId
+            && !s.IsDeleted
+            && s.Status != SprintStatus.Closed);
+    }
+
+    public async Task<(bool Success, string Message, Guid? SprintId)> CreateSprintAsync(WorkflowSprintCreateViewModel input)
+    {
+        var tid = tenant.TenantId;
+        if (string.IsNullOrWhiteSpace(input.Name))
+            return (false, "Tên sprint không được để trống.", null);
+
+        if (input.StartDate > input.EndDate)
+            return (false, "Ngày kết thúc sprint phải lớn hơn hoặc bằng ngày bắt đầu.", null);
+
+        if (input.Status == SprintStatus.Active)
+        {
+            var hasActiveSprint = await db.Sprints.AnyAsync(s =>
+                s.TenantId == tid
+                && !s.IsDeleted
+                && s.Status == SprintStatus.Active);
+            if (hasActiveSprint)
+                return (false, "Đã có sprint đang Active. Hãy đóng sprint hiện tại trước khi mở sprint mới.", null);
+        }
+
+        var sprint = new Sprint
+        {
+            TenantId = tid,
+            Name = input.Name.Trim(),
+            StartDate = input.StartDate,
+            EndDate = input.EndDate,
+            Goal = string.IsNullOrWhiteSpace(input.Goal) ? null : input.Goal.Trim(),
+            Status = input.Status,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedByUserId = tenant.UserId
+        };
+
+        db.Sprints.Add(sprint);
+        await audit.LogAsync("Sprint", sprint.Id, "Create",
+            newValueObj: new { sprint.Name, sprint.StartDate, sprint.EndDate, sprint.Goal, sprint.Status });
+
+        var saveResult = await db.SaveChangesWithConcurrencyMessageAsync("Đã tạo sprint.");
+        return (saveResult.Success, saveResult.Message, saveResult.Success ? sprint.Id : null);
+    }
+
+    public async Task<(bool Success, string Message)> UpdateSprintStatusAsync(Guid sprintId, SprintStatus status)
+    {
+        var sprint = await db.Sprints
+            .FirstOrDefaultAsync(s => s.Id == sprintId && s.TenantId == tenant.TenantId && !s.IsDeleted);
+        if (sprint is null)
+            return (false, "Không tìm thấy sprint.");
+
+        if (sprint.Status == status)
+            return (true, "Sprint đã ở trạng thái này.");
+
+        if (sprint.Status == SprintStatus.Closed)
+            return (false, "Sprint đã đóng không thể đổi trạng thái.");
+
+        var allowed = sprint.Status switch
+        {
+            SprintStatus.Planned => status is SprintStatus.Active or SprintStatus.Closed,
+            SprintStatus.Active => status == SprintStatus.Closed,
+            _ => false
+        };
+        if (!allowed)
+            return (false, $"Không thể chuyển sprint từ {GetSprintStatusLabel(sprint.Status)} sang {GetSprintStatusLabel(status)}.");
+
+        if (status == SprintStatus.Active)
+        {
+            var hasActiveSprint = await db.Sprints.AnyAsync(s =>
+                s.Id != sprint.Id
+                && s.TenantId == tenant.TenantId
+                && !s.IsDeleted
+                && s.Status == SprintStatus.Active);
+            if (hasActiveSprint)
+                return (false, "Đã có sprint đang Active. Hãy đóng sprint hiện tại trước.");
+        }
+
+        var oldStatus = sprint.Status;
+        sprint.Status = status;
+        sprint.UpdatedAt = DateTimeOffset.UtcNow;
+        sprint.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("Sprint", sprint.Id, "UpdateStatus",
+            oldValueObj: new { Status = oldStatus },
+            newValueObj: new { sprint.Status });
+
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã cập nhật trạng thái sprint.");
+    }
+
+    private async Task<SprintBurndownViewModel?> BuildSprintBurndownAsync(Guid sprintId)
+    {
+        var tid = tenant.TenantId;
+        var sprint = await db.Sprints
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == sprintId && s.TenantId == tid && !s.IsDeleted);
+        if (sprint is null)
+            return null;
+
+        var items = await db.WorkItems
+            .AsNoTracking()
+            .Where(w => w.TenantId == tid && w.SprintId == sprint.Id && !w.IsDeleted)
+            .Select(w => new { w.Id, w.Status, w.UpdatedAt, w.CreatedAt })
+            .ToListAsync();
+        var itemIds = items.Select(i => i.Id).ToList();
+
+        var doneColumnIds = await db.KanbanColumns
+            .AsNoTracking()
+            .Where(c => c.TenantId == tid && !c.IsDeleted && c.IsDoneColumn)
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        var doneMoves = itemIds.Any() && doneColumnIds.Any()
+            ? await db.WorkItemActivities
+                .AsNoTracking()
+                .Where(a => a.TenantId == tid
+                    && !a.IsDeleted
+                    && itemIds.Contains(a.WorkItemId)
+                    && a.ToColumnId.HasValue
+                    && doneColumnIds.Contains(a.ToColumnId.Value))
+                .GroupBy(a => a.WorkItemId)
+                .Select(g => new { WorkItemId = g.Key, CompletedAt = g.Min(a => a.MovedAt) })
+                .ToListAsync()
+            : [];
+        var completedAtByItem = doneMoves.ToDictionary(x => x.WorkItemId, x => x.CompletedAt);
+
+        var totalScope = items.Count;
+        var doneCount = items.Count(i => i.Status == WorkItemStatus.Done);
+        var days = Math.Max(1, sprint.EndDate.DayNumber - sprint.StartDate.DayNumber + 1);
+        var points = new List<SprintBurndownPoint>();
+
+        for (var index = 0; index < days; index++)
+        {
+            var date = sprint.StartDate.AddDays(index);
+            var dayEnd = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+            var completedByDay = items.Count(item =>
+            {
+                if (item.Status != WorkItemStatus.Done)
+                    return false;
+
+                var completedAt = completedAtByItem.TryGetValue(item.Id, out var movedAt)
+                    ? movedAt
+                    : item.UpdatedAt ?? item.CreatedAt;
+                return completedAt <= dayEnd;
+            });
+
+            var progress = days == 1 ? 1d : (double)index / (days - 1);
+            var idealRemaining = Math.Max(0, (int)Math.Round(totalScope * (1 - progress), MidpointRounding.AwayFromZero));
+            points.Add(new SprintBurndownPoint
+            {
+                DateLabel = date.ToString("dd/MM"),
+                IdealRemaining = idealRemaining,
+                ActualRemaining = Math.Max(0, totalScope - completedByDay)
+            });
+        }
+
+        return new SprintBurndownViewModel
+        {
+            SprintId = sprint.Id,
+            SprintName = sprint.Name,
+            StartDate = sprint.StartDate,
+            EndDate = sprint.EndDate,
+            TotalScope = totalScope,
+            DoneCount = doneCount,
+            Points = points
+        };
+    }
+
+    public async Task<WorkflowAnalyticsViewModel> GetAnalyticsAsync(DateOnly? from = null, DateOnly? to = null)
+    {
+        var tid = tenant.TenantId;
+        var toDate = to ?? DateOnly.FromDateTime(DateTime.Today);
+        var fromDate = from ?? toDate.AddDays(-30);
+        if (fromDate > toDate) (fromDate, toDate) = (toDate, fromDate);
+
+        var fromAt = new DateTimeOffset(fromDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var toAt = new DateTimeOffset(toDate.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+        var now = DateTimeOffset.UtcNow;
+
+        var columns = await db.KanbanColumns
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(c => c.TenantId == tid)
+            .OrderBy(c => c.SortOrder)
+            .Select(c => new { c.Id, c.Title, c.AccentColor, c.SortOrder, c.IsDoneColumn, c.IsCancelledColumn })
+            .ToListAsync();
+        var columnMap = columns.ToDictionary(c => c.Id);
+        var doneColumnIds = columns.Where(c => c.IsDoneColumn).Select(c => c.Id).ToHashSet();
+
+        var workItems = await db.WorkItems
+            .AsNoTracking()
+            .Where(w => w.TenantId == tid && !w.IsDeleted)
+            .Select(w => new { w.Id, w.CreatedAt, w.UpdatedAt, w.Status, w.KanbanColumnId })
+            .ToListAsync();
+        var workItemIds = workItems.Select(w => w.Id).ToList();
+        var activities = workItemIds.Any()
+            ? await db.WorkItemActivities
+                .AsNoTracking()
+                .Where(a => a.TenantId == tid && workItemIds.Contains(a.WorkItemId) && !a.IsDeleted)
+                .OrderBy(a => a.MovedAt)
+                .Select(a => new { a.WorkItemId, a.FromColumnId, a.ToColumnId, a.MovedAt })
+                .ToListAsync()
+            : [];
+        var activitiesByItem = activities
+            .GroupBy(a => a.WorkItemId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(a => a.MovedAt).ToList());
+
+        var completedMeasurements = workItems
+            .Where(w => w.Status == WorkItemStatus.Done)
+            .Select(w =>
+            {
+                activitiesByItem.TryGetValue(w.Id, out var itemActivities);
+                itemActivities ??= [];
+                var completedAt = itemActivities.FirstOrDefault(a => a.ToColumnId.HasValue && doneColumnIds.Contains(a.ToColumnId.Value))?.MovedAt
+                    ?? w.UpdatedAt
+                    ?? w.CreatedAt;
+                var firstInProgressAt = itemActivities.FirstOrDefault(a => a.ToColumnId.HasValue && ResolveColumnStatus(a.ToColumnId.Value) == WorkItemStatus.InProgress)?.MovedAt
+                    ?? w.CreatedAt;
+                return new
+                {
+                    w.Id,
+                    CompletedAt = completedAt,
+                    LeadDays = Math.Max(0, (completedAt - w.CreatedAt).TotalDays),
+                    CycleDays = Math.Max(0, (completedAt - firstInProgressAt).TotalDays)
+                };
+            })
+            .ToList();
+
+        var cycleTrend = completedMeasurements
+            .Where(x => x.CompletedAt >= fromAt && x.CompletedAt <= toAt)
+            .GroupBy(x => StartOfWeek(DateOnly.FromDateTime(x.CompletedAt.DateTime)))
+            .OrderBy(g => g.Key)
+            .Select(g => new CycleTimeTrendItem
+            {
+                PeriodLabel = $"{g.Key:dd/MM}",
+                AverageCycleDays = Math.Round(g.Average(x => x.CycleDays), 2),
+                CompletedCount = g.Count()
+            })
+            .ToList();
+        var completedInRange = completedMeasurements
+            .Where(x => x.CompletedAt >= fromAt && x.CompletedAt <= toAt)
+            .ToList();
+
+        var columnDurations = new Dictionary<Guid, (double Hours, int Visits)>();
+        var unassignedDuration = (Hours: 0d, Visits: 0);
+        foreach (var item in workItems)
+        {
+            activitiesByItem.TryGetValue(item.Id, out var itemActivities);
+            itemActivities ??= [];
+
+            if (!itemActivities.Any())
+            {
+                AddColumnDuration(item.KanbanColumnId, item.CreatedAt, item.Status == WorkItemStatus.Done ? item.UpdatedAt ?? now : now);
+                continue;
+            }
+
+            AddColumnDuration(itemActivities[0].FromColumnId ?? item.KanbanColumnId, item.CreatedAt, itemActivities[0].MovedAt);
+            for (var i = 0; i < itemActivities.Count; i++)
+            {
+                var start = itemActivities[i].MovedAt;
+                var end = i < itemActivities.Count - 1
+                    ? itemActivities[i + 1].MovedAt
+                    : ResolveNullableColumnStatus(itemActivities[i].ToColumnId) is WorkItemStatus.Done or WorkItemStatus.Cancelled ? itemActivities[i].MovedAt : now;
+                AddColumnDuration(itemActivities[i].ToColumnId, start, end);
+            }
+        }
+
+        var columnTimes = columnDurations
+            .Select(kvp =>
+            {
+                var title = columnMap.TryGetValue(kvp.Key, out var col)
+                    ? col.Title
+                    : "Không rõ cột";
+                var accent = columnMap.TryGetValue(kvp.Key, out col)
+                    ? col.AccentColor
+                    : "#8e8e93";
+                return new ColumnTimeAnalyticsItem
+                {
+                    ColumnId = kvp.Key,
+                    ColumnTitle = title,
+                    AccentColor = string.IsNullOrWhiteSpace(accent) ? "#8e8e93" : accent,
+                    AverageHours = kvp.Value.Visits > 0 ? Math.Round(kvp.Value.Hours / kvp.Value.Visits, 1) : 0,
+                    VisitCount = kvp.Value.Visits
+                };
+            })
+            .ToList();
+        if (unassignedDuration.Visits > 0)
+        {
+            columnTimes.Add(new ColumnTimeAnalyticsItem
+            {
+                ColumnId = null,
+                ColumnTitle = "Chưa phân cột",
+                AccentColor = "#8e8e93",
+                AverageHours = Math.Round(unassignedDuration.Hours / unassignedDuration.Visits, 1),
+                VisitCount = unassignedDuration.Visits
+            });
+        }
+        columnTimes = columnTimes.OrderByDescending(c => c.AverageHours).ToList();
+        if (columnTimes.Any()) columnTimes[0].IsBottleneck = true;
+
+        return new WorkflowAnalyticsViewModel
+        {
+            FromDate = fromDate,
+            ToDate = toDate,
+            TotalCards = workItems.Count,
+            CompletedCards = completedInRange.Count,
+            MovedCards = activities.Count(a => a.MovedAt >= fromAt && a.MovedAt <= toAt),
+            AverageLeadDays = completedInRange.Any() ? Math.Round(completedInRange.Average(x => x.LeadDays), 2) : 0,
+            AverageCycleDays = completedInRange.Any() ? Math.Round(completedInRange.Average(x => x.CycleDays), 2) : 0,
+            CycleTimeTrend = cycleTrend,
+            ColumnTimes = columnTimes,
+            CumulativeFlow = BuildCumulativeFlow()
+        };
+
+        void AddColumnDuration(Guid? columnId, DateTimeOffset start, DateTimeOffset end)
+        {
+            var clippedStart = start > fromAt ? start : fromAt;
+            var clippedEnd = end < toAt ? end : toAt;
+            if (clippedEnd <= clippedStart) return;
+
+            var hours = (clippedEnd - clippedStart).TotalHours;
+            if (!columnId.HasValue)
+            {
+                unassignedDuration = (unassignedDuration.Hours + hours, unassignedDuration.Visits + 1);
+                return;
+            }
+
+            var current = columnDurations.TryGetValue(columnId.Value, out var value) ? value : (Hours: 0d, Visits: 0);
+            columnDurations[columnId.Value] = (current.Hours + hours, current.Visits + 1);
+        }
+
+        WorkItemStatus ResolveNullableColumnStatus(Guid? columnId)
+        {
+            if (!columnId.HasValue) return WorkItemStatus.InProgress;
+            return ResolveColumnStatus(columnId.Value);
+        }
+
+        WorkItemStatus ResolveColumnStatus(Guid columnId)
+        {
+            if (!columnMap.TryGetValue(columnId, out var column)) return WorkItemStatus.InProgress;
+            if (column.IsDoneColumn) return WorkItemStatus.Done;
+            if (column.IsCancelledColumn) return WorkItemStatus.Cancelled;
+            if (column.SortOrder == 0) return WorkItemStatus.Todo;
+            if (column.SortOrder == 2 || column.Title.Contains("vướng", StringComparison.OrdinalIgnoreCase)) return WorkItemStatus.Blocked;
+            return WorkItemStatus.InProgress;
+        }
+
+        List<CumulativeFlowPoint> BuildCumulativeFlow()
+        {
+            var points = new List<CumulativeFlowPoint>();
+            var maxDays = Math.Min(45, toDate.DayNumber - fromDate.DayNumber + 1);
+            var startDate = toDate.AddDays(-(maxDays - 1));
+            if (startDate < fromDate) startDate = fromDate;
+
+            for (var date = startDate; date <= toDate; date = date.AddDays(1))
+            {
+                var dayEnd = new DateTimeOffset(date.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero);
+                var counts = columns.ToDictionary(c => c.Id, _ => 0);
+
+                foreach (var item in workItems.Where(w => w.CreatedAt <= dayEnd))
+                {
+                    activitiesByItem.TryGetValue(item.Id, out var itemActivities);
+                    itemActivities ??= [];
+                    var latestMove = itemActivities.LastOrDefault(a => a.MovedAt <= dayEnd);
+                    var columnId = latestMove?.ToColumnId
+                        ?? itemActivities.FirstOrDefault()?.FromColumnId
+                        ?? item.KanbanColumnId;
+                    if (columnId.HasValue && counts.ContainsKey(columnId.Value))
+                        counts[columnId.Value]++;
+                }
+
+                points.Add(new CumulativeFlowPoint
+                {
+                    DateLabel = date.ToString("dd/MM"),
+                    Columns = columns.Select(c => new ColumnCountPoint
+                    {
+                        ColumnTitle = c.Title,
+                        Count = counts.TryGetValue(c.Id, out var count) ? count : 0
+                    }).ToList()
+                });
+            }
+
+            return points;
+        }
+    }
+
     // ── Detail ─────────────────────────────────────────────────────────────────
     public async Task<WorkItemDetailViewModel?> GetDetailAsync(Guid id)
     {
@@ -993,8 +3100,10 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         var item = await db.WorkItems
             .Include(w => w.OperationRequest)
             .Include(w => w.OrganizationUnit)
+            .Include(w => w.Sprint)
             .Include(w => w.Assignments).ThenInclude(a => a.AssignedToUser)
             .Include(w => w.Checklists).ThenInclude(c => c.CompletedByUser)
+            .Include(w => w.Checklists).ThenInclude(c => c.AssignedToUser)
             .Include(w => w.Comments).ThenInclude(c => c.User)
             .FirstOrDefaultAsync(w => w.Id == id && w.TenantId == tid && !w.IsDeleted);
         if (item == null) return null;
@@ -1004,6 +3113,22 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             : "Hệ thống";
 
         var activeAssignment = item.Assignments.Where(a => !a.IsDeleted).OrderByDescending(a => a.AssignedAt).FirstOrDefault();
+        var dependencies = await db.WorkItemDependencies
+            .AsNoTracking()
+            .Include(d => d.Blocker)
+            .Include(d => d.Blocked)
+            .Where(d => d.TenantId == tid && !d.IsDeleted && (d.BlockedId == item.Id || d.BlockerId == item.Id))
+            .ToListAsync();
+        var dependencyOptions = await db.WorkItems
+            .AsNoTracking()
+            .Where(w => w.TenantId == tid && !w.IsDeleted && w.Id != item.Id)
+            .OrderByDescending(w => w.UpdatedAt ?? w.CreatedAt)
+            .Select(w => new SelectOption
+            {
+                Value = w.Id.ToString(),
+                Text = w.Title + " (" + w.Status.ToString() + ")"
+            })
+            .ToListAsync();
 
         return new WorkItemDetailViewModel
         {
@@ -1014,6 +3139,8 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             Department = item.OrganizationUnit?.Name ?? "", DepartmentId = item.OrganizationUnitId,
             RequestNo = item.OperationRequest?.RequestNo ?? "", RequestTitle = item.OperationRequest?.Title ?? "",
             OperationRequestId = item.OperationRequestId,
+            SprintId = item.SprintId,
+            SprintName = item.Sprint?.Name,
             AssignedTo = activeAssignment?.AssignedToUser?.FullName,
             AssignedToUserId = activeAssignment?.AssignedToUserId,
             DueDate = item.DueDate,
@@ -1021,11 +3148,44 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
                 && item.Status != WorkItemStatus.Done && item.Status != WorkItemStatus.Cancelled,
             CreatedAt = item.CreatedAt, UpdatedAt = item.UpdatedAt, CreatedByName = createdBy,
             Checklists = item.Checklists.Where(c => !c.IsDeleted).OrderBy(c => c.SortOrder)
-                .Select(c => new WorkItemChecklistItem { Id = c.Id, Title = c.Title, IsCompleted = c.IsCompleted, CompletedByName = c.CompletedByUser?.FullName, CompletedAt = c.CompletedAt }).ToList(),
+                .Select(c => new WorkItemChecklistItem
+                {
+                    Id = c.Id,
+                    Title = c.Title,
+                    SortOrder = c.SortOrder,
+                    AssignedToUserId = c.AssignedToUserId,
+                    AssignedToName = c.AssignedToUser?.FullName,
+                    DueDate = c.DueDate,
+                    IsCompleted = c.IsCompleted,
+                    CompletedByName = c.CompletedByUser?.FullName,
+                    CompletedAt = c.CompletedAt
+                }).ToList(),
             Comments = item.Comments.Where(c => !c.IsDeleted).OrderByDescending(c => c.CreatedAt)
                 .Select(c => new WorkItemCommentItem { Id = c.Id, Content = c.Content, UserName = c.User?.FullName ?? "", UserId = c.UserId, CreatedAt = c.CreatedAt }).ToList(),
             AssignmentHistory = item.Assignments.Where(a => !a.IsDeleted).OrderByDescending(a => a.AssignedAt)
-                .Select(a => new WorkItemAssignmentItem { Id = a.Id, UserName = a.AssignedToUser?.FullName ?? "", AssignedAt = a.AssignedAt, CompletedAt = a.CompletedAt }).ToList()
+                .Select(a => new WorkItemAssignmentItem { Id = a.Id, UserName = a.AssignedToUser?.FullName ?? "", AssignedAt = a.AssignedAt, CompletedAt = a.CompletedAt }).ToList(),
+            BlockingDependencies = dependencies.Where(d => d.BlockedId == item.Id && d.Blocker is not null)
+                .Select(d => new WorkItemDependencyItem
+                {
+                    Id = d.Id,
+                    WorkItemId = d.BlockerId,
+                    Title = d.Blocker!.Title,
+                    Status = d.Blocker.Status,
+                    StatusLabel = GetStatusLabel(d.Blocker.Status),
+                    Type = d.Type
+                }).ToList(),
+            BlockedItems = dependencies.Where(d => d.BlockerId == item.Id && d.Blocked is not null)
+                .Select(d => new WorkItemDependencyItem
+                {
+                    Id = d.Id,
+                    WorkItemId = d.BlockedId,
+                    Title = d.Blocked!.Title,
+                    Status = d.Blocked.Status,
+                    StatusLabel = GetStatusLabel(d.Blocked.Status),
+                    Type = d.Type
+                }).ToList(),
+            DependencyOptions = dependencyOptions,
+            ChecklistAssignees = await GetAssigneeOptionsAsync(tid)
         };
     }
 
@@ -1046,6 +3206,7 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             AssignedToUserId = activeAssignment?.AssignedToUserId,
             Priority = item.Priority, DueDate = item.DueDate, Status = item.Status,
             KanbanColumnId = item.KanbanColumnId,
+            SprintId = item.SprintId,
             Departments = await GetDepartmentOptionsAsync(tid),
             Assignees = await GetAssigneeOptionsAsync(tid),
             ColumnOptions = await db.KanbanColumns
@@ -1053,7 +3214,17 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
                 .OrderBy(c => c.SortOrder)
                 .Select(c => new SelectOption { Value = c.Id.ToString(), Text = c.Title })
                 .ToListAsync(),
-            StatusOptions = Enum.GetValues<WorkItemStatus>().Select(s => new SelectOption { Value = s.ToString(), Text = GetStatusLabel(s) }).ToList()
+            SprintOptions = await db.Sprints
+                .Where(s => s.TenantId == tid && !s.IsDeleted && s.Status != SprintStatus.Closed)
+                .OrderByDescending(s => s.Status == SprintStatus.Active)
+                .ThenBy(s => s.StartDate)
+                .Select(s => new SelectOption { Value = s.Id.ToString(), Text = s.Name + " (" + s.Status.ToString() + ")" })
+                .ToListAsync(),
+            StatusOptions = new[] { item.Status }
+                .Concat(WorkItemStateMachine.NextStates(item.Status))
+                .Distinct()
+                .Select(s => new SelectOption { Value = s.ToString(), Text = GetStatusLabel(s) })
+                .ToList()
         };
     }
 
@@ -1071,25 +3242,58 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         item.Priority = input.Priority;
         item.DueDate = input.DueDate;
         
+        var nextStatus = input.Status;
+        var nextColumnId = item.KanbanColumnId;
+        var oldColumnId = item.KanbanColumnId;
+        var oldSprintId = item.SprintId;
+        WipLimitDecision? wipDecision = null;
+
+        var sprint = await GetAssignableSprintAsync(input.SprintId);
+        if (input.SprintId.HasValue && sprint is null)
+            return (false, "Sprint không hợp lệ hoặc đã đóng.");
+
         if (input.KanbanColumnId.HasValue)
         {
-            item.KanbanColumnId = input.KanbanColumnId.Value;
-            var col = await db.KanbanColumns.FindAsync(input.KanbanColumnId.Value);
-            if (col != null)
+            var col = await db.KanbanColumns
+                .FirstOrDefaultAsync(c => c.Id == input.KanbanColumnId.Value && c.TenantId == tid && !c.IsDeleted);
+            if (col == null) return (false, "Không tìm thấy cột Kanban.");
+
+            if (item.KanbanColumnId != col.Id)
             {
-                if (col.IsDoneColumn) item.Status = WorkItemStatus.Done;
-                else if (col.IsCancelledColumn) item.Status = WorkItemStatus.Cancelled;
-                else item.Status = col.SortOrder == 0 ? WorkItemStatus.Todo : WorkItemStatus.InProgress;
+                wipDecision = await EvaluateWipLimitAsync(col, item.Id);
+                if (!wipDecision.Allowed)
+                    return (false, wipDecision.Message ?? "Cột Kanban đã vượt giới hạn WIP.");
             }
+
+            nextColumnId = col.Id;
+            nextStatus = ResolveStatusForColumn(col);
         }
-        else
-        {
-            item.Status = input.Status;
-        }
+
+        if (nextStatus != oldStatus && !WorkItemStateMachine.CanTransition(oldStatus, nextStatus))
+            return (false, $"Không thể chuyển công việc từ {oldStatus} sang {nextStatus}.");
+        var dependencyWarning = await GetDependencyWarningAsync(item.Id, nextStatus);
+
+        item.KanbanColumnId = nextColumnId;
+        item.Status = nextStatus;
+        item.SprintId = sprint?.Id;
 
         if (input.OrganizationUnitId.HasValue) item.OrganizationUnitId = input.OrganizationUnitId.Value;
         item.UpdatedAt = DateTimeOffset.UtcNow;
         item.UpdatedByUserId = tenant.UserId;
+        if (oldColumnId != nextColumnId)
+        {
+            db.WorkItemActivities.Add(new WorkItemActivity
+            {
+                TenantId = tid,
+                WorkItemId = item.Id,
+                FromColumnId = oldColumnId,
+                ToColumnId = nextColumnId,
+                MovedAt = item.UpdatedAt.Value,
+                MovedByUserId = tenant.UserId,
+                CreatedByUserId = tenant.UserId,
+                CreatedAt = item.UpdatedAt.Value
+            });
+        }
 
         var currentAssignment = item.Assignments.Where(a => !a.IsDeleted).OrderByDescending(a => a.AssignedAt).FirstOrDefault();
         if (input.AssignedToUserId != currentAssignment?.AssignedToUserId)
@@ -1116,16 +3320,127 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
             await SyncOperationStatusAsync(item);
         }
 
-        db.AuditLogs.Add(new AuditLog
+        await audit.LogAsync("WorkItem", item.Id, "Update",
+            oldValueObj: new { Status = oldStatus, SprintId = oldSprintId },
+            newValueObj: new { item.Title, item.Status, item.Priority, item.DueDate, item.KanbanColumnId, item.SprintId, WipWarning = wipDecision?.Message, DependencyWarning = dependencyWarning });
+        if (wipDecision?.IsExceeded == true && nextColumnId.HasValue)
         {
-            TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName,
-            Action = "Update", EntityName = "WorkItem", EntityId = item.Id,
-            NewValuesJson = $"{{\"{item.Title}\",\"Status\":\"{item.Status}\"}}",
-            CreatedAt = DateTimeOffset.UtcNow
-        });
+            await audit.LogAsync("KanbanColumn", nextColumnId.Value, "WipLimitExceeded",
+                newValueObj: new { wipDecision.ProjectedCount, wipDecision.Limit, wipDecision.Enforced, WorkItemId = item.Id });
+        }
 
-        await db.SaveChangesAsync();
-        return (true, "Đã cập nhật công việc.");
+        var saveResult = await db.SaveChangesWithConcurrencyMessageAsync("Đã cập nhật công việc.");
+        if (!saveResult.Success)
+            return saveResult;
+
+        var finalMessage = wipDecision?.IsExceeded == true
+            ? wipDecision.Message ?? "Đã cập nhật công việc nhưng cột đã vượt giới hạn WIP."
+            : saveResult.Message;
+        if (!string.IsNullOrWhiteSpace(dependencyWarning))
+            finalMessage = $"{finalMessage} {dependencyWarning}";
+        return (true, finalMessage);
+    }
+
+    public async Task<(bool Success, string Message)> AddDependencyAsync(Guid blockedId, Guid blockerId, WorkItemDependencyType type)
+    {
+        var tid = tenant.TenantId;
+        if (blockedId == Guid.Empty || blockerId == Guid.Empty)
+            return (false, "Thông tin dependency không hợp lệ.");
+
+        if (blockedId == blockerId)
+            return (false, "Một thẻ không thể phụ thuộc chính nó.");
+
+        var items = await db.WorkItems
+            .Where(w => w.TenantId == tid && !w.IsDeleted && (w.Id == blockedId || w.Id == blockerId))
+            .Select(w => new { w.Id, w.Title })
+            .ToListAsync();
+        if (items.Count != 2)
+            return (false, "Không tìm thấy thẻ công việc để tạo dependency.");
+
+        var exists = await db.WorkItemDependencies.AnyAsync(d =>
+            d.TenantId == tid
+            && !d.IsDeleted
+            && d.BlockedId == blockedId
+            && d.BlockerId == blockerId
+            && d.Type == type);
+        if (exists)
+            return (false, "Dependency này đã tồn tại.");
+
+        if (type == WorkItemDependencyType.BlockedBy && await CreatesBlockedByCycleAsync(blockerId, blockedId))
+            return (false, "Dependency này tạo vòng lặp. Hãy kiểm tra lại quan hệ blocker/blocked.");
+
+        var dependency = new WorkItemDependency
+        {
+            TenantId = tid,
+            BlockerId = blockerId,
+            BlockedId = blockedId,
+            Type = type,
+            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedByUserId = tenant.UserId
+        };
+
+        db.WorkItemDependencies.Add(dependency);
+        await audit.LogAsync("WorkItemDependency", dependency.Id, "Create",
+            newValueObj: new { dependency.BlockerId, dependency.BlockedId, dependency.Type });
+
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã thêm dependency.");
+    }
+
+    public async Task<(bool Success, string Message)> DeleteDependencyAsync(Guid dependencyId, Guid workItemId)
+    {
+        var dependency = await db.WorkItemDependencies
+            .FirstOrDefaultAsync(d => d.Id == dependencyId
+                && d.TenantId == tenant.TenantId
+                && !d.IsDeleted
+                && (d.BlockedId == workItemId || d.BlockerId == workItemId));
+        if (dependency is null)
+            return (false, "Không tìm thấy dependency.");
+
+        dependency.IsDeleted = true;
+        dependency.UpdatedAt = DateTimeOffset.UtcNow;
+        dependency.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("WorkItemDependency", dependency.Id, "Delete",
+            oldValueObj: new { dependency.BlockerId, dependency.BlockedId, dependency.Type });
+
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã xóa dependency.");
+    }
+
+    private async Task<bool> CreatesBlockedByCycleAsync(Guid blockerId, Guid blockedId)
+    {
+        var edges = await db.WorkItemDependencies
+            .AsNoTracking()
+            .Where(d => d.TenantId == tenant.TenantId
+                && !d.IsDeleted
+                && d.Type == WorkItemDependencyType.BlockedBy)
+            .Select(d => new { d.BlockerId, d.BlockedId })
+            .ToListAsync();
+
+        var graph = edges
+            .GroupBy(e => e.BlockerId)
+            .ToDictionary(g => g.Key, g => g.Select(e => e.BlockedId).ToList());
+        var visited = new HashSet<Guid>();
+        var queue = new Queue<Guid>();
+        queue.Enqueue(blockedId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (!visited.Add(current))
+                continue;
+
+            if (!graph.TryGetValue(current, out var nextIds))
+                continue;
+
+            foreach (var nextId in nextIds)
+            {
+                if (nextId == blockerId)
+                    return true;
+                queue.Enqueue(nextId);
+            }
+        }
+
+        return false;
     }
 
     // ── Delete ─────────────────────────────────────────────────────────────────
@@ -1134,9 +3449,8 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         var item = await db.WorkItems.FirstOrDefaultAsync(w => w.Id == id && w.TenantId == tenant.TenantId && !w.IsDeleted);
         if (item == null) return (false, "Không tìm thấy.");
         item.IsDeleted = true; item.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Delete", EntityName = "WorkItem", EntityId = id, CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        return (true, "Đã xóa công việc.");
+        await audit.LogAsync("WorkItem", id, "Delete", oldValueObj: new { item.Title, item.Status });
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã xóa công việc.");
     }
 
     // ── Comments ───────────────────────────────────────────────────────────────
@@ -1155,40 +3469,124 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
     }
 
     // ── Checklist ──────────────────────────────────────────────────────────────
-    public async Task<(bool Success, string Message)> AddChecklistAsync(Guid workItemId, string title)
+    public async Task<(bool Success, string Message, Guid? AssignedToUserId, string? WorkItemTitle, string? ChecklistTitle)> AddChecklistAsync(
+        Guid workItemId,
+        string title,
+        Guid? assignedToUserId = null,
+        DateOnly? dueDate = null)
     {
         var item = await db.WorkItems.FirstOrDefaultAsync(w => w.Id == workItemId && w.TenantId == tenant.TenantId && !w.IsDeleted);
-        if (item == null) return (false, "Không tìm thấy.");
+        if (item == null) return (false, "Không tìm thấy.", null, null, null);
+        if (string.IsNullOrWhiteSpace(title)) return (false, "Tiêu đề checklist không được trống.", null, null, null);
+
+        if (dueDate.HasValue && dueDate.Value < DateOnly.FromDateTime(DateTime.Today))
+            return (false, "Hạn checklist không được nhỏ hơn ngày hôm nay.", null, null, null);
+
+        var assignee = await GetChecklistAssigneeAsync(assignedToUserId);
+        if (assignedToUserId.HasValue && assignee is null)
+            return (false, "Người phụ trách checklist không hợp lệ.", null, null, null);
+
         var maxSort = await db.WorkItemChecklists.Where(c => c.WorkItemId == workItemId && !c.IsDeleted).MaxAsync(c => (int?)c.SortOrder) ?? 0;
-        db.WorkItemChecklists.Add(new WorkItemChecklist
+        var checklist = new WorkItemChecklist
         {
             TenantId = tenant.TenantId, WorkItemId = workItemId,
             Title = title.Trim(), SortOrder = maxSort + 1,
+            AssignedToUserId = assignee?.Id,
+            DueDate = dueDate,
             CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
-        });
-        await db.SaveChangesAsync();
-        return (true, "Đã thêm mục checklist.");
+        };
+        db.WorkItemChecklists.Add(checklist);
+        await audit.LogAsync("WorkItemChecklist", checklist.Id, "Create",
+            newValueObj: new { checklist.WorkItemId, checklist.Title, checklist.SortOrder, checklist.AssignedToUserId, checklist.DueDate });
+        var result = await db.SaveChangesWithConcurrencyMessageAsync("Đã thêm mục checklist.");
+        return (result.Success, result.Message, result.Success ? assignee?.Id : null, item.Title, checklist.Title);
+    }
+
+    public async Task<(bool Success, string Message, Guid? AssignedToUserId, string? WorkItemTitle, string? ChecklistTitle)> UpdateChecklistAsync(
+        Guid checklistId,
+        Guid workItemId,
+        string title,
+        Guid? assignedToUserId,
+        DateOnly? dueDate,
+        int sortOrder)
+    {
+        var checklist = await db.WorkItemChecklists
+            .Include(c => c.WorkItem)
+            .FirstOrDefaultAsync(c => c.Id == checklistId
+                && c.WorkItemId == workItemId
+                && c.TenantId == tenant.TenantId
+                && !c.IsDeleted);
+        if (checklist is null || checklist.WorkItem is null)
+            return (false, "Không tìm thấy mục checklist.", null, null, null);
+        if (string.IsNullOrWhiteSpace(title))
+            return (false, "Tiêu đề checklist không được trống.", null, null, null);
+        if (sortOrder <= 0)
+            return (false, "Thứ tự checklist phải lớn hơn 0.", null, null, null);
+        if (dueDate.HasValue
+            && dueDate.Value < DateOnly.FromDateTime(DateTime.Today)
+            && dueDate != checklist.DueDate
+            && !checklist.IsCompleted)
+            return (false, "Hạn checklist không được nhỏ hơn ngày hôm nay.", null, null, null);
+
+        var assignee = await GetChecklistAssigneeAsync(assignedToUserId);
+        if (assignedToUserId.HasValue && assignee is null)
+            return (false, "Người phụ trách checklist không hợp lệ.", null, null, null);
+
+        var oldAssignedToUserId = checklist.AssignedToUserId;
+        var oldValue = new { checklist.Title, checklist.SortOrder, checklist.AssignedToUserId, checklist.DueDate };
+        checklist.Title = title.Trim();
+        checklist.SortOrder = sortOrder;
+        checklist.AssignedToUserId = assignee?.Id;
+        checklist.DueDate = dueDate;
+        checklist.UpdatedAt = DateTimeOffset.UtcNow;
+        checklist.UpdatedByUserId = tenant.UserId;
+
+        await audit.LogAsync("WorkItemChecklist", checklist.Id, "Update",
+            oldValueObj: oldValue,
+            newValueObj: new { checklist.Title, checklist.SortOrder, checklist.AssignedToUserId, checklist.DueDate });
+        var result = await db.SaveChangesWithConcurrencyMessageAsync("Đã cập nhật checklist.");
+        var shouldNotify = result.Success && assignee?.Id != null && assignee.Id != oldAssignedToUserId;
+        return (result.Success, result.Message, shouldNotify ? assignee?.Id : null, checklist.WorkItem.Title, checklist.Title);
     }
 
     public async Task<(bool Success, string Message)> ToggleChecklistAsync(Guid checklistId)
     {
         var cl = await db.WorkItemChecklists.FirstOrDefaultAsync(c => c.Id == checklistId && c.TenantId == tenant.TenantId && !c.IsDeleted);
         if (cl == null) return (false, "Không tìm thấy.");
+        var oldValue = new { cl.IsCompleted, cl.CompletedByUserId, cl.CompletedAt };
         cl.IsCompleted = !cl.IsCompleted;
         cl.CompletedByUserId = cl.IsCompleted ? tenant.UserId : null;
         cl.CompletedAt = cl.IsCompleted ? DateTimeOffset.UtcNow : null;
         cl.UpdatedAt = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync();
-        return (true, cl.IsCompleted ? "Đã hoàn thành." : "Đã bỏ hoàn thành.");
+        cl.UpdatedByUserId = tenant.UserId;
+        await audit.LogAsync("WorkItemChecklist", cl.Id, cl.IsCompleted ? "Complete" : "Reopen",
+            oldValueObj: oldValue,
+            newValueObj: new { cl.IsCompleted, cl.CompletedByUserId, cl.CompletedAt });
+        return await db.SaveChangesWithConcurrencyMessageAsync(cl.IsCompleted ? "Đã hoàn thành." : "Đã bỏ hoàn thành.");
     }
 
     public async Task<(bool Success, string Message)> DeleteChecklistAsync(Guid checklistId)
     {
         var cl = await db.WorkItemChecklists.FirstOrDefaultAsync(c => c.Id == checklistId && c.TenantId == tenant.TenantId && !c.IsDeleted);
         if (cl == null) return (false, "Không tìm thấy.");
-        cl.IsDeleted = true; cl.UpdatedAt = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync();
-        return (true, "Đã xóa mục checklist.");
+        cl.IsDeleted = true;
+        cl.UpdatedAt = DateTimeOffset.UtcNow;
+        cl.UpdatedByUserId = tenant.UserId;
+        await audit.LogAsync("WorkItemChecklist", checklistId, "Delete",
+            oldValueObj: new { cl.WorkItemId, cl.Title, cl.SortOrder, cl.AssignedToUserId, cl.DueDate, cl.IsCompleted });
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã xóa mục checklist.");
+    }
+
+    private Task<AppUser?> GetChecklistAssigneeAsync(Guid? assignedToUserId)
+    {
+        if (!assignedToUserId.HasValue)
+            return Task.FromResult<AppUser?>(null);
+
+        return db.AppUsers.FirstOrDefaultAsync(u =>
+            u.Id == assignedToUserId.Value
+            && u.TenantId == tenant.TenantId
+            && u.Status == UserStatus.Active
+            && !u.IsDeleted);
     }
 
     private static string GetStatusLabel(WorkItemStatus s) => s switch
@@ -1200,11 +3598,136 @@ public class WorkKanbanService(ApplicationDbContext db, ITenantContext tenant)
         WorkItemStatus.Cancelled => "Đã hủy",
         _ => s.ToString()
     };
+
+    private static string GetSprintStatusLabel(SprintStatus status) => status switch
+    {
+        SprintStatus.Planned => "Kế hoạch",
+        SprintStatus.Active => "Đang chạy",
+        SprintStatus.Closed => "Đã đóng",
+        _ => status.ToString()
+    };
+
+    private static DateOnly StartOfWeek(DateOnly date)
+    {
+        var diff = ((int)date.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        return date.AddDays(-diff);
+    }
 }
 
 // ─── Approval ────────────────────────────────────────────────────────────────
-public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
+public class ApprovalService(
+    ApplicationDbContext db,
+    ITenantContext tenant,
+    IAuditService audit,
+    IOperationSlaService operationSla,
+    IOperationSlaWatcherQueue slaWatcherQueue,
+    CriticalPathCalculator criticalPath)
 {
+    private const string SalesOrderTargetType = "SalesOrder";
+    private const string OperationRequestTargetType = "OperationRequest";
+    private const string OperationPlanTargetType = "OperationPlan";
+    private const string DepartmentReviewStepCode = "DEPARTMENT_REVIEW";
+    private const string ExecutiveReviewStepCode = "EXECUTIVE_REVIEW";
+    private const string PlanReviewStepCode = "PLAN_REVIEW";
+
+    private static string StepNameFor(string targetType, string stepCode) =>
+        targetType switch
+        {
+            SalesOrderTargetType => stepCode == DepartmentReviewStepCode ? "Trưởng bộ phận duyệt đơn hàng" : "Ban giám đốc duyệt đơn hàng",
+            OperationPlanTargetType => "Duyệt kế hoạch vận hành",
+            _ => stepCode == DepartmentReviewStepCode ? "Trưởng bộ phận duyệt" : "Ban lãnh đạo duyệt"
+        };
+
+    private static string WorkflowNameFor(string targetType) =>
+        targetType switch
+        {
+            SalesOrderTargetType => "Quy trình phê duyệt đơn hàng",
+            OperationPlanTargetType => "Quy trình duyệt kế hoạch vận hành",
+            _ => "Quy trình phê duyệt yêu cầu vận hành"
+        };
+
+    private async Task<decimal> CalculateOperationEstimatedCostAsync(Guid requestId)
+    {
+        var lines = await db.OperationRequestLines
+            .Where(l => l.TenantId == tenant.TenantId && l.OperationRequestId == requestId && !l.IsDeleted)
+            .Select(l => new { l.Quantity, l.UnitPrice, l.LineAmount })
+            .ToListAsync();
+
+        return lines.Sum(l => l.LineAmount ?? l.Quantity * (l.UnitPrice ?? 0m));
+    }
+
+    private async Task<int> EnsureOperationPlanBaselinesAsync(OperationPlan plan, DateTimeOffset snapshotAt)
+    {
+        var taskIds = plan.Tasks.Where(t => !t.IsDeleted).Select(t => t.Id).ToList();
+        if (!taskIds.Any()) return 0;
+
+        var existingTaskIds = await db.PlanTaskBaselines
+            .Where(b => b.TenantId == tenant.TenantId && b.PlanId == plan.Id && taskIds.Contains(b.PlanTaskId) && !b.IsDeleted)
+            .Select(b => b.PlanTaskId)
+            .ToListAsync();
+
+        var missingTasks = plan.Tasks
+            .Where(t => !t.IsDeleted && !existingTaskIds.Contains(t.Id))
+            .ToList();
+
+        foreach (var task in missingTasks)
+        {
+            db.PlanTaskBaselines.Add(new PlanTaskBaseline
+            {
+                TenantId = tenant.TenantId,
+                PlanId = plan.Id,
+                PlanTaskId = task.Id,
+                TaskName = task.Name,
+                BaselineStart = task.StartTime,
+                BaselineEnd = task.EndTime,
+                BaselineAssignedUserId = task.AssignedUserId,
+                BaselineEquipmentId = task.EquipmentId,
+                SnapshottedAt = snapshotAt,
+                SnapshottedByUserId = tenant.UserId,
+                CreatedAt = snapshotAt,
+                CreatedByUserId = tenant.UserId
+            });
+        }
+
+        if (missingTasks.Any())
+        {
+            await audit.LogAsync("OperationPlan", plan.Id, "CreateBaseline",
+                newValueObj: new { BaselineTaskCount = missingTasks.Count, SnapshottedAt = snapshotAt });
+        }
+
+        return missingTasks.Count;
+    }
+
+    private async Task<CriticalPathResult> RecalculateOperationPlanCriticalPathAsync(OperationPlan plan)
+    {
+        var dependencies = await db.PlanTaskDependencies
+            .Where(d => d.TenantId == tenant.TenantId && d.PlanId == plan.Id && !d.IsDeleted)
+            .ToListAsync();
+
+        var result = criticalPath.Calculate(plan.Tasks.ToList(), dependencies, DateTime.UtcNow);
+        if (result.HasCycle) return result;
+
+        if (plan.ProjectedEndDate != result.ProjectedEndDate)
+        {
+            plan.ProjectedEndDate = result.ProjectedEndDate;
+        }
+
+        foreach (var task in plan.Tasks)
+        {
+            if (result.Tasks.TryGetValue(task.Id, out var schedule))
+            {
+                if (task.EarlyStart != schedule.EarlyStart) task.EarlyStart = schedule.EarlyStart;
+                if (task.EarlyFinish != schedule.EarlyFinish) task.EarlyFinish = schedule.EarlyFinish;
+                if (task.LateStart != schedule.LateStart) task.LateStart = schedule.LateStart;
+                if (task.LateFinish != schedule.LateFinish) task.LateFinish = schedule.LateFinish;
+                if (task.SlackMinutes != schedule.SlackMinutes) task.SlackMinutes = schedule.SlackMinutes;
+                if (task.IsCriticalPath != schedule.IsCritical) task.IsCriticalPath = schedule.IsCritical;
+            }
+        }
+
+        return result;
+    }
+
     public async Task<ApprovalTaskListViewModel> GetMyTasksAsync(string? search = null, string? statusFilter = null)
     {
         var tid = tenant.TenantId;
@@ -1223,7 +3746,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 .SelectMany(ep => ep.DepartmentAssignments.Where(da => !da.IsDeleted).Select(da => da.OrganizationUnitId))
                 .ToListAsync();
 
-            var reqIdsForFilter = allTasks.Where(t => t.TargetType != "SalesOrder").Select(t => t.TargetId).Distinct().ToList();
+            var reqIdsForFilter = allTasks.Where(t => t.TargetType == OperationRequestTargetType).Select(t => t.TargetId).Distinct().ToList();
             var reqDepts = await db.OperationRequests
                 .Where(r => reqIdsForFilter.Contains(r.Id))
                 .Select(r => new { r.Id, r.OrganizationUnitId })
@@ -1232,7 +3755,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
             allTasks = allTasks.Where(t =>
             {
                 if (t.AssignedRole != "DEPARTMENT_MANAGER") return true;
-                if (t.TargetType != "SalesOrder")
+                if (t.TargetType == OperationRequestTargetType)
                 {
                     if (reqDepts.TryGetValue(t.TargetId, out var reqDeptId))
                     {
@@ -1250,32 +3773,38 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
         var rejectedCount = allTasks.Count(t => t.Status == ApprovalStatus.Rejected);
         var totalCount = allTasks.Count;
 
-        var reqIds = allTasks.Where(t => t.TargetType != "SalesOrder").Select(t => t.TargetId).Distinct().ToList();
+        var reqIds = allTasks.Where(t => t.TargetType == OperationRequestTargetType).Select(t => t.TargetId).Distinct().ToList();
         var reqs = await db.OperationRequests
             .Include(r => r.OrganizationUnit)
             .Where(r => reqIds.Contains(r.Id))
             .ToDictionaryAsync(r => r.Id);
 
-        var soIds = allTasks.Where(t => t.TargetType == "SalesOrder").Select(t => t.TargetId).Distinct().ToList();
+        var soIds = allTasks.Where(t => t.TargetType == SalesOrderTargetType).Select(t => t.TargetId).Distinct().ToList();
         var salesOrders = await db.SalesOrders
             .Include(o => o.Customer)
             .Where(o => soIds.Contains(o.Id))
             .ToDictionaryAsync(o => o.Id);
 
+        var planIds = allTasks.Where(t => t.TargetType == OperationPlanTargetType).Select(t => t.TargetId).Distinct().ToList();
+        var operationPlans = await db.OperationPlans
+            .Where(p => planIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id);
+
         // Creator lookup
         var creatorIds = reqs.Values.Where(r => r.CreatedByUserId.HasValue).Select(r => r.CreatedByUserId!.Value)
             .Concat(salesOrders.Values.Where(o => o.CreatedByUserId.HasValue).Select(o => o.CreatedByUserId!.Value))
+            .Concat(operationPlans.Values.Where(p => p.CreatedByUserId.HasValue).Select(p => p.CreatedByUserId!.Value))
             .Distinct().ToList();
         var creators = await db.AppUsers.Where(u => creatorIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.FullName);
 
         ApprovalTaskItem Map(ApprovalTask t) {
-            if (t.TargetType == "SalesOrder" && salesOrders.TryGetValue(t.TargetId, out var so))
+            if (t.TargetType == SalesOrderTargetType && salesOrders.TryGetValue(t.TargetId, out var so))
             {
                 var createdByName = so.CreatedByUserId.HasValue && creators.TryGetValue(so.CreatedByUserId.Value, out var n) ? n : null;
                 return new ApprovalTaskItem
                 {
                     Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
-                    StepName = t.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt đơn hàng" : "Ban giám đốc duyệt đơn hàng",
+                    StepName = StepNameFor(t.TargetType, t.StepCode),
                     Status = t.Status.ToString(), AssignedRole = t.AssignedRole,
                     AssignedToName = t.AssignedToUser?.FullName,
                     DecisionNote = t.DecisionNote, DecidedAt = t.DecidedAt, CreatedAt = t.CreatedAt,
@@ -1288,12 +3817,31 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 };
             }
 
+            if (t.TargetType == OperationPlanTargetType && operationPlans.TryGetValue(t.TargetId, out var plan))
+            {
+                var createdByName = plan.CreatedByUserId.HasValue && creators.TryGetValue(plan.CreatedByUserId.Value, out var planCreatorName) ? planCreatorName : null;
+                return new ApprovalTaskItem
+                {
+                    Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
+                    StepName = StepNameFor(t.TargetType, t.StepCode),
+                    Status = t.Status.ToString(), AssignedRole = t.AssignedRole,
+                    AssignedToName = t.AssignedToUser?.FullName,
+                    DecisionNote = t.DecisionNote, DecidedAt = t.DecidedAt, CreatedAt = t.CreatedAt,
+                    RequestTitle = plan.Title, RequestNo = plan.Code,
+                    RequestPriority = "Normal",
+                    RequestCreatedAt = plan.CreatedAt,
+                    RequestDescription = $"Loại: {plan.PlanType}. Thời gian: {plan.StartDate:dd/MM/yyyy} - {plan.EndDate:dd/MM/yyyy}. {plan.Notes}",
+                    RequestDepartment = "Vận hành / Kế hoạch",
+                    RequestCreatedBy = createdByName
+                };
+            }
+
             reqs.TryGetValue(t.TargetId, out var req);
             var reqCreatedByName = req?.CreatedByUserId.HasValue == true && creators.TryGetValue(req.CreatedByUserId!.Value, out var rn) ? rn : null;
             return new ApprovalTaskItem
             {
                 Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
-                StepName = t.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban lãnh đạo duyệt",
+                StepName = StepNameFor(t.TargetType, t.StepCode),
                 Status = t.Status.ToString(), AssignedRole = t.AssignedRole,
                 AssignedToName = t.AssignedToUser?.FullName,
                 DecisionNote = t.DecisionNote, DecidedAt = t.DecidedAt, CreatedAt = t.CreatedAt,
@@ -1349,7 +3897,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
         DateTimeOffset reqCreatedAt = DateTimeOffset.MinValue;
         string status = "";
 
-        if (t.TargetType == "SalesOrder")
+        if (t.TargetType == SalesOrderTargetType)
         {
             var so = await db.SalesOrders.Include(o => o.Customer)
                 .FirstOrDefaultAsync(o => o.Id == t.TargetId);
@@ -1363,6 +3911,21 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 status = so.Status.ToString();
                 createdByName = so.CreatedByUserId.HasValue
                     ? await db.AppUsers.Where(u => u.Id == so.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
+            }
+        }
+        else if (t.TargetType == OperationPlanTargetType)
+        {
+            var plan = await db.OperationPlans.FirstOrDefaultAsync(p => p.Id == t.TargetId);
+            if (plan != null)
+            {
+                title = plan.Title;
+                no = plan.Code;
+                desc = $"Loại: {plan.PlanType}. Thời gian: {plan.StartDate:dd/MM/yyyy} - {plan.EndDate:dd/MM/yyyy}. {plan.Notes}";
+                dept = "Vận hành / Kế hoạch";
+                reqCreatedAt = plan.CreatedAt;
+                status = plan.Status.ToString();
+                createdByName = plan.CreatedByUserId.HasValue
+                    ? await db.AppUsers.Where(u => u.Id == plan.CreatedByUserId.Value).Select(u => u.FullName).FirstOrDefaultAsync() : null;
             }
         }
         else
@@ -1389,7 +3952,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
             .Select(a => new ApprovalStepItem
             {
                 Id = a.Id, StepCode = a.StepCode,
-                StepName = a.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban giám đốc duyệt",
+                StepName = StepNameFor(a.TargetType, a.StepCode),
                 Status = a.Status.ToString(),
                 AssignedToName = a.AssignedToUser?.FullName, AssignedRole = a.AssignedRole,
                 DecisionNote = a.DecisionNote, DecidedAt = a.DecidedAt, CreatedAt = a.CreatedAt,
@@ -1406,7 +3969,7 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
         return new ApprovalTaskDetailViewModel
         {
             Id = t.Id, TargetType = t.TargetType, TargetId = t.TargetId, StepCode = t.StepCode,
-            StepName = t.StepCode == "DEPARTMENT_REVIEW" ? "Trưởng bộ phận duyệt" : "Ban giám đốc duyệt",
+            StepName = StepNameFor(t.TargetType, t.StepCode),
             Status = t.Status.ToString(),
             StatusLabel = t.Status switch { ApprovalStatus.Pending => "Chờ duyệt", ApprovalStatus.Approved => "Đã duyệt", ApprovalStatus.Rejected => "Từ chối", ApprovalStatus.Skipped => "Bỏ qua", ApprovalStatus.Cancelled => "Đã hủy", _ => t.Status.ToString() },
             AssignedRole = t.AssignedRole, AssignedToName = t.AssignedToUser?.FullName, AssignedToUserId = t.AssignedToUserId,
@@ -1417,44 +3980,46 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
             RequestCreatedBy = createdByName,
             RequestCreatedAt = reqCreatedAt,
             RequestStatus = status,
-            WorkflowName = t.WorkflowInstance?.WorkflowDefinition?.Name ?? "Quy trình phê duyệt đơn hàng",
+            WorkflowName = t.WorkflowInstance?.WorkflowDefinition?.Name ?? WorkflowNameFor(t.TargetType),
             WorkflowStatus = t.WorkflowInstance?.Status.ToString(),
-            AllSteps = allSteps, AvailableAssignees = assignees
+            AllSteps = allSteps, AvailableAssignees = assignees,
+            NextStatuses = ApprovalTaskStateMachine.NextStates(t.Status).Select(s => s.ToString()).ToList()
         };
     }
 
     public async Task<bool> ApproveAsync(Guid taskId, string? note)
     {
         var t = await db.ApprovalTasks.Include(a => a.WorkflowInstance).FirstOrDefaultAsync(a => a.Id == taskId);
-        if (t is null || t.TenantId != tenant.TenantId || t.Status != ApprovalStatus.Pending) return false;
+        if (t is null || t.TenantId != tenant.TenantId || !ApprovalTaskStateMachine.CanTransition(t.Status, ApprovalStatus.Approved)) return false;
 
         t.Status = ApprovalStatus.Approved;
         t.DecisionNote = note;
         t.DecidedAt = DateTimeOffset.UtcNow;
         t.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (t.TargetType == "SalesOrder")
+        var shouldQueueSlaCheck = false;
+        if (t.TargetType == SalesOrderTargetType)
         {
             var so = await db.SalesOrders.FindAsync(t.TargetId);
             if (so != null)
             {
-                if (t.StepCode == "DEPARTMENT_REVIEW")
+                if (t.StepCode == DepartmentReviewStepCode)
                 {
                     // Department Manager approved, now escalate to Executive
                     var nextTask = new ApprovalTask
                     {
                         TenantId = tenant.TenantId,
                         WorkflowInstanceId = t.WorkflowInstanceId,
-                        TargetType = "SalesOrder",
+                        TargetType = SalesOrderTargetType,
                         TargetId = so.Id,
-                        StepCode = "EXECUTIVE_REVIEW",
+                        StepCode = ExecutiveReviewStepCode,
                         AssignedRole = "EXECUTIVE",
                         Status = ApprovalStatus.Pending
                     };
                     db.ApprovalTasks.Add(nextTask);
                     so.UpdatedAt = DateTimeOffset.UtcNow;
                 }
-                else if (t.StepCode == "EXECUTIVE_REVIEW")
+                else if (t.StepCode == ExecutiveReviewStepCode)
                 {
                     // Executive approved, Order is fully approved
                     so.Status = SalesOrderStatus.Approved;
@@ -1468,12 +4033,41 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 }
             }
         }
+        else if (t.TargetType == OperationPlanTargetType)
+        {
+            var plan = await db.OperationPlans
+                .Include(p => p.Tasks.Where(task => !task.IsDeleted))
+                .FirstOrDefaultAsync(p => p.Id == t.TargetId && p.TenantId == tenant.TenantId && !p.IsDeleted);
+            if (plan != null)
+            {
+                var oldPlanStatus = plan.Status;
+                if (!OperationPlanStateMachine.CanTransition(plan.Status, OperationPlanStatus.Approved)) return false;
+
+                plan.Status = OperationPlanStatus.Approved;
+                plan.UpdatedAt = DateTimeOffset.UtcNow;
+                plan.UpdatedByUserId = tenant.UserId;
+                var baselineCount = await EnsureOperationPlanBaselinesAsync(plan, DateTimeOffset.UtcNow);
+                var criticalPathResult = await RecalculateOperationPlanCriticalPathAsync(plan);
+
+                await audit.LogAsync("OperationPlan", plan.Id, "Approve",
+                    oldValueObj: new { Status = oldPlanStatus },
+                    newValueObj: new { plan.Status },
+                    extra: new { ApprovalTaskId = taskId, BaselineTaskCount = baselineCount, criticalPathResult.ProjectedEndDate, Note = note });
+
+                if (t.WorkflowInstance != null)
+                {
+                    t.WorkflowInstance.Status = WorkflowInstanceStatus.Completed;
+                    t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
+                }
+            }
+        }
         else
         {
             var req = await db.OperationRequests.FindAsync(t.TargetId);
             if (req != null)
             {
-                if (t.StepCode == "DEPARTMENT_REVIEW")
+                OperationStatus nextRequestStatus;
+                if (t.StepCode == DepartmentReviewStepCode)
                 {
                     // Multi-step: if total amount > 50,000,000, escalate to EXECUTIVE
                     if (req.TotalAmount > 50000000)
@@ -1482,49 +4076,61 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                         {
                             TenantId = tenant.TenantId,
                             WorkflowInstanceId = t.WorkflowInstanceId,
-                            TargetType = "OperationRequest",
+                            TargetType = OperationRequestTargetType,
                             TargetId = req.Id,
-                            StepCode = "EXECUTIVE_REVIEW",
+                            StepCode = ExecutiveReviewStepCode,
                             AssignedRole = "EXECUTIVE",
                             Status = ApprovalStatus.Pending,
                             CreatedAt = DateTimeOffset.UtcNow
                         };
                         db.ApprovalTasks.Add(nextTask);
-                        req.Status = OperationStatus.InReview;
+                        nextRequestStatus = OperationStatus.InReview;
                     }
                     else
                     {
-                        req.Status = OperationStatus.Approved;
+                        nextRequestStatus = OperationStatus.Approved;
                     }
                 }
-                else if (t.StepCode == "EXECUTIVE_REVIEW")
+                else if (t.StepCode == ExecutiveReviewStepCode)
                 {
-                    req.Status = OperationStatus.Approved;
+                    nextRequestStatus = OperationStatus.Approved;
                 }
                 else
                 {
-                    req.Status = OperationStatus.Approved;
+                    nextRequestStatus = OperationStatus.Approved;
                 }
-                req.UpdatedAt = DateTimeOffset.UtcNow;
+
+                if (!OperationRequestStateMachine.CanTransition(req.Status, nextRequestStatus)) return false;
+                var decidedAt = DateTimeOffset.UtcNow;
+                req.Status = nextRequestStatus;
+                req.UpdatedAt = decidedAt;
+                if (nextRequestStatus == OperationStatus.Approved)
+                {
+                    req.EstimatedCost = await CalculateOperationEstimatedCostAsync(req.Id);
+                    await operationSla.ApplyApprovedAsync(req, decidedAt);
+                    shouldQueueSlaCheck = true;
+                }
             }
         }
 
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Approve", EntityName = "ApprovalTask", EntityId = taskId, NewValuesJson = "{\"Status\":\"Approved\"}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        return true;
+        await audit.LogAsync("ApprovalTask", taskId, "Approve",
+            newValueObj: new { Status = ApprovalStatus.Approved, t.TargetType, t.TargetId, t.StepCode });
+        var saved = await db.SaveChangesWithConcurrencyAsync();
+        if (saved && shouldQueueSlaCheck) slaWatcherQueue.TryQueue("operation-request-approved");
+        return saved;
     }
 
     public async Task<bool> RejectAsync(Guid taskId, string reason)
     {
         var t = await db.ApprovalTasks.Include(a => a.WorkflowInstance).FirstOrDefaultAsync(a => a.Id == taskId);
-        if (t is null || t.TenantId != tenant.TenantId || t.Status != ApprovalStatus.Pending) return false;
+        if (t is null || t.TenantId != tenant.TenantId || !ApprovalTaskStateMachine.CanTransition(t.Status, ApprovalStatus.Rejected)) return false;
 
         t.Status = ApprovalStatus.Rejected;
         t.DecisionNote = reason;
         t.DecidedAt = DateTimeOffset.UtcNow;
         t.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (t.TargetType == "SalesOrder")
+        if (t.TargetType == SalesOrderTargetType)
         {
             var so = await db.SalesOrders.FindAsync(t.TargetId);
             if (so != null)
@@ -1538,15 +4144,42 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
             }
         }
+        else if (t.TargetType == OperationPlanTargetType)
+        {
+            var plan = await db.OperationPlans.FindAsync(t.TargetId);
+            if (plan != null)
+            {
+                var oldPlanStatus = plan.Status;
+                if (!OperationPlanStateMachine.CanTransition(plan.Status, OperationPlanStatus.Draft)) return false;
+                plan.Status = OperationPlanStatus.Draft;
+                plan.UpdatedAt = DateTimeOffset.UtcNow;
+                plan.UpdatedByUserId = tenant.UserId;
+
+                await audit.LogAsync("OperationPlan", plan.Id, "Reject",
+                    oldValueObj: new { Status = oldPlanStatus },
+                    newValueObj: new { plan.Status },
+                    extra: new { ApprovalTaskId = taskId, Reason = reason });
+            }
+            if (t.WorkflowInstance != null)
+            {
+                t.WorkflowInstance.Status = WorkflowInstanceStatus.Rejected;
+                t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
+            }
+        }
         else
         {
             var req = await db.OperationRequests.FindAsync(t.TargetId);
-            if (req != null) { req.Status = OperationStatus.Rejected; req.UpdatedAt = DateTimeOffset.UtcNow; }
+            if (req != null)
+            {
+                if (!OperationRequestStateMachine.CanTransition(req.Status, OperationStatus.Rejected)) return false;
+                req.Status = OperationStatus.Rejected;
+                req.UpdatedAt = DateTimeOffset.UtcNow;
+            }
         }
 
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Reject", EntityName = "ApprovalTask", EntityId = taskId, NewValuesJson = $"{{\"Status\":\"Rejected\",\"Reason\":\"{reason}\"}}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        return true;
+        await audit.LogAsync("ApprovalTask", taskId, "Reject",
+            newValueObj: new { Status = ApprovalStatus.Rejected, Reason = reason, t.TargetType, t.TargetId, t.StepCode });
+        return await db.SaveChangesWithConcurrencyAsync();
     }
 
     public async Task<(bool Success, string Message)> ReassignAsync(Guid taskId, Guid newUserId)
@@ -1560,30 +4193,23 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
         var oldUserId = t.AssignedToUserId;
         t.AssignedToUserId = newUserId;
         t.UpdatedAt = DateTimeOffset.UtcNow;
-        db.AuditLogs.Add(new AuditLog
-        {
-            TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName,
-            Action = "Reassign", EntityName = "ApprovalTask", EntityId = taskId,
-            OldValuesJson = $"{{\"AssignedToUserId\":\"{oldUserId}\"}}",
-            NewValuesJson = $"{{\"AssignedToUserId\":\"{newUserId}\",\"AssignedToName\":\"{newUser.FullName}\"}}",
-            CreatedAt = DateTimeOffset.UtcNow
-        });
-        await db.SaveChangesAsync();
-        return (true, $"Đã chuyển giao cho {newUser.FullName}.");
+        await audit.LogAsync("ApprovalTask", taskId, "Reassign",
+            oldValueObj: new { AssignedToUserId = oldUserId },
+            newValueObj: new { AssignedToUserId = newUserId, AssignedToName = newUser.FullName });
+        return await db.SaveChangesWithConcurrencyMessageAsync($"Đã chuyển giao cho {newUser.FullName}.");
     }
 
     public async Task<(bool Success, string Message)> ReturnForRevisionAsync(Guid taskId, string reason)
     {
         var t = await db.ApprovalTasks.Include(a => a.WorkflowInstance).FirstOrDefaultAsync(a => a.Id == taskId);
-        if (t is null || t.TenantId != tenant.TenantId || t.Status != ApprovalStatus.Pending)
+        if (t is null || t.TenantId != tenant.TenantId || !ApprovalTaskStateMachine.CanTransition(t.Status, ApprovalStatus.Skipped))
             return (false, "Không thể trả lại.");
-
         t.Status = ApprovalStatus.Skipped;
         t.DecisionNote = $"Trả lại: {reason}";
         t.DecidedAt = DateTimeOffset.UtcNow;
         t.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (t.TargetType == "SalesOrder")
+        if (t.TargetType == SalesOrderTargetType)
         {
             var so = await db.SalesOrders.FindAsync(t.TargetId);
             if (so != null)
@@ -1597,20 +4223,119 @@ public class ApprovalService(ApplicationDbContext db, ITenantContext tenant)
                 t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
             }
         }
+        else if (t.TargetType == OperationPlanTargetType)
+        {
+            var plan = await db.OperationPlans.FindAsync(t.TargetId);
+            if (plan != null)
+            {
+                var oldPlanStatus = plan.Status;
+                if (!OperationPlanStateMachine.CanTransition(plan.Status, OperationPlanStatus.Draft))
+                    return (false, "Trạng thái kế hoạch hiện tại không cho phép trả lại chỉnh sửa.");
+
+                plan.Status = OperationPlanStatus.Draft;
+                plan.UpdatedAt = DateTimeOffset.UtcNow;
+                plan.UpdatedByUserId = tenant.UserId;
+
+                await audit.LogAsync("OperationPlan", plan.Id, "ReturnForRevision",
+                    oldValueObj: new { Status = oldPlanStatus },
+                    newValueObj: new { plan.Status },
+                    extra: new { ApprovalTaskId = taskId, Reason = reason });
+            }
+            if (t.WorkflowInstance != null)
+            {
+                t.WorkflowInstance.Status = WorkflowInstanceStatus.Cancelled;
+                t.WorkflowInstance.CompletedAt = DateTimeOffset.UtcNow;
+            }
+        }
         else
         {
             var req = await db.OperationRequests.FindAsync(t.TargetId);
-            if (req != null) { req.Status = OperationStatus.Draft; req.UpdatedAt = DateTimeOffset.UtcNow; }
+            if (req != null)
+            {
+                if (!OperationRequestStateMachine.CanTransition(req.Status, OperationStatus.Draft))
+                    return (false, "Trạng thái yêu cầu hiện tại không cho phép trả lại chỉnh sửa.");
+
+                req.Status = OperationStatus.Draft;
+                req.UpdatedAt = DateTimeOffset.UtcNow;
+            }
         }
 
-        db.AuditLogs.Add(new AuditLog { TenantId = tenant.TenantId, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "ReturnForRevision", EntityName = "ApprovalTask", EntityId = taskId, NewValuesJson = $"{{\"Status\":\"Skipped\",\"Reason\":\"{reason}\"}}", CreatedAt = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync();
-        return (true, "Đã trả lại yêu cầu để chỉnh sửa.");
+        await audit.LogAsync("ApprovalTask", taskId, "ReturnForRevision",
+            newValueObj: new { Status = ApprovalStatus.Skipped, Reason = reason, t.TargetType, t.TargetId, t.StepCode });
+        return await db.SaveChangesWithConcurrencyMessageAsync("Đã trả lại yêu cầu để chỉnh sửa.");
+    }
+
+    // ── BULK APPROVE / REJECT (F6.4) ─────────────────────────────────────────
+    public async Task<Models.Common.BulkResult> BulkApproveAsync(List<Guid> taskIds, string? note)
+    {
+        int success = 0, fail = 0;
+        var errors = new List<string>();
+        foreach (var id in taskIds)
+        {
+            try
+            {
+                var ok = await ApproveAsync(id, note);
+                if (ok) success++;
+                else { fail++; errors.Add($"Task {id}: không thể duyệt (trạng thái không hợp lệ)."); }
+            }
+            catch (Exception ex)
+            {
+                fail++;
+                errors.Add($"Task {id}: {ex.Message}");
+            }
+        }
+        return Models.Common.BulkResult.From(success, fail, errors);
+    }
+
+    public async Task<Models.Common.BulkResult> BulkRejectAsync(List<Guid> taskIds, string reason)
+    {
+        int success = 0, fail = 0;
+        var errors = new List<string>();
+        foreach (var id in taskIds)
+        {
+            try
+            {
+                var ok = await RejectAsync(id, reason);
+                if (ok) success++;
+                else { fail++; errors.Add($"Task {id}: không thể từ chối."); }
+            }
+            catch (Exception ex)
+            {
+                fail++;
+                errors.Add($"Task {id}: {ex.Message}");
+            }
+        }
+        return Models.Common.BulkResult.From(success, fail, errors);
+    }
+
+    // ── APPROVAL TIMELINE (F6.6) ─────────────────────────────────────────────
+    public async Task<List<ApprovalStepItem>> GetTimelineAsync(string targetType, Guid targetId)
+    {
+        var tid = tenant.TenantId;
+        var tasks = await db.ApprovalTasks
+            .Include(a => a.AssignedToUser)
+            .Where(a => a.TenantId == tid && a.TargetType == targetType && a.TargetId == targetId && !a.IsDeleted)
+            .OrderBy(a => a.CreatedAt)
+            .ToListAsync();
+
+        return tasks.Select(a => new ApprovalStepItem
+        {
+            Id = a.Id,
+            StepCode = a.StepCode,
+            StepName = StepNameFor(a.TargetType, a.StepCode),
+            Status = a.Status.ToString(),
+            AssignedToName = a.AssignedToUser?.FullName,
+            AssignedRole = a.AssignedRole,
+            DecisionNote = a.DecisionNote,
+            DecidedAt = a.DecidedAt,
+            CreatedAt = a.CreatedAt,
+            IsCurrent = a.Status == ApprovalStatus.Pending
+        }).ToList();
     }
 }
 
 // ─── AI Insight — Real Gemini Integration ────────────────────────────────────
-public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini)
+public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, GeminiService gemini, IAuditService audit)
 {
     public async Task<List<AiInsightListItem>> GetListAsync() =>
         await db.AiInsights.Where(a => a.TenantId == tenant.TenantId && !a.IsDeleted).OrderByDescending(a => a.CreatedAt)
@@ -1670,7 +4395,8 @@ public class AiInsightService(ApplicationDbContext db, ITenantContext tenant, Ge
 
         var insight = new AiInsight { TenantId = tid, ContextType = vm.ContextType, ContextId = vm.ContextId, Question = vm.Question, Summary = summary, Recommendation = recommendation, RiskLevel = risk, Status = status, AskedByUserId = tenant.UserId, CreatedByUserId = tenant.UserId, RawResponseJson = result.RawJson, CreatedAt = DateTimeOffset.UtcNow };
         db.AiInsights.Add(insight);
-        db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "AiQuery", EntityName = "AiInsight", EntityId = insight.Id, NewValuesJson = $"{{\"Model\":\"{result.ModelName ?? "local"}\",\"Tokens\":\"{result.InputTokens}+{result.OutputTokens}\",\"Risk\":\"{risk}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+        await audit.LogAsync("AiInsight", insight.Id, "AiQuery",
+            newValueObj: new { Model = result.ModelName ?? "local", InputTokens = result.InputTokens, OutputTokens = result.OutputTokens, Risk = risk });
         await db.SaveChangesAsync();
 
         return new AiInsightListItem { Id = insight.Id, ContextType = insight.ContextType, Question = insight.Question, Summary = summary, Recommendation = recommendation, RiskLevel = risk.ToString(), Status = status.ToString(), ModelName = result.ModelName, CreatedAt = insight.CreatedAt };

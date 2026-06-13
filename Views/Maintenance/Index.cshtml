@@ -3,14 +3,19 @@
     ViewData["Title"] = "Quản lý bảo trì";
     ViewData["Breadcrumb"] = "<span>Vận hành</span> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Bảo trì</span>";
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fa-solid fa-screwdriver-wrench me-2" style="color:var(--apple-blue)"></i>Quản lý bảo trì</h4>
-    <div class="d-flex gap-2">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title mb-1"><i class="fa-solid fa-screwdriver-wrench me-2" style="color:var(--apple-blue)"></i>Quản Lý Bảo Trì</h4>
+        <p class="mb-0" style="color:var(--text-muted);font-size:.84rem">Tổng quan hoạt động bảo trì, sửa chữa và vật tư dự phòng.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
         <a asp-action="Incidents" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-triangle-exclamation me-1"></i>Sự cố CM</a>
         <a asp-action="PmSchedules" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-calendar-days me-1"></i>Lịch PM</a>
         <a asp-action="SpareParts" class="btn btn-outline-success btn-sm"><i class="fa-solid fa-box-open me-1"></i>Phụ tùng</a>
-        <a asp-controller="Operations" asp-action="Create" asp-route-type="Maintenance_PM" class="btn btn-outline-primary btn-sm">+ Tạo PM</a>
-        <a asp-controller="Operations" asp-action="Create" asp-route-type="Maintenance_CM" class="btn btn-primary btn-sm">+ Tạo CM</a>
+        <a asp-controller="WorkOrders" asp-action="Index" class="btn btn-outline-warning btn-sm"><i class="fa-solid fa-clipboard-list me-1"></i>Work Orders</a>
+        <a asp-controller="SparePartRequisitions" asp-action="Index" class="btn btn-outline-info btn-sm"><i class="fa-solid fa-file-invoice me-1"></i>Phiếu xuất PT</a>
+        <a asp-controller="FailureModes" asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-bug me-1"></i>Failure Modes</a>
+        <a asp-action="SensorMonitor" class="btn btn-outline-dark btn-sm"><i class="fa-solid fa-gauge-high me-1"></i>IoT Sensor</a>
     </div>
 </div>
 <div class="row g-3 mb-3">
@@ -30,7 +35,7 @@
 <div class="content-card">
     <div class="card-body-custom p-0 table-responsive">
         <table class="data-table">
-            <thead><tr><th class="ps-3">Mã</th><th>Hạng mục</th><th>Loại</th><th>Trạng thái</th><th>Phụ tùng</th><th>Hạn</th><th class="text-end pe-3"></th></tr></thead>
+            <thead><tr><th class="ps-3" style="color:var(--apple-blue)">Mã</th><th style="color:var(--apple-blue)">Hạng mục</th><th style="color:var(--apple-blue)">Loại</th><th style="color:var(--apple-blue)">Trạng thái</th><th style="color:var(--apple-blue)">Phụ tùng</th><th style="color:var(--apple-blue)">Hạn</th><th class="text-end pe-3"></th></tr></thead>
             <tbody>
             @foreach (var r in Model.Requests)
             {

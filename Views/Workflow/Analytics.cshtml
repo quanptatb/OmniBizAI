@@ -1,0 +1,184 @@
+@model OmniBizAI.ViewModels.WorkflowAnalyticsViewModel
+@{
+    ViewData["Title"] = "Kanban analytics";
+    ViewData["Breadcrumb"] = "<a href='/Workflow/Kanban' style='color:var(--apple-blue);text-decoration:none'>Kanban</a> <i class='fa-solid fa-chevron-right mx-2' style='font-size:.6rem;color:var(--text-muted)'></i> <span>Analytics</span>";
+    var palette = new[] { "#007aff", "#34c759", "#ff9500", "#ff3b30", "#af52de", "#5ac8fa", "#8e8e93" };
+    var cycleData = new
+    {
+        labels = Model.CycleTimeTrend.Select(x => x.PeriodLabel),
+        cycleDays = Model.CycleTimeTrend.Select(x => x.AverageCycleDays),
+        completed = Model.CycleTimeTrend.Select(x => x.CompletedCount)
+    };
+    var cfdColumns = Model.CumulativeFlow.SelectMany(p => p.Columns.Select(c => c.ColumnTitle)).Distinct().ToList();
+    var cfdData = new
+    {
+        labels = Model.CumulativeFlow.Select(p => p.DateLabel),
+        datasets = cfdColumns.Select((name, index) =>
+        {
+            var color = palette[index % palette.Length];
+            return new
+            {
+                label = name,
+                data = Model.CumulativeFlow.Select(p => p.Columns.FirstOrDefault(c => c.ColumnTitle == name)?.Count ?? 0),
+                borderColor = color,
+                backgroundColor = color + "33",
+                fill = true,
+                tension = 0.35
+            };
+        })
+    };
+}
+
+<style>
+    .workflow-analytics {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .analytics-card {
+        background: rgba(255,255,255,.72);
+        border: 1px solid rgba(255,255,255,.55);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.03);
+        height: 100%;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+        line-height: 1;
+        font-weight: 800;
+        color: #1d1d1f;
+    }
+
+    .metric-label {
+        color: #86868b;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0;
+    }
+
+    .heat-row {
+        display: grid;
+        grid-template-columns: minmax(120px, 1fr) minmax(150px, 2fr) 70px;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+
+    .heat-bar {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(0,0,0,.05);
+        overflow: hidden;
+    }
+
+    .heat-fill {
+        height: 100%;
+        border-radius: inherit;
+    }
+</style>
+
+<div class="workflow-analytics animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h4 style="font-weight:800;color:#1d1d1f;margin:0">Kanban lead/cycle analytics</h4>
+            <p style="color:var(--text-secondary);margin:2px 0 0;font-size:.9rem">Theo dõi lead time, cycle time và bottleneck theo cột.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Kanban" class="btn btn-light border" style="border-radius:10px"><i class="fa-solid fa-table-columns me-1"></i>Kanban</a>
+        </div>
+    </div>
+
+    <form method="get" asp-action="Analytics" class="analytics-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Từ ngày</label>
+                <input type="date" name="from" value="@Model.FromDate.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:10px" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Đến ngày</label>
+                <input type="date" name="to" value="@Model.ToDate.ToString("yyyy-MM-dd")" class="form-control" style="border-radius:10px" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-dark flex-grow-1" style="border-radius:10px"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                <a asp-action="Analytics" class="btn btn-light border" style="border-radius:10px" title="Đặt lại"><i class="fa-solid fa-rotate-left"></i></a>
+            </div>
+        </div>
+    </form>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3"><div class="analytics-card"><div class="metric-label">Tổng thẻ</div><div class="metric-value">@Model.TotalCards</div></div></div>
+        <div class="col-md-3"><div class="analytics-card"><div class="metric-label">Hoàn thành</div><div class="metric-value">@Model.CompletedCards</div></div></div>
+        <div class="col-md-3"><div class="analytics-card"><div class="metric-label">Lead time TB</div><div class="metric-value">@Model.AverageLeadDays.ToString("0.#")<span style="font-size:1rem;color:#86868b"> ngày</span></div></div></div>
+        <div class="col-md-3"><div class="analytics-card"><div class="metric-label">Cycle time TB</div><div class="metric-value">@Model.AverageCycleDays.ToString("0.#")<span style="font-size:1rem;color:#86868b"> ngày</span></div></div></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="analytics-card">
+                <h6 style="font-weight:800;margin-bottom:18px"><i class="fa-solid fa-wave-square me-2 text-primary"></i>Cumulative flow</h6>
+                <div style="height:320px"><canvas id="cfdChart"></canvas></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="analytics-card">
+                <h6 style="font-weight:800;margin-bottom:18px"><i class="fa-solid fa-clock me-2 text-primary"></i>Cycle time theo tuần</h6>
+                <div style="height:320px"><canvas id="cycleChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics-card">
+        <h6 style="font-weight:800;margin-bottom:14px"><i class="fa-solid fa-fire-flame-curved me-2 text-danger"></i>Bottleneck heatmap</h6>
+        @if (Model.ColumnTimes.Any())
+        {
+            var maxHours = Model.ColumnTimes.Max(x => x.AverageHours);
+            foreach (var column in Model.ColumnTimes)
+            {
+                var width = maxHours > 0 ? Math.Max(4, column.AverageHours / maxHours * 100) : 0;
+                <div class="heat-row">
+                    <div style="font-weight:700;color:#1d1d1f">@column.ColumnTitle @(column.IsBottleneck ? "• Bottleneck" : "")</div>
+                    <div class="heat-bar"><div class="heat-fill" style="width:@width%;background:@column.AccentColor"></div></div>
+                    <div style="text-align:right;font-weight:700;color:#6e6e73">@column.AverageHours.ToString("0.#")h</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-4 text-muted">Chưa có dữ liệu di chuyển thẻ.</div>
+        }
+    </div>
+</div>
+
+<script>
+    const cycleData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cycleData));
+    const cfdData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cfdData));
+
+    if (window.Chart) {
+        new Chart(document.getElementById('cycleChart'), {
+            type: 'bar',
+            data: {
+                labels: cycleData.labels,
+                datasets: [
+                    { label: 'Cycle days', data: cycleData.cycleDays, backgroundColor: 'rgba(0,122,255,.18)', borderColor: '#007aff', borderWidth: 2, borderRadius: 8 },
+                    { label: 'Completed', data: cycleData.completed, type: 'line', borderColor: '#34c759', backgroundColor: '#34c759', tension: .35, yAxisID: 'y1' }
+                ]
+            },
+            options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true }, y1:{ beginAtZero:true, position:'right', grid:{ drawOnChartArea:false } } } }
+        });
+
+        new Chart(document.getElementById('cfdChart'), {
+            type: 'line',
+            data: cfdData,
+            options: {
+                responsive:true,
+                maintainAspectRatio:false,
+                interaction:{ mode:'index', intersect:false },
+                plugins:{ legend:{ position:'bottom' } },
+                scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, stacked:true } }
+            }
+        });
+    }
+</script>

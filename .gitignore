@@ -65,6 +65,7 @@ $RECYCLE.BIN/
 # OmniBizAI App Specific
 App_Data/Backups/
 App_Data/Temp/
+App_Data/uploads/
 *.db
 *.db-shm
 *.db-wal
