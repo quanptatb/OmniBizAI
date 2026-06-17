@@ -53,4 +53,8 @@ public class KpiDefinition : TenantEntity
     public ICollection<KpiTarget> Targets { get; set; } = new List<KpiTarget>();
     public ICollection<KpiDepartmentAssignment> DepartmentAssignments { get; set; } = new List<KpiDepartmentAssignment>();
     public ICollection<KpiEmployeeAssignment> EmployeeAssignments { get; set; } = new List<KpiEmployeeAssignment>();
+
+    // Liên kết với OperationRequest (nếu được tạo từ yêu cầu vận hành)
+    public Guid? OperationRequestId { get; set; }
+    public OperationRequest? OperationRequest { get; set; }
 }

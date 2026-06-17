@@ -214,6 +214,28 @@ public class OperationRequestService(ApplicationDbContext db, ITenantContext ten
         };
         db.OperationRequests.Add(entity);
         db.AuditLogs.Add(new AuditLog { TenantId = tid, UserId = tenant.UserId, UserName = tenant.UserFullName, Action = "Create", EntityName = "OperationRequest", EntityId = entity.Id, NewValuesJson = $"{{\"RequestNo\":\"{entity.RequestNo}\",\"Title\":\"{entity.Title}\"}}", CreatedAt = DateTimeOffset.UtcNow });
+
+        // Tự động sinh KPI hoặc OKR Nháp nếu Type tương ứng
+        if (vm.Type == "KPI_PROPOSAL")
+        {
+            var kpi = new KpiDefinition
+            {
+                TenantId = tid, Code = $"KPI-{DateTime.Today:yyMMdd}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}",
+                Name = vm.Title, Description = vm.Description, Status = KpiStatus.Draft,
+                AssignerUserId = tenant.UserId, CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow,
+                OperationRequest = entity
+            };
+            db.KpiDefinitions.Add(kpi);
+        }
+        else if (vm.Type == "OKR_PROPOSAL")
+        {
+            var okr = new OkrObjective
+            {
+                TenantId = tid, ObjectiveName = vm.Title, Level = OkrLevel.Company, Status = OkrStatus.Draft,
+                CreatedByUserId = tenant.UserId, CreatedAt = DateTimeOffset.UtcNow
+            };
+            db.OkrObjectives.Add(okr);
+        }
         await db.SaveChangesAsync();
         await cache.InvalidateTenantCacheAsync();
         return entity.Id;

@@ -23,4 +23,12 @@ public class OperationPlan : TenantEntity
     public string? Notes { get; set; }
 
     public ICollection<PlanTask> Tasks { get; set; } = new List<PlanTask>();
+
+    // Liên kết với OKR
+    public Guid? OkrObjectiveId { get; set; }
+    public OkrObjective? OkrObjective { get; set; }
+
+    // Liên kết với KPI
+    public Guid? KpiDefinitionId { get; set; }
+    public KpiDefinition? KpiDefinition { get; set; }
 }

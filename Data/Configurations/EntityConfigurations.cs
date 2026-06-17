@@ -51,6 +51,11 @@ public class OrganizationUnitConfiguration : IEntityTypeConfiguration<Organizati
             .HasForeignKey(e => e.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(e => e.ManagerUser)
+            .WithMany()
+            .HasForeignKey(e => e.ManagerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
 }

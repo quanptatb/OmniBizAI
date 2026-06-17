@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OmniBizAI.Data;
 
@@ -11,9 +12,11 @@ using OmniBizAI.Data;
 namespace OmniBizAI.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602141051_LinkKpiOkrAndOperations")]
+    partial class LinkKpiOkrAndOperations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4118,6 +4121,9 @@ namespace OmniBizAI.Data.Migrations
                     b.Property<Guid?>("ManagerUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("ManagerUserId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -4137,7 +4143,7 @@ namespace OmniBizAI.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagerUserId");
+                    b.HasIndex("ManagerUserId1");
 
                     b.HasIndex("ParentId");
 
@@ -8413,7 +8419,7 @@ namespace OmniBizAI.Data.Migrations
                 {
                     b.HasOne("OmniBizAI.Models.Entities.AppUser", "ManagerUser")
                         .WithMany()
-                        .HasForeignKey("ManagerUserId")
+                        .HasForeignKey("ManagerUserId1")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OmniBizAI.Models.Entities.OrganizationUnit", "Parent")
